@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="uz" class="h-full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Kirish · Poson Admin</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<!-- Prototype only: in Laravel the theme lives in resources/css/admin.css (see theme.css) and Alpine comes with Livewire -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<style type="text/tailwindcss">
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-brand-50: #e8f8ee;
+  --color-brand-100: #d3f1de;
+  --color-brand-200: #a8e3bd;
+  --color-brand-300: #66d080;
+  --color-brand-400: #4cc46d;
+  --color-brand-500: #1f9d55;
+  --color-brand-600: #178045;
+  --color-brand-700: #136a3a;
+  --color-brand-800: #0f522d;
+  --color-brand-900: #0b3d22;
+  --color-canvas: #f5f7fb;
+  --color-tint: #eefaf2;
+  --color-ok: #12a150;
+  --color-warn: #e8890c;
+  --color-danger: #d93636;
+}
+@layer base {
+  [x-cloak] { display: none !important; }
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-canvas text-slate-900 antialiased; }
+  .ico { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+}
+@layer components {
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+</style>
+</head>
+<body class="min-h-full bg-white">
+<svg width="0" height="0" class="absolute" aria-hidden="true">
+  <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></symbol>
+  <symbol id="i-page" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5M8 16h3"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></symbol>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="m21 4-18 7 6 2 2 6 3-4 5 4z"/><path d="m9 13 8-6"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 10h4l3 3v3h-7"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.5 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+  <symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 9V4h10v5M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-refund" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="p-scanner" viewBox="0 0 120 120"><rect x="16" y="18" width="78" height="34" rx="10" fill="#1f9d55"/><rect x="78" y="24" width="14" height="22" rx="4" fill="#0f172a"/><path d="M44 48h30l-4 54a8 8 0 0 1-8 7h-6a8 8 0 0 1-8-7z" fill="#0f172a"/><rect x="50" y="56" width="18" height="6" rx="3" fill="#1f9d55"/><path d="M96 35h20" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></symbol>
+  <symbol id="p-printer" viewBox="0 0 120 120"><rect x="22" y="22" width="76" height="30" rx="8" fill="#1f9d55"/><rect x="12" y="46" width="96" height="46" rx="10" fill="#0f172a"/><rect x="22" y="56" width="28" height="6" rx="3" fill="#475569"/><circle cx="92" cy="59" r="4" fill="#12a150"/><rect x="34" y="84" width="52" height="26" rx="3" fill="#fff" stroke="#cbd5e1" stroke-width="2"/></symbol>
+  <symbol id="p-terminal" viewBox="0 0 120 120"><rect x="34" y="6" width="52" height="108" rx="12" fill="#0f172a"/><rect x="40" y="18" width="40" height="42" rx="5" fill="#e8f8ee"/><path d="M46 30h28M46 38h20M46 46h24" stroke="#1f9d55" stroke-width="3" stroke-linecap="round"/><rect x="44" y="9" width="32" height="5" rx="2.5" fill="#ef4444"/><g fill="#475569"><circle cx="47" cy="72" r="4"/><circle cx="60" cy="72" r="4"/><circle cx="73" cy="72" r="4"/><circle cx="47" cy="84" r="4"/><circle cx="60" cy="84" r="4"/><circle cx="73" cy="84" r="4"/></g></symbol>
+  <symbol id="p-labels" viewBox="0 0 120 120"><ellipse cx="60" cy="90" rx="42" ry="12" fill="#cbd5e1"/><rect x="18" y="38" width="84" height="52" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><ellipse cx="60" cy="38" rx="42" ry="12" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><path d="M30 56h60M30 66h40" stroke="#1f9d55" stroke-width="3" stroke-linecap="round"/></symbol>
+  <symbol id="p-ribbon" viewBox="0 0 120 120"><rect x="14" y="40" width="46" height="50" rx="6" fill="#0f172a"/><rect x="60" y="40" width="46" height="50" rx="6" fill="#1f9d55"/><circle cx="37" cy="65" r="14" fill="#fff"/><circle cx="37" cy="65" r="6" fill="#0f172a"/><circle cx="83" cy="65" r="14" fill="#fff"/><circle cx="83" cy="65" r="6" fill="#1f9d55"/></symbol>
+  <symbol id="p-barcode" viewBox="0 0 120 120"><rect x="12" y="24" width="96" height="72" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><path d="M24 38v36M29 38v36M33 38v36M40 38v36M44 38v36M52 38v36M57 38v36M64 38v36M69 38v36M77 38v36M82 38v36M90 38v36" stroke="#0f172a" stroke-width="3"/><rect x="24" y="80" width="40" height="6" rx="3" fill="#1f9d55"/></symbol>
+</svg>
+<div class="grid min-h-dvh lg:grid-cols-2">
+  <!-- Brand panel (desktop) -->
+  <div class="relative hidden overflow-hidden bg-slate-900 lg:block">
+    <div class="absolute inset-0 opacity-[.07]" style="background-image:repeating-linear-gradient(90deg,#fff 0 2px,transparent 2px 9px,#fff 9px 10px,transparent 10px 16px,#fff 16px 19px,transparent 19px 24px)"></div>
+    <div class="absolute -right-32 -top-32 size-[28rem] rounded-full bg-brand-500/25 blur-3xl"></div>
+    <div class="relative flex h-full flex-col justify-between p-12">
+      <div class="flex items-center gap-3"><svg viewBox="0 0 100 100" class="size-10" aria-hidden="true"><path d="M14.8 59.6A36.5 36.5 0 1 1 44 86.2" fill="none" stroke="#66d080" stroke-width="15" stroke-linecap="round"/><circle cx="50" cy="50" r="17" fill="#66d080"/></svg><span class="text-2xl font-extrabold tracking-tight text-white">poson<span class="text-brand-400">.uz</span></span></div>
+      <div>
+        <p class="max-w-md text-3xl font-bold leading-tight tracking-tight text-white">Katalog, sotuv, buyurtmalar va servis — bitta boshqaruv panelida.</p>
+        <ul class="mt-8 space-y-3 text-slate-300">
+          <li class="flex items-center gap-3"><span class="grid size-8 place-items-center rounded-lg bg-white/10 text-brand-300"><svg class="ico size-4"><use href="#i-inbox"/></svg></span>Arizalar va tijorat takliflari</li>
+          <li class="flex items-center gap-3"><span class="grid size-8 place-items-center rounded-lg bg-white/10 text-brand-300"><svg class="ico size-4"><use href="#i-card"/></svg></span>Payme, Click va bank o'tkazmasi</li>
+          <li class="flex items-center gap-3"><span class="grid size-8 place-items-center rounded-lg bg-white/10 text-brand-300"><svg class="ico size-4"><use href="#i-telegram"/></svg></span>Telegram bildirishnomalari</li>
+        </ul>
+      </div>
+      <p class="text-sm text-slate-500">© 2026 Poson</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="flex flex-col px-5 py-6 sm:px-10">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2 lg:invisible"><svg viewBox="0 0 100 100" class="size-9" aria-hidden="true"><path d="M14.8 59.6A36.5 36.5 0 1 1 44 86.2" fill="none" stroke="#66d080" stroke-width="15" stroke-linecap="round"/><circle cx="50" cy="50" r="17" fill="#66d080"/></svg><span class="text-xl font-extrabold tracking-tight">poson<span class="text-brand-500">.uz</span></span></div>
+      <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-bold" aria-label="Til">
+        <a href="#" aria-current="true" class="rounded-md bg-white px-2.5 py-1 shadow-sm">UZ</a><a href="#" class="px-2.5 py-1 text-slate-500">RU</a><a href="#" class="px-2.5 py-1 text-slate-500">EN</a>
+      </div>
+    </div>
+
+    <div class="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10" x-data="{ show: false, loading: false, error: false }">
+      <h1 class="text-2xl font-bold tracking-tight">Boshqaruv paneliga kirish</h1>
+      <p class="mt-1.5 text-sm text-slate-500">Xodim hisobingiz ma'lumotlarini kiriting.</p>
+
+      <div x-cloak x-show="error" class="mt-6 flex gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert"><svg class="ico mt-0.5 size-4 shrink-0 text-danger"><use href="#i-alert"/></svg>E-mail yoki parol noto'g'ri. 4 ta urinish qoldi.</div>
+
+      <form class="mt-6 space-y-4" @submit.prevent="loading = true; setTimeout(() => { loading = false; error = true }, 900)">
+        <label class="block"><span class="text-sm font-semibold">E-mail</span>
+          <div class="relative mt-1.5"><svg class="ico pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400"><use href="#i-mail"/></svg><input type="email" autocomplete="username" required placeholder="ism@poson.uz" class="h-12 w-full rounded-lg border border-slate-200 pl-10 pr-3 text-base outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm"></div>
+        </label>
+        <label class="block"><span class="flex justify-between text-sm font-semibold">Parol <a href="#" class="font-semibold text-brand-600 hover:text-brand-700">Unutdingizmi?</a></span>
+          <div class="relative mt-1.5"><svg class="ico pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-400"><use href="#i-lock"/></svg><input :type="show ? 'text' : 'password'" autocomplete="current-password" required class="h-12 w-full rounded-lg border border-slate-200 pl-10 pr-11 text-base outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm"><button type="button" @click="show = !show" class="absolute right-1.5 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-md text-slate-400 hover:text-slate-700" :aria-label="show ? 'Parolni yashirish' : 'Parolni ko\'rsatish'"><svg class="ico size-5"><use href="#i-eye"/></svg></button></div>
+        </label>
+        <label class="flex items-center gap-2.5 text-sm text-slate-600"><input type="checkbox" class="size-4 rounded accent-brand-600">Meni eslab qol</label>
+        <button type="submit" :disabled="loading" class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:opacity-70">
+          <svg x-show="loading" class="size-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          <span x-text="loading ? 'Tekshirilmoqda…' : 'Kirish'"></span>
+        </button>
+      </form>
+      <p class="mt-8 flex items-center gap-2 text-xs text-slate-400"><svg class="ico size-4"><use href="#i-shield"/></svg>Barcha kirishlar jurnalga yoziladi. Muammo bo'lsa administratorga murojaat qiling.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
