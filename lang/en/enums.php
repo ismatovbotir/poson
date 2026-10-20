@@ -2,6 +2,51 @@
 
 return [
 
+    'attribute_type' => [
+        'text' => 'Text',
+        'number' => 'Number',
+        'boolean' => 'Yes / no',
+        'select' => 'List (one value)',
+        'multiselect' => 'List (several values)',
+    ],
+
+    'document_type' => [
+        'datasheet' => 'Datasheet',
+        'manual' => 'Manual',
+        'driver' => 'Driver',
+        'firmware' => 'Firmware',
+        'certificate' => 'Certificate',
+    ],
+
+    'price_level' => [
+        'retail' => 'Retail',
+        'dealer' => 'Dealer',
+        'wholesale' => 'Wholesale',
+    ],
+
+    'product_type' => [
+        'hardware' => 'Hardware',
+        'consumable' => 'Consumable',
+        'software' => 'Software',
+        'service' => 'Service',
+    ],
+
+    'product_unit' => [
+        'piece' => 'pcs',
+        'roll' => 'roll',
+        'box' => 'box',
+        'pack' => 'pack',
+        'license' => 'licence',
+        'hour' => 'hour',
+    ],
+
+    'relation_type' => [
+        'accessory' => 'Accessory',
+        'consumable' => 'Consumable',
+        'alternative' => 'Alternative',
+        'software' => 'Software',
+    ],
+
     'lead_source' => [
         'site' => 'Website',
         'telegram' => 'Telegram',

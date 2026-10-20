@@ -2,6 +2,51 @@
 
 return [
 
+    'attribute_type' => [
+        'text' => 'Текст',
+        'number' => 'Число',
+        'boolean' => 'Да / нет',
+        'select' => 'Список (одно значение)',
+        'multiselect' => 'Список (несколько значений)',
+    ],
+
+    'document_type' => [
+        'datasheet' => 'Технический паспорт',
+        'manual' => 'Руководство',
+        'driver' => 'Драйвер',
+        'firmware' => 'Прошивка',
+        'certificate' => 'Сертификат',
+    ],
+
+    'price_level' => [
+        'retail' => 'Розничная',
+        'dealer' => 'Дилерская',
+        'wholesale' => 'Оптовая',
+    ],
+
+    'product_type' => [
+        'hardware' => 'Оборудование',
+        'consumable' => 'Расходный материал',
+        'software' => 'Программное обеспечение',
+        'service' => 'Услуга',
+    ],
+
+    'product_unit' => [
+        'piece' => 'шт.',
+        'roll' => 'рулон',
+        'box' => 'коробка',
+        'pack' => 'упаковка',
+        'license' => 'лицензия',
+        'hour' => 'час',
+    ],
+
+    'relation_type' => [
+        'accessory' => 'Аксессуар',
+        'consumable' => 'Расходный материал',
+        'alternative' => 'Аналог',
+        'software' => 'Программное обеспечение',
+    ],
+
     'lead_source' => [
         'site' => 'Сайт',
         'telegram' => 'Telegram',

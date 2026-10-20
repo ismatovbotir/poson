@@ -2,6 +2,51 @@
 
 return [
 
+    'attribute_type' => [
+        'text' => 'Matn',
+        'number' => 'Raqam',
+        'boolean' => 'Ha / yoʻq',
+        'select' => 'Roʻyxat (bitta qiymat)',
+        'multiselect' => 'Roʻyxat (bir nechta qiymat)',
+    ],
+
+    'document_type' => [
+        'datasheet' => 'Texnik maʼlumotnoma',
+        'manual' => 'Qoʻllanma',
+        'driver' => 'Drayver',
+        'firmware' => 'Proshivka',
+        'certificate' => 'Sertifikat',
+    ],
+
+    'price_level' => [
+        'retail' => 'Chakana',
+        'dealer' => 'Diler',
+        'wholesale' => 'Ulgurji',
+    ],
+
+    'product_type' => [
+        'hardware' => 'Uskuna',
+        'consumable' => 'Sarf material',
+        'software' => 'Dasturiy taʼminot',
+        'service' => 'Xizmat',
+    ],
+
+    'product_unit' => [
+        'piece' => 'dona',
+        'roll' => 'rulon',
+        'box' => 'quti',
+        'pack' => 'qadoq',
+        'license' => 'litsenziya',
+        'hour' => 'soat',
+    ],
+
+    'relation_type' => [
+        'accessory' => 'Aksessuar',
+        'consumable' => 'Sarf material',
+        'alternative' => 'Muqobil',
+        'software' => 'Dasturiy taʼminot',
+    ],
+
     'lead_source' => [
         'site' => 'Sayt',
         'telegram' => 'Telegram',
