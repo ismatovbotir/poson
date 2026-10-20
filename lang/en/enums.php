@@ -21,6 +21,13 @@ return [
         'new' => 'New',
     ],
 
+    'role' => [
+        'admin' => 'Administrator',
+        'content_manager' => 'Content manager',
+        'sales_manager' => 'Sales manager',
+        'service_engineer' => 'Service engineer',
+    ],
+
     'sale_mode' => [
         'cart' => 'Cart',
         'quote' => 'Quote request',

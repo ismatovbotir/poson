@@ -6,6 +6,13 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Local / testing seed: roles and permissions plus a non-staff test user.
+ *
+ * Production deploys do not run this seeder; they run
+ * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
+ * and create staff with `php artisan admin:create-user`.
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -15,11 +22,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RolesAndPermissionsSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (app()->environment(['local', 'testing'])) {
+            User::query()->firstOrCreate(
+                ['email' => 'test@example.com'],
+                User::factory()->make(['name' => 'Test User'])->only(['name', 'password', 'locale']),
+            );
+        }
     }
 }

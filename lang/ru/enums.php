@@ -21,6 +21,13 @@ return [
         'new' => 'Новинка',
     ],
 
+    'role' => [
+        'admin' => 'Администратор',
+        'content_manager' => 'Контент-менеджер',
+        'sales_manager' => 'Менеджер по продажам',
+        'service_engineer' => 'Сервисный инженер',
+    ],
+
     'sale_mode' => [
         'cart' => 'Корзина',
         'quote' => 'Запрос КП',

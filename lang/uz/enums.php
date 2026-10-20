@@ -21,6 +21,13 @@ return [
         'new' => 'Yangi',
     ],
 
+    'role' => [
+        'admin' => 'Administrator',
+        'content_manager' => 'Kontent menejer',
+        'sales_manager' => 'Sotuv menejeri',
+        'service_engineer' => 'Servis muhandisi',
+    ],
+
     'sale_mode' => [
         'cart' => 'Savat',
         'quote' => 'Tijorat taklifi soʻrovi',

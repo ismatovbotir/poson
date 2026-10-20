@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureStaff;
+use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrustProxies;
 use Illuminate\Foundation\Application;
@@ -7,17 +9,30 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            Route::middleware('web')
+                ->prefix('admin')
+                ->name('admin.')
+                ->group(base_path('routes/admin.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'locale' => SetLocale::class,
+            'admin' => EnsureStaff::class,
+            'admin.locale' => SetAdminLocale::class,
         ]);
+
+        // Only the admin panel has authentication.
+        $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.login'));
+        $middleware->redirectUsersTo(fn (Request $request): string => route('admin.dashboard'));
 
         // Proxies come from config('app.trusted_proxies') (env TRUSTED_PROXIES); empty trusts none.
         $middleware->replace(BaseTrustProxies::class, TrustProxies::class);

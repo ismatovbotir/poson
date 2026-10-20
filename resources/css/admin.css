@@ -1,0 +1,72 @@
+/*
+ * Admin panel styles (separate Vite entry from the public site).
+ * Theme ported from .claude/html-templates/admin/theme.css. Breakpoints are
+ * the Tailwind defaults (sm 640, lg 1024, xl 1280), as in the admin kit.
+ * Primary buttons use brand-600 #178045 (WCAG AA on white); brand-500 is for accents.
+ */
+@import 'tailwindcss' source(none);
+
+@source '../views/layouts/admin.blade.php';
+@source '../views/layouts/admin-guest.blade.php';
+@source '../views/components/admin';
+@source '../views/livewire/admin';
+@source '../views/vendor/pagination/admin.blade.php';
+@source '../js/admin.js';
+@source '../../app/Enums';
+@source '../../app/Livewire/Admin';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --color-brand-50: #e8f8ee;
+    --color-brand-100: #d3f1de;
+    --color-brand-200: #a8e3bd;
+    --color-brand-300: #66d080;
+    --color-brand-400: #4cc46d;
+    --color-brand-500: #1f9d55;
+    --color-brand-600: #178045;
+    --color-brand-700: #136a3a;
+    --color-brand-800: #0f522d;
+    --color-brand-900: #0b3d22;
+    --color-canvas: #f5f7fb;
+    --color-tint: #eefaf2;
+    --color-ok: #12a150;
+    --color-warn: #e8890c;
+    --color-danger: #d93636;
+}
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-canvas text-slate-900 antialiased;
+    }
+
+    .ico {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-brand-500;
+    }
+}
+
+@layer components {
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+}

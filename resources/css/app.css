@@ -2,6 +2,12 @@
 @import 'tailwindcss' source(none);
 
 @source '../views';
+/* Admin views have their own bundle (resources/css/admin.css). */
+@source not '../views/layouts/admin.blade.php';
+@source not '../views/layouts/admin-guest.blade.php';
+@source not '../views/components/admin';
+@source not '../views/livewire/admin';
+@source not '../views/vendor/pagination/admin.blade.php';
 @source '../js';
 @source '../../app';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

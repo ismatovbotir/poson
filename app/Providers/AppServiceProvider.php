@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+use App\Enums\Role;
+use App\Http\Middleware\EnsureStaff;
+use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Models\User;
 use App\Support\CompanySettings;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
@@ -24,7 +30,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Re-apply the page locale on Livewire update requests.
-        Livewire::addPersistentMiddleware([SetLocale::class]);
+        // Lazy loading, silently discarded attributes and missing attributes throw outside production.
+        Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Admins may do everything; other roles go through permissions and policies.
+        Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
+
+        // Re-apply the page locale (site) and the staff check + UI locale (admin) on Livewire update requests.
+        Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, SetAdminLocale::class]);
     }
 }
