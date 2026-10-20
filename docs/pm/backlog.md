@@ -1,13 +1,13 @@
 # Backlog
 
 ## Now
-- [ ] Foundation (plan `docs/pm/plans/01-foundation.md`, approved 2026-10-16)
+- [x] Foundation (plan `docs/pm/plans/01-foundation.md`, approved 2026-10-16)
   - [x] T1–T3 tooling, locales, settings — reviewed, committed e860533 — 2026-10-20
   - [x] Review fixes on T1–T3 + T4 layout built (94 tests green) — 2026-10-20; reviewed, committed — 2026-10-20
   - [x] T6 site copy uz/ru/en — `lang/{uz,ru,en}/site.php`, 108 keys each, verified by PM — 2026-10-16
   - [x] T5 home + lead form built (139 tests green) — 2026-10-20; reviewed, fixes applied (157 tests green), committed
   - [x] T7 translation audit (price keys removed, uz validation completed) — 2026-10-20
-  - [ ] T8: lang key parity test (rest of T8 covered by 157 tests) — test-writer (running)
+  - [x] T8: lang parity test (175 tests green) — 2026-10-20
 
 ## Next
 - [ ] **Admin AI assist** (reusable field/image AI button with per-field hint prompts) — architect plan, ship together with the first admin screens (catalog); plan `docs/pm/plans/02-admin-ai-assist.md` approved 2026-10-20; MVP text → phase 2 images → phase 3 fill-from-photo

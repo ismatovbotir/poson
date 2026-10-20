@@ -159,4 +159,6 @@ return [
     'url' => ':Attribute notoʻgʻri formatga ega.',
     'uuid' => ':Attribute toʻgʻri UUID qiymatga ega boʻlishi kerak.',
     'uz_phone' => ':Attribute maydoniga Oʻzbekiston telefon raqamini kiriting, masalan +998 90 123 45 67.',
+
+    'attributes' => [],
 ];
