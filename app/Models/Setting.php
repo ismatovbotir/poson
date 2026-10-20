@@ -7,9 +7,16 @@ use Database\Factories\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Key/value override for the defaults in config/company.php.
+ *
+ * Saving or deleting a model flushes the CompanySettings cache once the
+ * surrounding transaction commits (immediately when there is none).
+ * Mass writes such as Setting::query()->update() or ->delete() bypass model
+ * events and therefore do NOT flush the cache: call CompanySettings::flush()
+ * yourself after them.
  *
  * @property string $key
  * @property mixed $value
@@ -22,8 +29,8 @@ class Setting extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => CompanySettings::flush());
-        static::deleted(fn () => CompanySettings::flush());
+        static::saved(fn () => DB::afterCommit(fn () => CompanySettings::flush()));
+        static::deleted(fn () => DB::afterCommit(fn () => CompanySettings::flush()));
     }
 
     /**

@@ -41,6 +41,14 @@ lang/{uz,ru,en}/
 - **Formatting**: run `vendor/bin/pint --dirty` after changes.
 - **Tests**: Pest feature test for each action, admin screen and webhook (see `testing-conventions`).
 
+## Credentials
+
+- **All credentials and secrets live only in `.env`**: Telegram bot token, chat IDs and webhook secret; Payme and Click keys and IDs; mail, SMS and API keys; any import/1C credentials.
+- Read them only via `config/*.php` (`env()` is called only inside config files), e.g. `config('services.telegram.bot_token')`.
+- Never store them in the DB `settings` table, show or edit them in admin, commit them, log them or put them in test fixtures (use fake values in `phpunit.xml`/tests).
+- Every new key goes into `.env.example` with an empty or obviously fake value and a short comment.
+- Admin may show only a read-only "configured / not configured" status.
+
 ## Packages (expected)
 
 - `spatie/laravel-translatable` for JSON translatable attributes

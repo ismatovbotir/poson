@@ -33,6 +33,7 @@ Customers are mostly B2B in Uzbekistan.
 - Before coding, load the matching skill from `.claude/skills/`. `project-conventions` always applies.
 - Design templates are in `.claude/html-templates/{site,admin}`. Port them with the `html-template-integration` skill and never edit the originals.
 - Every user-facing string is in uz, ru and en. Every admin action is authorized. Business logic lives in `app/Actions`.
+- **All credentials and secrets live only in `.env`** (read via `config/`), never in the DB, admin UI, git or logs. New keys go into `.env.example` with empty values.
 - Ask before installing packages, running destructive DB commands or committing.
 - After changes, run `vendor/bin/pint --dirty` and `php artisan test --compact`.
 

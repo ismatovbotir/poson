@@ -15,8 +15,8 @@
 
 return [
 
-    // TODO: placeholder, replace with the real sales phone (E.164).
-    'phone' => '+998000000000',
+    // TODO: placeholder (well-formed Tashkent landline), replace with the real sales phone (E.164).
+    'phone' => '+998712000000',
 
     'email' => 'info@poson.uz',
 

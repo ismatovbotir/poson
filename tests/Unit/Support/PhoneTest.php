@@ -29,11 +29,14 @@ it('rejects invalid phone numbers', function (?string $input) {
     'letters' => '90 123 45 6a',
     'plus in the middle' => '90+1234567',
     'local with plus' => '+901234567',
+    'zero operator code' => '000000000',
+    'zero operator code with country code' => '+998 00 123 45 67',
 ]);
 
 it('formats phone numbers for display', function () {
     expect(Phone::display('901234567'))->toBe('+998 (90) 123-45-67')
-        ->and(Phone::display('+998000000000'))->toBe('+998 (00) 000-00-00')
+        ->and(Phone::display('+998712000000'))->toBe('+998 (71) 200-00-00')
+        ->and(Phone::display('+998000000000'))->toBe('+998000000000')
         ->and(Phone::display('not a phone'))->toBe('not a phone');
 });
 

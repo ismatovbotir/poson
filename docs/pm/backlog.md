@@ -2,15 +2,19 @@
 
 ## Now
 - [ ] Foundation (plan `docs/pm/plans/01-foundation.md`, approved 2026-10-16)
-  - [ ] T1–T3 tooling, locales, settings — built; Vary test fix + code review in progress (2026-10-20), then commit
+  - [x] T1–T3 tooling, locales, settings — reviewed, committed e860533 — 2026-10-20
+  - [x] Review fixes on T1–T3 + T4 layout built (94 tests green) — 2026-10-20; reviewed, committed — 2026-10-20
   - [x] T6 site copy uz/ru/en — `lang/{uz,ru,en}/site.php`, 108 keys each, verified by PM — 2026-10-16
-  - [ ] T4 layout · T5 home + lead form · T7 translation audit · T8 tests · QA review
+  - [ ] T5 home + lead form — livewire-builder (running, 2026-10-20)
+  - [ ] · T7 translation audit · T8 tests · QA review
 
 ## Next
+- [ ] **Admin AI assist** (reusable field/image AI button with per-field hint prompts) — architect plan, ship together with the first admin screens (catalog); plan `docs/pm/plans/02-admin-ai-assist.md` approved 2026-10-20; MVP text → phase 2 images → phase 3 fill-from-photo
 - [ ] Catalog MVP: categories, brands, products, specs, 3 price levels (Retail/Dealer/Wholesale) → home/catalog/product pages
 - [ ] Lead form + quote request → CRM leads + Telegram
 
 ## Later
+- [ ] Pre-launch: real company phone/contacts in settings; optional MySQL 8 test run (CI) before production
 - [ ] Price import from external system (Excel/1C/API?) — ask user which system and format
 - [ ] **Telegram module** (after catalog MVP + cart/checkout) — needs architect plan + package approval (bot library):
   - Bot: /start + menu button → Mini App, language uz/ru/en, order status updates to customer, quote & service request dialogs → CRM leads, "contact a manager" (customer ↔ sales chat relay)

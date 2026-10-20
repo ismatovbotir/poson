@@ -14,7 +14,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(CompanySettings::class);
+        // Scoped: reset between Octane requests and queued jobs, so the memoized
+        // overrides never outlive a request.
+        $this->app->scoped(CompanySettings::class);
     }
 
     /**

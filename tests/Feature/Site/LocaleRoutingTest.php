@@ -22,6 +22,22 @@ it('redirects the root by Accept-Language', function (string $header, string $lo
     'unsupported falls back to uz' => ['de-DE,de;q=0.9', 'uz'],
 ]);
 
+it('redirects to the configured locale when the browser language is unsupported', function () {
+    config(['app.default_locale' => 'ru']);
+
+    $this->withHeader('Accept-Language', 'de-DE,de;q=0.9')
+        ->get('/')
+        ->assertRedirect(route('site.home', ['locale' => 'ru']));
+});
+
+it('redirects to the configured locale without Accept-Language', function () {
+    config(['app.default_locale' => 'en']);
+
+    $this->withHeader('Accept-Language', '')
+        ->get('/')
+        ->assertRedirect(route('site.home', ['locale' => 'en']));
+});
+
 it('prefers the locale cookie over Accept-Language', function () {
     $this->withCookie('locale', 'en')
         ->withHeader('Accept-Language', 'ru-RU,ru;q=0.9')

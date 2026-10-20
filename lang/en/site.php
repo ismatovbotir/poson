@@ -5,6 +5,7 @@ return [
     'meta' => [
         'site_name' => 'Poson',
         'tagline' => 'Auto-ID equipment: selection, setup and service',
+        'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment: expert selection, setup, integration and service at our own service centre.',
     ],
 
     'locale' => [
@@ -12,6 +13,10 @@ return [
         'uz' => 'Oʻzbekcha',
         'ru' => 'Русский',
         'en' => 'English',
+    ],
+
+    'a11y' => [
+        'skip_to_content' => 'Skip to content',
     ],
 
     'topbar' => [
@@ -29,6 +34,9 @@ return [
         'menu_close' => 'Close menu',
         'cart' => 'Cart',
         'logo_alt' => 'Poson — home page',
+        'search_label' => 'Search the catalog',
+        'request_quote' => 'Request a quote',
+        'menu_title' => 'Menu',
     ],
 
     'nav' => [
@@ -41,6 +49,7 @@ return [
         'software' => 'Software',
         'services' => 'Services',
         'contacts' => 'Contacts',
+        'aria_label' => 'Main menu',
     ],
 
     'home' => [
@@ -188,6 +197,7 @@ return [
         'rights' => '© :year Poson. All rights reserved.',
         'privacy' => 'Privacy policy',
         'offer' => 'Public offer',
+        'description' => 'Auto-ID equipment and consumables: expert selection, setup, integration and service at our own service centre.',
     ],
 
     'seo' => [

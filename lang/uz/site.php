@@ -5,6 +5,7 @@ return [
     'meta' => [
         'site_name' => 'Poson',
         'tagline' => 'Auto-ID uskunalari: tanlash, sozlash va servis',
+        'description' => 'Shtrix-kod skanerlari, yorliq printerlari, TSD, RFID va POS uskunalari: tanlash, sozlash, integratsiya va oʻz servis markazimizda xizmat koʻrsatish.',
     ],
 
     'locale' => [
@@ -12,6 +13,10 @@ return [
         'uz' => 'Oʻzbekcha',
         'ru' => 'Русский',
         'en' => 'English',
+    ],
+
+    'a11y' => [
+        'skip_to_content' => 'Asosiy mazmunga oʻtish',
     ],
 
     'topbar' => [
@@ -29,6 +34,9 @@ return [
         'menu_close' => 'Menyuni yopish',
         'cart' => 'Savat',
         'logo_alt' => 'Poson — bosh sahifa',
+        'search_label' => 'Katalog boʻyicha qidirish',
+        'request_quote' => 'Taklif soʻrash',
+        'menu_title' => 'Menyu',
     ],
 
     'nav' => [
@@ -41,6 +49,7 @@ return [
         'software' => 'Dasturiy taʼminot',
         'services' => 'Xizmatlar',
         'contacts' => 'Kontaktlar',
+        'aria_label' => 'Asosiy menyu',
     ],
 
     'home' => [
@@ -188,6 +197,7 @@ return [
         'rights' => '© :year Poson. Barcha huquqlar himoyalangan.',
         'privacy' => 'Maxfiylik siyosati',
         'offer' => 'Ommaviy oferta',
+        'description' => 'Avtomatik identifikatsiya uskunalari va sarf materiallari: tanlash, sozlash, integratsiya va oʻz servis markazimizda xizmat koʻrsatish.',
     ],
 
     'seo' => [

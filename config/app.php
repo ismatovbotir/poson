@@ -89,12 +89,20 @@ return [
     | Supported Locales
     |--------------------------------------------------------------------------
     |
-    | Locales served under the public "/{locale}" route prefix. The first one
-    | is the default (Uzbek, Latin script).
+    | Locales served under the public "/{locale}" route prefix. Uzbek is
+    | written in Latin script.
     |
     */
 
     'supported_locales' => ['uz', 'ru', 'en'],
+
+    /*
+    | Default site locale (root redirect, hreflang x-default). Same source as
+    | "locale" above, but kept separately because app()->setLocale() rewrites
+    | "app.locale" on every localized request. Read it via LocaleUrl::defaultLocale().
+    */
+
+    'default_locale' => env('APP_LOCALE', 'uz'),
 
     /*
     |--------------------------------------------------------------------------

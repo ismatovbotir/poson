@@ -36,7 +36,8 @@ class Phone
             $digits = self::COUNTRY_CODE.$digits;
         }
 
-        if (strlen($digits) !== 12 || ! str_starts_with($digits, self::COUNTRY_CODE)) {
+        // Country code, then a 2-digit operator/area code that never starts with 0.
+        if (! preg_match('/^'.self::COUNTRY_CODE.'[1-9]\d{8}$/', $digits)) {
             return null;
         }
 
