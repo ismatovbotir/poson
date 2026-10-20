@@ -36,3 +36,6 @@
 | 2026-10-20 | Plan 02 (admin AI assist) approved: package `laravel/ai` (version pinned) + `app/Ai/` folder; remove.bg via plain `Http::` | User approval |
 | 2026-10-20 | AI limits: 100 text + 10 image requests per user per day, plus monthly USD budget cap in .env (`AI_MONTHLY_BUDGET_USD`) that disables AI when reached | User choice |
 | 2026-10-20 | AI writes uz/ru/en directly in one call; the uz card is marked "check before publishing" | User choice |
+| 2026-10-20 | Leads have two enums: `LeadSource` = channel (site, telegram, phone, manual) and `LeadType` = form/intent (callback, quote, service_request, checkout). Resolves the plan-01 open item | crm skill used one mixed `source`; T5 review |
+| 2026-10-20 | Rate limiting uses the real client IP via `trustProxies(at: env('TRUSTED_PROXIES'))` with explicit proxy IPs/CIDRs, never `*` unrestricted; set per environment | T5 review: behind a proxy all visitors would share one bucket |
+| 2026-10-20 | User pre-approved Plan 03 (Catalog MVP) incl. its schema and packages, and the foundation commit ("all approved, start"). PM vets packages (first-party/widely used, pinned) and reports them; anything unusual still goes back to the user | User direction |

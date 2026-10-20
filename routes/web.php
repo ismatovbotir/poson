@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RedirectToLocale;
+use App\Livewire\Site\Home;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', RedirectToLocale::class)->name('site.root');
@@ -10,6 +11,5 @@ Route::prefix('{locale}')
     ->middleware('locale')
     ->name('site.')
     ->group(function () {
-        // TEMPORARY placeholder home. T5 replaces it with the Livewire page.
-        Route::view('/', 'site.home-placeholder')->name('home');
+        Route::livewire('/', Home::class)->name('home');
     });

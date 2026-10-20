@@ -87,6 +87,7 @@ return [
                 'Shaxsiy menejer va vazifaga mos uskuna tanlash',
                 'Shartnoma, hisob-faktura va bank orqali toʻlov',
                 'Shartnoma asosida sozlash, integratsiya va servis',
+                'Sinov namunalari, pilot yetkazib berish va SLA boʻyicha servis',
             ],
         ],
 
@@ -153,10 +154,17 @@ return [
         'message_placeholder' => 'Qanday uskuna yoki xizmat kerak?',
         'submit' => 'Yuborish',
         'sending' => 'Yuborilmoqda…',
-        'consent' => 'Formani yuborish orqali shaxsiy maʼlumotlarimni qayta ishlashga roziman',
+        'consent' => 'Formani yuborish orqali :privacy asosida shaxsiy maʼlumotlarimni qayta ishlashga roziman',
+        'consent_privacy' => 'maxfiylik siyosati',
         'success_title' => 'Soʻrovingiz qabul qilindi',
         'success_text' => 'Mutaxassisimiz tez orada siz bilan bogʻlanadi.',
         'error_rate_limited' => 'Urinishlar juda koʻp. :seconds soniyadan soʻng qayta urinib koʻring.',
+        'attributes' => [
+            'name' => 'ism',
+            'phone' => 'telefon',
+            'company' => 'kompaniya',
+            'message' => 'xabar',
+        ],
     ],
 
     'card' => [
@@ -177,11 +185,6 @@ return [
     'badges' => [
         'hit' => 'Xit',
         'new' => 'Yangi',
-    ],
-
-    'price' => [
-        'from_qty' => ':qty donadan',
-        'depends_on_qty' => 'Narx miqdorga qarab',
     ],
 
     'currency' => 'soʻm',

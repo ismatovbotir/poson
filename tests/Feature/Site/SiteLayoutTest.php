@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Site\Home;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
@@ -8,7 +9,7 @@ beforeEach(function () {
         ->prefix('{locale}')
         ->whereIn('locale', config('app.supported_locales'))
         ->group(function () {
-            Route::view('/layout-test/{slug}', 'site.home-placeholder')->name('site.layout-test');
+            Route::livewire('/layout-test/{slug}', Home::class)->name('site.layout-test');
         });
 
     app('router')->getRoutes()->refreshNameLookups();
@@ -101,19 +102,7 @@ it('keeps the path and query in the language switcher links', function () {
 });
 
 it('contains no discount or low-price wording', function (string $locale) {
-    $html = mb_strtolower($this->get("/{$locale}")->assertOk()->getContent());
-
-    // Word stems (Cyrillic/Uzbek words inflect), whole words for English so
-    // "wholesale" or "salesforce" don't match, and "−12%" / "-12%" badges.
-    $patterns = [
-        '/скидк/u', '/акци/u', '/дешев/u', '/дешёв/u', '/цена ниже/u', '/arzon/u', '/chegirma/u',
-        '/\bdiscounts?\b/u', '/\bcheap(er|est)?\b/u', '/\blow prices?\b/u', '/\bsales?\b/u', '/\bpromos?\b/u',
-        '/[−-]\d+\s?%/u',
-    ];
-
-    foreach ($patterns as $pattern) {
-        expect($html)->not->toMatch($pattern);
-    }
+    expectNoBannedWording($this->get("/{$locale}")->assertOk()->getContent());
 })->with(['uz', 'ru', 'en']);
 
 it('marks up the mobile drawer as an accessible modal dialog', function () {

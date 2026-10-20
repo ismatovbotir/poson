@@ -9,7 +9,7 @@ description: Sales/CRM module. Covers leads from site forms (quote request, call
 
 - `customers`: id, type (enum: company/individual), name, inn (TIN, nullable, unique), phone, email, address, notes, price_level (enum PriceLevel: retail/dealer/wholesale, default retail), manager_id (users), timestamps
 - `contacts`: id, customer_id, name, position, phone, email, telegram
-- `leads`: id, source (enum: quote_form/callback/service_request/checkout/telegram/manual), status (enum LeadStatus), name, phone, email, company, message, customer_id (nullable), manager_id (nullable), utm (json), locale, timestamps
+- `leads`: id, source (enum LeadSource = channel: site/telegram/phone/manual), type (enum LeadType = form: callback/quote/service_request/checkout), status (enum LeadStatus), name, phone, email, company, message, customer_id (nullable), manager_id (nullable), utm (json), locale, timestamps
 - `lead_items`: lead_id, product_id (nullable), qty, note. Holds the products a client asked about
 - `quotes`: id, number (e.g. `Q-2026-0001`), customer_id, lead_id (nullable), manager_id, status (enum QuoteStatus), currency (UZS), valid_until, subtotal, discount, total (tiyin), notes (json or text), timestamps
 - `quote_items`: quote_id, product_id (nullable), name (snapshot), sku, qty, unit, price, discount, total

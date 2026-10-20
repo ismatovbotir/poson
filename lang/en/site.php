@@ -87,6 +87,7 @@ return [
                 'A personal manager and hardware selected for your task',
                 'Contract, invoice and payment by bank transfer',
                 'Setup, integration and service under contract',
+                'Test samples, pilot deliveries and service under an SLA',
             ],
         ],
 
@@ -153,10 +154,17 @@ return [
         'message_placeholder' => 'What equipment or service do you need?',
         'submit' => 'Send',
         'sending' => 'Sending…',
-        'consent' => 'By submitting this form, I agree to the processing of my personal data',
+        'consent' => 'By submitting this form, I agree to the processing of my personal data in accordance with the :privacy',
+        'consent_privacy' => 'privacy policy',
         'success_title' => 'Request received',
         'success_text' => 'A specialist will contact you shortly.',
         'error_rate_limited' => 'Too many attempts. Please try again in :seconds seconds.',
+        'attributes' => [
+            'name' => 'name',
+            'phone' => 'phone',
+            'company' => 'company',
+            'message' => 'message',
+        ],
     ],
 
     'card' => [
@@ -177,11 +185,6 @@ return [
     'badges' => [
         'hit' => 'Bestseller',
         'new' => 'New',
-    ],
-
-    'price' => [
-        'from_qty' => 'from :qty pcs',
-        'depends_on_qty' => 'Price depends on quantity',
     ],
 
     'currency' => 'UZS',

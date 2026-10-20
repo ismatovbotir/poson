@@ -99,11 +99,14 @@ it('accepts only https URLs for Telegram and social links', function (string $ur
 it('hides the Telegram link when the URL is not safe', function () {
     Setting::factory()->setting('telegram_url', 'javascript:alert(1)')->create();
 
-    $this->get('/ru')
+    $html = $this->get('/ru')
         ->assertOk()
         ->assertDontSee('javascript:alert', false)
         ->assertDontSee('t.me/poson_uz', false)
-        ->assertDontSeeText('Telegram');
+        ->getContent();
+
+    // Page copy may mention Telegram; only the link labels (topbar, drawer) must be gone.
+    expect($html)->not->toMatch('/>\s*Telegram\s*<\/a>/');
 });
 
 it('expires cached overrides after an hour', function () {

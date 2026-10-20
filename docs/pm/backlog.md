@@ -5,15 +5,17 @@
   - [x] T1–T3 tooling, locales, settings — reviewed, committed e860533 — 2026-10-20
   - [x] Review fixes on T1–T3 + T4 layout built (94 tests green) — 2026-10-20; reviewed, committed — 2026-10-20
   - [x] T6 site copy uz/ru/en — `lang/{uz,ru,en}/site.php`, 108 keys each, verified by PM — 2026-10-16
-  - [ ] T5 home + lead form — livewire-builder (running, 2026-10-20)
-  - [ ] · T7 translation audit · T8 tests · QA review
+  - [x] T5 home + lead form built (139 tests green) — 2026-10-20; reviewed, fixes applied (157 tests green), committed
+  - [x] T7 translation audit (price keys removed, uz validation completed) — 2026-10-20
+  - [ ] T8: lang key parity test (rest of T8 covered by 157 tests) — test-writer (running)
 
 ## Next
 - [ ] **Admin AI assist** (reusable field/image AI button with per-field hint prompts) — architect plan, ship together with the first admin screens (catalog); plan `docs/pm/plans/02-admin-ai-assist.md` approved 2026-10-20; MVP text → phase 2 images → phase 3 fill-from-photo
-- [ ] Catalog MVP: categories, brands, products, specs, 3 price levels (Retail/Dealer/Wholesale) → home/catalog/product pages
+- [ ] **Catalog MVP** (plan 03 being written by architect; pre-approved 2026-10-20): admin shell + roles → categories, brands, products, specs, 3 price levels (Retail/Dealer/Wholesale) → home/catalog/product pages
 - [ ] Lead form + quote request → CRM leads + Telegram
 
 ## Later
+- [ ] Pre-launch: set TRUSTED_PROXIES per server; legal/marketing sign-off of privacy, offer, consent texts and hero/SEO copy (uz/ru/en); real hero stats
 - [ ] Pre-launch: real company phone/contacts in settings; optional MySQL 8 test run (CI) before production
 - [ ] Price import from external system (Excel/1C/API?) — ask user which system and format
 - [ ] **Telegram module** (after catalog MVP + cart/checkout) — needs architect plan + package approval (bot library):

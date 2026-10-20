@@ -92,6 +92,14 @@ class Navigation
     }
 
     /**
+     * Service page URL; the home page lead form until service pages exist.
+     */
+    public static function service(string $slug): string
+    {
+        return static::url('site.services.show', ['service' => $slug], '#lead');
+    }
+
+    /**
      * Quote request target (the lead form on the home page until a quote page exists).
      */
     public static function quote(): string

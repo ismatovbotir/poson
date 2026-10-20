@@ -106,6 +106,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated IPs / CIDR ranges of the load balancer or reverse proxy
+    | in front of the app (TRUSTED_PROXIES). Empty trusts no proxy; never use
+    | "*", or clients could spoof X-Forwarded-For and dodge IP rate limits.
+    |
+    */
+
+    'trusted_proxies' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))),
+        fn (string $proxy): bool => $proxy !== '' && $proxy !== '*' && $proxy !== '**',
+    )),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
