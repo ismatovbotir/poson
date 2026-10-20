@@ -24,11 +24,11 @@ class CategoryTree
     public const MAX_DEPTH = 3;
 
     /**
-     * Per-request copy, so one request doesn't hit the cache store for every lookup.
-     *
-     * @var array<int, Node>|null
+     * Container key of the per-request copy, so lookups don't hit the cache
+     * store every time (a container instance doesn't outlive the app, unlike
+     * a static property in tests or Octane).
      */
-    private static ?array $memo = null;
+    private const MEMO = 'catalog.category-tree.memo';
 
     /**
      * All categories keyed by id, ordered by sort then id.
@@ -37,7 +37,11 @@ class CategoryTree
      */
     public static function nodes(): array
     {
-        return static::$memo ??= Cache::rememberForever(self::CACHE_KEY, fn (): array => Category::query()
+        if (app()->bound(self::MEMO)) {
+            return app(self::MEMO);
+        }
+
+        $nodes = Cache::rememberForever(self::CACHE_KEY, fn (): array => Category::query()
             ->orderBy('sort')
             ->orderBy('id')
             ->get(['id', 'parent_id', 'slug', 'name', 'icon', 'sort', 'is_active'])
@@ -51,11 +55,15 @@ class CategoryTree
                 'is_active' => $category->is_active,
             ]])
             ->all());
+
+        app()->instance(self::MEMO, $nodes);
+
+        return $nodes;
     }
 
     public static function flush(): void
     {
-        static::$memo = null;
+        app()->forgetInstance(self::MEMO);
         Cache::forget(self::CACHE_KEY);
     }
 

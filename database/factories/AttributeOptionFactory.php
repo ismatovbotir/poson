@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\AttributeType;
+use App\Models\Attribute;
 use App\Models\AttributeOption;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,8 +19,12 @@ class AttributeOptionFactory extends Factory
      */
     public function definition(): array
     {
+        $value = fake()->unique()->word();
+
         return [
-            //
+            'attribute_id' => Attribute::factory()->state(['type' => AttributeType::Select]),
+            'value' => ['uz' => $value, 'ru' => $value, 'en' => $value],
+            'sort' => 0,
         ];
     }
 }
