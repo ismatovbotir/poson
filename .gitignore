@@ -25,3 +25,14 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# AI assistant (Claude Code / Boost) files — kept local only
+/.claude/
+/CLAUDE.md
+/CLAUDE.local.md
+/AGENTS.md
+/.agents/
+/.ai/
+/.mcp.json
+/boost.json
+/docs/pm/
