@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\SetLocale;
+use App\Support\CompanySettings;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(CompanySettings::class);
     }
 
     /**
@@ -19,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Re-apply the page locale on Livewire update requests.
+        Livewire::addPersistentMiddleware([SetLocale::class]);
     }
 }

@@ -24,8 +24,8 @@ Customers are mostly B2B in Uzbekistan.
 
 - Poson sells on **service quality**, never on low price: expert selection, setup and integration, official warranty, its own service centre, fast support, and reliable stock and delivery.
 - **Never** advertise low prices or discounts in any user-facing text: site, Mini App/bot, SEO meta, notifications or banners. That rules out phrases like "cheapest", "low price", "дешевле", "цена ниже", "скидки", "акции", "arzon" and "chegirma", and also "−%" badges, crossed-out old prices and promo/sale sections.
-- Prices themselves are shown plainly. Volume (tier) pricing for B2B is shown as neutral information on the product page ("Narx miqdorga qarab" / "Цена зависит от количества"), never as a selling headline.
-- Internal admin wording (e.g. sort by price, tier difference on an order) is fine.
+- Prices themselves are shown plainly. The public site shows only the **Retail** price. Dealer and Wholesale prices are per-customer price levels used in admin quotes/orders and are never shown publicly or used as a selling headline.
+- Internal admin wording (e.g. sort by price, price level on a quote/order) is fine.
 
 ## How to work in this repo
 

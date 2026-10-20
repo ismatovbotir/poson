@@ -22,3 +22,7 @@
 | 2026-10-16 | SQLite for dev in the foundation increment; switch to MySQL 8 before the catalog increment | User choice; local MySQL is 5.7 (too old) |
 | 2026-10-16 | Uzbek spelling: official ʻ (U+02BB) and gʻ/oʻ in displayed text; slugs/URLs and search use and accept plain ' or none | One convention for copy, URLs and search |
 | 2026-10-16 | Git initialised; first commit of the Laravel skeleton + PM/agent setup | Reviewable, reversible increments |
+| 2026-10-20 | SQLite stays the dev DB (supersedes the "switch to MySQL 8 before catalog" item); production remains MySQL 8, and migrations must stay MySQL-compatible | User choice |
+| 2026-10-20 | **Pricing = 3 price levels per product (Retail / Dealer / Wholesale), assigned per customer — not quantity tiers.** Supersedes the 2026-10-16 "quantity price tiers" decision. Columns `price`, `price_dealer`, `price_wholesale` (tiyin); `customers.price_level` | User: the CRM has 3 prices tied to the customer, not to qty |
+| 2026-10-20 | Public site, public cart and Mini App show/use only the Retail price; Dealer/Wholesale apply only in admin quotes/orders for the assigned customer | User choice; no customer login in MVP |
+| 2026-10-20 | Prices are entered in admin **and** imported from an external system (source/format TBD) | User answer "both" |

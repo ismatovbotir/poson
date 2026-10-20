@@ -7,7 +7,7 @@ description: Sales/CRM module. Covers leads from site forms (quote request, call
 
 ## Tables
 
-- `customers`: id, type (enum: company/individual), name, inn (TIN, nullable, unique), phone, email, address, notes, manager_id (users), timestamps
+- `customers`: id, type (enum: company/individual), name, inn (TIN, nullable, unique), phone, email, address, notes, price_level (enum PriceLevel: retail/dealer/wholesale, default retail), manager_id (users), timestamps
 - `contacts`: id, customer_id, name, position, phone, email, telegram
 - `leads`: id, source (enum: quote_form/callback/service_request/checkout/telegram/manual), status (enum LeadStatus), name, phone, email, company, message, customer_id (nullable), manager_id (nullable), utm (json), locale, timestamps
 - `lead_items`: lead_id, product_id (nullable), qty, note. Holds the products a client asked about
@@ -29,6 +29,7 @@ description: Sales/CRM module. Covers leads from site forms (quote request, call
 ## Rules
 
 - Phone numbers are normalized to `+998XXXXXXXXX` on save.
+- When a product is added to a quote/admin order, its price is taken from the customer's `price_level` (falling back to Retail if that level is empty); the manager may still edit it.
 - Quote item prices are **snapshots**. Later product price changes don't affect them.
 - Number sequences come from a `sequences` table using a row lock. Never use `max(id)+1`.
 - Sales managers see only their own leads and customers plus unassigned ones. Admins see everything (enforced in the policy and the query scope).

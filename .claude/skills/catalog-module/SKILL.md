@@ -13,7 +13,7 @@ Read `autoid-domain` first for terminology and the product types.
 - `brands`: id, name (string), slug, logo, website, is_active, sort
 - `products`
   - Core: id, category_id, brand_id (nullable), type (enum ProductType), sku (unique), model, name (json), short_description (json), description (json), slug
-  - Pricing: price (tiyin, nullable = price on request), unit (enum: piece/roll/box/pack/license/hour)
+  - Pricing: three price levels in tiyin — `price` (Retail, nullable = price on request; the only price shown on the public site and used by the public cart), `price_dealer` (nullable), `price_wholesale` (nullable); a nullable level falls back to `price`. Enum `PriceLevel` (retail/dealer/wholesale). No quantity tiers. Prices are entered in admin and can also be imported (import source TBD). unit (enum: piece/roll/box/pack/license/hour)
   - Flags and status: min_qty (default 1), sale_mode (enum: `cart`, `quote`, `both`), stock_status (enum: in_stock/on_order/out_of_stock), is_active, is_featured
   - Other: warranty_months (nullable), seo (json), sort, timestamps, softDeletes
 - `attributes`: id, code (unique), name (json), unit (nullable, e.g. "mm", "dpi"), type (enum: text/number/boolean/select/multiselect), is_filterable (default for new category assignments), sort. This is the global **attribute library**
