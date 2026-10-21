@@ -39,7 +39,7 @@ it('renders the site layout with localized navigation', function (string $locale
 ]);
 
 it('shows company contacts from the settings', function () {
-    Setting::factory()->setting('phone', '90 123 45 67')->create();
+    Setting::factory()->setting('phones', [['label' => 'orders', 'number' => '90 123 45 67', 'primary' => true, 'site' => true]])->create();
     Setting::factory()->setting('email', 'sales@poson.uz')->create();
 
     $this->get('/ru')

@@ -85,4 +85,38 @@ return [
         'out_of_stock' => 'Out of stock',
     ],
 
+    'phone_label' => [
+        'orders' => 'Orders and advice',
+        'service' => 'Service center',
+        'accounting' => 'Accounting',
+        'office' => 'Office',
+    ],
+
+    'social_network' => [
+        'telegram' => 'Telegram',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        'tiktok' => 'TikTok',
+        'whatsapp' => 'WhatsApp',
+    ],
+
+    'settings_area' => [
+        'contacts' => 'Contacts',
+        'legal' => 'Legal details',
+        'social' => 'Social',
+        'hero' => 'Home hero',
+        'seo' => 'SEO',
+        'tracking' => 'Analytics',
+        'integrations' => 'Integrations',
+    ],
+
+    'audit_action' => [
+        'updated' => 'Updated',
+        'cleared' => 'Cleared',
+        'uploaded' => 'Uploaded',
+        'removed' => 'Removed',
+    ],
+
 ];

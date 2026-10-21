@@ -315,4 +315,11 @@ return [
         ],
     ],
 
+    'contacts' => [
+        'map' => 'Show on map',
+        'social' => 'Social networks',
+        'phones' => 'Phones',
+        'hours' => 'Working hours',
+    ],
+
 ];

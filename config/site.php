@@ -24,4 +24,11 @@ return [
     */
     'sitemap_cache_minutes' => 60,
 
+    /*
+    | Render the analytics tag (GA4 / Metrika, Settings → Company → Tracking)
+    | outside production too, e.g. on staging to check the IDs. Tracking still
+    | has to be enabled, and staff are never tracked.
+    */
+    'analytics_force' => (bool) env('ANALYTICS_FORCE', false),
+
 ];

@@ -315,4 +315,11 @@ return [
         ],
     ],
 
+    'contacts' => [
+        'map' => 'Xaritada koʻrsatish',
+        'social' => 'Ijtimoiy tarmoqlar',
+        'phones' => 'Telefonlar',
+        'hours' => 'Ish vaqti',
+    ],
+
 ];

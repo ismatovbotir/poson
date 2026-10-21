@@ -1,10 +1,15 @@
-{{-- Site footer. "#contacts" is the contacts anchor until a contacts page exists. --}}
+{{--
+    Site footer. "#contacts" is the contacts anchor until a contacts page exists.
+    Contacts come from Settings → Company: site phones (primary first, labelled),
+    email, address with a map link, hours and social icons.
+--}}
 @inject('company', \App\Support\CompanySettings::class)
 
 @php
     $telegram = $company->telegramUrl();
     $telegramLabel = $telegram !== '' ? preg_replace('#^https?://#', '', rtrim($telegram, '/')) : '';
     $linkClass = 'transition-colors hover:text-white focus-visible:outline-white';
+    $mapUrl = $company->mapUrl();
 @endphp
 
 <footer id="contacts" class="mt-12 bg-ink pt-12 pb-7 text-ink-3 md:mt-[72px] md:pt-16">
@@ -36,16 +41,31 @@
             <div>
                 <h2 class="mb-4 text-[15px] font-bold text-white">{{ __('site.footer.contacts') }}</h2>
                 <address class="grid gap-2.5 text-sm not-italic">
-                    <a href="tel:{{ $company->phone() }}" class="font-semibold text-white {{ $linkClass }}">{{ $company->phoneDisplay() }}</a>
+                    @foreach ($company->sitePhones() as $phone)
+                        <span class="grid" data-site-phone="{{ $phone['label']->value }}">
+                            <a href="tel:{{ $phone['number'] }}" @class(['font-semibold text-white', $linkClass])>{{ $phone['display'] }}</a>
+                            <span class="text-xs">{{ $phone['label']->label() }}</span>
+                        </span>
+                    @endforeach
                     @if ($telegram !== '')
-                        <a href="{{ $telegram }}" target="_blank" rel="noopener" class="{{ $linkClass }}">{{ $telegramLabel }}</a>
+                        <a href="{{ $telegram }}" target="_blank" rel="noopener noreferrer" class="{{ $linkClass }}">{{ $telegramLabel }}</a>
                     @endif
                     @if ($company->email() !== '')
                         <a href="mailto:{{ $company->email() }}" class="{{ $linkClass }}">{{ $company->email() }}</a>
                     @endif
-                    <span>{{ $company->address() }}</span>
-                    <span>{{ $company->workingHours() }}</span>
+                    @if ($company->address() !== '')
+                        <span>{{ $company->address() }}</span>
+                    @endif
+                    @if ($mapUrl !== '')
+                        <a href="{{ $mapUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 {{ $linkClass }}" data-map-link>
+                            <x-site.icon name="pin" size="size-4" />{{ __('site.contacts.map') }}
+                        </a>
+                    @endif
+                    @if ($company->workingHours() !== '')
+                        <span>{{ $company->workingHours() }}</span>
+                    @endif
                 </address>
+                <x-site.social-links :links="$company->social()" class="mt-4" />
             </div>
         </div>
 

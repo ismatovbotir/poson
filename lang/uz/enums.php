@@ -85,4 +85,38 @@ return [
         'out_of_stock' => 'Mavjud emas',
     ],
 
+    'phone_label' => [
+        'orders' => 'Savdo boʻlimi',
+        'service' => 'Servis markazi',
+        'accounting' => 'Buxgalteriya',
+        'office' => 'Ofis',
+    ],
+
+    'social_network' => [
+        'telegram' => 'Telegram',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        'tiktok' => 'TikTok',
+        'whatsapp' => 'WhatsApp',
+    ],
+
+    'settings_area' => [
+        'contacts' => 'Kontaktlar',
+        'legal' => 'Rekvizitlar',
+        'social' => 'Ijtimoiy tarmoqlar',
+        'hero' => 'Bosh ekran',
+        'seo' => 'SEO',
+        'tracking' => 'Analitika',
+        'integrations' => 'Integratsiyalar',
+    ],
+
+    'audit_action' => [
+        'updated' => 'Oʻzgartirildi',
+        'cleared' => 'Tozalandi',
+        'uploaded' => 'Yuklandi',
+        'removed' => 'Oʻchirildi',
+    ],
+
 ];

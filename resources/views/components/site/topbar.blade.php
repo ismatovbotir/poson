@@ -14,13 +14,15 @@
 
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-[22px]">
             @if ($company->telegramUrl() !== '')
-                <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener" class="hidden hover:text-white focus-visible:outline-white sm:inline">{{ __('site.topbar.telegram') }}</a>
+                <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener noreferrer" class="hidden hover:text-white focus-visible:outline-white sm:inline">{{ __('site.topbar.telegram') }}</a>
             @endif
             <a href="{{ \App\Support\Site\Navigation::page('b2b') }}" class="hidden hover:text-white focus-visible:outline-white lg:inline">{{ __('site.topbar.b2b') }}</a>
-            <a href="tel:{{ $company->phone() }}" class="font-bold whitespace-nowrap text-white focus-visible:outline-white">
-                <span class="sr-only">{{ __('site.topbar.call_us') }}:</span>
-                {{ $company->phoneDisplay() }}
-            </a>
+            @if ($company->phone() !== '')
+                <a href="tel:{{ $company->phone() }}" class="font-bold whitespace-nowrap text-white focus-visible:outline-white">
+                    <span class="sr-only">{{ __('site.topbar.call_us') }}:</span>
+                    {{ $company->phoneDisplay() }}
+                </a>
+            @endif
             <x-site.language-switcher variant="dark" />
         </div>
     </div>

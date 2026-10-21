@@ -6,12 +6,13 @@ use App\Enums\StockStatus;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
+use App\Support\Settings\SettingsFormat;
 use Illuminate\Support\Str;
 
 /**
- * schema.org JSON-LD for public pages: Organization (home), BreadcrumbList
- * and Product with its Offer. Plan 04 adds LocalBusiness and FAQ next to
- * these; every block is printed with toScript().
+ * schema.org JSON-LD for public pages: Organization and LocalBusiness (home),
+ * BreadcrumbList and Product with its Offer. FAQ comes in plan 04c; every
+ * block is printed with toScript().
  *
  * Brand rule: the Offer carries the Retail price only; Dealer and Wholesale
  * prices never appear in structured data.
@@ -21,52 +22,160 @@ class StructuredData
     public function __construct(protected CompanySettings $company) {}
 
     /**
-     * Organization for the home page: name, url, logo and contacts from the company settings.
+     * Organization for the home page (plan 04): name, url, logo, contacts per
+     * phone label, address, sameAs (social links), legalName and taxID (INN)
+     * from the company settings. Empty values are left out.
      *
      * @return array<string, mixed>
      */
     public function organization(): array
     {
+        $legal = $this->company->legal();
+        $url = $this->homeUrl();
+
         $data = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
-            'name' => __('site.meta.site_name'),
-            'url' => route('site.home', ['locale' => app()->getLocale()]),
-            'logo' => asset('assets/site/logo.svg'),
+            '@id' => $url.'#organization',
+            'name' => $this->company->name(),
+            'url' => $url,
+            'logo' => $this->company->logoUrl() ?: asset('assets/site/logo.svg'),
             'description' => __('site.meta.description'),
         ];
 
-        $phone = $this->company->phone();
-        $email = $this->company->email();
+        $optional = [
+            'legalName' => $legal['legal_name'],
+            'taxID' => $legal['inn'],
+            'vatID' => $legal['vat_code'],
+            'telephone' => $this->company->phone(),
+            'email' => $this->company->email(),
+        ];
 
-        if ($phone !== '') {
-            $data['telephone'] = $phone;
+        foreach ($optional as $property => $value) {
+            if ($value !== '') {
+                $data[$property] = $value;
+            }
         }
 
-        if ($email !== '') {
-            $data['email'] = $email;
+        $contactPoints = $this->contactPoints();
+
+        if ($contactPoints !== []) {
+            $data['contactPoint'] = $contactPoints;
         }
 
-        $address = array_filter([
+        $data['address'] = $this->postalAddress();
+
+        $sameAs = array_values(array_unique(array_column($this->company->social(), 'url')));
+
+        if ($sameAs !== []) {
+            $data['sameAs'] = $sameAs;
+        }
+
+        return $data;
+    }
+
+    /**
+     * LocalBusiness for the home page (plan 04): the office with address,
+     * coordinates and opening hours. No priceRange (brand rule).
+     *
+     * @return array<string, mixed>
+     */
+    public function localBusiness(): array
+    {
+        $url = $this->homeUrl();
+
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'LocalBusiness',
+            '@id' => $url.'#localbusiness',
+            'name' => $this->company->name(),
+            'url' => $url,
+            'image' => $this->company->ogImageUrl() ?: ($this->company->logoUrl() ?: asset('assets/site/logo.svg')),
+            'parentOrganization' => ['@id' => $url.'#organization'],
+            'address' => $this->postalAddress(),
+        ];
+
+        if ($this->company->phone() !== '') {
+            $data['telephone'] = $this->company->phone();
+        }
+
+        if ($this->company->email() !== '') {
+            $data['email'] = $this->company->email();
+        }
+
+        $geo = $this->company->geo();
+
+        if ($geo !== null) {
+            $data['geo'] = ['@type' => 'GeoCoordinates', 'latitude' => $geo['lat'], 'longitude' => $geo['lng']];
+        }
+
+        if ($this->company->mapUrl() !== '') {
+            $data['hasMap'] = $this->company->mapUrl();
+        }
+
+        $hours = [];
+
+        foreach ($this->company->openingHours() as $row) {
+            $hours[] = [
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => array_map(fn (string $day): string => 'https://schema.org/'.SettingsFormat::DAYS[$day], $row['days']),
+                'opens' => $row['opens'],
+                'closes' => $row['closes'],
+            ];
+        }
+
+        if ($hours !== []) {
+            $data['openingHoursSpecification'] = $hours;
+        }
+
+        return $data;
+    }
+
+    /**
+     * One ContactPoint per phone label (the first site number of each label;
+     * numbers not marked for the site are never published).
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected function contactPoints(): array
+    {
+        $points = [];
+
+        foreach ($this->company->sitePhones() as $phone) {
+            $type = $phone['label']->contactType();
+
+            if (isset($points[$type])) {
+                continue;
+            }
+
+            $points[$type] = [
+                '@type' => 'ContactPoint',
+                'telephone' => $phone['number'],
+                'contactType' => $type,
+                'areaServed' => 'UZ',
+                'availableLanguage' => ['uz', 'ru', 'en'],
+            ];
+        }
+
+        return array_values($points);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function postalAddress(): array
+    {
+        return array_filter([
             '@type' => 'PostalAddress',
             'streetAddress' => $this->company->address(),
             'addressLocality' => $this->company->city(),
             'addressCountry' => 'UZ',
         ], fn (string $value): bool => $value !== '');
+    }
 
-        $data['address'] = $address;
-
-        $sameAs = array_column($this->company->social(), 'url');
-
-        if ($this->company->telegramUrl() !== '') {
-            $sameAs[] = $this->company->telegramUrl();
-        }
-
-        if ($sameAs !== []) {
-            $data['sameAs'] = array_values(array_unique($sameAs));
-        }
-
-        return $data;
+    protected function homeUrl(): string
+    {
+        return route('site.home', ['locale' => app()->getLocale()]);
     }
 
     /**

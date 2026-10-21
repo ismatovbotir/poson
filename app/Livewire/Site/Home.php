@@ -23,6 +23,7 @@ class Home extends Component
             'services' => $content->services(),
             'brands' => $content->brands(),
             'organization' => StructuredData::toScript($structuredData->organization()),
+            'localBusiness' => StructuredData::toScript($structuredData->localBusiness()),
         ])
             ->title(__('site.seo.home.title'))
             ->layoutData(['description' => __('site.seo.home.description')]);

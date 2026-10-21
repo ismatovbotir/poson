@@ -19,7 +19,7 @@ it('returns config defaults with an empty settings table', function () {
         ->and(settings()->phoneDisplay())->toBe('+998 (71) 200-00-00')
         ->and(settings()->email())->toBe('info@poson.uz')
         ->and(settings()->telegramUrl())->toBe('https://t.me/poson_uz')
-        ->and(settings()->social())->toBe([])
+        ->and(settings()->social())->toBe([['network' => 'telegram', 'url' => 'https://t.me/poson_uz']])
         ->and(settings()->get('missing', 'fallback'))->toBe('fallback');
 });
 
@@ -41,7 +41,7 @@ it('resolves hero stats to the current locale', function () {
     $stats = settings()->heroStats();
 
     expect($stats)->toHaveCount(3)
-        ->and($stats[0])->toBe(['value' => '12 мес.', 'label' => 'гарантия']);
+        ->and($stats[0])->toBe(['value' => 'Официальная', 'label' => 'гарантия']);
 });
 
 it('falls back to uz when a locale value is missing or empty', function () {
@@ -55,7 +55,7 @@ it('falls back to uz when a locale value is missing or empty', function () {
 });
 
 it('lets database rows override the defaults', function () {
-    Setting::factory()->setting('phone', '90 123 45 67')->create();
+    Setting::factory()->setting('phones', [['label' => 'orders', 'number' => '90 123 45 67', 'primary' => true, 'site' => true]])->create();
     Setting::factory()->setting('email', 'sales@poson.uz')->create();
 
     expect(settings()->phone())->toBe('+998901234567')
@@ -80,8 +80,8 @@ it('caches overrides and clears the cache when a setting is saved or deleted', f
 });
 
 it('accepts only https URLs for Telegram and social links', function (string $url) {
-    Setting::factory()->setting('telegram_url', $url)->create();
     Setting::factory()->setting('social', [
+        ['network' => 'telegram', 'url' => $url],
         ['network' => 'instagram', 'url' => $url],
         ['network' => 'youtube', 'url' => 'https://youtube.com/@poson'],
     ])->create();
@@ -97,7 +97,7 @@ it('accepts only https URLs for Telegram and social links', function (string $ur
 ]);
 
 it('hides the Telegram link when the URL is not safe', function () {
-    Setting::factory()->setting('telegram_url', 'javascript:alert(1)')->create();
+    Setting::factory()->setting('social', [['network' => 'telegram', 'url' => 'javascript:alert(1)']])->create();
 
     $html = $this->get('/ru')
         ->assertOk()

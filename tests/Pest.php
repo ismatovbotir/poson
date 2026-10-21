@@ -33,18 +33,13 @@ pest()->extend(TestCase::class)
 
 /**
  * Brand rule (CLAUDE.md): no discount, sale or low-price wording anywhere.
- * Word stems for Cyrillic/Uzbek (they inflect), whole words for English so
- * "wholesale" or "salesforce" don't match, plus "−12%" / "-12%" badges.
+ * The patterns live in config/brand.php (shared with the BrandSafeText rule).
  *
  * @return list<string>
  */
 function bannedWordingPatterns(): array
 {
-    return [
-        '/скидк/u', '/акци/u', '/дешев/u', '/дешёв/u', '/цена ниже/u', '/arzon/u', '/chegirma/u',
-        '/\bdiscounts?\b/u', '/\bcheap(er|est)?\b/u', '/\blow prices?\b/u', '/\bsales?\b/u', '/\bpromos?\b/u',
-        '/[−-]\d+\s?%/u',
-    ];
+    return config('brand.banned_patterns');
 }
 
 /**

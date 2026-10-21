@@ -81,7 +81,7 @@ final class Menu
             ]),
 
             new MenuGroup('settings', 'menu.groups.settings', [
-                new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', roles: $admin),
+                new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', permission: 'settings.company'),
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', roles: $admin),
             ]),

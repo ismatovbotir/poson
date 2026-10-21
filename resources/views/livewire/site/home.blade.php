@@ -8,6 +8,7 @@
 <div>
     @push('head')
         <script type="application/ld+json">{!! $organization !!}</script>
+        <script type="application/ld+json">{!! $localBusiness !!}</script>
     @endpush
 
     {{-- Hero --}}

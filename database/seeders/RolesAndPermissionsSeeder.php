@@ -94,6 +94,10 @@ class RolesAndPermissionsSeeder extends Seeder
             ...static::abilities(['categories', 'attributes', 'brands', 'products'], self::CRUD),
             'products.manage-services',
             'products.force-delete',
+            // Plan 04: admin-only (not granted to any other role in permissionMap()).
+            'settings.company',
+            'settings.integrations',
+            'analytics.view',
         ];
     }
 

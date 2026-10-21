@@ -159,6 +159,10 @@ return [
     'url' => ':Attribute notoʻgʻri formatga ega.',
     'uuid' => ':Attribute toʻgʻri UUID qiymatga ega boʻlishi kerak.',
     'uz_phone' => ':Attribute maydoniga Oʻzbekiston telefon raqamini kiriting, masalan +998 90 123 45 67.',
+    'brand_safe' => ':Attribute maydonida narx yoki chegirma haqidagi daʼvolar boʻlmasligi kerak.',
+    'social_url' => ':Attribute maydoni :hosts saytiga https havola boʻlishi kerak.',
+
+    'custom' => [],
 
     'attributes' => [],
 ];

@@ -6,12 +6,15 @@ use App\Enums\Role;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Models\Setting;
 use App\Models\User;
 use App\Support\CompanySettings;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,5 +41,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Re-apply the page locale (site) and the staff check + UI locale (admin) on Livewire update requests.
         Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, SetAdminLocale::class]);
+
+        // The company logo / OG image URL appears once its queued conversion exists.
+        Event::listen(function (ConversionHasBeenCompletedEvent $event): void {
+            if ($event->media->model_type === (new Setting)->getMorphClass()) {
+                CompanySettings::flush();
+            }
+        });
     }
 }

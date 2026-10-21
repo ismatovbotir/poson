@@ -85,4 +85,38 @@ return [
         'out_of_stock' => 'Нет в наличии',
     ],
 
+    'phone_label' => [
+        'orders' => 'Отдел продаж',
+        'service' => 'Сервисный центр',
+        'accounting' => 'Бухгалтерия',
+        'office' => 'Офис',
+    ],
+
+    'social_network' => [
+        'telegram' => 'Telegram',
+        'instagram' => 'Instagram',
+        'facebook' => 'Facebook',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        'tiktok' => 'TikTok',
+        'whatsapp' => 'WhatsApp',
+    ],
+
+    'settings_area' => [
+        'contacts' => 'Контакты',
+        'legal' => 'Реквизиты',
+        'social' => 'Соцсети',
+        'hero' => 'Главный экран',
+        'seo' => 'SEO',
+        'tracking' => 'Аналитика',
+        'integrations' => 'Интеграции',
+    ],
+
+    'audit_action' => [
+        'updated' => 'Изменено',
+        'cleared' => 'Очищено',
+        'uploaded' => 'Загружено',
+        'removed' => 'Удалено',
+    ],
+
 ];

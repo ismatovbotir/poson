@@ -69,15 +69,20 @@
         </a>
 
         <ul class="grid gap-3 text-sm text-ink-2">
-            <li>
-                <a href="tel:{{ $company->phone() }}" class="flex items-center gap-3 font-semibold text-ink hover:text-brand-600">
-                    <x-site.icon name="phone" class="text-brand-600" />
-                    {{ $company->phoneDisplay() }}
-                </a>
-            </li>
+            @foreach ($company->sitePhones() as $phone)
+                <li>
+                    <a href="tel:{{ $phone['number'] }}" class="flex items-center gap-3 hover:text-brand-600">
+                        <x-site.icon name="phone" class="text-brand-600" />
+                        <span class="grid leading-tight">
+                            <span class="font-semibold text-ink">{{ $phone['display'] }}</span>
+                            <span class="text-xs text-ink-2">{{ $phone['label']->label() }}</span>
+                        </span>
+                    </a>
+                </li>
+            @endforeach
             @if ($company->telegramUrl() !== '')
                 <li>
-                    <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-3 hover:text-brand-600">
+                    <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:text-brand-600">
                         <x-site.icon name="send" class="text-brand-600" />
                         {{ __('site.topbar.telegram') }}
                     </a>
@@ -91,11 +96,27 @@
                     </a>
                 </li>
             @endif
-            <li class="flex items-center gap-3">
-                <x-site.icon name="clock" class="text-brand-600" />
-                {{ $company->workingHours() }}
-            </li>
+            @if ($company->address() !== '')
+                <li>
+                    @if ($company->mapUrl() !== '')
+                        <a href="{{ $company->mapUrl() }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:text-brand-600">
+                            <x-site.icon name="pin" class="text-brand-600" />
+                            <span>{{ $company->address() }} <span class="sr-only">({{ __('site.contacts.map') }})</span></span>
+                        </a>
+                    @else
+                        <span class="flex items-center gap-3"><x-site.icon name="pin" class="text-brand-600" />{{ $company->address() }}</span>
+                    @endif
+                </li>
+            @endif
+            @if ($company->workingHours() !== '')
+                <li class="flex items-center gap-3">
+                    <x-site.icon name="clock" class="text-brand-600" />
+                    {{ $company->workingHours() }}
+                </li>
+            @endif
         </ul>
+
+        <x-site.social-links :links="$company->social()" variant="light" />
 
         <x-site.language-switcher variant="light" class="self-start" />
     </div>

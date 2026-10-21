@@ -169,6 +169,8 @@ return [
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
     'uz_phone' => 'The :attribute field must be a valid Uzbek phone number, e.g. +998 90 123 45 67.',
+    'brand_safe' => 'The :attribute must not contain price or discount claims.',
+    'social_url' => 'The :attribute must be an https link on :hosts.',
 
     /*
     |--------------------------------------------------------------------------
@@ -181,11 +183,7 @@ return [
     |
     */
 
-    'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
-        ],
-    ],
+    'custom' => [],
 
     /*
     |--------------------------------------------------------------------------

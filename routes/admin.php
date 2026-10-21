@@ -9,6 +9,7 @@ use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Products;
+use App\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,4 +58,7 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/products/create', Products\Form::class)->name('products.create');
     Route::livewire('/products/{product}/edit', Products\Form::class)->name('products.edit');
     Route::get('/products/documents/{document}/download', DownloadProductDocumentController::class)->name('products.documents.download');
+
+    // Settings (plan 04a). Admin only through settings.company; authorized in the component.
+    Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');
 });

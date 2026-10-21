@@ -53,11 +53,13 @@
             <div class="hidden md:block md:flex-1" aria-hidden="true"></div>
         @endif
 
-        <a href="tel:{{ $company->phone() }}" class="hidden shrink-0 flex-col leading-tight lg:flex">
-            <span class="sr-only">{{ __('site.topbar.call_us') }}:</span>
-            <span class="font-bold whitespace-nowrap text-ink">{{ $company->phoneDisplay() }}</span>
-            <span class="text-xs whitespace-nowrap text-ink-2">{{ $company->workingHours() }}</span>
-        </a>
+        @if ($company->phone() !== '')
+            <a href="tel:{{ $company->phone() }}" class="hidden shrink-0 flex-col leading-tight lg:flex">
+                <span class="sr-only">{{ __('site.topbar.call_us') }}:</span>
+                <span class="font-bold whitespace-nowrap text-ink">{{ $company->phoneDisplay() }}</span>
+                <span class="text-xs whitespace-nowrap text-ink-2">{{ $company->workingHours() }}</span>
+            </a>
+        @endif
 
         <a
             href="{{ \App\Support\Site\Navigation::quote() }}"
