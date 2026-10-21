@@ -2,41 +2,94 @@
 
 namespace App\Support\Site;
 
+use App\Support\Catalog\CategoryTree;
 use Illuminate\Support\Facades\Route;
 
 /**
  * Public site menus (header nav, mobile drawer, footer).
  *
- * Catalog, service and static page routes don't exist yet: until they do,
- * links point to sections of the localized home page. Each item names the
- * route it will use, so it switches over automatically once that route exists.
+ * The main menu lists the visible top-level catalog categories from the
+ * cached CategoryTree (flushed when a category is saved), then "Services",
+ * which opens the services category (/catalog/services); the home services
+ * teaser links to its subcategories. Static pages don't exist yet: until they
+ * do, those links point to sections of the localized home page, and each
+ * switches over once its named route exists.
  */
 class Navigation
 {
     /**
-     * Main menu: catalog sections, then Services (the template's right-aligned slot).
+     * Slug of the services category: the right-aligned "Services" item.
+     */
+    public const SERVICES_SLUG = 'services';
+
+    /**
+     * Home services teaser key => subcategory of the services category.
+     *
+     * @var array<string, string>
+     */
+    public const SERVICE_CATEGORIES = [
+        'warehouse' => 'setup-integration',
+        'marking' => 'setup-integration',
+        'repair' => 'repair-maintenance',
+    ];
+
+    /**
+     * Menu labels used while the catalog has no visible categories.
+     *
+     * @var array<string, string> slug => lang key under site.nav
+     */
+    protected const FALLBACK = [
+        'scanners' => 'scanners',
+        'label-printers' => 'label_printers',
+        'mobile-computers' => 'mobile_computers',
+        'labels-ribbons' => 'labels_ribbons',
+        'rfid' => 'rfid',
+        'pos' => 'pos',
+        'software' => 'software',
+    ];
+
+    /**
+     * Main menu: catalog categories, then Services (the template's right-aligned slot).
+     * "key" is the category slug.
      *
      * @return list<array{key: string, label: string, url: string, accent: bool}>
      */
     public static function main(): array
     {
-        $categories = ['scanners', 'label_printers', 'mobile_computers', 'labels_ribbons', 'rfid', 'pos', 'software'];
-
+        $locale = app()->getLocale();
         $items = [];
+        $services = null;
 
-        foreach ($categories as $key) {
-            $items[] = [
-                'key' => $key,
-                'label' => __("site.nav.{$key}"),
-                'url' => static::url('site.catalog.category', ['category' => str_replace('_', '-', $key)], '#categories'),
+        foreach (CategoryTree::visibleChildren(null) as $node) {
+            $item = [
+                'key' => $node['slug'],
+                'label' => CategoryTree::name($node['id']),
+                'url' => route('site.catalog.category', ['locale' => $locale, 'category' => $node['slug']]),
                 'accent' => false,
             ];
+
+            if ($node['slug'] === self::SERVICES_SLUG) {
+                $services = $item['url'];
+            } else {
+                $items[] = $item;
+            }
+        }
+
+        if ($items === []) {
+            foreach (self::FALLBACK as $slug => $key) {
+                $items[] = [
+                    'key' => $slug,
+                    'label' => __("site.nav.{$key}"),
+                    'url' => route('site.catalog.index', ['locale' => $locale]),
+                    'accent' => false,
+                ];
+            }
         }
 
         $items[] = [
-            'key' => 'services',
+            'key' => self::SERVICES_SLUG,
             'label' => __('site.nav.services'),
-            'url' => static::url('site.services.index', [], '#services'),
+            'url' => $services ?? static::url('site.services.index', [], '#services'),
             'accent' => true,
         ];
 
@@ -44,15 +97,17 @@ class Navigation
     }
 
     /**
-     * Footer "Catalog" column.
+     * Footer "Catalog" column: the catalog categories of the main menu (at most five).
      *
      * @return list<array{label: string, url: string}>
      */
     public static function footerCatalog(): array
     {
+        $items = array_filter(static::main(), fn (array $item): bool => ! $item['accent']);
+
         return array_values(array_map(
             fn (array $item): array => ['label' => $item['label'], 'url' => $item['url']],
-            array_filter(static::main(), fn (array $item): bool => in_array($item['key'], ['scanners', 'label_printers', 'mobile_computers', 'labels_ribbons', 'software'], true)),
+            array_slice($items, 0, 5),
         ));
     }
 
@@ -84,6 +139,14 @@ class Navigation
     }
 
     /**
+     * Catalog index URL (header "Catalog" button, hero CTA).
+     */
+    public static function catalog(): string
+    {
+        return route('site.catalog.index', ['locale' => app()->getLocale()]);
+    }
+
+    /**
      * Static page URL (about, delivery, privacy, ...); the footer contacts block until pages exist.
      */
     public static function page(string $slug): string
@@ -92,11 +155,36 @@ class Navigation
     }
 
     /**
-     * Service page URL; the home page lead form until service pages exist.
+     * Service teaser link: its services subcategory (SERVICE_CATEGORIES), else
+     * the services category, else the home page lead form.
      */
-    public static function service(string $slug): string
+    public static function service(string $key): string
     {
-        return static::url('site.services.show', ['service' => $slug], '#lead');
+        foreach ([self::SERVICE_CATEGORIES[$key] ?? null, self::SERVICES_SLUG] as $slug) {
+            $node = $slug !== null ? static::visibleCategory($slug) : null;
+
+            if ($node !== null) {
+                return route('site.catalog.category', ['locale' => app()->getLocale(), 'category' => $node['slug']]);
+            }
+        }
+
+        return static::url('site.services.show', ['service' => $key], '#lead');
+    }
+
+    /**
+     * A visible category from the tree by slug.
+     *
+     * @return array{id: int, slug: string}|null
+     */
+    protected static function visibleCategory(string $slug): ?array
+    {
+        foreach (CategoryTree::nodes() as $node) {
+            if ($node['slug'] === $slug) {
+                return CategoryTree::isVisible($node['id']) ? $node : null;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /*
@@ -92,4 +93,32 @@ function catalogWriterRoles(): array
         'admin' => [Role::Admin],
         'content manager' => [Role::ContentManager],
     ];
+}
+
+/**
+ * JSON-LD blocks of a page, decoded.
+ *
+ * @return list<array<string, mixed>>
+ */
+function jsonLdBlocks(string $html): array
+{
+    preg_match_all('#<script type="application/ld\+json">(.*?)</script>#s', $html, $matches);
+
+    return array_map(fn (string $json): array => json_decode($json, true, flags: JSON_THROW_ON_ERROR), $matches[1]);
+}
+
+/**
+ * Count the database queries a callback runs.
+ */
+function countQueries(callable $callback): int
+{
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $callback();
+
+    $count = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    return $count;
 }

@@ -1,20 +1,14 @@
 <?php
 
+use App\Enums\ProductBadge;
+use App\Enums\SaleMode;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Setting;
 use App\Support\CompanySettings;
 use App\Support\Money;
-
-/**
- * JSON-LD blocks of a page, decoded.
- *
- * @return list<array<string, mixed>>
- */
-function jsonLdBlocks(string $html): array
-{
-    preg_match_all('#<script type="application/ld\+json">(.*?)</script>#s', $html, $matches);
-
-    return array_map(fn (string $json): array => json_decode($json, true, flags: JSON_THROW_ON_ERROR), $matches[1]);
-}
+use App\Support\Site\HomeContent;
 
 it('renders the localized home page with its sections', function (string $locale) {
     $response = $this->get("/{$locale}")->assertOk();
@@ -25,7 +19,6 @@ it('renders the localized home page with its sections', function (string $locale
         ->assertSeeText(__('site.home.why.title', [], $locale))
         ->assertSeeText(__('site.home.services.title', [], $locale))
         ->assertSeeText(__('site.home.lead.title', [], $locale))
-        ->assertSee('id="categories"', false)
         ->assertSee('id="services"', false)
         ->assertSee('id="lead"', false)
         ->assertSee('<title>'.e(__('site.seo.home.title', [], $locale)).'</title>', false)
@@ -42,44 +35,79 @@ it('shows the hero stats from the company settings', function () {
     $this->get('/en')->assertOk()->assertSeeText(array_column($stats, 'value'));
 });
 
-it('shows four demo product cards when demo content is on', function () {
-    config(['site.demo_content' => true]);
-
+it('links the hero and header catalog buttons to the catalog', function () {
     $html = $this->get('/ru')->assertOk()->getContent();
 
-    expect(substr_count($html, 'data-product-card'))->toBe(4)
-        ->and($html)->toContain(__('site.home.popular.title', [], 'ru'))
-        ->and($html)->toContain(__('site.home.categories.title', [], 'ru'))
-        ->and($html)->toContain('Zebra')
-        ->and($html)->toContain('1'.Money::NBSP.'250'.Money::NBSP.'000');
+    expect(substr_count($html, 'href="'.url('/ru/catalog').'"'))->toBeGreaterThanOrEqual(2)
+        ->and($html)->not->toContain(url('/ru').'#categories');
 });
 
-it('gives a quote-mode card the quote CTA and cart cards the cart CTA', function () {
-    config(['site.demo_content' => true]);
+it('shows visible top-level categories with the published products of their subtree', function () {
+    $scanners = Category::factory()->create(['name' => ['uz' => 'Skanerlar', 'ru' => 'Сканеры', 'en' => 'Scanners'], 'sort' => 1, 'icon' => 'scan']);
+    $handheld = Category::factory()->child($scanners)->create();
+    $printers = Category::factory()->create(['name' => ['uz' => 'Printerlar', 'ru' => 'Принтеры', 'en' => 'Printers'], 'sort' => 2]);
+    Category::factory()->inactive()->create(['name' => ['uz' => 'Yashirin', 'ru' => 'Скрытая', 'en' => 'Hidden']]);
+
+    Product::factory()->inCategory($scanners)->create();
+    Product::factory()->count(2)->inCategory($handheld)->create();
+    Product::factory()->inactive()->inCategory($handheld)->create();
+    Product::factory()->inCategory($handheld)->create()->delete();
+
+    app()->setLocale('ru');
+    $tiles = app(HomeContent::class)->categories();
+
+    expect(array_map(fn ($tile) => [$tile->name, $tile->productsCount, $tile->icon], $tiles))->toBe([
+        ['Сканеры', 3, 'scan'],
+        ['Принтеры', 0, HomeContent::DEFAULT_ICON],
+    ]);
+
+    $this->get('/ru')->assertOk()
+        ->assertSeeText(__('site.home.categories.title', [], 'ru'))
+        ->assertSee('href="'.url('/ru/catalog/'.$scanners->slug).'"', false)
+        ->assertDontSeeText('Скрытая');
+});
+
+it('shows at most eight featured published products, in sort order', function () {
+    $featured = Product::factory()->count(9)->featured()->sequence(fn ($sequence) => ['sort' => $sequence->index])->create();
+    Product::factory()->create(['name' => ['uz' => 'Oddiy', 'ru' => 'Обычный', 'en' => 'Regular']]);
+    Product::factory()->featured()->inactive()->create(['name' => ['uz' => 'Qoralama', 'ru' => 'Черновик', 'en' => 'Draft']]);
 
     $html = $this->get('/en')->assertOk()->getContent();
 
-    preg_match_all('#<article[^>]*data-mode="(cart|quote|both)"[^>]*>(.*?)</article>#s', $html, $cards, PREG_SET_ORDER);
+    expect(substr_count($html, 'data-product-card'))->toBe(8)
+        ->and($html)->toContain(__('site.home.popular.title', [], 'en'))
+        ->and($html)->toContain(e($featured[0]->getTranslation('name', 'en')))
+        ->and($html)->not->toContain(e($featured[8]->getTranslation('name', 'en')))
+        ->and($html)->not->toContain('Regular')
+        ->and($html)->not->toContain('Draft');
+});
 
-    expect($cards)->toHaveCount(4);
+it('gives cards the quote CTA while the cart is off, and the cart CTA once it is on', function () {
+    Product::factory()->featured()->create(['sale_mode' => SaleMode::Both, 'price' => 125_000_000]);
+    Product::factory()->featured()->quoteOnly()->create();
+    Product::factory()->featured()->priceOnRequest()->create();
+
+    $html = $this->get('/en')->assertOk()->getContent();
+
+    expect(substr_count($html, 'data-cta="quote"'))->toBe(3)
+        ->and($html)->not->toContain('data-cta="cart"')
+        ->and($html)->toContain(__('site.card.price_on_request', [], 'en'))
+        ->and($html)->toContain('1'.Money::NBSP.'250'.Money::NBSP.'000');
+
+    config(['site.cart_enabled' => true]);
+
+    preg_match_all('#<article[^>]*data-mode="(cart|quote|both)"[^>]*>(.*?)</article>#s', $this->get('/en')->getContent(), $cards, PREG_SET_ORDER);
+
+    expect($cards)->toHaveCount(3);
 
     foreach ($cards as [, $saleMode, $card]) {
-        if ($saleMode === 'quote') {
-            expect($card)->toContain('data-cta="quote"')
-                ->toContain(__('site.card.request_quote', [], 'en'))
-                ->toContain(__('site.card.price_on_request', [], 'en'))
-                ->toContain('#lead')
-                ->not->toContain('data-cta="cart"');
-        } else {
-            expect($card)->toContain('data-cta="cart"')
-                ->toContain(__('site.card.add_to_cart', [], 'en'))
-                ->not->toContain('data-cta="quote"');
-        }
+        expect($card)->toContain($saleMode === 'quote' ? 'data-cta="quote"' : 'data-cta="cart"');
     }
 });
 
 it('never renders old prices or sale tags on product cards', function (string $locale) {
-    config(['site.demo_content' => true]);
+    Product::factory()->featured()->create();
+    Product::factory()->featured()->create(['badge' => ProductBadge::New]);
 
     $html = $this->get("/{$locale}")->assertOk()->getContent();
 
@@ -94,19 +122,40 @@ it('never renders old prices or sale tags on product cards', function (string $l
     expectNoBannedWording($html);
 })->with(['uz', 'ru', 'en']);
 
-it('hides the empty catalog sections when demo content is off', function () {
-    config(['site.demo_content' => false]);
+it('lists active brands linking to the filtered catalog', function () {
+    $zebra = Brand::factory()->create(['name' => 'Zebra', 'slug' => 'zebra', 'sort' => 1]);
+    Brand::factory()->inactive()->create(['name' => 'Hiddenbrand']);
 
+    $html = $this->get('/uz')->assertOk()->getContent();
+
+    expect($html)->toContain('id="brands-title"')
+        ->toContain('Zebra')
+        ->toContain('href="'.e(url('/uz/catalog').'?'.http_build_query(['brand' => [$zebra->slug]])).'"')
+        ->not->toContain('Hiddenbrand');
+});
+
+it('hides the empty catalog sections', function () {
     $this->get('/uz')
         ->assertOk()
         ->assertDontSee('data-product-card', false)
         ->assertDontSeeText(__('site.home.popular.title', [], 'uz'))
         ->assertDontSeeText(__('site.home.categories.title', [], 'uz'))
         ->assertDontSee('id="brands-title"', false)
-        // The #categories anchor stays for the header and hero links.
-        ->assertSee('id="categories"', false)
         ->assertSee('id="services"', false)
         ->assertSee('id="lead"', false);
+});
+
+it('renders the home page without lazy loading or per-product queries', function () {
+    // A warm-up request first: settings and the category tree are cached after it.
+    Product::factory()->count(2)->featured()->create();
+    $this->get('/ru')->assertOk();
+    $few = countQueries(fn () => $this->get('/ru')->assertOk());
+
+    Product::factory()->count(6)->featured()->create();
+    $this->get('/ru')->assertOk();
+    $many = countQueries(fn () => $this->get('/ru')->assertOk());
+
+    expect($many)->toBe($few);
 });
 
 it('adds valid Organization JSON-LD to the head', function () {
@@ -137,9 +186,3 @@ it('escapes settings values inside the JSON-LD script', function () {
         ->and(collect(jsonLdBlocks($html))->firstWhere('@type', 'Organization')['address']['streetAddress'])
         ->toBe('</script><script>alert(1)</script>');
 });
-
-it('contains no banned wording with demo content on', function (string $locale) {
-    config(['site.demo_content' => true]);
-
-    expectNoBannedWording($this->get("/{$locale}")->assertOk()->getContent());
-})->with(['uz', 'ru', 'en']);

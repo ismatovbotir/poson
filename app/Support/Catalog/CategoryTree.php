@@ -122,6 +122,74 @@ class CategoryTree
     }
 
     /**
+     * Whether the category is shown on the public site: it and all its
+     * ancestors are active.
+     */
+    public static function isVisible(int $id): bool
+    {
+        $node = static::find($id);
+
+        if ($node === null || ! $node['is_active']) {
+            return false;
+        }
+
+        foreach (static::ancestorIds($id) as $ancestorId) {
+            if (! (static::find($ancestorId)['is_active'] ?? false)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Ids of every category shown on the public site (see isVisible()), in tree order.
+     *
+     * @return list<int>
+     */
+    public static function visibleIds(): array
+    {
+        return array_values(array_filter(
+            array_column(static::flattened(), 'id'),
+            fn (int $id): bool => static::isVisible($id),
+        ));
+    }
+
+    /**
+     * The category and its visible descendants: the categories whose products
+     * a public listing of the category shows. Empty when the category is hidden.
+     *
+     * @return list<int>
+     */
+    public static function visibleSubtreeIds(int $id): array
+    {
+        if (! static::isVisible($id)) {
+            return [];
+        }
+
+        $ids = [$id];
+
+        foreach (static::children($id) as $child) {
+            array_push($ids, ...static::visibleSubtreeIds($child['id']));
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Visible direct children of a category (null: the visible roots).
+     *
+     * @return list<Node>
+     */
+    public static function visibleChildren(?int $parentId): array
+    {
+        return array_values(array_filter(
+            static::children($parentId),
+            fn (array $node): bool => static::isVisible($node['id']),
+        ));
+    }
+
+    /**
      * Level of a category: 1 for a root.
      */
     public static function depth(int $id): int

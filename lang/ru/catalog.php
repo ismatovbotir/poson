@@ -22,4 +22,14 @@ return [
         'mm/s' => 'мм/с',
     ],
 
+    'unit_counts' => [
+        'months' => ':count месяц|:count месяца|:count месяцев',
+        'hours' => ':count час|:count часа|:count часов',
+        'days' => ':count день|:count дня|:count дней',
+        'years' => ':count год|:count года|:count лет',
+        'inch' => ':count дюйм|:count дюйма|:count дюймов',
+    ],
+
+    'document_link' => 'Ссылка',
+
 ];

@@ -101,7 +101,7 @@ class Documents extends Component
         $document = $this->form->id !== null ? $this->find($this->form->id) : null;
         $file = $this->form->source === 'file' ? $this->form->file : null;
 
-        $this->runFormAction(fn () => $saveDocument->handle($this->product, $document, $this->form->documentData(), $file));
+        $this->runFormAction(fn () => $saveDocument->handle($this->product, $document, $this->form->documentData(), $file, auth()->user()));
 
         $this->form->setDocument(null);
         $this->editing = false;

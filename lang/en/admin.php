@@ -530,6 +530,7 @@ return [
             'delete_body' => '“:name” and its file will be deleted.',
             'errors' => [
                 'file_or_url' => 'Upload a file or give a link (one of the two).',
+                'executable_admin_only' => 'Only an administrator may upload executable files (.exe).',
                 'url_https' => 'Enter a full address starting with https://.',
                 'not_found' => 'Document not found.',
             ],

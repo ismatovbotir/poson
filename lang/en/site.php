@@ -5,7 +5,7 @@ return [
     'meta' => [
         'site_name' => 'Poson',
         'tagline' => 'Auto-ID equipment: selection, setup and service',
-        'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment: expert selection, setup, integration and service at our own service centre.',
+        'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment: expert selection, setup, integration and service at our own service center.',
     ],
 
     'locale' => [
@@ -58,11 +58,11 @@ return [
             'title_before' => 'Scanners, printers and mobile computers, ',
             'title_highlight' => 'set up and serviced',
             'title_after' => '',
-            'text' => 'We select the right hardware for your task, integrate it with 1C, ERP and POS systems, and set up DataMatrix marking workflows. Official warranty and our own service centre.',
+            'text' => 'We select the right hardware for your task, integrate it with 1C, ERP and POS systems, and set up DataMatrix marking workflows. Official warranty and our own service center.',
             'cta_catalog' => 'Browse the catalog',
             'cta_quote' => 'Request a quote',
             'badge_warranty_title' => 'Official warranty',
-            'badge_warranty_text' => 'Serviced at our own service centre',
+            'badge_warranty_text' => 'Serviced at our own service center',
             'badge_delivery_title' => 'Reliable delivery',
             'badge_delivery_text' => 'Careful packing and delivery',
         ],
@@ -96,7 +96,7 @@ return [
             'items' => [
                 'warranty' => [
                     'title' => 'Official warranty',
-                    'text' => 'Equipment comes with an official warranty, and warranty repairs are done at our own service centre.',
+                    'text' => 'Equipment comes with an official warranty, and warranty repairs are done at our own service center.',
                 ],
                 'delivery' => [
                     'title' => 'Reliable delivery',
@@ -128,7 +128,7 @@ return [
                 ],
                 'repair' => [
                     'title' => 'Repair and service',
-                    'text' => 'Diagnostics, warranty and post-warranty repair, and preventive maintenance at our own service centre.',
+                    'text' => 'Diagnostics, warranty and post-warranty repair, and preventive maintenance at our own service center.',
                 ],
             ],
         ],
@@ -144,6 +144,8 @@ return [
     ],
 
     'lead_form' => [
+        'product_unavailable' => 'This product is no longer available. Call us or send a request without it, and we will suggest an alternative.',
+        'product' => 'Product',
         'name' => 'Your name',
         'name_placeholder' => 'e.g. Aziz',
         'phone' => 'Phone',
@@ -177,7 +179,6 @@ return [
 
     'stock' => [
         'in_stock' => 'In stock',
-        'low' => 'Only :count left',
         'on_order' => 'On order',
         'out_of_stock' => 'Out of stock',
     ],
@@ -188,6 +189,110 @@ return [
     ],
 
     'currency' => 'UZS',
+
+    'breadcrumbs' => [
+        'home' => 'Home',
+        'aria_label' => 'Breadcrumb',
+    ],
+
+    'pagination' => [
+        'label' => 'Pagination',
+        'previous' => 'Previous page',
+        'next' => 'Next page',
+        'page' => 'Page :page',
+    ],
+
+    'catalog' => [
+        'title' => 'Catalog',
+        'results' => 'Products',
+        'subcategories' => 'Subcategories',
+        'found' => ':count product found|:count products found',
+        'show_results' => 'Show :count product|Show :count products',
+        'filters' => 'Filters',
+        'close_filters' => 'Close filters',
+        'price' => 'Price, :currency',
+        'price_min' => 'Minimum price',
+        'price_max' => 'Maximum price',
+        'min' => 'minimum',
+        'max' => 'maximum',
+        'brand' => 'Brand',
+        'stock' => 'Availability',
+        'reset' => 'Reset',
+        'active_filters' => 'Active filters',
+        'remove_filter' => 'Remove filter',
+        'chip_price_min' => 'from :amount',
+        'chip_price_max' => 'up to :amount',
+        'sort' => [
+            'label' => 'Sort by',
+            'popular' => 'Popular first',
+            'price_asc' => 'Price ↑',
+            'price_desc' => 'Price ↓',
+            'new' => 'Newest first',
+        ],
+        'empty_title' => 'No products found',
+        'empty_text' => 'There are no products in this section yet. Send us a request and we will select equipment for your task.',
+        'empty_filtered' => 'Nothing matches the selected filters. Change or reset them.',
+        'seo' => [
+            'title' => 'Auto-ID Equipment Catalog — Poson',
+            'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment, consumables and services: expert selection, setup, official warranty and service.',
+            'category_description' => ':name at Poson: expert selection, setup, official warranty and service.',
+        ],
+    ],
+
+    'product' => [
+        'sku' => 'SKU',
+        'brand' => 'Brand',
+        'model' => 'Model',
+        'category' => 'Category',
+        'yes' => 'Yes',
+        'no' => 'No',
+        'gallery' => 'Product photos',
+        'image' => 'Photo :number',
+        'key_specs' => 'Key specifications',
+        'price_on_request_note' => 'The price depends on the configuration: we will prepare a quote for you.',
+        'tabs' => [
+            'label' => 'Product information',
+            'description' => 'Description',
+            'specs' => 'Specifications',
+            'documents' => 'Documents',
+            'delivery' => 'Delivery & warranty',
+        ],
+        'no_description' => 'A description is coming soon. Ask a specialist and they will tell you more about this product.',
+        'documents_empty' => 'No documents have been added for this product yet.',
+        'download' => 'Download',
+        'open_link' => 'Open',
+        'new_tab' => 'opens in a new tab',
+        'checksum' => 'SHA-256',
+        'copy' => 'Copy',
+        'copied' => 'Copied',
+        'delivery' => [
+            'shipping' => 'Courier delivery in Tashkent, shipping across Uzbekistan by transport companies, or pickup from our warehouse.',
+            'payment' => 'Payment in cash, by card, through Click or Payme, or by bank transfer for companies.',
+            'setup' => 'We set up the equipment and connect it to your software.',
+            'warranty' => 'Official warranty: :months',
+            'warranty_on_request' => 'Warranty terms are confirmed in your quote.',
+            'service' => 'Warranty and post-warranty service at our own service center.',
+        ],
+        'months' => ':count month|:count months',
+        'related' => [
+            'accessory' => 'Accessories',
+            'consumable' => 'Consumables',
+            'alternative' => 'Alternatives',
+        ],
+        'quote' => [
+            'title' => 'Request a quote',
+            'text' => 'Leave your contacts: a specialist will confirm availability and delivery time, and suggest setup and integration for your task.',
+        ],
+    ],
+
+    'search' => [
+        'title' => 'Search',
+        'results_for' => 'Results for “:query”',
+        'empty_query' => 'Enter a product name, model or SKU.',
+        'nothing' => 'Nothing found for “:query”.',
+        'hint' => 'Check the spelling or describe your task, and a specialist will select the equipment.',
+        'seo_description' => 'Search the Poson catalog of Auto-ID equipment, consumables and services.',
+    ],
 
     'footer' => [
         'about' => 'About us',
@@ -200,7 +305,7 @@ return [
         'rights' => '© :year Poson. All rights reserved.',
         'privacy' => 'Privacy policy',
         'offer' => 'Public offer',
-        'description' => 'Auto-ID equipment and consumables: expert selection, setup, integration and service at our own service centre.',
+        'description' => 'Auto-ID equipment and consumables: expert selection, setup, integration and service at our own service center.',
     ],
 
     'seo' => [

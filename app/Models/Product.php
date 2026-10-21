@@ -9,6 +9,8 @@ use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Models\Concerns\StoresTranslations;
+use App\Support\Catalog\CategoryTree;
+use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -88,6 +91,20 @@ class Product extends Model implements HasMedia
      * @var list<string>
      */
     public array $translatable = ['name', 'short_description', 'description', 'meta_title', 'meta_description'];
+
+    /**
+     * Catalog changes flush the cached /sitemap.xml once the surrounding
+     * transaction commits (immediately without one), so a request can't
+     * re-cache the old state in between.
+     */
+    protected static function booted(): void
+    {
+        $flush = fn () => DB::afterCommit(fn () => Sitemap::flush());
+
+        static::saved($flush);
+        static::deleted($flush);
+        static::restored($flush);
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -176,6 +193,16 @@ class Product extends Model implements HasMedia
     }
 
     /**
+     * Key spec values (shown on the product card and above the buy box).
+     *
+     * @return HasMany<ProductAttributeValue, $this>
+     */
+    public function keySpecValues(): HasMany
+    {
+        return $this->attributeValues()->where('is_key', true);
+    }
+
+    /**
      * Category attributes this product deliberately does not use.
      *
      * @return HasMany<ProductAttributeSkip, $this>
@@ -212,6 +239,38 @@ class Product extends Model implements HasMedia
     {
         $query->where('products.is_active', true)
             ->whereHas('category', fn (Builder $category) => $category->where('is_active', true));
+    }
+
+    /**
+     * On the public site: active, in a category that is active together with
+     * all its ancestors (CategoryTree::visibleIds()). Trashed products are
+     * excluded by the soft-delete scope.
+     *
+     * @param  Builder<Product>  $query
+     */
+    public function scopeVisible(Builder $query): void
+    {
+        $query->where('products.is_active', true)
+            ->whereIn('products.category_id', CategoryTree::visibleIds());
+    }
+
+    /**
+     * Whether the product page is public (see scopeVisible()).
+     */
+    public function isVisible(): bool
+    {
+        return $this->is_active && ! $this->trashed() && CategoryTree::isVisible($this->category_id);
+    }
+
+    /**
+     * The brand as shown on the site: null while the brand is inactive.
+     * Needs "brand" loaded.
+     */
+    public function publicBrand(): ?Brand
+    {
+        $brand = $this->getRelationValue('brand');
+
+        return $brand instanceof Brand && $brand->is_active ? $brand : null;
     }
 
     /**

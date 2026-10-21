@@ -530,6 +530,7 @@ return [
             'delete_body' => '“:name” fayli bilan birga oʻchiriladi.',
             'errors' => [
                 'file_or_url' => 'Fayl yuklang yoki havola kiriting (ulardan bittasini).',
+                'executable_admin_only' => 'Bajariladigan fayllarni (.exe) faqat administrator yuklay oladi.',
                 'url_https' => 'https:// bilan boshlanadigan toʻliq manzilni kiriting.',
                 'not_found' => 'Hujjat topilmadi.',
             ],

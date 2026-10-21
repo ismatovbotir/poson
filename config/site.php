@@ -9,10 +9,19 @@
 return [
 
     /*
-    | Show placeholder categories, products and brands on the home page until
-    | the catalog exists. Keep it off in production: with it off, those home
-    | sections are hidden.
+    | "Add to cart" on product cards and pages (plan 03 D18). Off until the
+    | cart and checkout exist: cart / both products show the quote CTA.
     */
-    'demo_content' => (bool) env('SITE_DEMO_CONTENT', false),
+    'cart_enabled' => (bool) env('SITE_CART_ENABLED', false),
+
+    /*
+    | Products per page on catalog listings and search results.
+    */
+    'per_page' => 24,
+
+    /*
+    | Minutes /sitemap.xml stays cached (flushed on catalog saves).
+    */
+    'sitemap_cache_minutes' => 60,
 
 ];

@@ -1,7 +1,7 @@
 {{--
     Sticky site header: burger (below 900px), logo, catalog button, search
-    (only when the site.search route exists), phone (from 1100px) and the
-    quote CTA, followed by the main nav.
+    (/{locale}/search), phone (from 1100px) and the quote CTA, followed by the
+    main nav.
     The burger toggles "menuOpen" from the x-data on <body> (see x-site.mobile-menu).
 --}}
 @inject('company', \App\Support\CompanySettings::class)
@@ -23,14 +23,14 @@
         <x-site.logo />
 
         <a
-            href="{{ route('site.home', ['locale' => app()->getLocale()]) }}#categories"
+            href="{{ \App\Support\Site\Navigation::catalog() }}"
             class="ml-auto inline-flex h-11 items-center gap-2.5 rounded-btn bg-brand-600 px-3 font-semibold text-white transition-colors hover:bg-brand-700 md:ml-0 md:h-[46px] md:px-[18px]"
         >
             <x-site.icon name="grid" />
             <span class="sr-only md:not-sr-only">{{ __('site.header.catalog') }}</span>
         </a>
 
-        {{-- Search appears once the site.search route exists (catalog increment). Below 900px it is its own row. --}}
+        {{-- Below 900px the search is its own row. The route check keeps the header safe outside localized routes. --}}
         @if (\Illuminate\Support\Facades\Route::has('site.search'))
             <form role="search" method="get" action="{{ route('site.search', ['locale' => app()->getLocale()]) }}" class="relative order-last w-full md:order-none md:flex-1">
                 <label for="site-search" class="sr-only">{{ __('site.header.search_label') }}</label>
@@ -39,6 +39,8 @@
                     id="site-search"
                     type="search"
                     name="q"
+                    value="{{ request()->routeIs('site.search') && is_string(request()->query('q')) ? request()->query('q') : '' }}"
+                    maxlength="100"
                     autocomplete="off"
                     placeholder="{{ __('site.header.search_placeholder') }}"
                     class="h-[46px] w-full rounded-btn border-[1.5px] border-line bg-bg-soft pr-28 pl-11 text-ink transition-colors placeholder:text-ink-2 focus:border-brand-600 focus:bg-white focus:outline-none sm:pr-32"

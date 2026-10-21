@@ -22,4 +22,14 @@ return [
         'mm/s' => 'mm/s',
     ],
 
+    'unit_counts' => [
+        'months' => ':count oy',
+        'hours' => ':count soat',
+        'days' => ':count kun',
+        'years' => ':count yil',
+        'inch' => ':count dyuym',
+    ],
+
+    'document_link' => 'Havola',
+
 ];

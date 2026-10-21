@@ -22,4 +22,14 @@ return [
         'mm/s' => 'mm/s',
     ],
 
+    'unit_counts' => [
+        'months' => ':count month|:count months',
+        'hours' => ':count hour|:count hours',
+        'days' => ':count day|:count days',
+        'years' => ':count year|:count years',
+        'inch' => ':count inch|:count inches',
+    ],
+
+    'document_link' => 'Link',
+
 ];

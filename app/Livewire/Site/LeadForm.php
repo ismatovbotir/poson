@@ -4,6 +4,8 @@ namespace App\Livewire\Site;
 
 use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
+use App\Enums\LeadType;
+use App\Models\Product;
 use App\Rules\UzPhone;
 use App\Support\Phone;
 use Illuminate\Contracts\View\View;
@@ -12,9 +14,14 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * "Discuss your project" form on the home page: validates, applies the
- * spam checks (honeypot, minimum fill time) and rate limits, then hands
- * the lead to SubmitSiteLead.
+ * Lead form: "Discuss your project" on the home page (a callback lead) and
+ * the quote form on a product page (<livewire:site.lead-form :product-id="..." />,
+ * a quote lead for that product). Validates, applies the spam checks
+ * (honeypot, minimum fill time) and rate limits, then hands the lead to
+ * SubmitSiteLead.
+ *
+ * The product id is locked and checked against the published catalog on
+ * mount and again on submit; its SKU is read from the database.
  */
 class LeadForm extends Component
 {
@@ -62,6 +69,18 @@ class LeadForm extends Component
     #[Locked]
     public string $locale = '';
 
+    /**
+     * Product of a quote request (product page); null for a callback lead.
+     */
+    #[Locked]
+    public ?int $productId = null;
+
+    /**
+     * "Name (SKU)" of that product, shown above the fields.
+     */
+    #[Locked]
+    public ?string $productLabel = null;
+
     #[Locked]
     public ?string $pageUrl = null;
 
@@ -77,8 +96,12 @@ class LeadForm extends Component
     #[Locked]
     public int $renderedAt = 0;
 
-    public function mount(): void
+    public function mount(?int $productId = null): void
     {
+        $product = $productId !== null ? $this->publishedProduct($productId) : null;
+
+        $this->productId = $product?->id;
+        $this->productLabel = $product !== null ? $product->name.' ('.$product->sku.')' : null;
         $this->locale = app()->getLocale();
         $this->pageUrl = url()->current();
         $this->utm = $this->captureUtm();
@@ -116,6 +139,15 @@ class LeadForm extends Component
         $validated = $this->validate();
         $phone = Phone::normalize($validated['phone']);
 
+        // A quote for a product that left the site in the meantime: say so instead of sending a quote without it.
+        $product = $this->productId !== null ? $this->publishedProduct($this->productId) : null;
+
+        if ($this->productId !== null && $product === null) {
+            $this->addError('form', __('site.lead_form.product_unavailable'));
+
+            return;
+        }
+
         // Count first, then compare: concurrent requests can't slip past the limit.
         if (
             $this->limitExceeded('site-lead:'.sha1((string) request()->ip()), self::RATE_LIMIT, self::RATE_LIMIT_SECONDS)
@@ -132,8 +164,11 @@ class LeadForm extends Component
                 company: filled($validated['company']) ? trim($validated['company']) : null,
                 message: filled($validated['message']) ? trim($validated['message']) : null,
                 locale: $this->locale,
+                type: $product !== null ? LeadType::Quote : LeadType::Callback,
                 utm: $this->utm,
                 pageUrl: $this->pageUrl,
+                productId: $product?->id,
+                productSku: $product?->sku,
             ));
         }
 
@@ -160,6 +195,16 @@ class LeadForm extends Component
         ]));
 
         return true;
+    }
+
+    /**
+     * The product when it is shown on the site, else null.
+     */
+    protected function publishedProduct(int $productId): ?Product
+    {
+        $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'name', 'category_id', 'is_active']);
+
+        return $product instanceof Product ? $product : null;
     }
 
     protected function looksLikeBot(): bool

@@ -6,7 +6,9 @@ use App\Enums\LeadSource;
 use App\Enums\LeadType;
 
 /**
- * A lead submitted from the public site. The phone is already normalized to +998XXXXXXXXX.
+ * A lead submitted from the public site. The phone is already normalized to
+ * +998XXXXXXXXX. A quote request from a product page carries the product
+ * (id and SKU re-read from the database, never taken from the browser).
  */
 final readonly class SiteLeadData
 {
@@ -23,5 +25,7 @@ final readonly class SiteLeadData
         public LeadType $type = LeadType::Callback,
         public array $utm = [],
         public ?string $pageUrl = null,
+        public ?int $productId = null,
+        public ?string $productSku = null,
     ) {}
 }

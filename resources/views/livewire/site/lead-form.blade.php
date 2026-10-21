@@ -29,6 +29,13 @@
 
     @unless ($sent)
         <form wire:submit="submit" novalidate class="relative grid gap-3.5">
+            @if ($productLabel)
+                <p class="rounded-btn bg-bg-soft px-4 py-3 text-sm" data-lead-product>
+                    <span class="text-ink-2">{{ __('site.lead_form.product') }}:</span>
+                    <span class="font-semibold">{{ $productLabel }}</span>
+                </p>
+            @endif
+
             <div role="alert">
                 @error('form')
                     <p class="rounded-btn border border-danger/30 bg-danger/5 px-4 py-3 text-sm font-medium text-danger" data-form-error>{{ $message }}</p>

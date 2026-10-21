@@ -86,6 +86,26 @@ class Attribute extends Model
     }
 
     /**
+     * A formatted number with its unit: plural-aware for counted units
+     * (catalog.unit_counts: "2 года", "5 лет", "1 month"), else "50 mm".
+     * A fractional number takes the form of 2 ("12,5 месяца", "1.5 months").
+     */
+    public function withUnit(string $formattedNumber, float $number): string
+    {
+        $key = "catalog.unit_counts.{$this->unit}";
+
+        if ($this->unit !== null && Lang::has($key)) {
+            $count = floor($number) === $number ? (int) $number : 2;
+
+            return trans_choice($key, $count, ['count' => $formattedNumber]);
+        }
+
+        $unit = $this->unitLabel();
+
+        return $unit !== null ? $formattedNumber.' '.$unit : $formattedNumber;
+    }
+
+    /**
      * Unit for display: lang key catalog.units.<unit> when there is one
      * (pcs, months, mm, ...), otherwise the unit as stored (dpi, GHz, ...).
      */

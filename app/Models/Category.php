@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\Sitemap;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +22,8 @@ use Spatie\Translatable\HasTranslations;
  * Catalog category (plan 03 D4: adjacency list, max depth 3, cached CategoryTree).
  *
  * Saving or deleting a model flushes the CategoryTree cache (again after the
- * surrounding transaction commits). Mass updates bypass model events: call
+ * surrounding transaction commits) and the sitemap. The public menu is built
+ * from CategoryTree, so it follows too. Mass updates bypass model events: call
  * CategoryTree::flush() after them.
  *
  * Note: the attributes() relation shares its name with Eloquent's internal
@@ -57,7 +59,10 @@ class Category extends Model implements HasMedia
     {
         $flush = function (): void {
             CategoryTree::flush();
-            DB::afterCommit(fn () => CategoryTree::flush());
+            DB::afterCommit(function (): void {
+                CategoryTree::flush();
+                Sitemap::flush();
+            });
         };
 
         static::saved($flush);

@@ -10,12 +10,16 @@ use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
-it('has no public product route yet: products are reachable only under /admin', function () {
+it('exposes products publicly only through the product page and its document download', function () {
     $public = collect(Route::getRoutes()->getRoutes())
         ->reject(fn (RoutingRoute $route): bool => str_starts_with($route->uri(), 'admin') || str_starts_with($route->uri(), 'livewire'))
         ->filter(fn (RoutingRoute $route): bool => str_contains($route->uri(), 'product') || str_contains((string) $route->getName(), 'product'));
 
-    expect($public->map(fn (RoutingRoute $route) => $route->uri())->values()->all())->toBe([]);
+    // Both check Product::isVisible() (tests/Feature/Site/Catalog/ProductPageTest.php).
+    expect($public->map(fn (RoutingRoute $route) => $route->uri())->values()->all())->toBe([
+        '{locale}/product/{product}',
+        '{locale}/product/{product}/documents/{document}',
+    ]);
 });
 
 it('never shows Dealer or Wholesale prices on the public home page', function (string $locale) {

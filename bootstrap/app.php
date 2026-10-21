@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrustProxies;
+use App\Support\Site\CanonicalHost;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -33,6 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Only the admin panel has authentication.
         $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.login'));
         $middleware->redirectUsersTo(fn (Request $request): string => route('admin.dashboard'));
+
+        // Only APP_URL's host (and its www twin) is answered; skipped in local and tests by Laravel.
+        $middleware->trustHosts(at: fn (): array => CanonicalHost::trustedHosts(), subdomains: false);
 
         // Proxies come from config('app.trusted_proxies') (env TRUSTED_PROXIES); empty trusts none.
         $middleware->replace(BaseTrustProxies::class, TrustProxies::class);

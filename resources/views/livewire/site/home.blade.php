@@ -1,6 +1,7 @@
 {{--
     Home page, ported from .claude/html-templates/site/index.html.
-    Categories, popular products and brands are hidden while empty (demo content off).
+    Categories, popular (featured) products and brands come from the catalog
+    (App\Support\Site\HomeContent) and are hidden while empty.
     Copy changes vs. the template (brand rule): B2B block sells service, not price;
     no "−%" tags or old prices on product cards.
 --}}
@@ -24,7 +25,7 @@
 
                 <div class="flex flex-wrap gap-3">
                     <a
-                        href="#categories"
+                        href="{{ \App\Support\Site\Navigation::catalog() }}"
                         class="inline-flex h-[54px] items-center justify-center gap-2 rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700"
                     >
                         {{ __('site.home.hero.cta_catalog') }}
@@ -84,6 +85,8 @@
                     id="categories-title"
                     :title="__('site.home.categories.title')"
                     :subtitle="__('site.home.categories.subtitle')"
+                    :link="\App\Support\Site\Navigation::catalog()"
+                    :link-label="__('site.home.categories.all')"
                 />
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                     @foreach ($categories as $tile)
@@ -92,9 +95,6 @@
                 </div>
             </div>
         </section>
-    @else
-        {{-- Keeps the header "Catalog" and hero links (#categories) working until the catalog exists. --}}
-        <span id="categories" class="block scroll-mt-28" aria-hidden="true"></span>
     @endif
 
     {{-- Popular products --}}
@@ -105,6 +105,8 @@
                     id="popular-title"
                     :title="__('site.home.popular.title')"
                     :subtitle="__('site.home.popular.subtitle')"
+                    :link="\App\Support\Site\Navigation::catalog()"
+                    :link-label="__('site.home.popular.all')"
                 />
                 <div class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
                     @foreach ($products as $product)
@@ -188,7 +190,7 @@
                         <li wire:key="brand-{{ $brand->slug }}">
                             <a href="{{ $brand->url }}" class="grid h-[76px] place-items-center rounded-box border border-line bg-white px-4 font-extrabold tracking-[0.04em] text-ink-2 uppercase transition-colors hover:border-brand hover:text-brand-600">
                                 @if ($brand->logo)
-                                    <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" loading="lazy" class="max-h-10 w-auto">
+                                    <img src="{{ $brand->logo }}" alt="{{ $brand->name }}" width="160" height="40" loading="lazy" class="max-h-10 w-auto object-contain">
                                 @else
                                     {{ $brand->name }}
                                 @endif

@@ -3,13 +3,15 @@
     'description' => null,
     'image' => null,
     'robots' => null,
+    'type' => 'website',
 ])
 
 {{--
     Public site layout (layouts::site), ported from .claude/html-templates/site/index.html.
     Blade:    <x-layouts::site :title="..." :description="...">...</x-layouts::site>
     Livewire: default component_layout; #[Title] fills $title.
-    Extra <head> tags (JSON-LD, robots): @push('head').
+    Extra <head> tags (JSON-LD, robots): @push('head'); content after the footer
+    (e.g. room for a fixed mobile bar): @push('after-footer').
 --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -17,7 +19,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <x-site.seo-head :title="$title" :description="$description" :image="$image" :robots="$robots" />
+    <x-site.seo-head :title="$title" :description="$description" :image="$image" :robots="$robots" :type="$type" />
     @stack('head')
 
     @fonts
@@ -45,6 +47,7 @@
     </main>
 
     <x-site.footer />
+    @stack('after-footer')
 
     @livewireScripts
 </body>

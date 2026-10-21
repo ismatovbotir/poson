@@ -3,8 +3,10 @@
 namespace App\Actions\Catalog;
 
 use App\Enums\DocumentType;
+use App\Enums\Role;
 use App\Models\Product;
 use App\Models\ProductDocument;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +20,10 @@ use Throwable;
  * product-documents/{product}/{uuid}.{ext}, or an external https link —
  * exactly one of the two. Replacing the file or switching to a link
  * deletes the old file after the commit.
+ *
+ * Executables (exe) may only be uploaded by a user with the admin role
+ * ($actor). The SHA-256 of an uploaded file is stored, so visitors can check
+ * a driver or firmware download.
  */
 class SaveProductDocument
 {
@@ -26,7 +32,7 @@ class SaveProductDocument
      *
      * @throws ValidationException
      */
-    public function handle(Product $product, ?ProductDocument $document, array $data, ?UploadedFile $file = null): ProductDocument
+    public function handle(Product $product, ?ProductDocument $document, array $data, ?UploadedFile $file = null, ?User $actor = null): ProductDocument
     {
         if ($document !== null && $document->product_id !== $product->id) {
             throw ValidationException::withMessages(['document' => __('admin.products.documents.errors.not_found')]);
@@ -34,13 +40,14 @@ class SaveProductDocument
 
         $document ??= new ProductDocument(['product_id' => $product->id]);
         $url = filled($data['url']) ? trim((string) $data['url']) : null;
-        $this->check($document, $data, $url, $file);
+        $this->check($document, $data, $url, $file, $actor);
 
         $oldPath = $document->path;
+        $checksum = $file !== null ? hash('sha256', (string) $file->get()) : null;
         $newPath = $file !== null ? $this->storeFile($product, $file) : null;
 
         try {
-            DB::transaction(function () use ($product, $document, $data, $url, $file, $newPath): void {
+            DB::transaction(function () use ($product, $document, $data, $url, $file, $newPath, $checksum): void {
                 $document->storeTranslations('title', $data['title']);
                 $document->fill([
                     'type' => $data['type'],
@@ -49,9 +56,9 @@ class SaveProductDocument
                 ]);
 
                 if ($newPath !== null) {
-                    $document->fill(['path' => $newPath, 'url' => null, 'original_name' => $this->originalName($file), 'size' => $file->getSize()]);
+                    $document->fill(['path' => $newPath, 'url' => null, 'original_name' => $this->originalName($file), 'size' => $file->getSize(), 'sha256' => $checksum]);
                 } elseif ($url !== null) {
-                    $document->fill(['path' => null, 'url' => $url, 'original_name' => null, 'size' => null]);
+                    $document->fill(['path' => null, 'url' => $url, 'original_name' => null, 'size' => null, 'sha256' => null]);
                 }
 
                 $document->save();
@@ -76,7 +83,7 @@ class SaveProductDocument
      *
      * @throws ValidationException
      */
-    private function check(ProductDocument $document, array $data, ?string $url, ?UploadedFile $file): void
+    private function check(ProductDocument $document, array $data, ?string $url, ?UploadedFile $file, ?User $actor): void
     {
         $errors = [];
 
@@ -99,6 +106,8 @@ class SaveProductDocument
 
             if (! in_array($extension, ProductDocument::EXTENSIONS, true)) {
                 $errors['file'] = __('validation.mimes', ['attribute' => __('admin.products.documents.file'), 'values' => implode(', ', ProductDocument::EXTENSIONS)]);
+            } elseif (in_array($extension, ProductDocument::EXECUTABLE_EXTENSIONS, true) && ! ($actor?->hasRole(Role::Admin) ?? false)) {
+                $errors['file'] = __('admin.products.documents.errors.executable_admin_only');
             } elseif ($file->getSize() > ProductDocument::MAX_KILOBYTES * 1024) {
                 $errors['file'] = __('validation.max.file', ['attribute' => __('admin.products.documents.file'), 'max' => ProductDocument::MAX_KILOBYTES]);
             }

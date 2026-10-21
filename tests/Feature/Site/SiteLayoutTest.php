@@ -136,20 +136,12 @@ it('switches nav links from home anchors to real routes once they exist', functi
         ->not->toContain('href="'.url('/ru').'#services"');
 });
 
-it('renders the search form only when the search route exists', function () {
-    $this->get('/ru')->assertOk()->assertDontSee('role="search"', false);
-
-    Route::middleware(['web', 'locale'])
-        ->prefix('{locale}')
-        ->whereIn('locale', config('app.supported_locales'))
-        ->get('/search', fn () => 'search')
-        ->name('site.search');
-    app('router')->getRoutes()->refreshNameLookups();
-
+it('renders the header search form pointing at the search page', function () {
     $this->get('/ru')
         ->assertOk()
         ->assertSee('role="search"', false)
-        ->assertSee('action="'.url('/ru/search').'"', false);
+        ->assertSee('action="'.url('/ru/search').'"', false)
+        ->assertSee('name="q"', false);
 });
 
 it('leaves out favorites, login and the cart', function () {

@@ -68,9 +68,9 @@ return [
         ],
 
         'categories' => [
-            'title' => 'Katalog boʻlimlari',
+            'title' => 'Katalog toifalari',
             'subtitle' => 'Skanerlash, chop etish va hisob yuritish uchun uskunalar hamda sarf materiallari',
-            'all' => 'Barcha boʻlimlar',
+            'all' => 'Barcha toifalar',
         ],
 
         'popular' => [
@@ -144,6 +144,8 @@ return [
     ],
 
     'lead_form' => [
+        'product_unavailable' => 'Bu mahsulot endi mavjud emas. Bizga qoʻngʻiroq qiling yoki soʻrovni usiz yuboring — muqobilini taklif qilamiz.',
+        'product' => 'Mahsulot',
         'name' => 'Ismingiz',
         'name_placeholder' => 'Masalan, Aziz',
         'phone' => 'Telefon',
@@ -170,14 +172,13 @@ return [
     'card' => [
         'add_to_cart' => 'Savatga',
         'request_quote' => 'Taklif soʻrash',
-        'price_on_request' => 'Narxi soʻrov boʻyicha',
+        'price_on_request' => 'Narx soʻrov boʻyicha',
         'products_count' => ':count ta mahsulot',
         'view' => 'Batafsil',
     ],
 
     'stock' => [
-        'in_stock' => 'Mavjud',
-        'low' => 'Kam qoldi: :count dona',
+        'in_stock' => 'Omborda bor',
         'on_order' => 'Buyurtma asosida',
         'out_of_stock' => 'Mavjud emas',
     ],
@@ -188,6 +189,110 @@ return [
     ],
 
     'currency' => 'soʻm',
+
+    'breadcrumbs' => [
+        'home' => 'Bosh sahifa',
+        'aria_label' => 'Navigatsiya zanjiri',
+    ],
+
+    'pagination' => [
+        'label' => 'Sahifalar',
+        'previous' => 'Oldingi sahifa',
+        'next' => 'Keyingi sahifa',
+        'page' => ':page-sahifa',
+    ],
+
+    'catalog' => [
+        'title' => 'Katalog',
+        'results' => 'Mahsulotlar',
+        'subcategories' => 'Ichki toifalar',
+        'found' => ':count ta mahsulot topildi',
+        'show_results' => ':count ta mahsulotni koʻrsatish',
+        'filters' => 'Filtrlar',
+        'close_filters' => 'Filtrlarni yopish',
+        'price' => 'Narx, :currency',
+        'price_min' => 'Minimal narx',
+        'price_max' => 'Maksimal narx',
+        'min' => 'minimum',
+        'max' => 'maksimum',
+        'brand' => 'Brend',
+        'stock' => 'Mavjudlik',
+        'reset' => 'Tozalash',
+        'active_filters' => 'Tanlangan filtrlar',
+        'remove_filter' => 'Filtrni olib tashlash',
+        'chip_price_min' => 'kamida :amount',
+        'chip_price_max' => 'koʻpi bilan :amount',
+        'sort' => [
+            'label' => 'Saralash',
+            'popular' => 'Avval ommaboplari',
+            'price_asc' => 'Narx boʻyicha ↑',
+            'price_desc' => 'Narx boʻyicha ↓',
+            'new' => 'Avval yangilari',
+        ],
+        'empty_title' => 'Mahsulotlar topilmadi',
+        'empty_text' => 'Bu toifada hozircha mahsulotlar yoʻq. Soʻrov qoldiring — vazifangizga mos uskunani tanlab beramiz.',
+        'empty_filtered' => 'Tanlangan filtrlarga mos mahsulot topilmadi. Filtrlarni oʻzgartiring yoki tozalang.',
+        'seo' => [
+            'title' => 'Auto-ID uskunalari katalogi — Poson',
+            'description' => 'Shtrix-kod skanerlari, yorliq printerlari, TSD, RFID va POS uskunalari, sarf materiallari va xizmatlar: tanlash, sozlash, rasmiy kafolat va servis.',
+            'category_description' => 'Poson: :name — vazifaga mos tanlash, sozlash, rasmiy kafolat va servis.',
+        ],
+    ],
+
+    'product' => [
+        'sku' => 'Artikul',
+        'brand' => 'Brend',
+        'model' => 'Model',
+        'category' => 'Toifa',
+        'yes' => 'Ha',
+        'no' => 'Yoʻq',
+        'gallery' => 'Mahsulot rasmlari',
+        'image' => ':number-rasm',
+        'key_specs' => 'Asosiy xususiyatlar',
+        'price_on_request_note' => 'Narx komplektatsiyaga bogʻliq: sizga tijorat taklifini tayyorlaymiz.',
+        'tabs' => [
+            'label' => 'Mahsulot haqida maʼlumot',
+            'description' => 'Tavsif',
+            'specs' => 'Xususiyatlar',
+            'documents' => 'Hujjatlar',
+            'delivery' => 'Yetkazib berish va kafolat',
+        ],
+        'no_description' => 'Tavsif tez orada qoʻshiladi. Mutaxassisga savol bering — u mahsulot haqida batafsil aytib beradi.',
+        'documents_empty' => 'Bu mahsulot uchun hujjatlar hali qoʻshilmagan.',
+        'download' => 'Yuklab olish',
+        'open_link' => 'Ochish',
+        'new_tab' => 'yangi varaqda ochiladi',
+        'checksum' => 'SHA-256',
+        'copy' => 'Nusxalash',
+        'copied' => 'Nusxalandi',
+        'delivery' => [
+            'shipping' => 'Toshkent boʻylab kuryer orqali, Oʻzbekiston boʻylab transport kompaniyasi orqali yetkazib beramiz yoki ombordan olib ketishingiz mumkin.',
+            'payment' => 'Toʻlov: naqd pul, karta, Click yoki Payme orqali, yuridik shaxslar uchun bank oʻtkazmasi.',
+            'setup' => 'Uskunani sozlaymiz va dasturingizga ulaymiz.',
+            'warranty' => 'Rasmiy kafolat: :months',
+            'warranty_on_request' => 'Kafolat shartlarini tijorat taklifida koʻrsatamiz.',
+            'service' => 'Oʻz servis markazimizda kafolatli va kafolatdan keyingi xizmat.',
+        ],
+        'months' => ':count oy',
+        'related' => [
+            'accessory' => 'Aksessuarlar',
+            'consumable' => 'Sarf materiallari',
+            'alternative' => 'Muqobil mahsulotlar',
+        ],
+        'quote' => [
+            'title' => 'Tijorat taklifini soʻrash',
+            'text' => 'Kontaktlaringizni qoldiring: mutaxassis mavjudlik va yetkazib berish muddatini aniqlab, vazifangizga mos sozlash va integratsiyani taklif qiladi.',
+        ],
+    ],
+
+    'search' => [
+        'title' => 'Qidiruv',
+        'results_for' => '«:query» boʻyicha natijalar',
+        'empty_query' => 'Mahsulot nomi, modeli yoki artikulini kiriting.',
+        'nothing' => '«:query» boʻyicha hech narsa topilmadi.',
+        'hint' => 'Imloni tekshiring yoki vazifangizni yozing — mutaxassis uskunani tanlab beradi.',
+        'seo_description' => 'Poson katalogi boʻyicha qidiruv: Auto-ID uskunalari, sarf materiallari va xizmatlar.',
+    ],
 
     'footer' => [
         'about' => 'Kompaniya haqida',

@@ -22,13 +22,14 @@ class SubmitSiteLead
     {
         $reference = 'L-'.Str::upper(Str::random(10));
 
-        // Only the reference and channel: no name, phone, company, message or query-string data in logs.
-        Log::info('Site lead received', [
+        // Only the reference, channel and product: no name, phone, company, message or query-string data in logs.
+        Log::info('Site lead received', array_filter([
             'reference' => $reference,
             'locale' => $data->locale,
             'source' => $data->source->value,
             'type' => $data->type->value,
-        ]);
+            'product_sku' => $data->productSku,
+        ], fn (?string $value): bool => $value !== null));
 
         return $reference;
     }

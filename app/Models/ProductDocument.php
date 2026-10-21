@@ -16,8 +16,8 @@ use Spatie\Translatable\HasTranslations;
  * external https link (url), never both.
  *
  * Files are private: staff download them through the authorized route
- * admin.products.documents.download. The public site (plan 3d) will need its
- * own download route for documents of published products.
+ * admin.products.documents.download, visitors through site.product.document
+ * (published products only).
  *
  * @property int $id
  * @property int $product_id
@@ -27,9 +27,10 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $url
  * @property string|null $original_name
  * @property int|null $size bytes
+ * @property string|null $sha256 hex SHA-256 of the uploaded file
  * @property int $sort
  */
-#[Fillable(['product_id', 'title', 'type', 'locale', 'path', 'url', 'original_name', 'size', 'sort'])]
+#[Fillable(['product_id', 'title', 'type', 'locale', 'path', 'url', 'original_name', 'size', 'sha256', 'sort'])]
 class ProductDocument extends Model
 {
     /** @use HasFactory<ProductDocumentFactory> */
@@ -44,6 +45,11 @@ class ProductDocument extends Model
      * Accepted file extensions (validated against the content type too).
      */
     public const EXTENSIONS = ['pdf', 'zip', 'exe'];
+
+    /**
+     * Executable extensions: only users with the admin role may upload them.
+     */
+    public const EXECUTABLE_EXTENSIONS = ['exe'];
 
     /**
      * Largest upload in kilobytes (20 MB).
@@ -83,11 +89,11 @@ class ProductDocument extends Model
     }
 
     /**
-     * File extension in upper case ("PDF") or "URL" for a link.
+     * File extension in upper case ("PDF") or "Link" (translated) for a link.
      */
     public function kind(): string
     {
-        return $this->isFile() ? mb_strtoupper(pathinfo((string) $this->path, PATHINFO_EXTENSION)) : 'URL';
+        return $this->isFile() ? mb_strtoupper(pathinfo((string) $this->path, PATHINFO_EXTENSION)) : __('catalog.document_link');
     }
 
     /**

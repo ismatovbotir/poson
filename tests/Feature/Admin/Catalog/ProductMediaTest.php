@@ -2,6 +2,7 @@
 
 use App\Actions\Catalog\AddProductImages;
 use App\Actions\Catalog\ForceDeleteProduct;
+use App\Actions\Catalog\SaveProductDocument;
 use App\Enums\DocumentType;
 use App\Enums\RelationType;
 use App\Enums\Role;
@@ -315,3 +316,41 @@ it('sends documents with nosniff', function () {
         ->assertOk()
         ->assertHeader('X-Content-Type-Options', 'nosniff');
 });
+
+it('stores the SHA-256 of an uploaded document', function () {
+    $product = Product::factory()->create();
+    $file = UploadedFile::fake()->createWithContent('spec.pdf', '%PDF-1.4 test');
+
+    $document = app(SaveProductDocument::class)->handle($product, null, [
+        'title' => ['uz' => 'Hujjat'], 'type' => DocumentType::Datasheet, 'locale' => null, 'url' => null,
+    ], $file, staffUser(Role::ContentManager));
+
+    expect($document->sha256)->toBe(hash('sha256', '%PDF-1.4 test'));
+
+    $document = app(SaveProductDocument::class)->handle($product, $document, [
+        'title' => ['uz' => 'Hujjat'], 'type' => DocumentType::Datasheet, 'locale' => null, 'url' => 'https://example.com/a.pdf',
+    ]);
+
+    expect($document->sha256)->toBeNull();
+});
+
+it('lets only admins upload executable documents', function (Role $role, bool $allowed) {
+    $product = Product::factory()->create();
+    $upload = fn () => app(SaveProductDocument::class)->handle($product, null, [
+        'title' => ['uz' => 'Drayver'], 'type' => DocumentType::Driver, 'locale' => null, 'url' => null,
+    ], UploadedFile::fake()->createWithContent('driver.exe', 'MZ driver'), staffUser($role));
+
+    if ($allowed) {
+        expect($upload()->sha256)->toBe(hash('sha256', 'MZ driver'));
+
+        return;
+    }
+
+    expect($upload)->toThrow(ValidationException::class, __('admin.products.documents.errors.executable_admin_only'));
+    expect(ProductDocument::query()->count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles())->toBe([]);
+})->with([
+    'admin' => [Role::Admin, true],
+    'content manager' => [Role::ContentManager, false],
+    'service engineer' => [Role::ServiceEngineer, false],
+]);

@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Schema;
  * Product documents (plan 03 D11): datasheets, manuals, drivers, ... Either
  * a file on the private "local" disk (path, original_name, size) or an
  * external https link (url) — exactly one of path / url, enforced by
- * SaveProductDocument. locale null = the document applies to every language.
+ * SaveProductDocument. sha256 = checksum of the uploaded file (shown on the
+ * product page). locale null = the document applies to every language.
  */
 return new class extends Migration
 {
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->string('url', 2048)->nullable();
             $table->string('original_name')->nullable();
             $table->unsignedBigInteger('size')->nullable();
+            $table->char('sha256', 64)->nullable();
             $table->unsignedInteger('sort')->default(0);
             $table->timestamps();
 

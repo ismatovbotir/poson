@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\AttributeType;
 use App\Models\Concerns\StoresTranslations;
+use App\Support\NumberFormat;
 use Database\Factories\ProductAttributeValueFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -88,5 +90,38 @@ class ProductAttributeValue extends Model
         $number = (string) $this->value_number;
 
         return str_contains($number, '.') ? rtrim(rtrim($number, '0'), '.') : $number;
+    }
+
+    /**
+     * The value as shown on the site, in the current locale: the option
+     * value, the number with its unit, yes / no, or the text. Null when the
+     * row holds nothing for its type. Needs "attribute" (and "option" for
+     * select / multiselect) loaded.
+     */
+    public function displayValue(): ?string
+    {
+        $attribute = $this->getRelationValue('attribute');
+
+        if (! $attribute instanceof Attribute) {
+            return null;
+        }
+
+        $value = match ($attribute->type) {
+            AttributeType::Select, AttributeType::Multiselect => $this->getRelationValue('option')?->value,
+            AttributeType::Number => $this->numberWithUnit($attribute),
+            AttributeType::Boolean => $this->value_bool === null ? null : __($this->value_bool ? 'site.product.yes' : 'site.product.no'),
+            AttributeType::Text => $this->value_text,
+        };
+
+        return filled($value) ? (string) $value : null;
+    }
+
+    private function numberWithUnit(Attribute $attribute): ?string
+    {
+        if ($this->value_number === null) {
+            return null;
+        }
+
+        return $attribute->withUnit(NumberFormat::format((string) $this->value_number), (float) $this->value_number);
     }
 }
