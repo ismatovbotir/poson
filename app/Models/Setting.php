@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\CompanySettings;
+use App\Support\Secrets;
 use Database\Factories\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,8 +19,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * company, seo or integrations (plan 04 S1). Write through the
  * UpdateCompanySettings / UpdateCompanyMedia actions, which also audit.
  *
- * Saving or deleting a model flushes the CompanySettings cache once the
- * surrounding transaction commits (immediately when there is none).
+ * Saving or deleting a model flushes the CompanySettings cache (or, for the
+ * integrations group, the Secrets cache) once the surrounding transaction
+ * commits (immediately when there is none).
  * Mass writes such as Setting::query()->update() or ->delete() bypass model
  * events and therefore do NOT flush the cache: call CompanySettings::flush()
  * yourself after them.
@@ -62,8 +64,22 @@ class Setting extends Model implements HasMedia
 
     protected static function booted(): void
     {
-        static::saved(fn () => DB::afterCommit(fn () => CompanySettings::flush()));
-        static::deleted(fn () => DB::afterCommit(fn () => CompanySettings::flush()));
+        static::saved(fn (Setting $setting) => DB::afterCommit(fn () => $setting->flushCaches()));
+        static::deleted(fn (Setting $setting) => DB::afterCommit(fn () => $setting->flushCaches()));
+    }
+
+    /**
+     * Company rows feed CompanySettings; integration rows feed Secrets.
+     */
+    public function flushCaches(): void
+    {
+        if ($this->group === 'integrations') {
+            Secrets::flush();
+
+            return;
+        }
+
+        CompanySettings::flush();
     }
 
     /**

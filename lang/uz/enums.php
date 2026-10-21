@@ -117,6 +117,19 @@ return [
         'cleared' => 'Tozalandi',
         'uploaded' => 'Yuklandi',
         'removed' => 'Oʻchirildi',
+        'generated' => 'Yaratildi',
+    ],
+
+    'payme_mode' => [
+        'test' => 'Sinov rejimi',
+        'prod' => 'Ishchi rejim',
+    ],
+
+    'integration_source' => [
+        'env' => '.env fayli',
+        'db' => 'Admin panel',
+        'default' => 'Standart',
+        'none' => 'Kiritilmagan',
     ],
 
 ];

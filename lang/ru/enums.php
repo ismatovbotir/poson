@@ -117,6 +117,19 @@ return [
         'cleared' => 'Очищено',
         'uploaded' => 'Загружено',
         'removed' => 'Удалено',
+        'generated' => 'Создано',
+    ],
+
+    'payme_mode' => [
+        'test' => 'Тест',
+        'prod' => 'Боевой',
+    ],
+
+    'integration_source' => [
+        'env' => 'Файл .env',
+        'db' => 'Админка',
+        'default' => 'По умолчанию',
+        'none' => 'Не задано',
     ],
 
 ];

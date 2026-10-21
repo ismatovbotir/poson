@@ -6,7 +6,9 @@
             title: '…', body: '…', label: '…',
             component: $wire.$id, method: 'delete', params: [id],
         })
-    On confirm it calls the Livewire method; without "component" it only closes.
+    From PHP use "componentId" ("component" is reserved by Livewire's dispatch()):
+        $this->dispatch('confirm', title: '…', componentId: $this->getId(), method: 'save', params: [...]);
+    On confirm it calls the Livewire method; without a component it only closes.
     Esc, the backdrop and Cancel close it; focus is trapped while open.
 --}}
 <div
@@ -19,7 +21,7 @@
             this.title = d.title ?? @js(__('admin.confirm.title'));
             this.body = d.body ?? @js(__('admin.confirm.body'));
             this.label = d.label ?? @js(__('admin.confirm.confirm'));
-            this.component = d.component ?? null;
+            this.component = d.component ?? d.componentId ?? null;
             this.method = d.method ?? null;
             this.params = Array.isArray(d.params) ? d.params : [];
             this.open = true;

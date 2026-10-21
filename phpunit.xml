@@ -34,5 +34,29 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Integrations: never use real keys from the shell or .env in tests (plan 04b). -->
+        <env name="ANTHROPIC_API_KEY" value="" force="true"/>
+        <env name="OPENAI_API_KEY" value="" force="true"/>
+        <env name="REMOVEBG_API_KEY" value="" force="true"/>
+        <env name="AI_ENABLED" value="" force="true"/>
+        <env name="AI_TEXT_MODEL" value="" force="true"/>
+        <env name="AI_VISION_MODEL" value="" force="true"/>
+        <env name="AI_IMAGE_MODEL" value="" force="true"/>
+        <env name="AI_DAILY_LIMIT_PER_USER" value="" force="true"/>
+        <env name="AI_DAILY_IMAGE_LIMIT_PER_USER" value="" force="true"/>
+        <env name="AI_MONTHLY_BUDGET_USD" value="" force="true"/>
+        <env name="TELEGRAM_BOT_TOKEN" value="" force="true"/>
+        <env name="TELEGRAM_WEBHOOK_SECRET" value="" force="true"/>
+        <env name="TELEGRAM_SALES_CHAT_ID" value="" force="true"/>
+        <env name="TELEGRAM_SERVICE_CHAT_ID" value="" force="true"/>
+        <env name="TELEGRAM_FINANCE_CHAT_ID" value="" force="true"/>
+        <env name="PAYME_MERCHANT_ID" value="" force="true"/>
+        <env name="PAYME_KEY" value="" force="true"/>
+        <env name="PAYME_TEST_KEY" value="" force="true"/>
+        <env name="PAYME_MODE" value="" force="true"/>
+        <env name="CLICK_SERVICE_ID" value="" force="true"/>
+        <env name="CLICK_MERCHANT_ID" value="" force="true"/>
+        <env name="CLICK_MERCHANT_USER_ID" value="" force="true"/>
+        <env name="CLICK_SECRET_KEY" value="" force="true"/>
     </php>
 </phpunit>

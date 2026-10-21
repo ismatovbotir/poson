@@ -15,4 +15,16 @@ return [
 
     'dev_login' => (bool) env('ADMIN_DEV_LOGIN', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password re-confirmation
+    |--------------------------------------------------------------------------
+    |
+    | Seconds a password confirmation (/admin/confirm-password) stays valid
+    | for sensitive screens such as Settings → Integrations (plan 04 S7).
+    |
+    */
+
+    'password_confirm_timeout' => 900,
+
 ];

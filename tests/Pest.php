@@ -2,6 +2,9 @@
 
 use App\Enums\Role;
 use App\Models\User;
+use App\Support\Admin\PasswordConfirmation;
+use App\Support\Integrations\IntegrationRegistry;
+use App\Support\Secrets;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -116,4 +119,31 @@ function countQueries(callable $callback): int
     DB::disableQueryLog();
 
     return $count;
+}
+
+/**
+ * Re-create the integration resolver as a fresh process would: every
+ * integration config path is reset to the given ".env" values (null when
+ * not given), then Secrets captures them and re-applies.
+ *
+ * @param  array<string, mixed>  $env  config path => value, e.g. ['services.anthropic.key' => 'env-key']
+ */
+function freshSecrets(array $env = []): void
+{
+    foreach (IntegrationRegistry::fields() as $field) {
+        foreach ($field->configPaths as $path) {
+            config([$path => $env[$path] ?? null]);
+        }
+    }
+
+    app()->forgetInstance(Secrets::class);
+    Secrets::apply();
+}
+
+/**
+ * Mark the admin password as confirmed (Settings → Integrations), optionally in the past.
+ */
+function confirmAdminPassword(int $secondsAgo = 0): void
+{
+    session()->put(PasswordConfirmation::SESSION_KEY, now()->subSeconds($secondsAgo)->unix());
 }

@@ -35,4 +35,53 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Poson integrations (plan 04b)
+    |--------------------------------------------------------------------------
+    |
+    | Deliberately env() WITHOUT defaults: an empty value means "not set in
+    | .env", so App\Support\Secrets overlays the value saved in Settings →
+    | Integrations (or the registry default). A non-empty .env value always
+    | wins and locks the field in admin. Read these through config() or
+    | Secrets::get(), never env(). Defaults live in IntegrationRegistry.
+    |
+    */
+
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'removebg' => [
+        'key' => env('REMOVEBG_API_KEY'),
+    ],
+
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+        'chats' => [
+            'sales' => env('TELEGRAM_SALES_CHAT_ID'),
+            'service' => env('TELEGRAM_SERVICE_CHAT_ID'),
+            'finance' => env('TELEGRAM_FINANCE_CHAT_ID'),
+        ],
+    ],
+
+    'payme' => [
+        'merchant_id' => env('PAYME_MERCHANT_ID'),
+        'key' => env('PAYME_KEY'),
+        'test_key' => env('PAYME_TEST_KEY'),
+        'mode' => env('PAYME_MODE'),
+    ],
+
+    'click' => [
+        'service_id' => env('CLICK_SERVICE_ID'),
+        'merchant_id' => env('CLICK_MERCHANT_ID'),
+        'merchant_user_id' => env('CLICK_MERCHANT_USER_ID'),
+        'secret_key' => env('CLICK_SECRET_KEY'),
+    ],
+
 ];

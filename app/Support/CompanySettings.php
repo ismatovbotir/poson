@@ -21,6 +21,7 @@ use WeakReference;
  * stale write racing a flush), flushed when a Setting is saved or deleted,
  * and memoized so a request reads the cache store at most once. The logo /
  * OG image URLs are cached the same way under "company_settings_media".
+ * Integration values (group integrations) are left to App\Support\Secrets.
  *
  * Every typed getter re-validates what it reads (plan 04 §4) and returns ''
  * (or an empty list / null) for anything invalid, so a bad row or a
@@ -568,7 +569,7 @@ class CompanySettings
             return $this->overrides = Cache::remember(
                 self::CACHE_KEY,
                 now()->addSeconds(self::CACHE_TTL),
-                fn (): array => Setting::query()->whereNotIn('key', array_keys(Setting::MEDIA))->pluck('value', 'key')->all(),
+                fn (): array => Setting::query()->where('group', '!=', 'integrations')->whereNotIn('key', array_keys(Setting::MEDIA))->pluck('value', 'key')->all(),
             );
         } catch (QueryException $e) {
             report($e);

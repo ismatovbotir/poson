@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Attributes;
+use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
@@ -61,4 +62,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // Settings (plan 04a). Admin only through settings.company; authorized in the component.
     Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');
+
+    // Integrations (plan 04b): settings.integrations (Admin only) + password re-confirmation within 15 minutes.
+    Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
+    Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

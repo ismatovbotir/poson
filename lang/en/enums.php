@@ -117,6 +117,19 @@ return [
         'cleared' => 'Cleared',
         'uploaded' => 'Uploaded',
         'removed' => 'Removed',
+        'generated' => 'Generated',
+    ],
+
+    'payme_mode' => [
+        'test' => 'Test',
+        'prod' => 'Live',
+    ],
+
+    'integration_source' => [
+        'env' => '.env file',
+        'db' => 'Admin panel',
+        'default' => 'Default',
+        'none' => 'Not set',
     ],
 
 ];

@@ -9,9 +9,13 @@ use App\Http\Middleware\SetLocale;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\CompanySettings;
+use App\Support\Secrets;
+use Illuminate\Console\Events\CommandFinished;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
@@ -26,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
         // Scoped: reset between Octane requests and queued jobs, so the memoized
         // overrides never outlive a request.
         $this->app->scoped(CompanySettings::class);
+
+        // Singleton: keeps the captured .env values and the applied version
+        // for the whole process (queue workers included).
+        $this->app->singleton(Secrets::class);
     }
 
     /**
@@ -35,6 +43,16 @@ class AppServiceProvider extends ServiceProvider
     {
         // Lazy loading, silently discarded attributes and missing attributes throw outside production.
         Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Integration settings and secrets (Settings → Integrations) over config: .env > admin > default.
+        Secrets::apply();
+
+        // Long-running workers pick up integration changes before the next job.
+        Queue::before(fn () => Secrets::reapplyIfStale());
+
+        // No overlay while config:cache / optimize run (DB secrets must never reach the config cache file).
+        Event::listen(fn (CommandStarting $event) => Secrets::suspendForCommand($event->command, starting: true));
+        Event::listen(fn (CommandFinished $event) => Secrets::suspendForCommand($event->command, starting: false));
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
