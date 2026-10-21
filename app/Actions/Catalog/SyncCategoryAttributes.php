@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  */
 class SyncCategoryAttributes
 {
+    public function __construct(private RecomputeSpecCompleteness $recompute) {}
+
     /**
      * @param  list<array{attribute_id: int, is_required: bool, is_filterable: bool}>  $rows
      */
@@ -48,16 +50,17 @@ class SyncCategoryAttributes
 
         DB::transaction(function () use ($category, $sync): void {
             $category->attributes()->sync($sync);
-            $this->pruneSubtree($category);
 
-            $this->recomputeProducts($category);
+            // Prunes duplicates and recomputes has_missing_specs for the subtree.
+            $this->pruneSubtree($category);
         });
     }
 
     /**
      * Remove duplicates down the tree: the category loses attributes its
      * ancestors already assign, and its descendants lose attributes the
-     * category assigns or inherits.
+     * category assigns or inherits. Then has_missing_specs is recomputed for
+     * the products of the category and its descendants (their chain changed).
      */
     public function pruneSubtree(Category $category): void
     {
@@ -73,6 +76,8 @@ class SyncCategoryAttributes
         $descendants = CategoryTree::descendantIds($category->id);
 
         if ($descendants === []) {
+            $this->recomputeProducts($category);
+
             return;
         }
 
@@ -88,7 +93,7 @@ class SyncCategoryAttributes
                 ->delete();
         }
 
-        // TODO(3c): recompute has_missing_specs for the affected descendants too.
+        $this->recomputeProducts($category);
     }
 
     /**
@@ -115,11 +120,9 @@ class SyncCategoryAttributes
 
     /**
      * Recompute products.has_missing_specs for the category and its subtree (plan 03 D8).
-     *
-     * TODO(3c): products don't exist yet; this is a no-op until then.
      */
-    private function recomputeProducts(Category $category): void
+    public function recomputeProducts(Category $category): void
     {
-        //
+        $this->recompute->forCategories([$category->id, ...CategoryTree::descendantIds($category->id)]);
     }
 }

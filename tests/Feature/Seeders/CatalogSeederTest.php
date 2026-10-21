@@ -22,10 +22,15 @@ it('seeds the catalog idempotently', function () {
 
     $this->seed(CatalogSeeder::class);
 
+    // Counts follow the data files (the content writer may extend them).
+    $countNodes = function (array $nodes) use (&$countNodes): int {
+        return array_sum(array_map(fn (array $node): int => 1 + $countNodes($node['children'] ?? []), $nodes));
+    };
+
     expect($counts())->toBe($first)
-        ->and($first[0])->toBe(35)
-        ->and($first[1])->toBe(40)
-        ->and($first[4])->toBe(10);
+        ->and($first[0])->toBe($countNodes(require database_path('seeders/data/categories.php')))
+        ->and($first[1])->toBe(count(require database_path('seeders/data/attributes.php')))
+        ->and($first[4])->toBe(count(CatalogSeeder::BRANDS));
 });
 
 it('resolves every Navigation category slug to an active top-level category', function () {

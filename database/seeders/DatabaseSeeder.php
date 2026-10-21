@@ -8,7 +8,8 @@ use Illuminate\Database\Seeder;
 
 /**
  * Local / testing seed: roles and permissions, the catalog base data
- * (categories, attributes, brands) plus a non-staff test user.
+ * (categories, attributes, brands), demo products on local / staging,
+ * plus a non-staff test user.
  *
  * Production deploys do not run this seeder; they run
  * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
@@ -27,6 +28,11 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             CatalogSeeder::class,
         ]);
+
+        // Demo catalog: local and staging only, never production.
+        if (app()->environment(['local', 'staging'])) {
+            $this->call(DemoProductsSeeder::class);
+        }
 
         if (app()->environment(['local', 'testing'])) {
             User::query()->firstOrCreate(

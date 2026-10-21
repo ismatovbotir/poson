@@ -31,6 +31,27 @@ class Search
     }
 
     /**
+     * Normalized form of products.search_text (plan 03 D7): lower case (all of
+     * Unicode, in PHP), Uzbek apostrophes removed, whitespace collapsed.
+     */
+    public static function normalize(?string $text): string
+    {
+        $text = mb_strtolower(str_replace(Slug::APOSTROPHES, '', (string) $text));
+
+        return trim((string) preg_replace('/\s+/u', ' ', $text));
+    }
+
+    /**
+     * LIKE pattern for a column stored with normalize() (e.g. search_text):
+     * the term is normalized the same way, so "o'zbek", "oʻzbek" and "ozbek"
+     * all match, and Cyrillic case doesn't matter even on SQLite.
+     */
+    public static function normalizedPattern(string $term): string
+    {
+        return static::likePattern(static::normalize($term));
+    }
+
+    /**
      * OR-match the term against each locale value of a translatable json
      * column (name->uz, name->ru, name->en), never against the json keys.
      *

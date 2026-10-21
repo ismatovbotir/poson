@@ -50,11 +50,9 @@ class AttributeOption extends Model
 
     /**
      * Whether product values use this option (blocks deletion).
-     *
-     * TODO(3c): check product_attribute_values.
      */
     public function isInUse(): bool
     {
-        return false;
+        return ProductAttributeValue::query()->where('attribute_option_id', $this->id)->exists();
     }
 }

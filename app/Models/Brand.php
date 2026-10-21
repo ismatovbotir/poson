@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\Translatable\HasTranslations;
 
@@ -61,12 +62,18 @@ class Brand extends Model implements HasMedia
     }
 
     /**
-     * Whether products use this brand (blocks deletion).
-     *
-     * TODO(3c): check the products table.
+     * @return HasMany<Product, $this>
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Whether products use this brand, including trashed ones (blocks deletion).
      */
     public function hasProducts(): bool
     {
-        return false;
+        return Product::withTrashed()->where('brand_id', $this->id)->exists();
     }
 }

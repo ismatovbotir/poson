@@ -130,7 +130,7 @@ return [
 
     'temporary_file_upload' => [
         'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK'), // Example: 'local', 's3'             | Default: 'default'
-        'rules' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:5120'], // Admin uploads: catalog images only (5 MB)
+        'rules' => ['file', 'mimes:jpg,jpeg,png,webp,pdf,zip,exe', 'max:20480'], // Admin uploads: catalog images (components cap them at 5 MB) and product documents (pdf/zip/exe, 20 MB)
         'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
         'middleware' => null,                                 // Example: 'throttle:5,1'            | Default: 'throttle:60,1'
         'preview_mimes' => [                                  // Supported file types for temporary pre-signed file URLs...

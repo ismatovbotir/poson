@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,8 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     /**
-     * Card key → [model class, icon]. Products join in plan 03 3c.
+     * Card key → [model class, icon]. Product cards (active, drafts, specs
+     * incomplete) follow when the user may view products.
      *
      * @var array<string, array{0: class-string<Model>, 1: string}>
      */
@@ -39,7 +41,7 @@ class Dashboard extends Component
     }
 
     /**
-     * @return list<array{key: string, label: string, icon: string, count: int}>
+     * @return list<array{key: string, label: string, icon: string, count: int, href?: string}>
      */
     #[Computed]
     public function cards(): array
@@ -59,6 +61,24 @@ class Dashboard extends Component
                 'icon' => $icon,
                 'count' => $model::query()->count(),
             ];
+        }
+
+        if ($user->can('viewAny', Product::class)) {
+            $products = [
+                'products_active' => ['box', Product::query()->where('is_active', true)->count(), ['tab' => 'active']],
+                'products_drafts' => ['edit', Product::query()->where('is_active', false)->count(), ['tab' => 'drafts']],
+                'products_incomplete' => ['alert', Product::query()->where('has_missing_specs', true)->count(), ['tab' => 'incomplete']],
+            ];
+
+            foreach ($products as $key => [$icon, $count, $query]) {
+                $cards[] = [
+                    'key' => $key,
+                    'label' => __("admin.dashboard.cards.{$key}"),
+                    'icon' => $icon,
+                    'count' => $count,
+                    'href' => route('admin.products.index', $query),
+                ];
+            }
         }
 
         return $cards;

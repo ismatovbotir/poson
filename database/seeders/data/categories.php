@@ -953,4 +953,85 @@ return [
         ],
     ],
 
+    // ─── 8. Services ────────────────────────────────────────────────────────
+    [
+        'slug' => 'services',
+        'icon' => null,
+        'sort' => 8,
+        'name' => [
+            'uz' => 'Servis xizmatlari',
+            'ru' => 'Сервисные услуги',
+            'en' => 'Services',
+        ],
+        'description' => [
+            'uz' => 'Poson nafaqat uskuna yetkazib beradi, balki uning butun xizmat muddati davomida ishonchli ishlashini taʼminlaydi. Muhandislarimiz skanerlar, yorliq printerlari, TSD, RFID va POS uskunalarini oʻrnatadi, 1C, WMS va markirovka tizimlari bilan integratsiya qiladi hamda xodimlaringizni oʻqitadi. Oʻz servis markazimizda diagnostika, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika bajariladi, muddatlar esa oldindan kelishiladi.',
+            'ru' => 'Poson не только поставляет оборудование, но и отвечает за его надёжную работу на всём сроке службы. Наши инженеры устанавливают сканеры, принтеры этикеток, ТСД, RFID- и POS-оборудование, интегрируют его с 1С, WMS и системами маркировки и обучают ваших сотрудников. В собственном сервисном центре мы проводим диагностику, гарантийный и постгарантийный ремонт и плановую профилактику, а сроки согласуем заранее.',
+            'en' => 'Poson does more than supply equipment: we keep it running reliably for its whole service life. Our engineers install scanners, label printers, mobile computers, RFID and POS hardware, integrate it with 1C, WMS and marking systems and train your staff. Our own service centre handles diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance, with timelines agreed up front.',
+        ],
+        'meta_title' => [
+            'uz' => 'Servis: oʻrnatish, sozlash va taʼmirlash — Poson',
+            'ru' => 'Сервис: установка, настройка и ремонт — Poson',
+            'en' => 'Services: setup, integration and repair — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Auto-ID uskunalari uchun Poson servisi: oʻrnatish, sozlash, 1C va WMS bilan integratsiya, diagnostika, taʼmirlash va oʻz servis markazimizda profilaktika.',
+            'ru' => 'Сервис Poson для Auto-ID оборудования: установка, настройка, интеграция с 1С и WMS, диагностика, ремонт и обслуживание в собственном сервисном центре.',
+            'en' => 'Poson service for Auto-ID equipment: installation, setup and integration with 1C and WMS, diagnostics, repair and maintenance in our own service centre.',
+        ],
+        'children' => [
+            [
+                'slug' => 'setup-integration',
+                'icon' => null,
+                'sort' => 1,
+                'name' => [
+                    'uz' => 'Oʻrnatish va integratsiya',
+                    'ru' => 'Установка и интеграция',
+                    'en' => 'Setup and integration',
+                ],
+                'description' => [
+                    'uz' => 'Uskunani oʻrnatish, sozlash va hisob tizimingiz bilan bogʻlash: skanerlarni dasturlash, yorliq printerlarini kalibrlash va shablonlar, TSDga ilovalar va MDM, kassa joyini toʻliq ishga tushirish. Poson muhandislari ishni ofisingizda yoki masofadan bajaradi va xodimlarni oʻqitadi.',
+                    'ru' => 'Установка, настройка и связь оборудования с вашей учётной системой: программирование сканеров, калибровка и шаблоны для принтеров этикеток, приложения и MDM для ТСД, запуск кассового места под ключ. Инженеры Poson работают у вас на месте или удалённо и обучают сотрудников.',
+                    'en' => 'Installing, configuring and connecting equipment to your accounting system: scanner programming, label printer calibration and templates, apps and MDM for mobile computers, and complete checkout commissioning. Poson engineers work on site or remotely and train your staff.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Uskunani oʻrnatish va integratsiya — Poson',
+                    'ru' => 'Установка и интеграция оборудования — Poson',
+                    'en' => 'Equipment setup and integration — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Skaner, yorliq printeri, TSD va POS uskunalarini Poson muhandislari oʻrnatadi: 1C, WMS va markirovka bilan integratsiya hamda xodimlarni oʻqitish.',
+                    'ru' => 'Установка и настройка сканеров, принтеров этикеток, ТСД и POS инженерами Poson: интеграция с 1С, WMS и системой маркировки, обучение сотрудников.',
+                    'en' => 'Installation and setup of scanners, label printers, mobile computers and POS by Poson engineers: integration with 1C, WMS and marking, plus staff training.',
+                ],
+                'children' => [],
+            ],
+            [
+                'slug' => 'repair-maintenance',
+                'icon' => null,
+                'sort' => 2,
+                'name' => [
+                    'uz' => 'Taʼmirlash va texnik xizmat',
+                    'ru' => 'Ремонт и обслуживание',
+                    'en' => 'Repair and maintenance',
+                ],
+                'description' => [
+                    'uz' => 'Skanerlar, printerlar, TSD va POS uskunalarini diagnostika qilish, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika. Poson servis markazi nosozlik sababini aniqlaydi, taʼmirlash rejasi va muddatlarini yozma ravishda beradi va almashtirish fondini tashkil qilishga yordam beradi.',
+                    'ru' => 'Диагностика, гарантийный и постгарантийный ремонт и плановая профилактика сканеров, принтеров, ТСД и POS-оборудования. Сервисный центр Poson найдёт причину неисправности, письменно согласует план и сроки ремонта и поможет организовать подменный фонд.',
+                    'en' => 'Diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance for scanners, printers, mobile computers and POS hardware. The Poson service centre finds the root cause, agrees the repair plan and timeline in writing and helps you set up a pool of swap devices.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Uskunani taʼmirlash va texnik xizmat — Poson',
+                    'ru' => 'Ремонт и обслуживание оборудования — Poson',
+                    'en' => 'Equipment repair and maintenance — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Skaner, printer va TSD diagnostikasi, kafolatli va kafolatdan keyingi taʼmirlash hamda profilaktika Poson servis markazida. Muddatlar oldindan aytiladi.',
+                    'ru' => 'Диагностика, гарантийный и постгарантийный ремонт и профилактика сканеров, принтеров и ТСД в сервисном центре Poson. Сроки ремонта называем заранее.',
+                    'en' => 'Diagnostics, warranty and post-warranty repair and preventive maintenance of scanners, printers and mobile computers at the Poson service centre.',
+                ],
+                'children' => [],
+            ],
+        ],
+    ],
+
 ];

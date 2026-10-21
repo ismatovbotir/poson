@@ -84,7 +84,7 @@ class Index extends Component
     public function render(): View
     {
         $categories = Category::query()
-            ->withCount('attributes')
+            ->withCount(['attributes', 'products'])
             ->orderBy('sort')
             ->orderBy('id')
             ->get();

@@ -110,3 +110,44 @@ document.addEventListener('alpine:init', () => {
         };
     });
 });
+
+document.addEventListener('alpine:init', () => {
+    const MENU_STORAGE_KEY = 'poson.admin.menu.open';
+
+    /**
+     * Collapsible admin menu groups (layouts/admin.blade.php).
+     * x-data="adminMenu('catalog')": the open state per group is kept in
+     * localStorage (private mode / blocked storage just falls back to "open"),
+     * and the group of the current page always opens.
+     */
+    window.Alpine.data('adminMenu', (activeGroup = null) => ({
+        open: {},
+
+        init() {
+            try {
+                const stored = JSON.parse(window.localStorage.getItem(MENU_STORAGE_KEY) ?? '{}');
+                this.open = stored && typeof stored === 'object' ? stored : {};
+            } catch (error) {
+                this.open = {};
+            }
+
+            if (activeGroup) {
+                this.open[activeGroup] = true;
+            }
+        },
+
+        isOpen(group) {
+            return this.open[group] ?? true;
+        },
+
+        toggle(group) {
+            this.open[group] = !this.isOpen(group);
+
+            try {
+                window.localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(this.open));
+            } catch (error) {
+                // Storage unavailable: the state just isn't remembered.
+            }
+        },
+    }));
+});

@@ -36,6 +36,33 @@ class Money
         return $tiyin === null ? null : static::format($tiyin);
     }
 
+    /**
+     * Whole soʻm typed in an admin money input ("1 250 000") → tiyin
+     * (125000000). Empty → null. Spaces (also non-breaking) are ignored;
+     * anything else that is not a digit makes it invalid (null), so validate
+     * the input first.
+     */
+    public static function sumsToTiyin(int|string|null $sums): ?int
+    {
+        $digits = preg_replace('/[\s\x{00A0}\x{202F}]+/u', '', trim((string) $sums));
+
+        // More than 15 digits would overflow once multiplied by 100.
+        if ($digits === '' || $digits === null || ! ctype_digit($digits) || strlen(ltrim($digits, '0')) > 15) {
+            return null;
+        }
+
+        return (int) $digits * 100;
+    }
+
+    /**
+     * Tiyin → whole soʻm for an admin money input ("1 250 000"); tiyin below
+     * one soʻm are dropped. Null → ''.
+     */
+    public static function tiyinToSums(?int $tiyin): string
+    {
+        return $tiyin === null ? '' : number_format(intdiv($tiyin, 100), 0, '', ' ');
+    }
+
     public static function currency(): string
     {
         return trans()->has('site.currency') ? __('site.currency') : self::DEFAULT_CURRENCY;

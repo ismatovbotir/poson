@@ -70,13 +70,19 @@ class Attribute extends Model
     }
 
     /**
+     * @return HasMany<ProductAttributeValue, $this>
+     */
+    public function productValues(): HasMany
+    {
+        return $this->hasMany(ProductAttributeValue::class);
+    }
+
+    /**
      * Whether products have values for this attribute (locks the type and blocks deletion).
-     *
-     * TODO(3c): check product_attribute_values.
      */
     public function hasValues(): bool
     {
-        return false;
+        return $this->productValues()->exists();
     }
 
     /**

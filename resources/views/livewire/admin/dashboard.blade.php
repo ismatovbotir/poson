@@ -21,13 +21,13 @@
     @if ($this->cards !== [])
         <section class="mt-4 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-label="{{ __('admin.dashboard.stats_label') }}">
             @foreach ($this->cards as $card)
-                <div wire:key="card-{{ $card['key'] }}" class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <{{ isset($card['href']) ? 'a' : 'div' }} @isset($card['href']) href="{{ $card['href'] }}" wire:navigate @endisset wire:key="card-{{ $card['key'] }}" data-card="{{ $card['key'] }}" @class(['rounded-2xl border border-slate-200 bg-white p-4 sm:p-5', 'transition hover:border-brand-300 hover:shadow-sm' => isset($card['href'])])>
                     <div class="flex items-start justify-between gap-2">
                         <p class="text-xs font-medium text-slate-500 sm:text-sm">{{ $card['label'] }}</p>
-                        <span class="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><x-admin.icon :name="$card['icon']" size="size-4" /></span>
+                        <span @class(['grid size-8 place-items-center rounded-lg', 'bg-amber-50 text-amber-600' => $card['key'] === 'products_incomplete' && $card['count'] > 0, 'bg-brand-50 text-brand-600' => ! ($card['key'] === 'products_incomplete' && $card['count'] > 0)])><x-admin.icon :name="$card['icon']" size="size-4" /></span>
                     </div>
                     <p class="mt-3 text-xl font-bold tracking-tight tabular-nums sm:text-[1.75rem]">{{ number_format($card['count'], 0, ',', ' ') }}</p>
-                </div>
+                </{{ isset($card['href']) ? 'a' : 'div' }}>
             @endforeach
         </section>
     @endif

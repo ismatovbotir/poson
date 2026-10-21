@@ -129,22 +129,34 @@ class Category extends Model implements HasMedia
     }
 
     /**
-     * Number of products in the category.
+     * Products directly in this category (not its subcategories).
      *
-     * TODO(3c): count products once the products table exists.
+     * @return HasMany<Product, $this>
      */
-    public function productsCount(): int
+    public function products(): HasMany
     {
-        return 0;
+        return $this->hasMany(Product::class);
     }
 
     /**
-     * Whether products belong to the category (blocks deletion).
-     *
-     * TODO(3c): check the products table.
+     * Number of products directly in the category (trash not counted). Uses
+     * products_count when the query loaded it (withCount('products')).
+     */
+    public function productsCount(): int
+    {
+        if (array_key_exists('products_count', $this->getAttributes())) {
+            return (int) $this->getAttributes()['products_count'];
+        }
+
+        return $this->products()->count();
+    }
+
+    /**
+     * Whether products belong to the category, including trashed ones (their
+     * rows still reference it), which blocks deletion.
      */
     public function hasProducts(): bool
     {
-        return $this->productsCount() > 0;
+        return Product::withTrashed()->where('category_id', $this->id)->exists();
     }
 }

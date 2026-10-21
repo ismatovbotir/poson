@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -53,14 +54,19 @@ class Slug
     }
 
     /**
-     * TODO(3c): Product uses soft deletes and its slug is unique including
-     * trashed rows (plan 03 D5): query withTrashed() for soft-deleting models.
+     * Whether another record already uses the slug. Soft-deleted rows count
+     * too (plan 03 D5): a trashed product keeps its slug, so restoring it
+     * never clashes.
      *
      * @param  class-string<Model>  $model
      */
     public static function taken(string $model, string $slug, ?int $ignoreId = null): bool
     {
-        return $model::query()
+        $query = in_array(SoftDeletes::class, class_uses_recursive($model), true)
+            ? $model::withTrashed()
+            : $model::query();
+
+        return $query
             ->where('slug', $slug)
             ->when($ignoreId !== null, fn ($query) => $query->whereKeyNot($ignoreId))
             ->exists();

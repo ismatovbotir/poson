@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Attributes;
@@ -7,6 +8,7 @@ use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Products;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,4 +51,10 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/brands', Brands\Index::class)->name('brands.index');
     Route::livewire('/brands/create', Brands\Form::class)->name('brands.create');
     Route::livewire('/brands/{brand}/edit', Brands\Form::class)->name('brands.edit');
+
+    // Products (plan 03 3c). Images, documents and relations are child components of the form.
+    Route::livewire('/products', Products\Index::class)->name('products.index');
+    Route::livewire('/products/create', Products\Form::class)->name('products.create');
+    Route::livewire('/products/{product}/edit', Products\Form::class)->name('products.edit');
+    Route::get('/products/documents/{document}/download', DownloadProductDocumentController::class)->name('products.documents.download');
 });

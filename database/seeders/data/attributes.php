@@ -107,6 +107,7 @@ return [
         'options' => [
             $same('IP42'),
             $same('IP52'),
+            $same('IP53'),
             $same('IP54'),
             $same('IP65'),
             $same('IP67'),
@@ -633,7 +634,7 @@ return [
         ],
     ],
 
-    // ─── Services (library only: no services category in the tree yet) ──────
+    // ─── Services ───────────────────────────────────────────────────────────
     [
         'code' => 'service_duration',
         'name' => ['uz' => 'Bajarish davomiyligi', 'ru' => 'Длительность работ', 'en' => 'Duration'],
@@ -642,7 +643,9 @@ return [
         'is_filterable' => false,
         'sort' => 800,
         'options' => [],
-        'categories' => [],
+        'categories' => [
+            'services' => $assign(true, false),
+        ],
     ],
     [
         'code' => 'sla_hours',
@@ -652,7 +655,9 @@ return [
         'is_filterable' => false,
         'sort' => 810,
         'options' => [],
-        'categories' => [],
+        'categories' => [
+            'services' => $assign(false, false),
+        ],
     ],
 
 ];

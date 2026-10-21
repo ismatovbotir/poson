@@ -12,4 +12,16 @@ enum StockStatus: string
     {
         return __("enums.stock_status.{$this->value}");
     }
+
+    /**
+     * Badge color for <x-admin.badge>.
+     */
+    public function color(): string
+    {
+        return match ($this) {
+            self::InStock => 'brand',
+            self::OnOrder => 'sky',
+            self::OutOfStock => 'red',
+        };
+    }
 }

@@ -5,33 +5,27 @@
     Every admin Livewire page declares #[Layout('layouts::admin')] and #[Title(...)].
     ≥ lg: fixed dark sidebar. < lg: top bar + bottom tab bar + sidebar as a drawer.
     Closed drawer (< lg) is "invisible" (visibility transitions after the slide), so it can't take focus.
-    Sidebar items show only with the matching "<resource>.viewAny" permission and
-    link to "#" until their route exists.
+    Menu (sidebar, drawer, bottom tab bar) comes from App\Support\Admin\Menu: the full
+    structure filtered by permission/role. Items whose route doesn't exist yet show "Soon".
 --}}
 @php
     /** @var \App\Models\User $user */
     $user = auth()->user();
     $role = $user->staffRole();
-    $link = fn (string $route): string => \Illuminate\Support\Facades\Route::has($route) ? route($route) : '#';
 
-    $catalog = collect([
-        ['route' => 'admin.categories.index', 'pattern' => 'admin.categories.*', 'label' => __('admin.nav.categories'), 'icon' => 'folder', 'can' => 'categories.viewAny'],
-        ['route' => 'admin.attributes.index', 'pattern' => 'admin.attributes.*', 'label' => __('admin.nav.attributes'), 'icon' => 'sliders', 'can' => 'attributes.viewAny'],
-        ['route' => 'admin.brands.index', 'pattern' => 'admin.brands.*', 'label' => __('admin.nav.brands'), 'icon' => 'tag', 'can' => 'brands.viewAny'],
-        ['route' => 'admin.products.index', 'pattern' => 'admin.products.*', 'label' => __('admin.nav.products'), 'icon' => 'box', 'can' => 'products.viewAny'],
-    ])->filter(fn (array $item): bool => $user->can($item['can']))->values();
+    $menu = \App\Support\Admin\Menu::for($user);
+    $activeGroup = collect($menu)->first(fn (\App\Support\Admin\MenuGroup $group): bool => $group->isActive())?->key;
 
-    $groups = [
-        ['label' => null, 'items' => [
-            ['route' => 'admin.dashboard', 'pattern' => 'admin.dashboard', 'label' => __('admin.nav.dashboard'), 'icon' => 'dashboard'],
-        ]],
-        ['label' => __('admin.nav.groups.catalog'), 'items' => $catalog->all()],
-    ];
-
-    // Bottom tab bar "Catalog": the last catalog screen that exists (Products once 3c lands).
-    $catalogTab = $catalog->reverse()->first(fn (array $item): bool => \Illuminate\Support\Facades\Route::has($item['route'])) ?? $catalog->last();
-    $catalogHref = $catalogTab ? $link($catalogTab['route']) : null;
-    $catalogActive = $catalog->contains(fn (array $item): bool => request()->routeIs($item['pattern']));
+    // Bottom tab bar: Home, Leads, Catalog (first available catalog screen), Orders + Menu.
+    $catalogGroup = \App\Support\Admin\Menu::group($menu, 'catalog');
+    $tabs = array_filter([
+        ['key' => 'home', 'label' => 'menu.tabs.home', 'icon' => 'home', 'item' => \App\Support\Admin\Menu::find($menu, 'dashboard')],
+        ['key' => 'leads', 'label' => 'menu.tabs.leads', 'icon' => 'inbox', 'item' => \App\Support\Admin\Menu::find($menu, 'leads')],
+        ['key' => 'catalog', 'label' => 'menu.tabs.catalog', 'icon' => 'box', 'group' => $catalogGroup, 'item' => $catalogGroup
+            ? (collect($catalogGroup->items)->first(fn (\App\Support\Admin\MenuItem $item): bool => $item->isAvailable()) ?? $catalogGroup->items[0])
+            : null],
+        ['key' => 'orders', 'label' => 'menu.tabs.orders', 'icon' => 'bag', 'item' => \App\Support\Admin\Menu::find($menu, 'orders')],
+    ], fn (array $tab): bool => $tab['item'] !== null);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
@@ -74,32 +68,29 @@
             <button type="button" class="ml-auto grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" x-on:click="nav = false" aria-label="{{ __('admin.a11y.close_menu') }}"><x-admin.icon name="x" /></button>
         </div>
 
-        <nav class="scrollbar-none flex-1 overflow-y-auto px-3 pb-4 pt-2">
-            @foreach ($groups as $group)
-                @continue(empty($group['items']))
-                <div class="mt-5 first:mt-0">
-                    @if ($group['label'])
-                        <p class="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{{ $group['label'] }}</p>
+        <nav class="scrollbar-none flex-1 overflow-y-auto px-3 pb-4 pt-2" x-data="adminMenu(@js($activeGroup))">
+            @foreach ($menu as $group)
+                <div class="mt-4 first:mt-0" data-menu-group="{{ $group->key }}">
+                    @if ($group->collapsible)
+                        <button
+                            type="button"
+                            x-on:click="toggle(@js($group->key))"
+                            aria-expanded="true"
+                            x-bind:aria-expanded="isOpen(@js($group->key)).toString()"
+                            aria-controls="menu-group-{{ $group->key }}"
+                            class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300 focus-visible:outline-2 focus-visible:outline-brand-400"
+                        >
+                            <span class="flex-1 truncate">{{ __($group->label) }}</span>
+                            <x-admin.icon name="chevron-down" size="size-3.5" class="shrink-0 transition-transform duration-150" x-bind:class="isOpen('{{ $group->key }}') ? '' : '-rotate-90'" />
+                        </button>
                     @endif
-                    <ul class="space-y-0.5">
-                        @foreach ($group['items'] as $item)
-                            @php($active = request()->routeIs($item['pattern']))
-                            <li>
-                                <a
-                                    href="{{ $link($item['route']) }}"
-                                    @if (\Illuminate\Support\Facades\Route::has($item['route'])) wire:navigate @endif
-                                    @if ($active) aria-current="page" @endif
-                                    @class([
-                                        'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium',
-                                        'bg-white/[.07] text-white' => $active,
-                                        'text-slate-300 hover:bg-white/5 hover:text-white' => ! $active,
-                                    ])
-                                >
-                                    @if ($active)<span class="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-brand-400" aria-hidden="true"></span>@endif
-                                    <x-admin.icon :name="$item['icon']" @class(['text-brand-300' => $active, 'text-slate-400 group-hover:text-slate-200' => ! $active]) />
-                                    <span class="truncate">{{ $item['label'] }}</span>
-                                </a>
-                            </li>
+                    <ul
+                        id="menu-group-{{ $group->key }}"
+                        class="space-y-0.5"
+                        @if ($group->collapsible) x-show="isOpen(@js($group->key))" x-collapse @endif
+                    >
+                        @foreach ($group->items as $item)
+                            <x-admin.menu-item :item="$item" />
                         @endforeach
                     </ul>
                 </div>
@@ -159,12 +150,19 @@
 
     {{-- Bottom tab bar (below lg) --}}
     <nav class="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden" aria-label="{{ __('admin.a11y.quick_menu') }}">
-        @php($homeActive = request()->routeIs('admin.dashboard'))
-        <a href="{{ route('admin.dashboard') }}" wire:navigate @if ($homeActive) aria-current="page" @endif @class(['flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium', 'text-brand-600' => $homeActive, 'text-slate-500' => ! $homeActive])><x-admin.icon name="home" size="size-6" />{{ __('admin.nav.home') }}</a>
-        @if ($catalogHref)
-            <a href="{{ $catalogHref }}" @if ($catalogHref !== '#') wire:navigate @endif @if ($catalogActive) aria-current="page" @endif @class(['flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium', 'text-brand-600' => $catalogActive, 'text-slate-500' => ! $catalogActive])><x-admin.icon name="box" size="size-6" />{{ __('admin.nav.groups.catalog') }}</a>
-        @endif
-        <button type="button" x-on:click="nav = true" aria-controls="admin-sidebar" x-bind:aria-expanded="nav.toString()" class="flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium text-slate-500"><x-admin.icon name="menu" size="size-6" />{{ __('admin.nav.menu') }}</button>
+        @foreach ($tabs as $tab)
+            @php($tabItem = $tab['item'])
+            @if ($tabItem->isAvailable())
+                @php($tabActive = isset($tab['group']) ? $tab['group']->isActive() : $tabItem->isActive())
+                <a href="{{ $tabItem->url() }}" wire:navigate data-tab="{{ $tab['key'] }}" @if ($tabActive) aria-current="page" @endif @class(['flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium', 'text-brand-600' => $tabActive, 'text-slate-500' => ! $tabActive])><x-admin.icon :name="$tab['icon']" size="size-6" /><span class="max-w-full truncate px-0.5">{{ __($tab['label']) }}</span></a>
+            @else
+                <span aria-disabled="true" title="{{ __('menu.soon_hint') }}" data-tab="{{ $tab['key'] }}" data-soon class="flex min-w-0 flex-1 cursor-default select-none flex-col items-center gap-1 py-2 text-[11px] font-medium text-slate-400">
+                    <span class="relative"><x-admin.icon :name="$tab['icon']" size="size-6" /><span class="absolute -right-1 -top-0.5 size-2 rounded-full bg-slate-400 ring-2 ring-white" aria-hidden="true"></span></span>
+                    <span class="max-w-full truncate px-0.5">{{ __($tab['label']) }}<span class="sr-only"> ({{ __('menu.soon') }})</span></span>
+                </span>
+            @endif
+        @endforeach
+        <button type="button" x-on:click="nav = true" aria-controls="admin-sidebar" x-bind:aria-expanded="nav.toString()" data-tab="menu" class="flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium text-slate-500"><x-admin.icon name="menu" size="size-6" /><span class="max-w-full truncate px-0.5">{{ __('menu.tabs.menu') }}</span></button>
     </nav>
 
     <x-admin.toast-stack />

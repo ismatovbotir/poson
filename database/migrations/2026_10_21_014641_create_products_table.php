@@ -1,0 +1,73 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Catalog products (plan 03 §2). Hardware, consumables, software and
+ * services share this table (type).
+ *
+ * - Prices are integer tiyin: price = Retail (null = price on request, the
+ *   only price the site shows), price_dealer / price_wholesale are admin-only
+ *   and fall back to price when null (D14).
+ * - Enum columns are string(20) cast to PHP enums; json columns have no
+ *   defaults (D15). One shared Latin slug (D5), unique including trashed rows.
+ * - is_active false = draft; soft deletes = trash (D9).
+ * - search_text: lowercased sku/model/names/brand for LIKE search (D7);
+ *   has_missing_specs: recomputed flag for the admin filter (D8).
+ */
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('category_id')->constrained()->restrictOnDelete();
+            $table->foreignId('brand_id')->nullable()->constrained()->restrictOnDelete();
+            $table->string('type', 20);
+            $table->string('sku', 64)->unique();
+            $table->string('model')->nullable();
+            $table->string('slug')->unique();
+            $table->json('name');
+            $table->json('short_description')->nullable();
+            $table->json('description')->nullable();
+            $table->unsignedBigInteger('price')->nullable();
+            $table->unsignedBigInteger('price_dealer')->nullable();
+            $table->unsignedBigInteger('price_wholesale')->nullable();
+            $table->string('unit', 20);
+            $table->unsignedInteger('min_qty')->default(1);
+            $table->string('sale_mode', 20);
+            $table->string('stock_status', 20);
+            $table->unsignedSmallInteger('warranty_months')->nullable();
+            $table->string('badge', 20)->nullable();
+            $table->boolean('is_active')->default(false);
+            $table->boolean('is_featured')->default(false);
+            $table->boolean('has_missing_specs')->default(false);
+            $table->text('search_text')->nullable();
+            $table->json('meta_title')->nullable();
+            $table->json('meta_description')->nullable();
+            $table->unsignedInteger('sort')->default(0);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['category_id', 'is_active', 'sort']);
+            $table->index('brand_id');
+            $table->index(['is_active', 'is_featured']);
+            $table->index(['is_active', 'price']);
+            $table->index('type');
+            $table->index('has_missing_specs');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
+};
