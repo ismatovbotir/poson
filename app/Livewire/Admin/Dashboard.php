@@ -65,7 +65,8 @@ class Dashboard extends Component
 
         if ($user->can('viewAny', Product::class)) {
             $products = [
-                'products_active' => ['box', Product::query()->where('is_active', true)->count(), ['tab' => 'active']],
+                // Published = active product in an active category (as on the site).
+                'products_active' => ['box', Product::query()->active()->count(), ['tab' => 'active']],
                 'products_drafts' => ['edit', Product::query()->where('is_active', false)->count(), ['tab' => 'drafts']],
                 'products_incomplete' => ['alert', Product::query()->where('has_missing_specs', true)->count(), ['tab' => 'incomplete']],
             ];

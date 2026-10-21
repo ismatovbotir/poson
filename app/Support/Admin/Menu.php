@@ -23,10 +23,20 @@ final class Menu
      */
     public static function definition(): array
     {
+        // Role lists follow the roles-permissions skill matrix until each module
+        // has its permissions: then the item switches to permission: '<resource>.viewAny'
+        // (as the catalog items already do) and the role list goes away.
         $sales = [Role::Admin, Role::SalesManager];
         $service = [Role::Admin, Role::ServiceEngineer];
         $content = [Role::Admin, Role::ContentManager];
         $admin = [Role::Admin];
+
+        // Matrix: service engineer has service_request leads (own), customers (view),
+        // service quotes (own) and orders (view); the sales manager views payments
+        // and service requests.
+        $crm = [Role::Admin, Role::SalesManager, Role::ServiceEngineer];
+        $payments = [Role::Admin, Role::SalesManager];
+        $serviceRequests = [Role::Admin, Role::ServiceEngineer, Role::SalesManager];
 
         return [
             new MenuGroup('dashboard', 'menu.groups.dashboard', [
@@ -34,11 +44,11 @@ final class Menu
             ], collapsible: false),
 
             new MenuGroup('sales', 'menu.groups.sales', [
-                new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', roles: $sales),
-                new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', roles: $sales),
-                new MenuItem('quotes', 'menu.items.quotes', 'file-text', 'admin.quotes.index', roles: $sales),
-                new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', roles: $sales),
-                new MenuItem('payments', 'menu.items.payments', 'card', 'admin.payments.index', roles: $admin),
+                new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', roles: $crm),
+                new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', roles: $crm),
+                new MenuItem('quotes', 'menu.items.quotes', 'file-text', 'admin.quotes.index', roles: $crm),
+                new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', roles: $crm),
+                new MenuItem('payments', 'menu.items.payments', 'card', 'admin.payments.index', roles: $payments),
             ]),
 
             new MenuGroup('catalog', 'menu.groups.catalog', [
@@ -50,7 +60,7 @@ final class Menu
             ]),
 
             new MenuGroup('service', 'menu.groups.service', [
-                new MenuItem('service-requests', 'menu.items.service_requests', 'wrench', 'admin.service-requests.index', roles: $service),
+                new MenuItem('service-requests', 'menu.items.service_requests', 'wrench', 'admin.service-requests.index', roles: $serviceRequests),
                 new MenuItem('repairs', 'menu.items.repairs', 'tool', 'admin.repairs.index', roles: $service),
             ]),
 

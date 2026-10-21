@@ -59,12 +59,14 @@ it('shows each role its part of the menu', function (Role $role, array $expected
     ]],
     'sales manager' => [Role::SalesManager, [
         'dashboard' => ['dashboard'],
-        'sales' => ['leads', 'customers', 'quotes', 'orders'],
+        'sales' => ['leads', 'customers', 'quotes', 'orders', 'payments'],
         'catalog' => $catalogItems,
+        'service' => ['service-requests'],
         'telegram' => ['telegram-chats'],
     ]],
     'service engineer' => [Role::ServiceEngineer, [
         'dashboard' => ['dashboard'],
+        'sales' => ['leads', 'customers', 'quotes', 'orders'],
         'catalog' => $catalogItems,
         'service' => ['service-requests', 'repairs'],
     ]],
@@ -81,8 +83,9 @@ it('renders only the visible groups in the sidebar', function () {
     expect($html)
         ->toContain('data-menu-group="service"')
         ->toContain('data-menu-group="catalog"')
-        ->not->toContain('data-menu-group="sales"')
+        ->toContain('data-menu-group="sales"')
         ->not->toContain('data-menu-group="settings"')
+        ->not->toContain('data-menu-group="content"')
         ->not->toContain('data-menu-item="payments"');
 });
 
@@ -154,6 +157,15 @@ it('shows the bottom tab bar per role and keeps the menu tab', function () {
     $service = tabBarHtml($this->actingAs(staffUser(Role::ServiceEngineer))->get('/admin')->assertOk()->getContent());
 
     expect($service)
+        ->toContain('data-tab="home"')
+        ->toContain('data-tab="leads"')
+        ->toContain('data-tab="catalog"')
+        ->toContain('data-tab="orders"')
+        ->toContain('data-tab="menu"');
+
+    $content = tabBarHtml($this->actingAs(staffUser(Role::ContentManager))->get('/admin')->assertOk()->getContent());
+
+    expect($content)
         ->toContain('data-tab="home"')
         ->toContain('data-tab="catalog"')
         ->toContain('data-tab="menu"')

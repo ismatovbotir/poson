@@ -13,7 +13,11 @@
                 <li wire:key="relation-{{ $relation->id }}" class="flex items-center gap-2.5 rounded-lg border border-slate-200 p-2" data-relation="{{ $related->sku }}">
                     @include('livewire.admin.products.partials.thumb', ['product' => $related, 'size' => 'size-9'])
                     <span class="min-w-0 flex-1">
-                        <a href="{{ route('admin.products.edit', $related) }}" wire:navigate @class(['block truncate text-sm hover:text-brand-700', 'text-slate-400 line-through' => $related->trashed()])>{{ $related->name }}</a>
+                        @if ($related->trashed())
+                            <span class="block truncate text-sm text-slate-400 line-through">{{ $related->name }}</span>
+                        @else
+                            <a href="{{ route('admin.products.edit', $related) }}" wire:navigate class="block truncate text-sm hover:text-brand-700">{{ $related->name }}</a>
+                        @endif
                         <span class="block truncate text-[11px] text-slate-400">
                             <span class="font-mono">{{ $related->sku }}</span>
                             @if ($related->trashed()) · {{ __('admin.products.status.trashed') }}@elseif (! $related->is_active) · {{ __('admin.products.status.draft') }}@endif

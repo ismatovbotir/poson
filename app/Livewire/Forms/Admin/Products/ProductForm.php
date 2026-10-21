@@ -193,7 +193,7 @@ class ProductForm extends Form
             'type' => ['required', Rule::enum(ProductType::class)],
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'brand_id' => ['nullable', 'integer', Rule::exists('brands', 'id')],
-            'sku' => ['required', 'string', 'max:64', 'regex:/^[\pL\pN][\pL\pN._\/+ -]*$/u', Rule::unique('products', 'sku')->ignore($this->component->product?->id)],
+            'sku' => ['required', 'string', 'max:64', 'regex:/^[A-Z0-9][A-Z0-9._\/+ -]*$/', Rule::unique('products', 'sku')->ignore($this->component->product?->id)],
             'model' => ['nullable', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($this->component->product?->id)],
             'price' => $price,
@@ -284,9 +284,9 @@ class ProductForm extends Form
             'description' => $this->description,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'price' => Money::sumsToTiyin($this->price),
-            'price_dealer' => Money::sumsToTiyin($this->price_dealer),
-            'price_wholesale' => Money::sumsToTiyin($this->price_wholesale),
+            'price' => $this->priceInTiyin('price'),
+            'price_dealer' => $this->priceInTiyin('price_dealer'),
+            'price_wholesale' => $this->priceInTiyin('price_wholesale'),
             'unit' => ProductUnit::from($this->unit),
             'min_qty' => (int) $this->min_qty,
             'sale_mode' => SaleMode::from($this->sale_mode),
@@ -296,6 +296,27 @@ class ProductForm extends Form
             'is_active' => $this->is_active,
             'is_featured' => $this->is_featured,
         ];
+    }
+
+    /**
+     * A price input in tiyin. An unchanged input keeps the stored tiyin, so a
+     * price with tiyin below one soʻm (e.g. imported) survives saving the form,
+     * which only shows whole soʻm.
+     */
+    private function priceInTiyin(string $field): ?int
+    {
+        $typed = Money::sumsToTiyin($this->{$field});
+        $product = $this->component->product ?? null;
+
+        if ($product instanceof Product) {
+            $stored = $product->getAttribute($field);
+
+            if ($typed === Money::sumsToTiyin(Money::tiyinToSums($stored))) {
+                return $stored;
+            }
+        }
+
+        return $typed;
     }
 
     /**

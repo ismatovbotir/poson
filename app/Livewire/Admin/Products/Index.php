@@ -17,6 +17,7 @@ use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -29,7 +30,8 @@ use Livewire\Component;
  * and restore / permanent delete in the trash (permanent: Admin only).
  *
  * Row and bulk writes authorize each product (a service engineer may only
- * touch software and service products).
+ * touch software and service products). A bulk action handles at most
+ * MAX_BULK products, all or nothing.
  */
 #[Layout('layouts::admin')]
 class Index extends Component
@@ -53,6 +55,11 @@ class Index extends Component
     ];
 
     public const PER_PAGE = 25;
+
+    /**
+     * Most products one bulk action touches.
+     */
+    public const MAX_BULK = 200;
 
     #[Url(except: 'active')]
     public string $tab = 'active';
@@ -136,9 +143,11 @@ class Index extends Component
             $this->authorize('delete', $product);
         }
 
-        foreach ($products as $product) {
-            $deleteProduct->handle($product);
-        }
+        DB::transaction(function () use ($products, $deleteProduct): void {
+            foreach ($products as $product) {
+                $deleteProduct->handle($product);
+            }
+        });
 
         $this->selected = [];
         $this->dispatch('toast', title: __('admin.toast.deleted'), body: trans_choice('admin.products.bulk.moved_to_trash', $products->count(), ['count' => $products->count()]));
@@ -301,7 +310,7 @@ class Index extends Component
      */
     private function selectedProducts(): Collection
     {
-        $ids = array_values(array_unique(array_map('intval', $this->selected)));
+        $ids = array_slice(array_values(array_unique(array_map('intval', $this->selected))), 0, self::MAX_BULK);
 
         return Product::query()->whereIn('id', $ids)->get();
     }
@@ -317,9 +326,11 @@ class Index extends Component
         $done = 0;
         $skipped = 0;
 
-        foreach ($products as $product) {
-            $setActive->handle($product, $active) ? $done++ : $skipped++;
-        }
+        DB::transaction(function () use ($products, $setActive, $active, &$done, &$skipped): void {
+            foreach ($products as $product) {
+                $setActive->handle($product, $active) ? $done++ : $skipped++;
+            }
+        });
 
         $this->selected = [];
 

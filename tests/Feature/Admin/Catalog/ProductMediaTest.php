@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Catalog\AddProductImages;
+use App\Actions\Catalog\ForceDeleteProduct;
 use App\Enums\DocumentType;
 use App\Enums\RelationType;
 use App\Enums\Role;
@@ -9,9 +11,12 @@ use App\Livewire\Admin\Products\Relations;
 use App\Models\Product;
 use App\Models\ProductDocument;
 use App\Models\ProductRelation;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -87,7 +92,12 @@ it('forbids image writes without update rights on the product', function () {
 
     Livewire::actingAs(staffUser(Role::ServiceEngineer))
         ->test(Images::class, ['product' => $hardware])
-        ->set('uploads', [UploadedFile::fake()->image('a.jpg')])
+        ->call('_startUpload', 'uploads', [['name' => 'a.jpg', 'size' => 1024, 'type' => 'image/jpeg']], true)
+        ->assertForbidden();
+
+    Livewire::actingAs(staffUser(Role::ServiceEngineer))
+        ->test(Images::class, ['product' => $hardware])
+        ->call('sortImage', 1, 0)
         ->assertForbidden();
 });
 
@@ -204,4 +214,104 @@ it('links related products by search and type, without duplicates or self links'
 
     $component->call('remove', $relation->id);
     expect(ProductRelation::query()->count())->toBe(0);
+});
+
+it('refuses uploads from users who may not edit the product', function (string $component, string $property, string $type) {
+    $product = Product::factory()->service()->create();
+    $file = [['name' => 'a.bin', 'size' => 1024, 'type' => $type]];
+
+    // The calls Livewire's JavaScript makes before and after sending the file.
+    Livewire::actingAs(staffUser(Role::SalesManager))
+        ->test($component, ['product' => $product])
+        ->call('_startUpload', $property, $file, $component === Images::class)
+        ->assertForbidden();
+
+    Livewire::actingAs(staffUser(Role::SalesManager))
+        ->test($component, ['product' => $product])
+        ->call('_finishUpload', $property, ['tmp.bin'], $component === Images::class)
+        ->assertForbidden();
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(0);
+})->with([
+    'images' => [Images::class, 'uploads', 'image/jpeg'],
+    'documents' => [Documents::class, 'form.file', 'application/pdf'],
+]);
+
+it('stores no image when one file of the batch is not an image', function () {
+    $product = Product::factory()->create();
+
+    expect(fn () => app(AddProductImages::class)->handle($product, [
+        UploadedFile::fake()->image('ok.jpg'),
+        UploadedFile::fake()->create('fake.png', 10, 'application/pdf'),
+    ]))->toThrow(ValidationException::class);
+
+    expect(Media::query()->count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles())->toBe([]);
+});
+
+it('removes the files already written when storing a later image fails', function () {
+    $product = Product::factory()->create();
+    $files = [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')];
+    $calls = 0;
+
+    Media::creating(function () use (&$calls): void {
+        if (++$calls === 2) {
+            throw new RuntimeException('disk full');
+        }
+    });
+
+    expect(fn () => app(AddProductImages::class)->handle($product, $files))->toThrow(RuntimeException::class);
+
+    expect(Media::query()->count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles())->toBe([]);
+});
+
+it('purges image files only after the permanent delete commits', function () {
+    $product = Product::factory()->create();
+    $media = $product->addMedia(UploadedFile::fake()->image('a.jpg'))->toMediaCollection(Product::IMAGES);
+    $original = $media->getPathRelativeToRoot();
+    $product->delete();
+
+    Storage::disk('local')->assertExists($original);
+
+    app(ForceDeleteProduct::class)->handle(Product::onlyTrashed()->findOrFail($product->id));
+
+    expect(Media::query()->count())->toBe(0);
+    Storage::disk('local')->assertMissing($original);
+});
+
+it('blocks relation and document writes for a service engineer on hardware', function () {
+    $hardware = Product::factory()->create();
+    $other = Product::factory()->create();
+    $relation = ProductRelation::factory()->create(['product_id' => $hardware->id, 'related_id' => $other->id]);
+    $document = ProductDocument::factory()->for($hardware)->create();
+    $user = staffUser(Role::ServiceEngineer);
+
+    Livewire::actingAs($user)->test(Relations::class, ['product' => $hardware])->call('add', $other->id)->assertForbidden();
+    Livewire::actingAs($user)->test(Relations::class, ['product' => $hardware])->call('remove', $relation->id)->assertForbidden();
+    Livewire::actingAs($user)->test(Documents::class, ['product' => $hardware])->call('save')->assertForbidden();
+    Livewire::actingAs($user)->test(Documents::class, ['product' => $hardware])->call('delete', $document->id)->assertForbidden();
+
+    expect(ProductRelation::query()->count())->toBe(1)
+        ->and($document->fresh())->not->toBeNull();
+});
+
+it('keeps non-staff users away from document downloads', function () {
+    $document = ProductDocument::factory()->file()->create();
+    Storage::disk('local')->put($document->path, 'pdf');
+
+    $response = $this->actingAs(User::factory()->create())->get(route('admin.products.documents.download', $document));
+
+    expect($response->status())->toBeIn([302, 403]);
+    expect($response->status() === 302 ? $response->headers->get('Location') : route('admin.login'))->toBe(route('admin.login'));
+});
+
+it('sends documents with nosniff', function () {
+    $document = ProductDocument::factory()->file()->create();
+    Storage::disk('local')->put($document->path, 'pdf');
+
+    $this->actingAs(staffUser())
+        ->get(route('admin.products.documents.download', $document))
+        ->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff');
 });

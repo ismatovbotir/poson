@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -38,6 +39,7 @@ class Form extends Component
 {
     use HandlesActionErrors;
 
+    #[Locked]
     public ?Product $product = null;
 
     public ProductForm $form;
@@ -373,9 +375,17 @@ class Form extends Component
         return $missing;
     }
 
+    /**
+     * Key specs that count towards the limit: marked, not skipped and with a value
+     * (SaveProduct ignores the mark on an empty row).
+     */
     private function keyCount(): int
     {
-        return count(array_filter($this->form->specs, fn (array $row): bool => $row['is_key'] && ! $row['skipped']));
+        return count(array_filter($this->form->specs, function (array $row): bool {
+            $meta = $this->specMeta[(int) $row['attribute_id']] ?? null;
+
+            return $row['is_key'] && ! $row['skipped'] && $meta !== null && ProductForm::rowHasValue($row, $meta->attribute->type);
+        }));
     }
 
     private function rowIndex(int $attributeId): ?int

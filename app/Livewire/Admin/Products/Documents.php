@@ -21,7 +21,11 @@ use Livewire\WithFileUploads;
  */
 class Documents extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors;
+    use WithFileUploads {
+        _startUpload as protected startTemporaryUpload;
+        _finishUpload as protected finishTemporaryUpload;
+    }
 
     public Product $product;
 
@@ -36,6 +40,24 @@ class Documents extends Component
     {
         $this->authorize('view', $product);
         $this->product = $product;
+    }
+
+    /**
+     * Uploads are writes: authorize before Livewire accepts the temporary
+     * file (the trait's own methods run only for allowed users).
+     */
+    public function _startUpload($name, $fileInfo, $isMultiple)
+    {
+        $this->authorize('update', $this->product);
+
+        return $this->startTemporaryUpload($name, $fileInfo, $isMultiple);
+    }
+
+    public function _finishUpload($name, $tmpPath, $isMultiple, $append = true)
+    {
+        $this->authorize('update', $this->product);
+
+        return $this->finishTemporaryUpload($name, $tmpPath, $isMultiple, $append);
     }
 
     /**

@@ -19,6 +19,7 @@ use App\Support\Catalog\ProductSearchText;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\HtmlSanitizer;
 use App\Support\Slug;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -49,6 +50,11 @@ class SaveProduct
      * Largest price in tiyin (10^15 soʻm is far beyond any real price).
      */
     public const MAX_PRICE = 100_000_000_000_000_000;
+
+    /**
+     * SKU after upper-casing: ASCII letters, digits and . _ / + - space.
+     */
+    public const SKU_PATTERN = '/^[A-Z0-9][A-Z0-9._\/+ -]*$/';
 
     public function __construct(private ProductAttributeResolver $resolver) {}
 
@@ -105,6 +111,24 @@ class SaveProduct
             $this->failMissing($missing, $specs);
         }
 
+        try {
+            return $this->store($product, $data, $sku, $slug, $rows, $missing);
+        } catch (UniqueConstraintViolationException $exception) {
+            // A concurrent save took the SKU or slug between the check and the insert.
+            $field = str_contains(mb_strtolower($exception->getMessage()), 'sku') ? 'sku' : 'slug';
+            $label = $field === 'sku' ? __('admin.products.fields.sku') : __('admin.catalog.slug');
+
+            throw ValidationException::withMessages([$field => __('validation.unique', ['attribute' => $label])]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  list<array{row: ResolvedAttribute, skipped: bool, is_key: bool, values: list<array<string, mixed>>}>  $rows
+     * @param  list<ResolvedAttribute>  $missing
+     */
+    private function store(Product $product, array $data, string $sku, string $slug, array $rows, array $missing): Product
+    {
         return DB::transaction(function () use ($product, $data, $sku, $slug, $rows, $missing): Product {
             $product->storeTranslations('name', $data['name']);
             $product->storeTranslations('short_description', $data['short_description']);
@@ -159,6 +183,8 @@ class SaveProduct
 
         if ($sku === '') {
             $errors['sku'] = __('validation.required', ['attribute' => __('admin.products.fields.sku')]);
+        } elseif (! preg_match(self::SKU_PATTERN, $sku) || mb_strlen($sku) > 64) {
+            $errors['sku'] = __('validation.regex', ['attribute' => __('admin.products.fields.sku')]);
         } elseif (Product::withTrashed()->where('sku', $sku)->when($product->exists, fn ($query) => $query->whereKeyNot($product->id))->exists()) {
             $errors['sku'] = __('validation.unique', ['attribute' => __('admin.products.fields.sku')]);
         }
@@ -259,7 +285,8 @@ class SaveProduct
 
             $skipped = $wantsSkip && ! $row->isExtra();
             $values = $skipped ? [] : $this->values($row->attribute, $input, $field, $errors);
-            $isKey = ! $skipped && (bool) ($input['is_key'] ?? false);
+            // A key spec without a value shows nothing: it neither counts nor is stored.
+            $isKey = ! $skipped && $values !== [] && (bool) ($input['is_key'] ?? false);
             $keys += $isKey ? 1 : 0;
 
             if ($row->required && $values === []) {

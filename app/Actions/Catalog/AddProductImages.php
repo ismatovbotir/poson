@@ -11,10 +11,15 @@ use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileNameNotAllowed;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollection;
+use Spatie\MediaLibrary\MediaCollections\Filesystem;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Add images to a product (collection "images", appended after the existing
- * ones). All or nothing: one rejected file rolls the whole batch back.
+ * ones). All or nothing: every file's content type is checked before any is
+ * stored, and if storing one fails the rows roll back and the files already
+ * written for this batch are removed.
  *
  * Stored with a random uuid name and an extension derived from the content
  * (never the client's file name). Originals stay on the private disk; the
@@ -27,6 +32,8 @@ class AddProductImages
      */
     private const EXTENSIONS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
+    public function __construct(private Filesystem $mediaFiles) {}
+
     /**
      * @param  list<UploadedFile>  $files
      *
@@ -34,26 +41,39 @@ class AddProductImages
      */
     public function handle(Product $product, array $files, string $field = 'uploads'): void
     {
-        DB::transaction(function () use ($product, $files, $field): void {
-            foreach (array_values($files) as $index => $file) {
-                $this->store($product, $file, "{$field}.{$index}");
+        $files = array_values($files);
+        $extensions = [];
+
+        foreach ($files as $index => $file) {
+            $extensions[$index] = self::EXTENSIONS[(string) $file->getMimeType()]
+                ?? throw ValidationException::withMessages(["{$field}.{$index}" => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
+        }
+
+        /** @var list<Media> $added */
+        $added = [];
+
+        try {
+            DB::transaction(function () use ($product, $files, $extensions, $field, &$added): void {
+                foreach ($files as $index => $file) {
+                    $added[] = $this->store($product, $file, $extensions[$index], "{$field}.{$index}");
+                }
+            });
+        } catch (Throwable $exception) {
+            foreach ($added as $media) {
+                $this->mediaFiles->removeAllFiles($media);
             }
-        });
+
+            throw $exception;
+        }
     }
 
     /**
      * @throws ValidationException
      */
-    private function store(Product $product, UploadedFile $file, string $field): void
+    private function store(Product $product, UploadedFile $file, string $extension, string $field): Media
     {
-        $extension = self::EXTENSIONS[(string) $file->getMimeType()] ?? null;
-
-        if ($extension === null) {
-            throw ValidationException::withMessages([$field => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
-        }
-
         try {
-            $product->addMedia($file)
+            return $product->addMedia($file)
                 ->usingName(Slug::make($product->slug) ?: 'product')
                 ->usingFileName(Str::uuid().'.'.$extension)
                 ->withCustomProperties(['alt' => array_fill_keys(config('app.supported_locales'), '')])

@@ -60,6 +60,7 @@ it('uses no discount or low-price wording in the admin product screens', functio
 it('shows the product cards on the dashboard', function () {
     Product::factory()->count(2)->create();
     Product::factory()->inactive()->create(['has_missing_specs' => true]);
+    Product::factory()->inCategory(Category::factory()->inactive()->create())->create(); // not on the site
 
     $cards = collect(Livewire::actingAs(staffUser())->test(Dashboard::class)->get('cards'))->pluck('count', 'key');
 

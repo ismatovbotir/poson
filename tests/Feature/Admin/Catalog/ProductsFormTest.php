@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use Illuminate\Support\Facades\DB;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 it('creates a product from whole soʻm and redirects to the edit page', function () {
@@ -149,6 +150,10 @@ it('limits key specs to four in the form', function () {
 
     $component = Livewire::actingAs(staffUser())->test(Form::class)->set('form.category_id', (string) $category->id);
 
+    foreach ($attributes->keys() as $index) {
+        $component->set("form.specs.{$index}.text.uz", 'qiymat');
+    }
+
     foreach ($attributes as $attribute) {
         $component->call('toggleKey', $attribute->id);
     }
@@ -156,6 +161,56 @@ it('limits key specs to four in the form', function () {
     $component->assertDispatched('toast', type: 'error');
     expect(collect($component->get('form.specs'))->where('is_key', true))->toHaveCount(4);
 });
+
+it('does not count a key mark on an empty spec row', function () {
+    $category = Category::factory()->create();
+    $attributes = Attribute::factory()->count(5)->create();
+    $category->attributes()->attach($attributes->mapWithKeys(fn ($attribute, $index) => [$attribute->id => ['sort' => $index]])->all());
+
+    $component = Livewire::actingAs(staffUser())->test(Form::class)->set('form.category_id', (string) $category->id);
+
+    // Row 0 stays empty: its mark doesn't use up one of the four.
+    foreach ($attributes->keys()->skip(1) as $index) {
+        $component->set("form.specs.{$index}.text.uz", 'qiymat');
+    }
+
+    foreach ($attributes as $attribute) {
+        $component->call('toggleKey', $attribute->id);
+    }
+
+    $component->assertNotDispatched('toast');
+    expect(collect($component->get('form.specs'))->where('is_key', true))->toHaveCount(5);
+});
+
+it('keeps tiyin below one soʻm when the price input is unchanged', function () {
+    $product = Product::factory()->create(['price' => 125_000_050, 'price_dealer' => 99_999_999]);
+
+    Livewire::actingAs(staffUser())
+        ->test(Form::class, ['product' => $product])
+        ->assertSet('form.price', '1 250 000')
+        ->set('form.price_dealer', '1 100 000')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($product->fresh())->price->toBe(125_000_050)->price_dealer->toBe(110_000_000);
+});
+
+it('rejects a non-ASCII SKU', function () {
+    Livewire::actingAs(staffUser())
+        ->test(Form::class)
+        ->set('form.name.uz', 'Skaner')
+        ->set('form.category_id', (string) Category::factory()->create()->id)
+        ->set('form.sku', 'СКАНЕР-1')
+        ->call('save')
+        ->assertHasErrors(['form.sku' => 'regex']);
+});
+
+it('locks the product property', function () {
+    $product = Product::factory()->create();
+    $other = Product::factory()->create();
+
+    Livewire::actingAs(staffUser())->test(Form::class, ['product' => $product])->set('product', $other->id);
+})->throws(CannotUpdateLockedPropertyException::class);
 
 it('adds and removes extra attributes and toggles multiselect values', function () {
     $category = Category::factory()->create();

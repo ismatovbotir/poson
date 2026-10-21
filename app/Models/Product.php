@@ -138,6 +138,18 @@ class Product extends Model implements HasMedia
     }
 
     /**
+     * Permanently delete the row but leave the media to the caller
+     * (ForceDeleteProduct removes media rows in its transaction and the
+     * files after the commit).
+     */
+    public function forceDeletePreservingMedia(): bool
+    {
+        $this->deletePreservingMedia = true;
+
+        return (bool) $this->forceDelete();
+    }
+
+    /**
      * @return BelongsTo<Category, $this>
      */
     public function category(): BelongsTo

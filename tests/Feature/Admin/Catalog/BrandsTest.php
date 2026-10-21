@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Livewire\Admin\Brands\Form;
 use App\Livewire\Admin\Brands\Index;
 use App\Models\Brand;
+use App\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -104,3 +105,22 @@ it('forbids brand writes for view-only roles', function (Role $role) {
 
     expect($brand->fresh()->name)->toBe('Godex');
 })->with(catalogViewOnlyRoles());
+
+it('refreshes the search text of its products, trashed ones too, when renamed', function () {
+    $brand = Brand::factory()->create(['name' => 'Metrologic']);
+    $product = Product::factory()->for($brand)->create(['sku' => 'MS-9540']);
+    $trashed = Product::factory()->for($brand)->create();
+    $trashed->delete();
+    $other = Product::factory()->create();
+    $otherText = $other->fresh()->search_text;
+
+    Livewire::actingAs(staffUser())
+        ->test(Form::class, ['brand' => $brand])
+        ->set('form.name', 'Honeywell Metrologic')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($product->fresh()->search_text)->toContain('honeywell metrologic')->toContain('ms-9540')
+        ->and(Product::withTrashed()->find($trashed->id)->search_text)->toContain('honeywell metrologic')
+        ->and($other->fresh()->search_text)->toBe($otherText);
+});

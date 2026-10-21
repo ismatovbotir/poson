@@ -19,7 +19,7 @@ return [
         'dashboard' => 'Bosh sahifa',
         'leads' => 'Lidlar',
         'customers' => 'Mijozlar',
-        'quotes' => 'Tijoriy takliflar',
+        'quotes' => 'Tijorat takliflari',
         'orders' => 'Buyurtmalar',
         'payments' => 'Toʻlovlar',
         'categories' => 'Toifalar',

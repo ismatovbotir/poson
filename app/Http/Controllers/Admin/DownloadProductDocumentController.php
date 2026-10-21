@@ -26,6 +26,7 @@ class DownloadProductDocumentController extends Controller
         return Storage::disk(ProductDocument::DISK)->download(
             $document->path,
             $document->original_name ?? basename($document->path),
+            ['X-Content-Type-Options' => 'nosniff'],
         );
     }
 }

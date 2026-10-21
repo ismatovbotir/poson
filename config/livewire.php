@@ -130,9 +130,13 @@ return [
 
     'temporary_file_upload' => [
         'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK'), // Example: 'local', 's3'             | Default: 'default'
-        'rules' => ['file', 'mimes:jpg,jpeg,png,webp,pdf,zip,exe', 'max:20480'], // Admin uploads: catalog images (components cap them at 5 MB) and product documents (pdf/zip/exe, 20 MB)
+        // Global ceiling for every temporary upload: the union of the admin needs
+        // (catalog images, product documents pdf/zip/exe up to 20 MB). Every
+        // component — and any future PUBLIC component — must validate its own,
+        // stricter rules and authorize in _startUpload(); never rely on these.
+        'rules' => ['file', 'mimes:jpg,jpeg,png,webp,pdf,zip,exe', 'max:20480'],
         'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
-        'middleware' => null,                                 // Example: 'throttle:5,1'            | Default: 'throttle:60,1'
+        'middleware' => 'throttle:10,1',                      // At most 10 uploads per minute per user / IP
         'preview_mimes' => [                                  // Supported file types for temporary pre-signed file URLs...
             'png', 'gif', 'bmp', 'wav', 'mp4',
             'mov', 'avi', 'wmv', 'mp3', 'm4a',

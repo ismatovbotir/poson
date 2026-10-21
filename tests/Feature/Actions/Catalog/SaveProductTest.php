@@ -267,3 +267,33 @@ it('requires a uz name, an existing category and brand', function () {
 
     expect($errors)->toHaveKeys(['name.uz', 'category_id', 'brand_id', 'min_qty']);
 });
+
+it('ignores a key mark on an empty row', function () {
+    $category = Category::factory()->create();
+    $attributes = Attribute::factory()->count(5)->create();
+    $specs = $attributes->map(fn (Attribute $attribute) => ['attribute_id' => $attribute->id, 'text' => ['uz' => 'x'], 'is_key' => true])->all();
+    $specs[0]['text'] = ['uz' => ''];
+
+    $product = saveProduct(null, productData($category), $specs);
+
+    expect(ProductAttributeValue::query()->where('product_id', $product->id)->where('is_key', true)->count())->toBe(4)
+        ->and(ProductAttributeValue::query()->where('product_id', $product->id)->where('attribute_id', $attributes[0]->id)->exists())->toBeFalse();
+});
+
+it('accepts only ASCII SKUs', function () {
+    expect(saveErrors(fn () => saveProduct(null, productData(Category::factory()->create(), ['sku' => 'ШК-1']))))->toHaveKey('sku');
+});
+
+it('caps a long Cyrillic name’s slug and keeps it unique', function () {
+    $category = Category::factory()->create();
+    $name = mb_substr(str_repeat('Сканер штрих-кода беспроводной ', 20), 0, 255);
+
+    $first = saveProduct(null, productData($category, ['sku' => 'L1', 'name' => ['uz' => $name, 'ru' => '', 'en' => '']]));
+    $second = saveProduct(null, productData($category, ['sku' => 'L2', 'name' => ['uz' => $name, 'ru' => '', 'en' => '']]));
+
+    expect(mb_strlen($name))->toBe(255)
+        ->and(strlen($first->slug))->toBeLessThanOrEqual(240)
+        ->and($first->slug)->not->toEndWith('-')
+        ->and($second->slug)->toBe($first->slug.'-2')
+        ->and(strlen($second->slug))->toBeLessThanOrEqual(255);
+});

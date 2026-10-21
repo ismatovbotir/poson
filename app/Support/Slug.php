@@ -19,9 +19,21 @@ class Slug
      */
     public const APOSTROPHES = ["\u{02BB}", "\u{02BC}", "'", "\u{2018}", "\u{2019}", '`'];
 
+    /**
+     * Longest slug base: leaves room for a "-123" suffix in a 255-character column.
+     */
+    public const MAX_BASE_LENGTH = 240;
+
+    /**
+     * Latin slug of a value, at most MAX_BASE_LENGTH characters (cut at a
+     * character boundary, trailing "-" removed). Transliteration makes
+     * Cyrillic names longer than the input, so the cap matters.
+     */
     public static function make(?string $value): string
     {
-        return Str::slug(str_replace(self::APOSTROPHES, '', (string) $value));
+        $slug = Str::slug(str_replace(self::APOSTROPHES, '', (string) $value));
+
+        return trim(substr($slug, 0, self::MAX_BASE_LENGTH), '-');
     }
 
     /**

@@ -81,13 +81,13 @@
                             class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300 focus-visible:outline-2 focus-visible:outline-brand-400"
                         >
                             <span class="flex-1 truncate">{{ __($group->label) }}</span>
-                            <x-admin.icon name="chevron-down" size="size-3.5" class="shrink-0 transition-transform duration-150" x-bind:class="isOpen('{{ $group->key }}') ? '' : '-rotate-90'" />
+                            <x-admin.icon name="chevron-down" size="size-3.5" class="shrink-0 transition-transform duration-150" x-bind:class="isOpen(@js($group->key)) ? '' : '-rotate-90'" />
                         </button>
                     @endif
                     <ul
                         id="menu-group-{{ $group->key }}"
                         class="space-y-0.5"
-                        @if ($group->collapsible) x-show="isOpen(@js($group->key))" x-collapse @endif
+                        @if ($group->collapsible) x-cloak x-show="isOpen(@js($group->key))" x-collapse @endif
                     >
                         @foreach ($group->items as $item)
                             <x-admin.menu-item :item="$item" />
