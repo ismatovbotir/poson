@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\StoresTranslations;
 use Database\Factories\AttributeOptionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +21,7 @@ use Spatie\Translatable\HasTranslations;
 class AttributeOption extends Model
 {
     /** @use HasFactory<AttributeOptionFactory> */
-    use HasFactory, HasTranslations;
+    use HasFactory, HasTranslations, StoresTranslations;
 
     /**
      * @var list<string>

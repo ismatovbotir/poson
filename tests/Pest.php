@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\Role;
+use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -53,4 +56,40 @@ function expectNoBannedWording(string $html): void
     foreach (bannedWordingPatterns() as $pattern) {
         expect($html)->not->toMatch($pattern);
     }
+}
+
+/**
+ * A staff user with the real role permissions (seeds RolesAndPermissionsSeeder).
+ */
+function staffUser(Role $role = Role::Admin): User
+{
+    test()->seed(RolesAndPermissionsSeeder::class);
+
+    return User::factory()->withRole($role)->create();
+}
+
+/**
+ * Roles that may only view the catalog (no writes).
+ *
+ * @return array<string, array{0: Role}>
+ */
+function catalogViewOnlyRoles(): array
+{
+    return [
+        'sales manager' => [Role::SalesManager],
+        'service engineer' => [Role::ServiceEngineer],
+    ];
+}
+
+/**
+ * Roles that may write categories, attributes and brands.
+ *
+ * @return array<string, array{0: Role}>
+ */
+function catalogWriterRoles(): array
+{
+    return [
+        'admin' => [Role::Admin],
+        'content manager' => [Role::ContentManager],
+    ];
 }

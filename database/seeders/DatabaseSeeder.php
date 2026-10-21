@@ -7,7 +7,8 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 /**
- * Local / testing seed: roles and permissions plus a non-staff test user.
+ * Local / testing seed: roles and permissions, the catalog base data
+ * (categories, attributes, brands) plus a non-staff test user.
  *
  * Production deploys do not run this seeder; they run
  * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
@@ -22,7 +23,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RolesAndPermissionsSeeder::class);
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            CatalogSeeder::class,
+        ]);
 
         if (app()->environment(['local', 'testing'])) {
             User::query()->firstOrCreate(

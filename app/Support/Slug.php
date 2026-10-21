@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
@@ -39,5 +40,29 @@ class Slug
         }
 
         return $slug;
+    }
+
+    /**
+     * Free slug in the model's "slug" column, ignoring the record itself.
+     *
+     * @param  class-string<Model>  $model
+     */
+    public static function uniqueFor(string $model, string $base, ?int $ignoreId = null): string
+    {
+        return static::unique($base, fn (string $slug): bool => static::taken($model, $slug, $ignoreId));
+    }
+
+    /**
+     * TODO(3c): Product uses soft deletes and its slug is unique including
+     * trashed rows (plan 03 D5): query withTrashed() for soft-deleting models.
+     *
+     * @param  class-string<Model>  $model
+     */
+    public static function taken(string $model, string $slug, ?int $ignoreId = null): bool
+    {
+        return $model::query()
+            ->where('slug', $slug)
+            ->when($ignoreId !== null, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->exists();
     }
 }

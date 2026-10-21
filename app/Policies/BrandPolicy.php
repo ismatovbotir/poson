@@ -7,7 +7,8 @@ use App\Models\User;
 
 /**
  * Brand access by permission only (brands.*); no role checks here.
- * Admins pass through Gate::before.
+ * Admins pass through Gate::before. update/delete also accept the class
+ * (can('update', Category::class)) for list-level buttons.
  */
 class BrandPolicy
 {
@@ -26,12 +27,12 @@ class BrandPolicy
         return $user->can('brands.create');
     }
 
-    public function update(User $user, Brand $brand): bool
+    public function update(User $user, ?Brand $brand = null): bool
     {
         return $user->can('brands.update');
     }
 
-    public function delete(User $user, Brand $brand): bool
+    public function delete(User $user, ?Brand $brand = null): bool
     {
         return $user->can('brands.delete');
     }

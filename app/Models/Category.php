@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasCatalogImage;
+use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -38,7 +39,7 @@ use Spatie\Translatable\HasTranslations;
 class Category extends Model implements HasMedia
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasCatalogImage, HasFactory, HasTranslations;
+    use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
 
     /**
      * Icon names of x-site.icon offered in the admin icon select.

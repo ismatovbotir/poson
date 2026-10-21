@@ -84,7 +84,7 @@
     "src": "_inter-800-normal-D1mf63XC.woff"
   },
   "resources/css/admin.css": {
-    "file": "assets/admin-nTmKF4KA.css",
+    "file": "assets/admin-GKkuYWek.css",
     "name": "admin",
     "names": [
       "admin.css"
@@ -93,7 +93,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-DsmDGADl.css",
+    "file": "assets/app-CaEGlUos.css",
     "name": "app",
     "names": [
       "app.css"
@@ -102,7 +102,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-BvRk9kiK.js",
+    "file": "assets/admin-ZoJp_bsl.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true

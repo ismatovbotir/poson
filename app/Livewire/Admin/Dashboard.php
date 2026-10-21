@@ -2,31 +2,32 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Attribute;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Admin home: welcome with the user's role, plus role-aware stat cards.
- * A card shows only when the user may view the resource and its model and
- * table exist (catalog tables arrive in plan 03 3b/3c).
+ * Admin home: welcome with the user's role, plus role-aware stat cards
+ * (a card shows only when the user may view the resource).
  */
 #[Layout('layouts::admin')]
 class Dashboard extends Component
 {
     /**
-     * Card key → [model class, table, permission, icon].
+     * Card key → [model class, icon]. Products join in plan 03 3c.
      *
-     * @var array<string, array{0: class-string, 1: string, 2: string, 3: string}>
+     * @var array<string, array{0: class-string<Model>, 1: string}>
      */
     public const CARDS = [
-        'categories' => ['App\\Models\\Category', 'categories', 'categories.viewAny', 'folder'],
-        'attributes' => ['App\\Models\\Attribute', 'attributes', 'attributes.viewAny', 'sliders'],
-        'brands' => ['App\\Models\\Brand', 'brands', 'brands.viewAny', 'tag'],
-        'products' => ['App\\Models\\Product', 'products', 'products.viewAny', 'box'],
+        'categories' => [Category::class, 'folder'],
+        'attributes' => [Attribute::class, 'sliders'],
+        'brands' => [Brand::class, 'tag'],
     ];
 
     /**
@@ -47,8 +48,8 @@ class Dashboard extends Component
         $user = auth()->user();
         $cards = [];
 
-        foreach (self::CARDS as $key => [$model, $table, $permission, $icon]) {
-            if (! class_exists($model) || ! Schema::hasTable($table) || ! $user->can($permission)) {
+        foreach (self::CARDS as $key => [$model, $icon]) {
+            if (! $user->can('viewAny', $model)) {
                 continue;
             }
 

@@ -1,5 +1,112 @@
 /*
- * Admin panel scripts (separate Vite entry). Alpine and its focus plugin
- * (x-trap) ship with Livewire, so nothing is imported here yet.
- * Plan 3b adds the Tiptap rich-text editor to this entry only.
+ * Admin panel scripts (separate Vite entry). Alpine and its plugins (focus,
+ * persist, sort, ...) ship with Livewire; this entry only adds the Tiptap
+ * rich-text editor used by <x-admin.rich-text> (plan 03 D12).
  */
+import { Editor } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+
+/**
+ * Only https and mailto links, like the server-side HtmlSanitizer.
+ */
+const allowedHref = (url) => /^(https:\/\/|mailto:)/i.test(url ?? '');
+
+document.addEventListener('alpine:init', () => {
+    /**
+     * x-data="richText($wire.entangle('form.description.uz'))" on a wire:ignore element.
+     * The editor instance stays outside Alpine's reactive state (proxies break Tiptap).
+     */
+    window.Alpine.data('richText', (model) => {
+        let editor = null;
+
+        return {
+            value: model,
+            tick: 0,
+
+            init() {
+                editor = new Editor({
+                    element: this.$refs.editor,
+                    content: this.value ?? '',
+                    extensions: [
+                        StarterKit.configure({
+                            heading: { levels: [2, 3] },
+                            code: false,
+                            codeBlock: false,
+                            blockquote: false,
+                            horizontalRule: false,
+                            strike: false,
+                            underline: false,
+                            link: {
+                                openOnClick: false,
+                                autolink: true,
+                                defaultProtocol: 'https',
+                                isAllowedUri: (url) => allowedHref(url),
+                                HTMLAttributes: { rel: 'nofollow', target: null },
+                            },
+                        }),
+                    ],
+                    editorProps: {
+                        attributes: {
+                            class: 'rich-text-content min-h-36 px-3 py-2.5 text-base outline-none sm:text-sm',
+                            role: 'textbox',
+                            'aria-multiline': 'true',
+                            ...(this.$el.dataset.labelledby ? { 'aria-labelledby': this.$el.dataset.labelledby } : {}),
+                        },
+                    },
+                    onUpdate: ({ editor: instance }) => {
+                        this.value = instance.isEmpty ? '' : instance.getHTML();
+                    },
+                    onTransaction: () => {
+                        this.tick++;
+                    },
+                });
+
+                this.$watch('value', (value) => {
+                    const html = value ?? '';
+
+                    if (html !== (editor.isEmpty ? '' : editor.getHTML())) {
+                        editor.commands.setContent(html, { emitUpdate: false });
+                    }
+                });
+            },
+
+            destroy() {
+                editor?.destroy();
+                editor = null;
+            },
+
+            isActive(name, attributes = {}) {
+                this.tick;
+
+                return editor?.isActive(name, attributes) ?? false;
+            },
+
+            run(command, ...args) {
+                editor?.chain().focus()[command](...args).run();
+            },
+
+            link() {
+                if (!editor) {
+                    return;
+                }
+
+                const current = editor.getAttributes('link').href ?? 'https://';
+                const url = window.prompt(this.$el.dataset.linkPrompt ?? 'URL', current);
+
+                if (url === null) {
+                    return;
+                }
+
+                const chain = editor.chain().focus().extendMarkRange('link');
+
+                if (url.trim() === '' || !allowedHref(url.trim())) {
+                    chain.unsetLink().run();
+
+                    return;
+                }
+
+                chain.setLink({ href: url.trim() }).run();
+            },
+        };
+    });
+});

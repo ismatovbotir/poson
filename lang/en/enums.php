@@ -36,7 +36,7 @@ return [
         'roll' => 'roll',
         'box' => 'box',
         'pack' => 'pack',
-        'license' => 'licence',
+        'license' => 'license',
         'hour' => 'hour',
     ],
 

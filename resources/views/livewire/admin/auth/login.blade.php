@@ -1,4 +1,10 @@
 <div x-data="{ show: false }">
+    @if (\App\Actions\Auth\AuthenticateStaff::devLoginEnabled())
+        <p class="mb-5 inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-amber-900" role="note" data-dev-login>
+            <x-admin.icon name="alert" size="size-4" class="text-warn" />{{ __('admin.auth.dev_login_badge') }}
+        </p>
+    @endif
+
     <h1 class="text-2xl font-bold tracking-tight">{{ __('admin.auth.title') }}</h1>
     <p class="mt-1.5 text-sm text-slate-500">{{ __('admin.auth.subtitle') }}</p>
 

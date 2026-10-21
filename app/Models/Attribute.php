@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AttributeType;
+use App\Models\Concerns\StoresTranslations;
 use Database\Factories\AttributeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +28,7 @@ use Spatie\Translatable\HasTranslations;
 class Attribute extends Model
 {
     /** @use HasFactory<AttributeFactory> */
-    use HasFactory, HasTranslations;
+    use HasFactory, HasTranslations, StoresTranslations;
 
     /**
      * @var list<string>

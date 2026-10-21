@@ -36,6 +36,13 @@ return [
     'disk_name' => env('MEDIA_DISK', 'public'),
 
     /*
+     * Poson: catalog image originals (with EXIF, e.g. GPS) stay on this private
+     * disk; only the WebP conversions go to "disk_name" and reach the site
+     * (App\Models\Concerns\HasCatalogImage).
+     */
+    'originals_disk' => env('MEDIA_ORIGINALS_DISK', 'local'),
+
+    /*
      * The disk on which to store conversions (thumbnails, etc.) and responsive images
      * when no disk is specified explicitly on the media collection or via
      * `storingConversionsOnDisk()`. When left null, conversions are stored on the

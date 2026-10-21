@@ -7,7 +7,8 @@ use App\Models\User;
 
 /**
  * Category access by permission only (categories.*); no role checks here.
- * Admins pass through Gate::before.
+ * Admins pass through Gate::before. update/delete also accept the class
+ * (can('update', Category::class)) for list-level buttons.
  */
 class CategoryPolicy
 {
@@ -26,12 +27,12 @@ class CategoryPolicy
         return $user->can('categories.create');
     }
 
-    public function update(User $user, Category $category): bool
+    public function update(User $user, ?Category $category = null): bool
     {
         return $user->can('categories.update');
     }
 
-    public function delete(User $user, Category $category): bool
+    public function delete(User $user, ?Category $category = null): bool
     {
         return $user->can('categories.delete');
     }

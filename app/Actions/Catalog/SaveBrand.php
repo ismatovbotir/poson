@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Actions\Catalog;
+
+use App\Models\Brand;
+use App\Support\HtmlSanitizer;
+use App\Support\Slug;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Create or update a brand (fields only; the logo goes through UpdateCatalogImage).
+ * The slug comes from the name when left empty; the description is sanitized.
+ * Owns its invariants: a name is required and the website must be https.
+ */
+class SaveBrand
+{
+    /**
+     * @param  array{name: string, slug: string|null, description: array<string, string|null>, website: string|null, is_active: bool, sort: int|null}  $data
+     *
+     * @throws ValidationException
+     */
+    public function handle(?Brand $brand, array $data): Brand
+    {
+        if (trim($data['name']) === '') {
+            throw ValidationException::withMessages(['name' => __('validation.required', ['attribute' => __('admin.catalog.name')])]);
+        }
+
+        $website = filled($data['website']) ? trim((string) $data['website']) : null;
+
+        if ($website !== null && (! str_starts_with(mb_strtolower($website), 'https://') || filter_var($website, FILTER_VALIDATE_URL) === false)) {
+            throw ValidationException::withMessages(['website' => __('admin.brands.errors.website_https')]);
+        }
+
+        $brand ??= new Brand;
+        $ignoreId = $brand->exists ? $brand->id : null;
+        $name = trim($data['name']);
+        $slug = Slug::make($data['slug'] ?? '');
+
+        if ($slug !== '' && Slug::taken(Brand::class, $slug, $ignoreId)) {
+            throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
+        }
+
+        $slug = $slug !== '' ? $slug : Slug::uniqueFor(Brand::class, Slug::make($name), $ignoreId);
+
+        return DB::transaction(function () use ($brand, $data, $name, $slug, $website): Brand {
+            $brand->storeTranslations('description', array_map(HtmlSanitizer::cleanOrNull(...), $data['description']));
+            $brand->fill([
+                'name' => $name,
+                'slug' => $slug,
+                'website' => $website,
+                'is_active' => $data['is_active'],
+                'sort' => $data['sort'] ?? (int) Brand::query()->max('sort') + 1,
+            ])->save();
+
+            return $brand;
+        });
+    }
+}

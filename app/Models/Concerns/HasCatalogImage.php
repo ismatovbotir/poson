@@ -11,6 +11,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * WebP conversions "thumb" (400 px) and "large" (1200 px), queued. The alt
  * text is stored per locale in the media custom property "alt".
  *
+ * The original upload (which may carry EXIF such as GPS) is kept on the
+ * private media-library.originals_disk; only the conversions are public.
+ * They are re-encoded by GD, which writes no EXIF. Pages render conversions
+ * only: imageUrl() is null until the queued conversion exists.
+ *
  * Eager-load "media" on lists (strict models forbid lazy loading).
  */
 trait HasCatalogImage
@@ -31,7 +36,9 @@ trait HasCatalogImage
     {
         $this->addMediaCollection($this->imageCollection())
             ->singleFile()
-            ->acceptsMimeTypes(self::IMAGE_MIMES);
+            ->acceptsMimeTypes(self::IMAGE_MIMES)
+            ->useDisk(config('media-library.originals_disk', 'local'))
+            ->storeConversionsOnDisk(config('media-library.disk_name', 'public'));
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -55,18 +62,22 @@ trait HasCatalogImage
     }
 
     /**
-     * URL of a conversion, or of the original while the queued conversion
-     * hasn't run yet. Null without an image.
+     * URL of a conversion; null without an image or while the queued
+     * conversion hasn't run yet (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {
         $media = $this->imageMedia();
 
-        if ($media === null) {
-            return null;
-        }
+        return $media !== null && $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : null;
+    }
 
-        return $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : $media->getUrl();
+    /**
+     * An image is saved but its conversions are still queued.
+     */
+    public function imageProcessing(): bool
+    {
+        return $this->imageMedia() !== null && $this->imageUrl() === null;
     }
 
     /**

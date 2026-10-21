@@ -28,7 +28,9 @@
         ['label' => __('admin.nav.groups.catalog'), 'items' => $catalog->all()],
     ];
 
-    $catalogHref = $catalog->isNotEmpty() ? $link($catalog->last()['route']) : null;
+    // Bottom tab bar "Catalog": the last catalog screen that exists (Products once 3c lands).
+    $catalogTab = $catalog->reverse()->first(fn (array $item): bool => \Illuminate\Support\Facades\Route::has($item['route'])) ?? $catalog->last();
+    $catalogHref = $catalogTab ? $link($catalogTab['route']) : null;
     $catalogActive = $catalog->contains(fn (array $item): bool => request()->routeIs($item['pattern']));
 @endphp
 <!DOCTYPE html>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasCatalogImage;
+use App\Models\Concerns\StoresTranslations;
 use Database\Factories\BrandFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +27,7 @@ use Spatie\Translatable\HasTranslations;
 class Brand extends Model implements HasMedia
 {
     /** @use HasFactory<BrandFactory> */
-    use HasCatalogImage, HasFactory, HasTranslations;
+    use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
 
     /**
      * @var list<string>
