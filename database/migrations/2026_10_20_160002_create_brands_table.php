@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->json('description')->nullable();
-            $table->string('website')->nullable();
+            // For software brands also the partner / referral link of the "Try" button (kept as entered).
+            $table->string('website', 2048)->nullable();
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('sort')->default(0);
             $table->timestamps();

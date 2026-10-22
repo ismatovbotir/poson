@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Brand;
 use App\Models\Product;
+use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\ProductSearchText;
 use App\Support\HtmlSanitizer;
 use App\Support\Slug;
@@ -13,7 +14,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * Create or update a brand (fields only; the logo goes through UpdateCatalogImage).
  * The slug comes from the name when left empty; the description is sanitized.
- * Owns its invariants: a name is required and the website must be https.
+ * Owns its invariants: a name is required and the website must be a valid
+ * https link (HttpsUrl).
  * Renaming refreshes the search_text of the brand's products.
  */
 class SaveBrand
@@ -31,7 +33,8 @@ class SaveBrand
 
         $website = filled($data['website']) ? trim((string) $data['website']) : null;
 
-        if ($website !== null && (! str_starts_with(mb_strtolower($website), 'https://') || filter_var($website, FILTER_VALIDATE_URL) === false)) {
+        // For software brands the website is also the "Try" partner / referral link (ProductCtas), kept as entered.
+        if ($website !== null && ! HttpsUrl::isValid($website)) {
             throw ValidationException::withMessages(['website' => __('admin.brands.errors.website_https')]);
         }
 

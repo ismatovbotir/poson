@@ -2,6 +2,7 @@
 
 namespace App\Actions\Analytics;
 
+use App\Enums\VisitType;
 use App\Models\TrafficDaily;
 use App\Support\Analytics\BotRegistry;
 use App\Support\Analytics\TrafficRecorder;
@@ -17,7 +18,10 @@ use Illuminate\Support\Facades\DB;
  * are replaced in one transaction (delete + upsert on the unique
  * dimensions), so it can run every 15 minutes for today and again nightly
  * for yesterday (after VerifyBotHits) with the same result for the same raw
- * data. Only the top N pages per day / kind / bot are kept.
+ * data. Only the top N pages per day / kind / bot are kept. Partner clicks
+ * (VisitType::PartnerClick) are counted in traffic_daily.partner_clicks and,
+ * per /{locale}/go/{slug} path with its product, in traffic_daily_pages
+ * (kind partner); they are neither page views nor leads.
  *
  * One run per date at a time (cache lock; waits up to
  * config analytics.aggregate_lock_wait seconds, otherwise skips: the other
@@ -51,7 +55,7 @@ class AggregateTraffic
         $now = now();
 
         $daily = [...$this->visitRows($date, $from, $to), ...$this->botRows($date, $from, $to)];
-        $pages = [...$this->visitPages($date, $from, $to), ...$this->botPages($date, $from, $to)];
+        $pages = [...$this->visitPages($date, $from, $to), ...$this->partnerPages($date, $from, $to), ...$this->botPages($date, $from, $to)];
 
         foreach ($daily as $index => $row) {
             $daily[$index]['updated_at'] = $now;
@@ -69,7 +73,7 @@ class AggregateTraffic
                 DB::table('traffic_daily')->upsert(
                     $chunk,
                     ['date', 'kind', 'dimension', 'channel', 'value'],
-                    ['visitors', 'page_views', 'entries', 'leads', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at', 'updated_at'],
+                    ['visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at', 'updated_at'],
                 );
             }
 
@@ -106,6 +110,7 @@ class AggregateTraffic
                 "SUM(CASE WHEN type = 'page_view' THEN 1 ELSE 0 END) AS page_views",
                 "SUM(CASE WHEN type = 'page_view' AND is_entry = 1 THEN 1 ELSE 0 END) AS entries",
                 "SUM(CASE WHEN type = 'lead' THEN 1 ELSE 0 END) AS leads",
+                "SUM(CASE WHEN type = 'partner_click' THEN 1 ELSE 0 END) AS partner_clicks",
                 "SUM(CASE WHEN type = 'page_view' AND status >= 400 AND status < 500 THEN 1 ELSE 0 END) AS errors_4xx",
                 "SUM(CASE WHEN type = 'page_view' AND status >= 500 THEN 1 ELSE 0 END) AS errors_5xx",
                 'MAX(occurred_at) AS last_seen_at',
@@ -134,6 +139,7 @@ class AggregateTraffic
                     'page_views' => (int) $result->page_views,
                     'entries' => (int) $result->entries,
                     'leads' => (int) $result->leads,
+                    'partner_clicks' => (int) $result->partner_clicks,
                     'hits' => 0,
                     'verified_hits' => 0,
                     'spoofed_hits' => 0,
@@ -179,6 +185,7 @@ class AggregateTraffic
                 'page_views' => 0,
                 'entries' => 0,
                 'leads' => 0,
+                'partner_clicks' => 0,
                 'hits' => (int) $result->hits,
                 'verified_hits' => (int) $result->verified_hits,
                 'spoofed_hits' => (int) $result->spoofed_hits,
@@ -197,7 +204,7 @@ class AggregateTraffic
     protected function visitPages(string $date, CarbonImmutable $from, CarbonImmutable $to): array
     {
         $results = $this->visits($from, $to)
-            ->where('type', 'page_view')
+            ->where('type', VisitType::PageView->value)
             ->select('path', 'status')
             ->selectRaw('COUNT(*) AS hits, COUNT(DISTINCT visitor_hash) AS visitors, MAX(route_name) AS route_name, MAX(product_id) AS product_id, MAX(category_id) AS category_id')
             ->groupBy('path', 'status')
@@ -207,6 +214,26 @@ class AggregateTraffic
             ->get();
 
         return $this->pageRows($date, TrafficDaily::KIND_VISITS, '', $results->all());
+    }
+
+    /**
+     * Partner clicks per redirect path (one per product and locale).
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected function partnerPages(string $date, CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        $results = $this->visits($from, $to)
+            ->where('type', VisitType::PartnerClick->value)
+            ->select('path', 'status')
+            ->selectRaw('COUNT(*) AS hits, COUNT(DISTINCT visitor_hash) AS visitors, MAX(route_name) AS route_name, MAX(product_id) AS product_id, MAX(category_id) AS category_id')
+            ->groupBy('path', 'status')
+            ->orderByDesc('hits')
+            ->orderBy('path')
+            ->limit($this->topPages())
+            ->get();
+
+        return $this->pageRows($date, TrafficDaily::KIND_PARTNER, '', $results->all());
     }
 
     /**

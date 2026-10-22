@@ -5,8 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Raw human traffic (plan 04 4c): one row per page view or lead, written by
- * the TrackVisit middleware / RecordConversion, kept 30 days and rolled up
+ * Raw human traffic (plan 04 4c): one row per page view, lead or partner
+ * click (App\Enums\VisitType), written by the TrackVisit middleware /
+ * RecordConversion / RecordPartnerClick, kept 30 days and rolled up
  * into traffic_daily(_pages). No foreign keys (product/category ids are only
  * hints, rows outlive deletions) and no IP: visitor_hash is a daily-salted
  * hash, the salt lives in the cache only.
@@ -21,7 +22,7 @@ return new class extends Migration
         Schema::create('site_visits', function (Blueprint $table) {
             $table->id();
             $table->timestamp('occurred_at');
-            $table->string('type', 10);
+            $table->string('type', 20);
             $table->char('visitor_hash', 16);
             $table->boolean('is_entry')->default(false);
             $table->string('channel', 10);

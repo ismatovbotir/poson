@@ -315,7 +315,7 @@ return [
         ],
         'name_hint' => 'The brand name is the same in every language.',
         'slug_hint' => 'Leave empty to generate it from the name.',
-        'website_hint' => 'Official manufacturer website, starting with https://.',
+        'website_hint' => 'Official website, starting with https://. For software brands this link is used for the “Try” button; paste your partner/referral link here.',
         'publish' => 'Publishing',
         'is_active_hint' => 'Hidden brands are not shown on the site.',
         'is_active' => 'Active (shown on the site)',
@@ -325,7 +325,7 @@ return [
         'delete_body' => '“:name” will be deleted together with its logo.',
         'delete_help' => 'A brand used by products can’t be deleted.',
         'errors' => [
-            'website_https' => 'Enter a full https:// address.',
+            'website_https' => 'This is not a valid link: enter a full address starting with https://.',
             'has_products' => 'Products use this brand. Change their brand first.',
         ],
     ],

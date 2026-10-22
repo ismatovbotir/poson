@@ -10,6 +10,7 @@ use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Catalog\HttpsUrl;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
@@ -330,6 +331,33 @@ class Product extends Model implements HasMedia
     public function effectiveSaleMode(): SaleMode
     {
         return $this->isPriceOnRequest() ? SaleMode::Quote : $this->sale_mode;
+    }
+
+    /**
+     * Whether the site shows a stock status (badge, JSON-LD availability).
+     * Software has none: licences are not stock (PM decision 2026-10-22).
+     */
+    public function showsStockStatus(): bool
+    {
+        return $this->type !== ProductType::Software;
+    }
+
+    /**
+     * The "Try" link of a software product: its brand's website (the
+     * partner / referral link, entered in Brands; decision 2026-10-22) when
+     * it is a valid https URL, kept exactly as entered. Null for any other
+     * type, without a brand or an active brand, or without a valid link.
+     * Needs "brand" loaded on lists (strict models).
+     */
+    public function partnerUrl(): ?string
+    {
+        if ($this->type !== ProductType::Software) {
+            return null;
+        }
+
+        $url = $this->publicBrand()?->website;
+
+        return is_string($url) && HttpsUrl::isValid(trim($url)) ? trim($url) : null;
     }
 
     /**

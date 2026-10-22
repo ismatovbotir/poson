@@ -151,6 +151,14 @@ class ProductFactory extends Factory
         ]);
     }
 
+    /**
+     * Software whose brand website is the partner / referral link (the "Try" CTA).
+     */
+    public function withPartnerLink(string $url = 'https://partner.example.uz/signup?ref=poson&utm_source=poson'): static
+    {
+        return $this->software()->for(Brand::factory()->state(['website' => $url]));
+    }
+
     public function withoutBrand(): static
     {
         return $this->state(fn (array $attributes) => [

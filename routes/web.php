@@ -3,6 +3,7 @@
 use App\Http\Controllers\RedirectToLocale;
 use App\Http\Controllers\Site\DownloadProductDocumentController;
 use App\Http\Controllers\Site\LlmsController;
+use App\Http\Controllers\Site\PartnerRedirectController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Catalog;
@@ -31,6 +32,10 @@ Route::prefix('{locale}')
             ->scopeBindings()
             ->middleware('throttle:60,1')
             ->name('product.document');
+        // "Try" (ProductCtas): partner click + 302 to the partner signup URL; noindex, robots.txt disallows /*/go/.
+        Route::get('/go/{product:slug}', PartnerRedirectController::class)
+            ->middleware('throttle:30,1,partner')
+            ->name('product.partner');
 
         Route::livewire('/search', Search::class)->name('search');
     });

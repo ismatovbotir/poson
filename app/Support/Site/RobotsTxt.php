@@ -28,6 +28,8 @@ class RobotsTxt
         '/admin',
         '/livewire',
         '/*/search',
+        // Partner redirects ("Try" buttons, /{locale}/go/{slug}).
+        '/*/go/',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

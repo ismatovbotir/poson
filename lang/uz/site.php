@@ -169,6 +169,11 @@ return [
         ],
     ],
 
+    'cta' => [
+        'try' => 'Sinab koʻrish',
+        'contact' => 'Bogʻlanish',
+    ],
+
     'card' => [
         'add_to_cart' => 'Savatga',
         'request_quote' => 'Taklif soʻrash',
@@ -274,6 +279,9 @@ return [
             'service' => 'Oʻz servis markazimizda kafolatli va kafolatdan keyingi xizmat.',
         ],
         'months' => ':count oy',
+        'software' => [
+            'title' => 'Dastur haqida',
+        ],
         'related' => [
             'accessory' => 'Aksessuarlar',
             'consumable' => 'Sarf materiallari',

@@ -60,6 +60,8 @@ class ProductCards
             category: CategoryTree::name($product->category_id),
             placeholder: static::placeholder($product->category_id),
             imageAlt: $media !== null ? $product->imageAlt($media) : (string) $product->name,
+            ctas: ProductCtas::for($product, compact: true),
+            showStock: $product->showsStockStatus(),
         );
     }
 

@@ -3,16 +3,11 @@
 {{--
     Product card (App\Data\Site\ProductCard, from App\Support\Catalog\ProductCards).
     Brand rule: Retail price only (or "price on request"), no old price, no sale tags;
-    badges are "hit" and "new" only. CTA: "Add to cart" only while
-    config('site.cart_enabled') is on and the product allows the cart (cart / both
-    with a price); otherwise "Request a quote", which opens the quote form on the
-    product page.
+    badges are "hit" and "new" only. Buttons come from App\Support\Catalog\ProductCtas
+    (compact): "Try" + "Contact us" with a partner link, "Add to cart" while the cart is
+    on and allowed, else "Request a quote" ("Contact us" for software), which opens the
+    lead form on the product page.
 --}}
-@php
-    $showCart = config('site.cart_enabled') && $product->canAddToCart();
-    $quoteUrl = $product->url !== '#' ? $product->url.'#quote' : \App\Support\Site\Navigation::quote();
-@endphp
-
 <article {{ $attributes->class('relative flex flex-col overflow-hidden rounded-box-lg border border-line bg-white transition-shadow hover:border-ink-soft hover:shadow-card') }} data-product-card data-mode="{{ $product->saleMode->value }}">
     <a href="{{ $product->url }}" class="relative grid aspect-[1/0.85] place-items-center bg-bg-soft" tabindex="-1" aria-hidden="true">
         @if ($product->badge)
@@ -39,7 +34,9 @@
         @if ($product->specs !== '')
             <span class="text-[13px] text-ink-2" data-key-specs>{{ $product->specs }}</span>
         @endif
-        <x-site.stock-badge :status="$product->stockStatus" />
+        @if ($product->showStock)
+            <x-site.stock-badge :status="$product->stockStatus" />
+        @endif
 
         <div class="mt-auto flex flex-col gap-3 pt-3">
             @if ($product->price !== null)
@@ -48,24 +45,12 @@
                 <p class="text-[15px] font-semibold text-ink-2" data-price>{{ __('site.card.price_on_request') }}</p>
             @endif
 
-            @if ($showCart)
-                {{-- The cart doesn't exist yet: the button opens the product. --}}
-                <a
-                    href="{{ $product->url }}"
-                    class="inline-flex h-11 items-center justify-center gap-2 rounded-btn border-[1.5px] border-line bg-bg-soft px-3 text-sm font-semibold text-ink-2 transition-colors hover:border-ink-soft"
-                    data-cta="cart"
-                >
-                    <x-site.icon name="cart" />
-                    {{ __('site.card.add_to_cart') }}
-                </a>
-            @else
-                <a
-                    href="{{ $quoteUrl }}"
-                    class="inline-flex h-11 items-center justify-center rounded-btn bg-brand-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-                    data-cta="quote"
-                >
-                    {{ __('site.card.request_quote') }}<span class="sr-only">: {{ $product->name }}</span>
-                </a>
+            @if ($product->ctas !== [])
+                <div class="flex flex-col gap-2" data-ctas>
+                    @foreach ($product->ctas as $cta)
+                        <x-site.product-cta :cta="$cta" size="card" :product-name="$product->name" />
+                    @endforeach
+                </div>
             @endif
         </div>
     </div>

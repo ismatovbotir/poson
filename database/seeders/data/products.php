@@ -1607,9 +1607,10 @@ return [
 
     // ─── Software (vendors per business-facts row 14) ───────────────────────
     // All software: sale_mode quote, prices null (price on request).
-    // CONFIRM: stock_status 'on_order' for all licences (copied from the old demo item).
+    // Software shows no stock status on the site (stock_status is kept for the data model only).
 
     // ─── Inventory software ─────────────────────────────────────────────────
+    // Specs: software-facts.md §1 (moysklad.uz, verified 2026-10-22). Interface languages: not found.
     [
         'sku' => 'SW-MOYSKLAD',
         'model' => 'MoySklad',
@@ -1628,36 +1629,42 @@ return [
         'price_wholesale' => null,
         'name' => [
             'uz' => 'MoySklad savdo va ombor hisobi xizmati',
-            'ru' => 'МойСклад — сервис учёта торговли и склада',
+            'ru' => 'MoySklad — сервис учёта торговли и склада',
             'en' => 'MoySklad trade and inventory service',
         ],
         'short_description' => [
-            'uz' => 'Savdo va ombor hisobi uchun bulutli xizmat: savdo, xaridlar, qoldiqlar va mijozlar. Poson sozlaydi va uskunangizni ulaydi.',
-            'ru' => 'Облачный сервис учёта торговли: продажи, закупки, складские остатки и клиенты. Poson настроит сервис и подключит оборудование.',
-            'en' => 'Cloud service for trade and inventory: orders, purchasing, stock levels and customers. Poson sets it up and connects your equipment.',
+            'uz' => 'MoySklad — savdo va ombor hisobi xizmati. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'MoySklad — сервис учёта торговли и склада. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'MoySklad is a trade and inventory management service. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
-        // CONFIRM: which MoySklad edition/plans Poson offers for Uzbekistan.
         'description' => [
-            'uz' => '<p><strong>MoySklad</strong> — savdoni boshqarish uchun bulutli xizmat: savdo, xaridlar, ombor hisobi, moliya va mijozlar bilan ishlash bitta tizimda. Xizmat brauzerda va mobil qurilmalarda ishlaydi.</p><ul><li><strong>Chakana savdo:</strong> savdo nuqtalari boʻyicha qoldiqlar va savdo nazorati.</li><li><strong>Ombor:</strong> tovar kirimi, koʻchirish va inventarizatsiya.</li><li><strong>Ulgurji va onlayn buyurtmalar:</strong> buyurtmalarni qayta ishlash va xaridlarni rejalashtirish.</li><li>Kompyuter, planshet yoki smartfondan foydalanish.</li></ul><p>Poson tarif va modullarni biznesingizga moslab tanlashga yordam beradi, xizmatni sozlaydi, shtrix-kod skaneri va yorliq printerini ulaydi, xodimlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>МойСклад</strong> — облачный сервис для управления торговлей: продажи, закупки, складской учёт, финансы и работа с клиентами в одной системе. Работает в браузере и на мобильных устройствах.</p><ul><li><strong>Розница:</strong> контроль остатков и продаж по точкам.</li><li><strong>Склад:</strong> приёмка, перемещения и инвентаризация.</li><li><strong>Опт и интернет-заказы:</strong> обработка заказов и планирование закупок.</li><li>Доступ с компьютера, планшета или смартфона.</li></ul><p>Poson поможет подобрать тариф и модули под ваш бизнес, настроит сервис, подключит сканер штрих-кода и принтер этикеток, обучит сотрудников и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p><strong>MoySklad</strong> is a cloud service for running a trading business: orders, purchasing, stock records, finances and customer relations in one system. It works in a browser and on mobile devices.</p><ul><li><strong>Retail:</strong> stock levels and turnover by outlet.</li><li><strong>Warehouse:</strong> goods receipts, transfers and stocktaking.</li><li><strong>Wholesale and online orders:</strong> order processing and purchase planning.</li><li>Access from a computer, tablet or smartphone.</li></ul><p>Poson helps you choose the plan and modules for your business, sets up the service, connects barcode scanners and label printers, trains your staff and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>MoySklad</strong> — savdo va ombor hisobi xizmati: savdo, xaridlar, qoldiqlar va mijozlar bir joyda.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>MoySklad</strong> (МойСклад) — сервис учёта торговли и склада: продажи, закупки, остатки и клиенты в одном месте.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>MoySklad</strong> is a trade and inventory management service: orders, purchasing, stock levels and customers in one place.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'MoySklad: savdo va ombor hisobi — Poson',
-            'ru' => 'МойСклад: учёт торговли и склада — Poson',
+            'ru' => 'MoySklad: учёт торговли и склада — Poson',
             'en' => 'MoySklad trade and inventory service — Poson',
         ],
         'meta_description' => [
-            'uz' => 'MoySklad bulutli xizmati: savdo, xaridlar, qoldiqlar va mijozlar hisobi. Poson sozlaydi, skaner va yorliq printerini ulaydi, xodimlarni oʻqitadi.',
-            'ru' => 'МойСклад — облачный учёт продаж, закупок, остатков и клиентов. Poson настроит сервис, подключит сканер и принтер этикеток и обучит сотрудников.',
-            'en' => 'MoySklad cloud service for orders, purchasing, stock and customer records. Poson sets it up, connects scanners and label printers and trains staff.',
+            'uz' => 'MoySklad — savdo va ombor hisobi xizmati. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'MoySklad — сервис учёта торговли и склада. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'MoySklad is a trade and inventory management service. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'platforms' => ['Windows', 'Android', 'iOS', 'Veb / bulut'],
+            'licence_model' => ['Oylik obuna', 'Yillik obuna'],
+            'segment' => ['value' => ['Chakana savdo', 'Ombor va zaxiralar hisobi', 'Ulgurji savdo'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi', 'CRM va sodiqlik dasturi', 'Onlayn doʻkon'],
+            'integrations' => ['1C', 'Didox', 'Uzum Market', 'Telegram', 'QR orqali toʻlov'],
+            'online_cash_register' => true,
         ],
         'related' => [],
     ],
     // ─── POS software (retail: Ox, Billz, Hippo, Pospoint, Rahmat; HoReCa: AliPos) ───
+    // Specs: software-facts.md §3 (ox.uz / oxapp.io) + business-facts row 17. Platforms, integrations, fiscal, languages: not found.
+    // licence_model: "Subscription" per the user (period not known).
     [
         'sku' => 'SW-OX',
         'model' => 'Ox',
@@ -1680,14 +1687,14 @@ return [
             'en' => 'Ox POS software',
         ],
         'short_description' => [
-            'uz' => 'Chakana savdo doʻkonlari uchun kassa dasturi. Poson uni sozlaydi, skaner, chek printeri va pul yashigini ulaydi, kassirlarni oʻqitadi.',
-            'ru' => 'Кассовая программа для розничных магазинов. Poson настроит её, подключит сканер, чековый принтер и денежный ящик и обучит кассиров.',
-            'en' => 'POS software for retail shops. Poson sets it up, connects the scanner, receipt printer and cash drawer and trains your cashiers.',
+            'uz' => 'Ox — chakana savdo uchun avtomatlashtirish tizimi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'Ox — система автоматизации для ритейлеров. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'Ox is an automation system for retailers. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>Ox</strong> — chakana savdo doʻkonlari uchun kassa dasturi. Poson uni doʻkoningizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur doʻkoningiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va savdo nuqtalari.</li><li><strong>Uskuna:</strong> skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>Ox</strong> — кассовая программа для розничных магазинов. Poson настроит её под ваш магазин и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего магазина.</li><li><strong>Настройка:</strong> товары, кассиры и точки продаж.</li><li><strong>Оборудование:</strong> подключение сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p><strong>Ox</strong> is POS software for retail shops. Poson configures it for your store and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your shop format.</li><li><strong>Setup:</strong> products, cashiers and outlets.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>Ox</strong> — chakana savdo korxonalari uchun avtomatlashtirish tizimi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>Ox</strong> — система автоматизации для ритейлеров.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>Ox</strong> is an automation system for retailers.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'Ox kassa dasturi — Poson',
@@ -1695,15 +1702,18 @@ return [
             'en' => 'Ox POS software — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Ox — doʻkonlar uchun kassa dasturi. Poson sozlaydi, skaner va chek printerini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
-            'ru' => 'Ox — кассовая программа для магазинов. Poson настроит её, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
-            'en' => 'Ox POS software for retail shops. Poson sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
+            'uz' => 'Ox — chakana savdo uchun avtomatlashtirish tizimi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'Ox — система автоматизации для ритейлеров. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'Ox is an automation system for retailers. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'licence_model' => ['Obuna'],
+            'segment' => ['value' => ['Chakana savdo'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi', 'Yetkazib berish', 'Onlayn doʻkon'],
         ],
         'related' => [],
     ],
+    // Specs: software-facts.md §2 (billz.io). Named platforms, fiscal, interface languages: not found.
     [
         'sku' => 'SW-BILLZ',
         'model' => 'Billz',
@@ -1721,19 +1731,19 @@ return [
         'price_dealer' => null,
         'price_wholesale' => null,
         'name' => [
-            'uz' => 'Billz savdoni boshqarish tizimi',
+            'uz' => 'Billz chakana savdoni boshqarish tizimi',
             'ru' => 'Billz — система управления розничной торговлей',
             'en' => 'Billz retail management platform',
         ],
         'short_description' => [
-            'uz' => 'Doʻkonlar va savdo tarmoqlari uchun platforma: kassa, tovar hisobi, mijozlar bazasi va tahlil bitta tizimda.',
-            'ru' => 'Платформа для магазинов и торговых сетей: касса, товарный учёт, база клиентов и аналитика в одной системе.',
-            'en' => 'Platform for shops and store chains: checkout, stock records, customer base and analytics in one system.',
+            'uz' => 'Billz — doʻkonlarni avtomatlashtirish dasturi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'Billz — программа автоматизации магазина. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'Billz is store automation software. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>Billz</strong> — Oʻzbekistonda ishlab chiqilgan chakana savdoni boshqarish platformasi. U kassa, tovar hisobi, mijozlar bazasi, onlayn doʻkon vositalari va tahlilni doʻkonlar hamda savdo tarmoqlari uchun bitta tizimda birlashtiradi.</p><ul><li><strong>Kiyim, poyabzal va elektronika:</strong> tovarlar roʻyxati va savdo nuqtalari boʻyicha qoldiqlar.</li><li><strong>Savdo tarmoqlari:</strong> bir nechta doʻkon bitta tizimda.</li><li><strong>Mijozlar bazasi:</strong> xaridorlarni hisobga olish va qayta xaridlar.</li><li><strong>Tahlil:</strong> egasi va boshqaruvchilar uchun hisobotlar.</li></ul><p>Poson tizim biznesingizga mos kelishini aniqlashga yordam beradi, uni sozlaydi, shtrix-kod skaneri, chek printeri va pul yashigini ulaydi, kassirlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>Billz</strong> — платформа для управления розничной торговлей, разработанная в Узбекистане. Она объединяет кассу, товарный учёт, базу клиентов, инструменты для интернет-магазина и аналитику в одной системе для магазинов и торговых сетей.</p><ul><li><strong>Одежда, обувь, электроника:</strong> товарный справочник и остатки по точкам.</li><li><strong>Торговые сети:</strong> несколько магазинов в одной системе.</li><li><strong>База клиентов:</strong> учёт покупателей и повторные покупки.</li><li><strong>Аналитика:</strong> отчёты для владельца и управляющих.</li></ul><p>Poson поможет понять, подходит ли система вашему бизнесу, настроит её, подключит сканер штрих-кода, чековый принтер и денежный ящик, обучит кассиров и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p><strong>Billz</strong> is a retail management platform developed in Uzbekistan. It combines the cash register, stock records, a customer base, online store tools and analytics in one system for shops and store chains.</p><ul><li><strong>Fashion, footwear and electronics:</strong> product catalogue and stock by outlet.</li><li><strong>Store chains:</strong> several shops in one system.</li><li><strong>Customer base:</strong> customer records and repeat purchases.</li><li><strong>Analytics:</strong> reports for owners and managers.</li></ul><p>Poson helps you decide whether the platform fits your business, sets it up, connects the barcode scanner, receipt printer and cash drawer, trains your cashiers and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>Billz</strong> — doʻkonlarni avtomatlashtirish dasturi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>Billz</strong> — программа автоматизации магазина.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>Billz</strong> is store automation software.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'Billz: savdoni boshqarish tizimi — Poson',
@@ -1741,15 +1751,20 @@ return [
             'en' => 'Billz retail management platform — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Billz — doʻkonlar uchun kassa, tovar hisobi, mijozlar bazasi va tahlil. Poson sozlaydi, skaner va chek printerini ulaydi, xodimlarni oʻqitadi.',
-            'ru' => 'Billz — касса, товарный учёт, база клиентов и аналитика для магазинов. Poson настроит систему, подключит сканер и чековый принтер, обучит персонал.',
-            'en' => 'Billz for shops: checkout, stock records, customer base and analytics. Poson sets it up, connects the scanner and receipt printer and trains staff.',
+            'uz' => 'Billz — doʻkonlarni avtomatlashtirish dasturi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'Billz — программа автоматизации магазина. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'Billz is store automation software. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'licence_model' => ['Oylik obuna', 'Yillik obuna'],
+            'segment' => ['value' => ['Chakana savdo'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi', 'CRM va sodiqlik dasturi', 'Tahlil va hisobotlar'],
+            'integrations' => ['1C', 'Telegram', 'QR orqali toʻlov'],
         ],
         'related' => [],
     ],
+    // Specs: user answers (business-facts rows 17 and 23: alipos.uz; POS, waiter app, kitchen, stock, delivery).
+    // licence_model: "Subscription" per the user (period not known).
     [
         'sku' => 'SW-ALIPOS',
         'model' => 'AliPos',
@@ -1772,14 +1787,14 @@ return [
             'en' => 'AliPos POS software for cafés and restaurants',
         ],
         'short_description' => [
-            'uz' => 'Kafe va restoranlar uchun kassa dasturi. Poson uni sozlaydi, chek printeri va pul yashigini ulaydi hamda xodimlarni oʻqitadi.',
-            'ru' => 'Кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик и обучит персонал.',
-            'en' => 'POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer and trains your staff.',
+            'uz' => 'AliPos — kafe va restoranlar uchun kassa dasturi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'AliPos — кассовая программа для кафе и ресторанов. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'AliPos is POS software for cafés and restaurants. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>AliPos</strong> — HoReCa, yaʼni kafe va restoranlar uchun kassa dasturi. Poson uni muassasangizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur muassasangiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> menyu, xodimlar va kassa joylari.</li><li><strong>Uskuna:</strong> chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>AliPos</strong> — кассовая программа для HoReCa: кафе и ресторанов. Poson настроит её под ваше заведение и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего заведения.</li><li><strong>Настройка:</strong> меню, сотрудники и кассовые места.</li><li><strong>Оборудование:</strong> подключение чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p><strong>AliPos</strong> is POS software for HoReCa: cafés and restaurants. Poson configures it for your venue and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your venue.</li><li><strong>Setup:</strong> menu, staff and checkout stations.</li><li><strong>Equipment:</strong> connecting the receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>AliPos</strong> — kafe, restoran va boshqa HoReCa muassasalari uchun kassa dasturi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>AliPos</strong> — кассовая программа для кафе, ресторанов и других заведений HoReCa.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>AliPos</strong> is POS software for cafés, restaurants and other HoReCa venues.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'AliPos: kafe va restoran uchun kassa — Poson',
@@ -1787,15 +1802,19 @@ return [
             'en' => 'AliPos POS for cafés and restaurants — Poson',
         ],
         'meta_description' => [
-            'uz' => 'AliPos — kafe va restoranlar uchun kassa dasturi. Poson sozlaydi, chek printeri va pul yashigini ulaydi, xodimlarni oʻqitadi va qoʻllab-quvvatlaydi.',
-            'ru' => 'AliPos — кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик, обучит персонал и поддержит.',
-            'en' => 'AliPos POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer, trains staff and supports you.',
+            'uz' => 'AliPos — kafe va restoranlar uchun kassa dasturi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'AliPos — кассовая программа для кафе и ресторанов. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'AliPos is POS software for cafés and restaurants. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'licence_model' => ['Obuna'],
+            'segment' => ['value' => ['HoReCa'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ofitsiant ilovasi', 'Oshxona ekrani va printeri', 'Ombor hisobi', 'Yetkazib berish'],
         ],
         'related' => [],
     ],
+    // Specs: software-facts.md §5 (hippo.uz). Platforms, integrations, fiscal, languages: not found.
+    // licence_model: "Subscription" per the user (period not known).
     [
         'sku' => 'SW-HIPPO',
         'model' => 'Hippo',
@@ -1818,14 +1837,14 @@ return [
             'en' => 'Hippo POS software',
         ],
         'short_description' => [
-            'uz' => 'Savdo nuqtalari uchun kassa dasturi. Poson tanlash, sozlash, skaner va chek printerini ulash, oʻqitish va qoʻllab-quvvatlashni bajaradi.',
-            'ru' => 'Кассовая программа для торговых точек. Poson выполнит подбор, настройку, подключение сканера и чекового принтера, обучение и поддержку.',
-            'en' => 'POS software for retail outlets. Poson handles selection, setup, connecting the scanner and receipt printer, training and support.',
+            'uz' => 'Hippo Kassa — doʻkonlar uchun POS/kassa tizimi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'Hippo Kassa — POS-система для магазинов. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'Hippo Kassa is a POS system for shops. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>Hippo</strong> — Poson savdo nuqtalari uchun yetkazib beradigan va sozlab beradigan kassa dasturi. Dastur imkoniyatlari va litsenziya shartlarini vazifangizga qarab tijorat taklifida batafsil tushuntiramiz.</p><ul><li><strong>Tanlash:</strong> dastur savdo jarayonlaringizga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va savdo nuqtalarini sozlash.</li><li><strong>Uskuna:</strong> dastur qoʻllab-quvvatlaydigan skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> kassirlarni oʻqitish, oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlash.</li></ul><p>Poson muhandislari dasturni doʻkoningizda ishga tushiradi va kassa joyi toʻliq ishlashini tekshiradi.</p>',
-            'ru' => '<p><strong>Hippo</strong> — кассовая программа, которую Poson поставляет и настраивает для торговых точек. Возможности программы и условия лицензии подробно опишем в коммерческом предложении под вашу задачу.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа вашим процессам.</li><li><strong>Настройка:</strong> товары, кассиры и точки продаж.</li><li><strong>Оборудование:</strong> подключение поддерживаемых сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> обучение кассиров, сопровождение на узбекском, русском и английском языках.</li></ul><p>Инженеры Poson запустят программу у вас в магазине и проверят работу кассового места целиком.</p>',
-            'en' => '<p><strong>Hippo</strong> is POS software that Poson supplies and sets up for retail outlets. We describe the program features and licence terms for your task in detail in the quote.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your processes.</li><li><strong>Setup:</strong> products, cashiers and outlets.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer the program supports.</li><li><strong>Training and support:</strong> cashier training and support in Uzbek, Russian and English.</li></ul><p>Poson engineers launch the program in your shop and check that the whole checkout station works.</p>',
+            'uz' => '<p><strong>Hippo Kassa</strong> — doʻkonlar uchun POS/kassa tizimi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>Hippo Kassa</strong> — POS-система (касса) для магазинов.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>Hippo Kassa</strong> is a POS (checkout) system for shops.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'Hippo kassa dasturi — Poson',
@@ -1833,15 +1852,18 @@ return [
             'en' => 'Hippo POS software — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Hippo kassa dasturi: Poson tanlashga yordam beradi, sozlaydi, skaner va chek printerini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
-            'ru' => 'Кассовая программа Hippo: Poson поможет с выбором, настроит программу, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
-            'en' => 'Hippo POS software: Poson helps you choose, sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
+            'uz' => 'Hippo Kassa — doʻkonlar uchun POS/kassa tizimi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'Hippo Kassa — POS-система для магазинов. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'Hippo Kassa is a POS system for shops. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'licence_model' => ['Obuna'],
+            'segment' => ['value' => ['Chakana savdo'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi'],
         ],
         'related' => [],
     ],
+    // Specs: software-facts.md §6 (pospoint.uz; web admin panel = Web / cloud). Interface languages: not found.
     [
         'sku' => 'SW-POSPOINT',
         'model' => 'Pospoint',
@@ -1864,14 +1886,14 @@ return [
             'en' => 'Pospoint POS software',
         ],
         'short_description' => [
-            'uz' => 'Doʻkonlar uchun kassa dasturi. Poson tanlash, sozlash, kassa uskunasini ulash, kassirlarni oʻqitish va qoʻllab-quvvatlashni bajaradi.',
-            'ru' => 'Кассовая программа для магазинов. Poson выполнит подбор, настройку, подключение кассового оборудования, обучение кассиров и поддержку.',
-            'en' => 'POS software for shops. Poson handles selection, setup, connecting checkout hardware, cashier training and support.',
+            'uz' => 'Pospoint — doʻkonlar uchun avtomatlashtirish tizimi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'Pospoint — система автоматизации для магазинов. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'Pospoint is an automation system for shops. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>Pospoint</strong> — Poson doʻkonlar uchun yetkazib beradigan va sozlab beradigan kassa dasturi. Dastur imkoniyatlari va litsenziya shartlarini vazifangizga qarab tijorat taklifida batafsil tushuntiramiz.</p><ul><li><strong>Tanlash:</strong> dastur doʻkoningiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va huquqlarni sozlash.</li><li><strong>Uskuna:</strong> dastur qoʻllab-quvvatlaydigan skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> kassirlarni oʻqitish, oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlash.</li></ul><p>Kerak boʻlsa, Poson muhandislari ish joyingizga chiqib, kassa joyini toʻliq ishga tushiradi.</p>',
-            'ru' => '<p><strong>Pospoint</strong> — кассовая программа, которую Poson поставляет и настраивает для магазинов. Возможности программы и условия лицензии подробно опишем в коммерческом предложении под вашу задачу.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего магазина.</li><li><strong>Настройка:</strong> товары, кассиры и права доступа.</li><li><strong>Оборудование:</strong> подключение поддерживаемых сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> обучение кассиров, сопровождение на узбекском, русском и английском языках.</li></ul><p>При необходимости инженеры Poson выедут к вам и запустят кассовое место под ключ.</p>',
-            'en' => '<p><strong>Pospoint</strong> is POS software that Poson supplies and sets up for shops. We describe the program features and licence terms for your task in detail in the quote.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your shop format.</li><li><strong>Setup:</strong> products, cashiers and access rights.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer the program supports.</li><li><strong>Training and support:</strong> cashier training and support in Uzbek, Russian and English.</li></ul><p>If needed, Poson engineers come on site and commission the complete checkout station.</p>',
+            'uz' => '<p><strong>Pospoint</strong> — doʻkon va savdo nuqtalari uchun avtomatlashtirish tizimi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>Pospoint</strong> — система автоматизации для магазинов и торговых точек.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p><strong>Pospoint</strong> is an automation system for shops and retail outlets.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'Pospoint kassa dasturi — Poson',
@@ -1879,17 +1901,21 @@ return [
             'en' => 'Pospoint POS software — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Pospoint kassa dasturi: Poson tanlashga yordam beradi, sozlaydi, kassa uskunasini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
-            'ru' => 'Кассовая программа Pospoint: Poson поможет с выбором, настроит программу, подключит кассовое оборудование, обучит кассиров и поддержит.',
-            'en' => 'Pospoint POS software: Poson helps you choose, sets it up, connects your checkout hardware, trains cashiers and supports you.',
+            'uz' => 'Pospoint — doʻkonlar uchun avtomatlashtirish tizimi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'Pospoint — система автоматизации для магазинов. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'Pospoint is an automation system for shops. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'platforms' => ['Veb / bulut'],
+            'licence_model' => ['Oylik obuna'],
+            'segment' => ['value' => ['Chakana savdo'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi', 'CRM va sodiqlik dasturi', 'Tahlil va hisobotlar'],
+            'integrations' => ['Didox', 'QR orqali toʻlov'],
+            'online_cash_register' => true,
         ],
         'related' => [],
     ],
-    // Source: Rahmat "Virtual kassa" user manual (rhmt.uz, RAHMAT TECH LLC): Windows 7/10/11, retail, food service and services.
-    // CONFIRM: licence model and which receipt printers Poson connects to it.
+    // Specs: software-facts.md §7 (rhmt.uz/pos/virtual-kassa). Interface languages: not found.
     [
         'sku' => 'SW-RAHMAT',
         'model' => 'Rahmat Virtual kassa',
@@ -1908,31 +1934,36 @@ return [
         'price_wholesale' => null,
         'name' => [
             'uz' => 'Rahmat virtual kassasi',
-            'ru' => 'Rahmat — виртуальная касса',
+            'ru' => 'Виртуальная касса Rahmat',
             'en' => 'Rahmat virtual cash register',
         ],
         'short_description' => [
-            'uz' => 'Chakana savdo, umumiy ovqatlanish va xizmatlar uchun Windows virtual kassasi: savdo, qaytarish, smenalar va Z-hisobotlar.',
-            'ru' => 'Виртуальная касса для Windows для розницы, общепита и услуг: продажи, возвраты, смены и Z-отчёты.',
-            'en' => 'Virtual cash register for Windows for retail, food service and services: checkout, returns, shifts and Z-reports.',
+            'uz' => 'Rahmat virtual kassasi — kassa dasturi. Poson tanlashga yordam beradi, sozlash va uskunani ulashni esa alohida xizmat sifatida bajaradi.',
+            'ru' => 'Виртуальная касса Rahmat — кассовая программа. Poson поможет с выбором, а настройку и подключение оборудования выполнит как отдельную услугу.',
+            'en' => 'The Rahmat virtual cash register is cash register software by RAHMAT TECH. Poson helps you choose and, as a separate service, sets it up and connects your equipment.',
         ],
         'description' => [
-            'uz' => '<p><strong>Rahmat virtual kassasi</strong> — Oʻzbekistonda chakana savdo, umumiy ovqatlanish va xizmat koʻrsatish korxonalari uchun Windows kompyuterida ishlaydigan kassa dasturi. U fiskal hisobot talablarini hisobga olgan holda savdo va qaytarishlarni roʻyxatdan oʻtkazadi.</p><ul><li><strong>Chakana savdo:</strong> savdo va qaytarish operatsiyalari.</li><li><strong>Umumiy ovqatlanish:</strong> kafe va oshxonalar kassasi.</li><li><strong>Smenalar:</strong> smenani ochish va yopish, Z-hisobotlar.</li><li><strong>Cheklar jurnali:</strong> berilgan cheklarni koʻrish.</li></ul><p>Poson dasturni kompyuteringizga oʻrnatadi, sozlaydi, chek printeri, skaner va pul yashigini ulaydi, kassirlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>Rahmat — виртуальная касса</strong> — кассовая программа для компьютера на Windows для предприятий розничной торговли, общепита и сферы услуг в Узбекистане. Она регистрирует продажи и возвраты с учётом требований к фискальной отчётности.</p><ul><li><strong>Розница:</strong> операции продажи и возврата.</li><li><strong>Общепит:</strong> касса кафе и столовых.</li><li><strong>Смены:</strong> открытие и закрытие смены, Z-отчёты.</li><li><strong>Журнал чеков:</strong> просмотр выданных чеков.</li></ul><p>Poson установит программу на ваш компьютер, настроит её, подключит чековый принтер, сканер и денежный ящик, обучит кассиров и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p>The <strong>Rahmat virtual cash register</strong> is checkout software for Windows PCs used by retail, food service and service businesses in Uzbekistan. It records purchases and returns in line with fiscal reporting requirements.</p><ul><li><strong>Retail:</strong> purchase and return operations.</li><li><strong>Food service:</strong> tills for cafés and canteens.</li><li><strong>Shifts:</strong> opening and closing shifts, Z-reports.</li><li><strong>Receipt log:</strong> a record of issued receipts.</li></ul><p>Poson installs the software on your PC, sets it up, connects the receipt printer, scanner and cash drawer, trains your cashiers and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>Rahmat virtual kassasi</strong> — RAHMAT TECH kompaniyasining kassa dasturi.</p><p>Poson biznesingizga mos dasturni tanlashga yordam beradi. Sozlash doirasida dastur qoʻllab-quvvatlaydigan uskunani ulaymiz va xodimlaringizni oʻqitamiz. Sozlash — alohida xizmat, uning narxini soʻrovingiz boʻyicha hisoblab beramiz. Keyin masofadan va joyida qoʻllab-quvvatlaymiz.</p>',
+            'ru' => '<p><strong>Виртуальная касса Rahmat</strong> — кассовая программа компании RAHMAT TECH.</p><p>Poson поможет выбрать программу под ваш бизнес. В рамках настройки подключим оборудование, которое поддерживает программа, и обучим сотрудников. Настройка — отдельная услуга, её стоимость рассчитаем по запросу. Дальше сопровождаем удалённо и с выездом.</p>',
+            'en' => '<p>The <strong>Rahmat virtual cash register</strong> is cash register software by RAHMAT TECH.</p><p>Poson helps you choose the right program for your business. As part of setup we connect the equipment the program supports and train your staff. Setup is a separate service, quoted on request. After that we support you remotely and on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'Rahmat virtual kassasi — Poson',
-            'ru' => 'Rahmat — виртуальная касса — Poson',
+            'ru' => 'Виртуальная касса Rahmat — Poson',
             'en' => 'Rahmat virtual cash register — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Rahmat virtual kassasi Windows uchun: savdo, qaytarish, smenalar va Z-hisobotlar. Poson oʻrnatadi, chek printerini ulaydi va kassirlarni oʻqitadi.',
-            'ru' => 'Виртуальная касса Rahmat для Windows: продажи, возвраты, смены и Z-отчёты. Poson установит её, подключит чековый принтер и обучит кассиров.',
-            'en' => 'Rahmat virtual cash register for Windows: checkout, returns, shifts and Z-reports. Poson installs it, connects the receipt printer and trains cashiers.',
+            'uz' => 'Rahmat virtual kassasi — kassa dasturi. Poson tanlashga yordam beradi, sozlaydi va uskunani ulaydi (alohida xizmat), qoʻllab-quvvatlaydi.',
+            'ru' => 'Виртуальная касса Rahmat — кассовая программа. Poson поможет с выбором, настроит и подключит оборудование (отдельная услуга), поддержит.',
+            'en' => 'The Rahmat virtual cash register is cash register software. Poson helps you choose, sets it up and connects your equipment (a separate service) and supports you.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Obuna', 'key' => true],
+            'platforms' => ['Windows'],
+            'licence_model' => ['Oylik obuna'],
+            'segment' => ['value' => ['Chakana savdo', 'HoReCa', 'Dorixonalar'], 'key' => true],
+            'modules' => ['Kassa (POS)', 'Ombor hisobi'],
+            'integrations' => ['QR orqali toʻlov'],
+            'online_cash_register' => true,
         ],
         'related' => [],
     ],

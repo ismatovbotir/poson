@@ -44,4 +44,20 @@ class SiteVisitFactory extends Factory
     {
         return $this->state(['type' => VisitType::Lead, 'channel' => $channel, 'source' => $source]);
     }
+
+    /**
+     * A "Try" click on a product's partner link (the /{locale}/go/{slug} redirect).
+     */
+    public function partnerClick(int $productId, string $slug = 'product', TrafficChannel $channel = TrafficChannel::Direct): static
+    {
+        return $this->state([
+            'type' => VisitType::PartnerClick,
+            'channel' => $channel,
+            'route_name' => 'site.product.partner',
+            'path' => '/uz/go/'.$slug,
+            'locale' => 'uz',
+            'product_id' => $productId,
+            'status' => 302,
+        ]);
+    }
 }

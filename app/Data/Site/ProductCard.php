@@ -14,6 +14,9 @@ use InvalidArgumentException;
  * badge. image is a public conversion URL; without one the card draws the
  * sprite symbol "placeholder" (p-scanner, p-printer, ...).
  *
+ * showStock is false for software (no stock badge).
+ * ctas are the card's buttons from App\Support\Catalog\ProductCtas (compact).
+ *
  * Brand rule: there is no old price and no sale badge, by design.
  */
 final readonly class ProductCard
@@ -33,18 +36,12 @@ final readonly class ProductCard
         public ?string $category = null,
         public string $placeholder = 'p-barcode',
         public ?string $imageAlt = null,
+        /** @var list<ProductCta> */
+        public array $ctas = [],
+        public bool $showStock = true,
     ) {
         if ($price !== null && $price < 0) {
             throw new InvalidArgumentException('Product price must not be negative.');
         }
-    }
-
-    /**
-     * The product allows "Add to cart": cart sale mode and a known price.
-     * The site shows the button only while config('site.cart_enabled') is on.
-     */
-    public function canAddToCart(): bool
-    {
-        return $this->saleMode->allowsCart() && $this->price !== null;
     }
 }

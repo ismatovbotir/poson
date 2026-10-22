@@ -92,6 +92,7 @@ it('serves robots.txt with the base rules and the sitemap', function () {
             'Disallow: /admin',
             'Disallow: /livewire',
             'Disallow: /*/search',
+            'Disallow: /*/go/',
             'Disallow: /*?*sort=',
             'Disallow: /*?*f[',
             'Disallow: /*?*f%5B',

@@ -21,7 +21,7 @@ it('seeds every demo product through SaveProduct, published and complete unless 
     $rows = demoProductRows();
     $skus = array_map(fn (array $row) => mb_strtoupper($row['sku']), $rows);
 
-    // POS software licences are subscriptions (decision 2026-10-22), so every demo product is published.
+    // Software specs are all optional (decision 2026-10-22), so every demo software product is published.
     $posSoftware = ['SW-OX', 'SW-ALIPOS', 'SW-HIPPO', 'SW-POSPOINT', 'SW-RAHMAT'];
 
     expect($seeder->warnings)->toBe([])

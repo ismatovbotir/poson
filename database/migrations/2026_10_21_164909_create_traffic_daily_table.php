@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Schema;
  *                source (channel + value = source), device, locale
  *   kind bots:   dimension bot (value = bot key)
  *
+ * partner_clicks counts "Try" redirects to partner signup pages (kind visits).
+ * Per product they are in traffic_daily_pages (kind partner).
+ *
  * visitors are distinct daily visitor hashes (humans) or distinct IPs (bots)
  * within the row, so they are exact per row and per day.
  */
@@ -33,6 +36,7 @@ return new class extends Migration
             $table->unsignedInteger('page_views')->default(0);
             $table->unsignedInteger('entries')->default(0);
             $table->unsignedInteger('leads')->default(0);
+            $table->unsignedInteger('partner_clicks')->default(0);
             $table->unsignedInteger('hits')->default(0);
             $table->unsignedInteger('verified_hits')->default(0);
             $table->unsignedInteger('spoofed_hits')->default(0);

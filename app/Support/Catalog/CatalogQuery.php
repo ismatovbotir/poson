@@ -3,6 +3,7 @@
 namespace App\Support\Catalog;
 
 use App\Enums\AttributeType;
+use App\Enums\ProductType;
 use App\Enums\StockStatus;
 use App\Models\Attribute;
 use App\Models\Brand;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  *
  * URL parameters (raw input is sanitized here, unknown values are ignored):
  * - brand[]               slugs of active brands
- * - stock[]               StockStatus values
+ * - stock[]               StockStatus values (software is never filtered out by it)
  * - price_min, price_max  whole soʻm (the query compares tiyin)
  * - f[code][]             option ids of a select / multiselect attribute,
  *                         "1" for a boolean attribute
@@ -158,8 +159,11 @@ class CatalogQuery
             $query->whereIn('products.brand_id', array_values($this->brandIds()));
         }
 
+        // Software has no stock status on the site: the filter applies to the other products only.
         if ($this->stock !== []) {
-            $query->whereIn('products.stock_status', array_map(fn (StockStatus $status): string => $status->value, $this->stock));
+            $query->where(fn (Builder $stock) => $stock
+                ->where('products.type', ProductType::Software->value)
+                ->orWhereIn('products.stock_status', array_map(fn (StockStatus $status): string => $status->value, $this->stock)));
         }
 
         if ($this->priceMin !== null) {
@@ -463,11 +467,14 @@ class CatalogQuery
     }
 
     /**
+     * Stock statuses of the non-software products (software shows none).
+     *
      * @return list<array{value: string, label: string, count: int, checked: bool}>
      */
     private function stockFacet(): array
     {
         $counts = $this->baseQuery()
+            ->where('products.type', '!=', ProductType::Software->value)
             ->groupBy('products.stock_status')
             ->selectRaw('products.stock_status as stock_status, count(*) as aggregate')
             ->toBase()

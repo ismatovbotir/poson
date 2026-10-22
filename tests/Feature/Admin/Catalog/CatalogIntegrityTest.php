@@ -120,7 +120,18 @@ it('rejects a non-https brand website in the action', function (string $website)
     expect(fn () => app(SaveBrand::class)->handle(null, [
         'name' => 'Zebra', 'slug' => '', 'description' => [], 'website' => $website, 'is_active' => true, 'sort' => null,
     ]))->toThrow(ValidationException::class, __('admin.brands.errors.website_https'));
-})->with(['http://zebra.com', 'ftp://zebra.com', 'javascript:alert(1)', 'https://']);
+})->with(['http://zebra.com', 'ftp://zebra.com', 'javascript:alert(1)', 'https://', "https://zebra.com/\u{200B}", 'https://zebra.com\\evil']);
+
+it('stores a long referral link as the brand website exactly as entered', function () {
+    $link = 'https://partner.example.uz/r/poson?ref=poson&utm_source=poson&utm_campaign='.str_repeat('x', 400).'#signup';
+
+    $brand = app(SaveBrand::class)->handle(null, [
+        'name' => 'Billz', 'slug' => '', 'description' => [], 'website' => $link, 'is_active' => true, 'sort' => null,
+    ]);
+
+    expect(strlen($link))->toBeGreaterThan(255)
+        ->and($brand->fresh()->website)->toBe($link);
+});
 
 it('keeps option ids stable when one is renamed and its old value is added again', function () {
     $attribute = Attribute::factory()->select(['USB', 'RS232'])->create();

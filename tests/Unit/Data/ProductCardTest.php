@@ -22,15 +22,6 @@ function productCard(?int $price = 100_000, SaleMode $saleMode = SaleMode::Cart,
     );
 }
 
-it('offers the cart only for cart sale modes with a price', function (SaleMode $saleMode, ?int $price, bool $expected) {
-    expect(productCard($price, $saleMode)->canAddToCart())->toBe($expected);
-})->with([
-    'cart with price' => [SaleMode::Cart, 100_000, true],
-    'both with price' => [SaleMode::Both, 100_000, true],
-    'quote with price' => [SaleMode::Quote, 100_000, false],
-    'cart on request' => [SaleMode::Cart, null, false],
-]);
-
 it('has only the hit and new badges', function () {
     expect(array_column(ProductBadge::cases(), 'value'))->toBe(['hit', 'new'])
         ->and(productCard(badge: ProductBadge::Hit)->badge)->toBe(ProductBadge::Hit)

@@ -10,13 +10,14 @@ use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
-it('exposes products publicly only through the product page and its document download', function () {
+it('exposes products publicly only through the product page, its document download and the partner redirect', function () {
     $public = collect(Route::getRoutes()->getRoutes())
         ->reject(fn (RoutingRoute $route): bool => str_starts_with($route->uri(), 'admin') || str_starts_with($route->uri(), 'livewire'))
         ->filter(fn (RoutingRoute $route): bool => str_contains($route->uri(), 'product') || str_contains((string) $route->getName(), 'product'));
 
-    // Both check Product::isVisible() (tests/Feature/Site/Catalog/ProductPageTest.php).
-    expect($public->map(fn (RoutingRoute $route) => $route->uri())->values()->all())->toBe([
+    // All check Product::isVisible() (ProductPageTest, PartnerRedirectTest); the redirect exposes only the software brand's link.
+    expect($public->map(fn (RoutingRoute $route) => $route->uri())->sort()->values()->all())->toBe([
+        '{locale}/go/{product}',
         '{locale}/product/{product}',
         '{locale}/product/{product}/documents/{document}',
     ]);

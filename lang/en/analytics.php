@@ -24,6 +24,7 @@ return [
         'visit_type' => [
             'page_view' => 'Page view',
             'lead' => 'Lead',
+            'partner_click' => 'Partner click',
         ],
         'bot_purpose' => [
             'training' => 'AI training',
@@ -63,6 +64,7 @@ return [
         'source' => 'Source',
         'views' => 'Views',
         'views_short' => 'views',
+        'clicks_short' => 'clicks',
     ],
 
     'traffic' => [
@@ -91,6 +93,8 @@ return [
         'locales' => 'Site languages',
         'top_pages' => 'Top pages',
         'top_products' => 'Top products',
+        'partner_clicks' => 'Partner clicks',
+        'partner_clicks_hint' => 'Clicks on “Try” to partner signup pages in the last :count days: :total in total. Every click counts (not de-duplicated visitors).',
         'privacy_note' => 'Visitors are counted per day with an anonymous hash; IP addresses of people are not stored. Raw visits are kept for 30 days, daily totals for 25 months.',
     ],
 

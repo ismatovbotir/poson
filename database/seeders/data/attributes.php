@@ -594,19 +594,130 @@ return [
     ],
 
     // ─── Software ───────────────────────────────────────────────────────────
+    // Software details are admin-managed specs (decision 2026-10-22, business-facts
+    // row 24), all optional. licence_model supersedes the former license_type
+    // (perpetual / subscription): it is finer and a vendor may bill monthly and
+    // yearly, so it is a multiselect ("Subscription" = period not known).
+    // integrations are the program's own, not Poson services. The vendor site is the brand website
+    // (CatalogSeeder::BRAND_WEBSITES; the "Try" link). Values: software-facts.md.
     [
-        'code' => 'license_type',
-        'name' => ['uz' => 'Litsenziya turi', 'ru' => 'Тип лицензии', 'en' => 'Licence type'],
+        'code' => 'platforms',
+        'name' => ['uz' => 'Platformalar', 'ru' => 'Платформы', 'en' => 'Platforms'],
         'unit' => null,
-        'type' => 'select',
+        'type' => 'multiselect',
         'is_filterable' => true,
-        'sort' => 700,
+        'sort' => 690,
         'options' => [
-            ['uz' => 'Muddatsiz', 'ru' => 'Бессрочная', 'en' => 'Perpetual'],
-            ['uz' => 'Obuna', 'ru' => 'Подписка', 'en' => 'Subscription'],
+            $same('Windows'),
+            $same('Android'),
+            $same('iOS'),
+            ['uz' => 'Veb / bulut', 'ru' => 'Веб / облако', 'en' => 'Web / cloud'],
         ],
         'categories' => [
-            'software' => $assign(true, true),
+            'software' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'licence_model',
+        'name' => ['uz' => 'Litsenziya modeli', 'ru' => 'Модель лицензии', 'en' => 'Licence model'],
+        'unit' => null,
+        'type' => 'multiselect',
+        'is_filterable' => false,
+        'sort' => 700,
+        'options' => [
+            ['uz' => 'Oylik obuna', 'ru' => 'Ежемесячная подписка', 'en' => 'Monthly subscription'],
+            ['uz' => 'Yillik obuna', 'ru' => 'Годовая подписка', 'en' => 'Yearly subscription'],
+            ['uz' => 'Obuna', 'ru' => 'Подписка', 'en' => 'Subscription'],
+            ['uz' => 'Muddatsiz litsenziya', 'ru' => 'Бессрочная лицензия', 'en' => 'Perpetual licence'],
+            ['uz' => 'Individual shartlar', 'ru' => 'Индивидуальные условия', 'en' => 'Individual terms'],
+        ],
+        'categories' => [
+            'software' => $assign(false, false),
+        ],
+    ],
+    [
+        'code' => 'segment',
+        'name' => ['uz' => 'Biznes turi', 'ru' => 'Сфера бизнеса', 'en' => 'Business type'],
+        'unit' => null,
+        'type' => 'multiselect',
+        'is_filterable' => true,
+        'sort' => 702,
+        'options' => [
+            ['uz' => 'Chakana savdo', 'ru' => 'Розничная торговля', 'en' => 'Retail'],
+            $same('HoReCa'),
+            ['uz' => 'Ombor va zaxiralar hisobi', 'ru' => 'Склад и учёт запасов', 'en' => 'Warehouse and inventory'],
+            ['uz' => 'Ulgurji savdo', 'ru' => 'Оптовая торговля', 'en' => 'Wholesale'],
+            ['uz' => 'Dorixonalar', 'ru' => 'Аптеки', 'en' => 'Pharmacies'],
+        ],
+        'categories' => [
+            'software' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'modules',
+        'name' => ['uz' => 'Modullar', 'ru' => 'Модули', 'en' => 'Modules'],
+        'unit' => null,
+        'type' => 'multiselect',
+        'is_filterable' => true,
+        'sort' => 704,
+        'options' => [
+            ['uz' => 'Kassa (POS)', 'ru' => 'Касса (POS)', 'en' => 'Cash desk (POS)'],
+            ['uz' => 'Ofitsiant ilovasi', 'ru' => 'Приложение официанта', 'en' => 'Waiter app'],
+            ['uz' => 'Oshxona ekrani va printeri', 'ru' => 'Кухонный экран и печать', 'en' => 'Kitchen display and printing'],
+            ['uz' => 'Ombor hisobi', 'ru' => 'Складской учёт', 'en' => 'Inventory'],
+            ['uz' => 'Yetkazib berish', 'ru' => 'Доставка', 'en' => 'Delivery'],
+            ['uz' => 'CRM va sodiqlik dasturi', 'ru' => 'CRM и программа лояльности', 'en' => 'CRM and loyalty programme'],
+            ['uz' => 'Tahlil va hisobotlar', 'ru' => 'Аналитика и отчёты', 'en' => 'Analytics and reports'],
+            ['uz' => 'Onlayn doʻkon', 'ru' => 'Интернет-магазин', 'en' => 'Online store'],
+        ],
+        'categories' => [
+            'software' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'integrations',
+        'name' => ['uz' => 'Dastur integratsiyalari', 'ru' => 'Интеграции программы', 'en' => 'Program integrations'],
+        'unit' => null,
+        'type' => 'multiselect',
+        'is_filterable' => false,
+        'sort' => 706,
+        'options' => [
+            $same('1C'),
+            $same('Didox'),
+            $same('Uzum Market'),
+            $same('Telegram'),
+            ['uz' => 'QR orqali toʻlov', 'ru' => 'Оплата по QR', 'en' => 'QR payment'],
+        ],
+        'categories' => [
+            'software' => $assign(false, false),
+        ],
+    ],
+    [
+        'code' => 'online_cash_register',
+        'name' => ['uz' => 'Fiskal cheklar (onlayn kassa)', 'ru' => 'Фискальные чеки (онлайн-касса)', 'en' => 'Fiscal receipts (online cash register)'],
+        'unit' => null,
+        'type' => 'boolean',
+        'is_filterable' => true,
+        'sort' => 708,
+        'options' => [],
+        'categories' => [
+            'software' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'interface_languages',
+        'name' => ['uz' => 'Interfeys tillari', 'ru' => 'Языки интерфейса', 'en' => 'Interface languages'],
+        'unit' => null,
+        'type' => 'multiselect',
+        'is_filterable' => false,
+        'sort' => 709,
+        'options' => [
+            $same('Oʻzbekcha'),
+            $same('Русский'),
+            $same('English'),
+        ],
+        'categories' => [
+            'software' => $assign(false, false),
         ],
     ],
     [

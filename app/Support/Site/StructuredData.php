@@ -209,6 +209,8 @@ class StructuredData
     /**
      * Product with brand, images, description and category path; the Offer
      * (Retail price in UZS, availability, url) only when the price is known.
+     * Software has no stock status: its Offer omits availability (no
+     * schema.org ItemAvailability value fits a licence).
      * Needs "brand" and "media" loaded.
      *
      * @return array<string, mixed>
@@ -261,6 +263,10 @@ class StructuredData
                 'itemCondition' => 'https://schema.org/NewCondition',
                 'url' => $url,
             ];
+
+            if (! $product->showsStockStatus()) {
+                unset($data['offers']['availability']);
+            }
         }
 
         return $data;

@@ -145,6 +145,12 @@
             </x-admin.card>
         </div>
 
+        <div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <x-admin.card :title="__('analytics.traffic.partner_clicks')" :description="__('analytics.traffic.partner_clicks_hint', ['count' => $days, 'total' => NumberFormat::format($totals['partner_clicks'])])" :padding="false" data-partner-clicks>
+                @include('livewire.admin.analytics.partials.products-table', ['rows' => $partnerClicks, 'hitsLabel' => __('analytics.common.clicks_short')])
+            </x-admin.card>
+        </div>
+
         <p class="mt-4 text-xs text-slate-500">{{ __('analytics.traffic.privacy_note') }}</p>
     </div>
 </div>

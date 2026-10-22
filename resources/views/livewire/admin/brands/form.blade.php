@@ -35,7 +35,7 @@
                         <x-admin.field-error name="form.slug" />
                     </div>
 
-                    <x-admin.input wire:model="form.website" type="url" inputmode="url" :label="__('admin.brands.fields.website')" placeholder="https://" maxlength="255" :hint="__('admin.brands.website_hint')" />
+                    <x-admin.input wire:model="form.website" type="url" inputmode="url" :label="__('admin.brands.fields.website')" placeholder="https://" maxlength="2048" :hint="__('admin.brands.website_hint')" />
 
                     <x-admin.locale-tabs :error-keys="['form.description']" :label="__('admin.form.content_language')">
                         @foreach ($locales as $locale)

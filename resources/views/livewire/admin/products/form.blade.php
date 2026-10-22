@@ -159,7 +159,10 @@
                         <x-admin.input wire:model="form.warranty_months" type="number" min="0" max="600" inputmode="numeric" :label="__('admin.products.fields.warranty_months')" :hint="__('admin.products.warranty_hint')" />
                     </div>
 
-                    <x-admin.select wire:model="form.stock_status" :label="__('admin.products.fields.stock_status')" :options="collect(\App\Enums\StockStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" required class="sm:max-w-xs" />
+                    {{-- Software shows no stock status on the site: the field is hidden, the stored value is kept. --}}
+                    <div @if ($form->type === 'software') x-cloak @endif x-show="$wire.form.type !== 'software'" data-stock-status-field>
+                        <x-admin.select wire:model="form.stock_status" :label="__('admin.products.fields.stock_status')" :options="collect(\App\Enums\StockStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" required class="sm:max-w-xs" />
+                    </div>
                 </div>
             </x-admin.card>
 

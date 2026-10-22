@@ -59,13 +59,13 @@ class TrafficReport
     }
 
     /**
-     * @return array{visitors: int, page_views: int, entries: int, leads: int, conversion: float|null}
+     * @return array{visitors: int, page_views: int, entries: int, leads: int, partner_clicks: int, conversion: float|null}
      */
     public function totals(): array
     {
         return $this->cached('totals', [], function () {
             $row = $this->daily(TrafficDaily::KIND_VISITS, TrafficDaily::DIM_TOTAL)
-                ->selectRaw('COALESCE(SUM(visitors), 0) AS visitors, COALESCE(SUM(page_views), 0) AS page_views, COALESCE(SUM(entries), 0) AS entries, COALESCE(SUM(leads), 0) AS leads')
+                ->selectRaw('COALESCE(SUM(visitors), 0) AS visitors, COALESCE(SUM(page_views), 0) AS page_views, COALESCE(SUM(entries), 0) AS entries, COALESCE(SUM(leads), 0) AS leads, COALESCE(SUM(partner_clicks), 0) AS partner_clicks')
                 ->first();
 
             $visitors = (int) ($row->visitors ?? 0);
@@ -76,6 +76,7 @@ class TrafficReport
                 'page_views' => (int) ($row->page_views ?? 0),
                 'entries' => (int) ($row->entries ?? 0),
                 'leads' => $leads,
+                'partner_clicks' => (int) ($row->partner_clicks ?? 0),
                 'conversion' => self::conversion($leads, $visitors),
             ];
         });
@@ -276,6 +277,16 @@ class TrafficReport
                 ->values()
                 ->all();
         });
+    }
+
+    /**
+     * "Try" clicks to partner signup pages per product in the range (most first).
+     *
+     * @return list<array{product: Product, hits: int, visitors: int}>
+     */
+    public function partnerClicks(int $limit = 10): array
+    {
+        return $this->topProducts(TrafficDaily::KIND_PARTNER, null, $limit);
     }
 
     /**

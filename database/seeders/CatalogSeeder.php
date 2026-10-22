@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  * data/attributes.php, and a starter list of brands.
  *
  * Idempotent: categories match by slug, attributes by code, options by
- * their uz value, brands by slug. Pivot sort follows the attribute order.
+ * their uz value, brands by slug (a brand's website is only set on create). Pivot sort follows the attribute order.
  */
 class CatalogSeeder extends Seeder
 {
@@ -31,6 +31,24 @@ class CatalogSeeder extends Seeder
         'Zebra', 'Honeywell', 'Datalogic', 'Urovo', 'Newland', 'Godex', 'TSC', 'Xprinter', 'Sunmi', 'Atol',
         // Software vendors of the demo software products.
         'MoySklad', 'Billz', 'Ox', 'AliPos', 'Hippo', 'Pospoint', 'Rahmat',
+    ];
+
+    /**
+     * Official sites of the software vendors (docs/pm/notes/software-facts.md,
+     * user answer for AliPos), set only when the brand is created. For a
+     * software brand the website is also the "Try" link (ProductCtas): admins
+     * replace it with the partner / referral link in Brands.
+     *
+     * @var array<string, string>
+     */
+    public const BRAND_WEBSITES = [
+        'MoySklad' => 'https://moysklad.uz',
+        'Billz' => 'https://billz.io',
+        'Ox' => 'https://oxapp.io',
+        'AliPos' => 'https://alipos.uz',
+        'Hippo' => 'https://hippo.uz',
+        'Pospoint' => 'https://pospoint.uz',
+        'Rahmat' => 'https://rhmt.uz/pos/virtual-kassa/',
     ];
 
     public function run(): void
@@ -127,6 +145,7 @@ class CatalogSeeder extends Seeder
         foreach (self::BRANDS as $index => $name) {
             Brand::query()->firstOrCreate(['slug' => Slug::make($name)], [
                 'name' => $name,
+                'website' => self::BRAND_WEBSITES[$name] ?? null,
                 'is_active' => true,
                 'sort' => $index + 1,
             ]);

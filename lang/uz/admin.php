@@ -315,7 +315,7 @@ return [
         ],
         'name_hint' => 'Brend nomi barcha tillarda bir xil.',
         'slug_hint' => 'Boʻsh qoldirsangiz, nomidan yaratiladi.',
-        'website_hint' => 'Ishlab chiqaruvchining rasmiy sayti, https:// bilan boshlanadi.',
+        'website_hint' => 'Rasmiy sayt, https:// bilan boshlanadi. Dasturiy taʼminot brendlarida bu havola «Sinab koʻrish» tugmasi uchun ishlatiladi: bu yerga hamkorlik (referal) havolangizni joylang.',
         'publish' => 'Nashr',
         'is_active_hint' => 'Yashirin brendlar saytda koʻrsatilmaydi.',
         'is_active' => 'Faol (saytda koʻrinadi)',
@@ -325,7 +325,7 @@ return [
         'delete_body' => '“:name” logotipi bilan birga oʻchiriladi.',
         'delete_help' => 'Mahsulotlarda ishlatilayotgan brendni oʻchirib boʻlmaydi.',
         'errors' => [
-            'website_https' => 'https:// bilan boshlanadigan toʻliq manzilni kiriting.',
+            'website_https' => 'Bu yaroqli havola emas: https:// bilan boshlanadigan toʻliq manzilni kiriting.',
             'has_products' => 'Brend mahsulotlarda ishlatilmoqda. Avval ularning brendini oʻzgartiring.',
         ],
     ],

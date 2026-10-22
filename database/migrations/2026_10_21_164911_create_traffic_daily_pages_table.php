@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Top pages per day (plan 04 4c), rebuilt per date by AggregateTraffic and
  * kept 25 months: the 500 most requested path + status pairs per date and
- * kind (visits), or per date, kind (bots) and bot key. No foreign keys:
+ * kind (visits), per date and kind (partner: "Try" redirects, one row per
+ * /{locale}/go/{slug} path), or per date, kind (bots) and bot key. No foreign keys:
  * product_id / category_id are kept for reports even after a deletion.
  */
 return new class extends Migration

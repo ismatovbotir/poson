@@ -129,13 +129,36 @@ class TrafficRecorder
      */
     public function recordLead(Request $request, array $attribution, string $path, ?string $locale, ?int $productId): void
     {
+        $this->recordAttributed(VisitType::Lead, $request, $attribution, $path, $locale, $productId, 200, null);
+    }
+
+    /**
+     * Record a "Try" click to a partner signup page with the session's
+     * attribution (RecordPartnerClick). Status is the redirect's 302.
+     *
+     * @param  array<string, string>  $attribution
+     */
+    public function recordPartnerClick(Request $request, array $attribution, string $path, ?string $locale, int $productId): void
+    {
+        $route = $request->route();
+
+        $this->recordAttributed(VisitType::PartnerClick, $request, $attribution, $path, $locale, $productId, 302, is_object($route) ? $route->getName() : null);
+    }
+
+    /**
+     * One attributed site_visits row (lead or partner click).
+     *
+     * @param  array<string, string>  $attribution
+     */
+    protected function recordAttributed(VisitType $type, Request $request, array $attribution, string $path, ?string $locale, ?int $productId, int $status, ?string $routeName): void
+    {
         if (! $this->allowRawInsert(self::CAP_VISITS)) {
             return;
         }
 
         $this->insert('site_visits', [
             'occurred_at' => now(),
-            'type' => VisitType::Lead->value,
+            'type' => $type->value,
             'visitor_hash' => $this->visitorHash($request),
             'is_entry' => false,
             'channel' => Attribution::channel($attribution)->value,
@@ -143,13 +166,13 @@ class TrafficRecorder
             'utm_medium' => $this->cut($attribution['utm_medium'] ?? null, 100),
             'utm_campaign' => $this->cut($attribution['utm_campaign'] ?? null, 150),
             'referrer_host' => $this->cut($attribution['referrer_host'] ?? null, 150),
-            'route_name' => null,
+            'route_name' => $this->cut($routeName, 100),
             'path' => $this->cut($path, 255) ?? '/',
             'locale' => $locale,
             'product_id' => $productId,
             'category_id' => null,
             'device' => DeviceType::fromUserAgent($request->userAgent())->value,
-            'status' => 200,
+            'status' => $status,
         ]);
     }
 

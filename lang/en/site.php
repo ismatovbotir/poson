@@ -169,6 +169,11 @@ return [
         ],
     ],
 
+    'cta' => [
+        'try' => 'Try',
+        'contact' => 'Contact us',
+    ],
+
     'card' => [
         'add_to_cart' => 'Add to cart',
         'request_quote' => 'Request a quote',
@@ -274,6 +279,9 @@ return [
             'service' => 'Warranty and post-warranty service at our own service center.',
         ],
         'months' => ':count month|:count months',
+        'software' => [
+            'title' => 'About the program',
+        ],
         'related' => [
             'accessory' => 'Accessories',
             'consumable' => 'Consumables',

@@ -3,6 +3,7 @@
 namespace App\Livewire\Site\Catalog;
 
 use App\Data\Site\ProductCard;
+use App\Enums\ProductType;
 use App\Enums\RelationType;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
@@ -10,6 +11,8 @@ use App\Models\ProductDocument;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductCards;
+use App\Support\Catalog\ProductCtas;
+use App\Support\Catalog\SoftwareSpecs;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\FaqContent;
 use App\Support\Site\SeoText;
@@ -23,7 +26,9 @@ use Livewire\Component;
  * Product page (plan 03 T18), ported from product.html: gallery, title,
  * SKU, brand, stock, Retail price (or "price on request"), key specs, tabs
  * (description, specs, documents, delivery & warranty), related products,
- * the quote form and a mobile sticky bar.
+ * the quote form and a mobile sticky bar. The buy box and the sticky bar
+ * buttons come from ProductCtas (shared with the cards and the Mini App);
+ * software shows its details (SoftwareSpecs) as chips and a modules list.
  *
  * 404 unless the product is shown on the site (active, not trashed, in a
  * visible category). No quantity tiers, rating, reviews, old price or
@@ -78,11 +83,13 @@ class Show extends Component
         // The product's FAQ, else its category's (or the nearest ancestor's), plan 04 T12.
         // FAQPage JSON-LD only for the product's own items (inherited ones belong to the category page).
         $faq = $faqContent->forProduct($product);
+        $skipped = $product->attributeSkips()->pluck('attribute_id')->map(fn ($id): int => (int) $id)->all();
 
         return view('livewire.site.catalog.show', [
             'images' => $this->images(),
             'keySpecs' => ProductCards::keySpecs($product),
-            'specs' => $this->specs($resolver),
+            'specs' => $this->specs($resolver, $skipped),
+            'software' => $product->type === ProductType::Software ? SoftwareSpecs::forProduct($product, $skipped) : [],
             'documents' => $this->documents($product->documents),
             'related' => $this->related(),
             'breadcrumbs' => $breadcrumbs,
@@ -91,7 +98,7 @@ class Show extends Component
             'brand' => $product->publicBrand(),
             // Sanitized on save already; again on output as defense in depth.
             'description' => HtmlSanitizer::clean((string) $product->description),
-            'showCart' => config('site.cart_enabled') && $product->effectiveSaleMode()->allowsCart(),
+            'ctas' => ProductCtas::for($product),
             'faq' => $faq['items'],
             'jsonLd' => array_values(array_filter([
                 StructuredData::toScript($structuredData->product($product, $url)),
@@ -137,18 +144,20 @@ class Show extends Component
 
     /**
      * Spec rows in resolver order (ancestors, own category, extras): one row
-     * per attribute with its values joined; skipped and empty rows are left out.
+     * per attribute with its values joined; skipped and empty rows are left
+     * out, and so are the software details shown in their own block.
      *
+     * @param  list<int>  $skipped
      * @return list<array{label: string, value: string}>
      */
-    protected function specs(ProductAttributeResolver $resolver): array
+    protected function specs(ProductAttributeResolver $resolver, array $skipped): array
     {
         $values = $this->product->attributeValues->groupBy('attribute_id');
-        $skipped = $this->product->attributeSkips()->pluck('attribute_id')->map(fn ($id): int => (int) $id)->all();
+        $isSoftware = $this->product->type === ProductType::Software;
         $rows = [];
 
         foreach ($resolver->resolve($this->product->category_id, $skipped, $values->keys()->map(fn ($id): int => (int) $id)->all()) as $row) {
-            if ($row->skipped) {
+            if ($row->skipped || ($isSoftware && in_array($row->attribute->code, SoftwareSpecs::BLOCK_CODES, true))) {
                 continue;
             }
 

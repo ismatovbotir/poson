@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms\Admin\Brands;
 
 use App\Models\Brand;
+use App\Rules\HttpsLink;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
@@ -59,21 +60,11 @@ class BrandForm extends Form
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('brands', 'slug')->ignore($this->component->brand?->id)],
             'description.*' => ['nullable', 'string', 'max:20000'],
-            'website' => ['nullable', 'string', 'max:255', 'url:https'],
+            'website' => ['nullable', 'string', new HttpsLink],
             'is_active' => ['boolean'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'logo_alt.*' => ['nullable', 'string', 'max:255'],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function messages(): array
-    {
-        return [
-            'website.url' => __('admin.brands.errors.website_https'),
         ];
     }
 

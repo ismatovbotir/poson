@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $page_views
  * @property int $entries
  * @property int $leads
+ * @property int $partner_clicks
  * @property int $hits
  * @property int $verified_hits
  * @property int $spoofed_hits
@@ -30,7 +31,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_seen_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['date', 'kind', 'dimension', 'channel', 'value', 'visitors', 'page_views', 'entries', 'leads', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at'])]
+#[Fillable(['date', 'kind', 'dimension', 'channel', 'value', 'visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at'])]
 class TrafficDaily extends Model
 {
     /** @use HasFactory<TrafficDailyFactory> */
@@ -39,6 +40,11 @@ class TrafficDaily extends Model
     public const KIND_VISITS = 'visits';
 
     public const KIND_BOTS = 'bots';
+
+    /**
+     * traffic_daily_pages only: partner clicks per /{locale}/go/{slug} path.
+     */
+    public const KIND_PARTNER = 'partner';
 
     public const DIM_TOTAL = 'total';
 
@@ -69,6 +75,7 @@ class TrafficDaily extends Model
             'page_views' => 'integer',
             'entries' => 'integer',
             'leads' => 'integer',
+            'partner_clicks' => 'integer',
             'hits' => 'integer',
             'verified_hits' => 'integer',
             'spoofed_hits' => 'integer',

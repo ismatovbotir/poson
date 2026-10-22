@@ -2,8 +2,10 @@
     Product page, ported from .claude/html-templates/site/product.html.
     Changes vs. the template (brand rule, plan 03): no rating or reviews, no quantity
     price tiers, no "buy in 1 click", no favorites, no old price. The site shows the
-    Retail price only (or "price on request"); the main CTA opens the quote form
-    (#quote). A documents tab and related products by type are added.
+    Retail price only (or "price on request"). The buttons ($ctas) come from
+    App\Support\Catalog\ProductCtas: "Try" (partner link, new tab) + "Contact us", or
+    "Add to cart" + "Request a quote", or one lead-form button (#quote). A documents tab,
+    software details ($software) and related products by type are added.
 --}}
 @php
     $tabs = array_filter([
@@ -91,7 +93,9 @@
                 @if ($brand)
                     <div class="flex gap-1"><dt>{{ __('site.product.brand') }}:</dt><dd class="font-medium text-ink">{{ $brand->name }}</dd></div>
                 @endif
-                <div><dt class="sr-only">{{ __('site.catalog.stock') }}</dt><dd><x-site.stock-badge :status="$product->stock_status" /></dd></div>
+                @if ($product->showsStockStatus())
+                    <div><dt class="sr-only">{{ __('site.catalog.stock') }}</dt><dd><x-site.stock-badge :status="$product->stock_status" /></dd></div>
+                @endif
             </dl>
 
             @if ($shortDescription !== '')
@@ -106,24 +110,10 @@
                     <p class="mt-1.5 text-sm text-ink-2">{{ __('site.product.price_on_request_note') }}</p>
                 @endif
 
-                <div class="mt-4 flex flex-col gap-2.5 sm:flex-row">
-                    @if ($showCart)
-                        <a href="#quote" class="inline-flex h-[54px] flex-1 items-center justify-center gap-2 rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700" data-cta="cart">
-                            <x-site.icon name="cart" />
-                            {{ __('site.card.add_to_cart') }}
-                        </a>
-                    @endif
-                    <a
-                        href="#quote"
-                        @class([
-                            'inline-flex h-[54px] flex-1 items-center justify-center rounded-btn px-[30px] text-base font-semibold transition-colors',
-                            'bg-brand-600 text-white hover:bg-brand-700' => ! $showCart,
-                            'border-[1.5px] border-line bg-white text-ink hover:border-brand hover:text-brand-600' => $showCart,
-                        ])
-                        data-cta="quote"
-                    >
-                        {{ __('site.card.request_quote') }}
-                    </a>
+                <div class="mt-4 flex flex-col gap-2.5 sm:flex-row" data-ctas>
+                    @foreach ($ctas as $cta)
+                        <x-site.product-cta :cta="$cta" size="page" :href="$cta->pageHref()" wire:key="cta-{{ $cta->kind->value }}" />
+                    @endforeach
                 </div>
             </div>
 
@@ -137,6 +127,10 @@
                         </div>
                     @endforeach
                 </dl>
+            @endif
+
+            @if ($software !== [])
+                @include('livewire.site.catalog.partials.software-details', ['software' => $software])
             @endif
 
             <ul class="mt-5 grid gap-3 text-sm text-ink-2">
@@ -285,11 +279,14 @@
         </div>
     </section>
 
-    {{-- Mobile sticky bar --}}
+    {{-- Mobile sticky bar: the price (or "price on request") and the primary CTA only. --}}
+    @php($primaryCta = collect($ctas)->firstWhere('primary', true) ?? ($ctas[0] ?? null))
     <div class="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-white px-4 py-2.5 md:hidden" data-sticky-bar>
         <p @class(['flex-1 leading-tight', 'text-xl font-extrabold tracking-[-0.02em]' => $product->price !== null, 'text-sm font-semibold text-ink-2' => $product->price === null])>
             {{ $product->price !== null ? \App\Support\Money::format($product->price) : __('site.card.price_on_request') }}
         </p>
-        <a href="#quote" class="inline-flex h-12 items-center justify-center rounded-btn bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">{{ __('site.card.request_quote') }}</a>
+        @if ($primaryCta)
+            <x-site.product-cta :cta="$primaryCta" size="bar" :href="$primaryCta->pageHref()" />
+        @endif
     </div>
 </div>

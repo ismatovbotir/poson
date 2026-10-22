@@ -24,6 +24,7 @@ return [
         'visit_type' => [
             'page_view' => 'Koʻrish',
             'lead' => 'Murojaat',
+            'partner_click' => 'Hamkor havolasiga oʻtish',
         ],
         'bot_purpose' => [
             'training' => 'SI oʻqitish',
@@ -63,6 +64,7 @@ return [
         'source' => 'Manba',
         'views' => 'Koʻrishlar',
         'views_short' => 'koʻrish',
+        'clicks_short' => 'oʻtish',
     ],
 
     'traffic' => [
@@ -91,6 +93,8 @@ return [
         'locales' => 'Sayt tillari',
         'top_pages' => 'Ommabop sahifalar',
         'top_products' => 'Ommabop mahsulotlar',
+        'partner_clicks' => 'Hamkor havolalariga oʻtishlar',
+        'partner_clicks_hint' => 'Oxirgi :count kunda «Sinab koʻrish» tugmasi orqali hamkor sahifasiga oʻtishlar: jami :total. Har bir bosish hisoblanadi (takrorlanmas tashrifchilar emas).',
         'privacy_note' => 'Tashrif buyuruvchilar har kuni anonim xesh bilan sanaladi; odamlarning IP manzillari saqlanmaydi. Xom tashriflar 30 kun, kunlik yigʻindilar 25 oy saqlanadi.',
     ],
 
