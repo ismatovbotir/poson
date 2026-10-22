@@ -4,11 +4,14 @@ namespace App\Data\Leads;
 
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\TrafficChannel;
 
 /**
  * A lead submitted from the public site. The phone is already normalized to
  * +998XXXXXXXXX. A quote request from a product page carries the product
  * (id and SKU re-read from the database, never taken from the browser).
+ * trafficChannel / trafficSource / landingPath are the session's first-touch
+ * attribution (plan 04 4c), for the CRM's lead source reports.
  */
 final readonly class SiteLeadData
 {
@@ -27,5 +30,8 @@ final readonly class SiteLeadData
         public ?string $pageUrl = null,
         public ?int $productId = null,
         public ?string $productSku = null,
+        public ?TrafficChannel $trafficChannel = null,
+        public ?string $trafficSource = null,
+        public ?string $landingPath = null,
     ) {}
 }

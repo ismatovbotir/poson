@@ -63,7 +63,7 @@ return [
         'note' => 'Barcha kirishlar jurnalga yoziladi. Muammo boʻlsa, administratorga murojaat qiling.',
         'tagline' => 'Katalog, sotuv, buyurtmalar va servis — bitta boshqaruv panelida.',
         'points' => [
-            'leads' => 'Arizalar va tijorat takliflari',
+            'leads' => 'Murojaatlar va tijorat takliflari',
             'payments' => 'Payme, Click va bank oʻtkazmasi',
             'telegram' => 'Telegram bildirishnomalari',
         ],
@@ -742,7 +742,7 @@ return [
             ],
             'descriptions' => [
                 'ai' => 'Admin panelda mahsulot matnlari va rasmlari bilan SI yordami uchun kalitlar va limitlar.',
-                'telegram' => 'Yangi arizalar, buyurtmalar va toʻlovlarni jamoa chatlariga yuboradigan bot.',
+                'telegram' => 'Yangi murojaatlar, buyurtmalar va toʻlovlarni jamoa chatlariga yuboradigan bot.',
                 'payme' => 'Buyurtmalarni onlayn toʻlash uchun Payme merchant sozlamalari.',
                 'click' => 'Buyurtmalarni onlayn toʻlash uchun Click SHOP API sozlamalari.',
                 'removebg' => 'Mahsulot fotosuratlaridan fonni olib tashlaydi.',
@@ -785,8 +785,8 @@ return [
                 'ai_monthly_budget_usd' => 'Butun dollarlarda. Unga yetganda SI oy oxirigacha oʻchadi. Boʻsh — cheklovsiz.',
                 'telegram_bot_token' => '@BotFather beradi, koʻrinishi 123456789:AA….',
                 'telegram_webhook_secret' => 'Telegram uni har bir yangilanish bilan yuboradi, sayt soʻrovni tekshira oladi. Sizib chiqqan boʻlishi mumkin boʻlsa, yangisini yarating.',
-                'telegram_chats_sales' => 'Arizalar, tijorat takliflari va buyurtmalar. -1001234567890 kabi raqam yoki @channel.',
-                'telegram_chats_service' => 'Servis arizalari. -1001234567890 kabi raqam yoki @channel.',
+                'telegram_chats_sales' => 'Murojaatlar, tijorat takliflari va buyurtmalar. -1001234567890 kabi raqam yoki @channel.',
+                'telegram_chats_service' => 'Servis murojaatlari. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_finance' => 'Toʻlovlar. -1001234567890 kabi raqam yoki @channel.',
                 'payme_merchant_id' => 'Payme merchant kabineti → Kassa → ID (24 belgi).',
                 'payme_key' => 'Merchant kabineti → Kassa → Dasturchilar uchun → Kalit.',

@@ -71,9 +71,9 @@ return [
             'en' => 'Corded 2D scanner for checkouts and pharmacies that reads codes from paper and screens, including DataMatrix marking codes.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra DS2208</strong> — kunlik kassa ishi uchun simli 2D skaner. U chiziqli kodlarni, QR va DataMatrix kodlarini qogʻozdan ham, telefon ekranidan ham oʻqiydi, shuning uchun markirovkalangan tovarlar va elektron kuponlar bilan ishlashga mos keladi.</p><ul><li><strong>Chakana savdo:</strong> kassada tovarlarni tez va ortiqcha harakatlarsiz skanerlash.</li><li><strong>Dorixona:</strong> dori qadoqlaridagi DataMatrix kodlarini oʻqish.</li><li><strong>Ombor:</strong> tovar qabul qilish va qayta baholashda yordamchi skaner.</li><li>IP52 himoya va 1,5 m balandlikdan tushishga chidamlilik.</li></ul><p>Poson skanerni 1C yoki kassa dasturingizga ulaydi, kerakli kod turlari, prefiks va suffikslarni sozlaydi. Rasmiy kafolat davomida qurilmaga oʻz servis markazimizda xizmat koʻrsatamiz.</p>',
-            'ru' => '<p><strong>Zebra DS2208</strong> — проводной 2D-сканер для ежедневной работы на кассе. Он читает линейные коды, QR и DataMatrix как с бумаги, так и с экрана телефона, поэтому подходит для работы с маркированным товаром и электронными купонами.</p><ul><li><strong>Розница:</strong> быстрое сканирование товара на кассе без лишних движений.</li><li><strong>Аптека:</strong> считывание DataMatrix с упаковок лекарств.</li><li><strong>Склад:</strong> дополнительный сканер на приёмке и переоценке.</li><li>Защита IP52 и устойчивость к падениям с 1,5 м.</li></ul><p>Специалисты Poson подключат сканер к 1С или кассовой программе, включат нужные типы кодов и настроят префиксы и суффиксы. Гарантийное обслуживание выполняет наш собственный сервисный центр.</p>',
-            'en' => '<p>The <strong>Zebra DS2208</strong> is a corded 2D scanner built for everyday checkout work. It reads linear codes, QR and DataMatrix from paper labels and phone screens alike, so it handles marked goods and digital coupons without extra steps.</p><ul><li><strong>Retail:</strong> fast, effortless scanning at the till.</li><li><strong>Pharmacy:</strong> reads DataMatrix codes on medicine packs.</li><li><strong>Warehouse:</strong> a reliable extra scanner for receiving and relabeling.</li><li>IP52 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner to 1C or your POS software and configures the symbologies, prefixes and suffixes you need. Warranty service is handled in our own service center.</p>',
+            'uz' => '<p><strong>Zebra DS2208</strong> — kunlik kassa ishi uchun simli 2D skaner. U chiziqli kodlarni, QR va DataMatrix kodlarini qogʻozdan ham, telefon ekranidan ham oʻqiydi, shuning uchun markirovkalangan tovarlar va elektron kuponlar bilan ishlashga mos keladi.</p><ul><li><strong>Chakana savdo:</strong> kassada tovarlarni tez va ortiqcha harakatlarsiz skanerlash.</li><li><strong>Dorixona:</strong> dori qadoqlaridagi DataMatrix kodlarini oʻqish.</li><li><strong>Ombor:</strong> tovar qabul qilish va qayta baholashda yordamchi skaner.</li><li>IP52 himoya va 1,5 m balandlikdan tushishga chidamlilik.</li></ul><p>Poson skanerni 1C ga ulaydi, kerakli kod turlari, prefiks va suffikslarni sozlaydi. Rasmiy kafolat davomida qurilmaga oʻz servis markazimizda xizmat koʻrsatamiz.</p>',
+            'ru' => '<p><strong>Zebra DS2208</strong> — проводной 2D-сканер для ежедневной работы на кассе. Он читает линейные коды, QR и DataMatrix как с бумаги, так и с экрана телефона, поэтому подходит для работы с маркированным товаром и электронными купонами.</p><ul><li><strong>Розница:</strong> быстрое сканирование товара на кассе без лишних движений.</li><li><strong>Аптека:</strong> считывание DataMatrix с упаковок лекарств.</li><li><strong>Склад:</strong> дополнительный сканер на приёмке и переоценке.</li><li>Защита IP52 и устойчивость к падениям с 1,5 м.</li></ul><p>Специалисты Poson подключат сканер к 1С, включат нужные типы кодов и настроят префиксы и суффиксы. Гарантийное обслуживание выполняет наш собственный сервисный центр.</p>',
+            'en' => '<p>The <strong>Zebra DS2208</strong> is a corded 2D scanner built for everyday checkout work. It reads linear codes, QR and DataMatrix from paper labels and phone screens alike, so it handles marked goods and digital coupons without extra steps.</p><ul><li><strong>Retail:</strong> fast, effortless scanning at the till.</li><li><strong>Pharmacy:</strong> reads DataMatrix codes on medicine packs.</li><li><strong>Warehouse:</strong> a reliable extra scanner for receiving and relabeling.</li><li>IP52 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner to 1C and configures the symbologies, prefixes and suffixes you need. Warranty service is handled in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra DS2208 2D shtrix-kod skaneri — Poson',
@@ -124,9 +124,9 @@ return [
             'en' => 'Corded 2D scanner for shops, pharmacies and warehouses that reads damaged labels, DataMatrix and codes on phone screens.',
         ],
         'description' => [
-            'uz' => '<p><strong>Honeywell Voyager 1470g</strong> — kassa va tovar qabul qilish uchun moʻljallangan ishonchli simli 2D skaner. U yomon chop etilgan yoki shikastlangan shtrix-kodlarni ham, DataMatrix va QR kodlarni ham barqaror oʻqiydi.</p><ul><li><strong>Chakana savdo:</strong> kassada barqaror skanerlash, bonus kartalari va kuponlarni telefon ekranidan oʻqish.</li><li><strong>Dorixona:</strong> qadoqlardagi markirovka kodlari bilan ishlash.</li><li><strong>Ombor:</strong> tovarni qabul qilish va qayta tekshirish.</li><li>IP42 himoya va 1,5 m dan tushishga chidamlilik.</li></ul><p>Poson skanerni hisob tizimingizga ulaydi va kod turlarini sozlaydi. Kafolat davomida taʼmirlash va almashtirish masalalarini oʻz servis markazimizda hal qilamiz.</p>',
-            'ru' => '<p><strong>Honeywell Voyager 1470g</strong> — надёжный проводной 2D-сканер для кассы и приёмки товара. Он уверенно читает плохо пропечатанные и повреждённые штрих-коды, а также DataMatrix и QR.</p><ul><li><strong>Розница:</strong> стабильное сканирование на кассе, чтение бонусных карт и купонов с экрана телефона.</li><li><strong>Аптека:</strong> работа с кодами маркировки на упаковках.</li><li><strong>Склад:</strong> приёмка и повторная проверка товара.</li><li>Защита IP42 и устойчивость к падениям с 1,5 м.</li></ul><p>Poson подключит сканер к вашей учётной системе и настроит нужные типы кодов. Ремонт и замену в период гарантии выполняет наш сервисный центр.</p>',
-            'en' => '<p>The <strong>Honeywell Voyager 1470g</strong> is a dependable corded 2D scanner for checkouts and goods receiving. It reads poorly printed and damaged barcodes as well as DataMatrix and QR codes.</p><ul><li><strong>Retail:</strong> consistent scanning at the till, plus loyalty cards and coupons on phone screens.</li><li><strong>Pharmacy:</strong> handles marking codes on medicine packs.</li><li><strong>Warehouse:</strong> receiving and re-checking goods.</li><li>IP42 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner to your accounting system and enables the symbologies you need. Warranty repairs and replacements are handled by our own service center.</p>',
+            'uz' => '<p><strong>Honeywell Voyager 1470g</strong> — kassa va tovar qabul qilish uchun moʻljallangan ishonchli simli 2D skaner. U yomon chop etilgan yoki shikastlangan shtrix-kodlarni ham, DataMatrix va QR kodlarni ham barqaror oʻqiydi.</p><ul><li><strong>Chakana savdo:</strong> kassada barqaror skanerlash, bonus kartalari va kuponlarni telefon ekranidan oʻqish.</li><li><strong>Dorixona:</strong> qadoqlardagi markirovka kodlari bilan ishlash.</li><li><strong>Ombor:</strong> tovarni qabul qilish va qayta tekshirish.</li><li>IP42 himoya va 1,5 m dan tushishga chidamlilik.</li></ul><p>Poson skanerni 1C ga ulaydi va kod turlarini sozlaydi. Kafolat davomida taʼmirlash masalalarini oʻz servis markazimizda hal qilamiz.</p>',
+            'ru' => '<p><strong>Honeywell Voyager 1470g</strong> — надёжный проводной 2D-сканер для кассы и приёмки товара. Он уверенно читает плохо пропечатанные и повреждённые штрих-коды, а также DataMatrix и QR.</p><ul><li><strong>Розница:</strong> стабильное сканирование на кассе, чтение бонусных карт и купонов с экрана телефона.</li><li><strong>Аптека:</strong> работа с кодами маркировки на упаковках.</li><li><strong>Склад:</strong> приёмка и повторная проверка товара.</li><li>Защита IP42 и устойчивость к падениям с 1,5 м.</li></ul><p>Poson подключит сканер к 1С и настроит нужные типы кодов. Гарантийный ремонт выполняет наш сервисный центр.</p>',
+            'en' => '<p>The <strong>Honeywell Voyager 1470g</strong> is a dependable corded 2D scanner for checkouts and goods receiving. It reads poorly printed and damaged barcodes as well as DataMatrix and QR codes.</p><ul><li><strong>Retail:</strong> consistent scanning at the till, plus loyalty cards and coupons on phone screens.</li><li><strong>Pharmacy:</strong> handles marking codes on medicine packs.</li><li><strong>Warehouse:</strong> receiving and re-checking goods.</li><li>IP42 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner to 1C and enables the symbologies you need. Warranty repairs are handled by our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Honeywell Voyager 1470g 2D skaneri — Poson',
@@ -179,9 +179,9 @@ return [
             'en' => 'Wireless 2D scanner with Bluetooth and a charging base, for moving freely around the warehouse and shop floor.',
         ],
         'description' => [
-            'uz' => '<p><strong>Honeywell Voyager XP 1472g</strong> — Bluetooth orqali bazaga ulanadigan simsiz 2D skaner. Kabel xalaqit bermaydi: yirik tovarlar, poddonlar va savdo zalidagi javonlarni kompyuter yonidan uzoqlashib skanerlash mumkin.</p><ul><li><strong>Ombor:</strong> katta va ogʻir tovarlarni joyidan siljitmasdan qabul qilish.</li><li><strong>Chakana savdo:</strong> savdo zalida narx va qoldiqni tekshirish.</li><li><strong>Dorixona:</strong> DataMatrix markirovka kodlarini oʻqish.</li><li>1,8 m balandlikdan tushishga chidamli korpus.</li></ul><p>Poson skanerni bazaga ulaydi, Bluetooth aloqasini va 1C yoki kassa dasturingiz bilan ishlashni sozlaydi. Rasmiy kafolat, zaxira akkumulyator tanlash va servis — oʻz servis markazimizda.</p>',
-            'ru' => '<p><strong>Honeywell Voyager XP 1472g</strong> — беспроводной 2D-сканер, который связывается с базой по Bluetooth. Кабель не мешает: крупный товар, паллеты и полки в зале можно сканировать, отойдя от компьютера.</p><ul><li><strong>Склад:</strong> приёмка крупногабаритного и тяжёлого товара без перемещения.</li><li><strong>Розница:</strong> проверка цен и остатков прямо в торговом зале.</li><li><strong>Аптека:</strong> считывание кодов маркировки DataMatrix.</li><li>Корпус выдерживает падения с 1,8 м.</li></ul><p>Poson выполнит сопряжение сканера с базой, настроит Bluetooth и работу с 1С или кассовой программой. Официальная гарантия, подбор запасного аккумулятора и сервис — в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Honeywell Voyager XP 1472g</strong> is a cordless 2D scanner that talks to its base over Bluetooth. With no cable in the way, staff can scan bulky items, pallets and shelves away from the PC.</p><ul><li><strong>Warehouse:</strong> receive large, heavy goods without moving them.</li><li><strong>Retail:</strong> check prices and stock on the shop floor.</li><li><strong>Pharmacy:</strong> reads DataMatrix marking codes.</li><li>Housing rated for drops from 1.8 m.</li></ul><p>Poson pairs the scanner with its base and sets up Bluetooth and the link to 1C or your POS software. Official warranty, spare battery selection and service are handled in our own service center.</p>',
+            'uz' => '<p><strong>Honeywell Voyager XP 1472g</strong> — Bluetooth orqali bazaga ulanadigan simsiz 2D skaner. Kabel xalaqit bermaydi: yirik tovarlar, poddonlar va savdo zalidagi javonlarni kompyuter yonidan uzoqlashib skanerlash mumkin.</p><ul><li><strong>Ombor:</strong> katta va ogʻir tovarlarni joyidan siljitmasdan qabul qilish.</li><li><strong>Chakana savdo:</strong> savdo zalida narx va qoldiqni tekshirish.</li><li><strong>Dorixona:</strong> DataMatrix markirovka kodlarini oʻqish.</li><li>1,8 m balandlikdan tushishga chidamli korpus.</li></ul><p>Poson skanerni bazaga ulaydi, Bluetooth aloqasini va 1C bilan ishlashni sozlaydi. Rasmiy kafolat, zaxira akkumulyator tanlash va servis — oʻz servis markazimizda.</p>',
+            'ru' => '<p><strong>Honeywell Voyager XP 1472g</strong> — беспроводной 2D-сканер, который связывается с базой по Bluetooth. Кабель не мешает: крупный товар, паллеты и полки в зале можно сканировать, отойдя от компьютера.</p><ul><li><strong>Склад:</strong> приёмка крупногабаритного и тяжёлого товара без перемещения.</li><li><strong>Розница:</strong> проверка цен и остатков прямо в торговом зале.</li><li><strong>Аптека:</strong> считывание кодов маркировки DataMatrix.</li><li>Корпус выдерживает падения с 1,8 м.</li></ul><p>Poson выполнит сопряжение сканера с базой, настроит Bluetooth и работу с 1С. Официальная гарантия, подбор запасного аккумулятора и сервис — в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Honeywell Voyager XP 1472g</strong> is a cordless 2D scanner that talks to its base over Bluetooth. With no cable in the way, staff can scan bulky items, pallets and shelves away from the PC.</p><ul><li><strong>Warehouse:</strong> receive large, heavy goods without moving them.</li><li><strong>Retail:</strong> check prices and stock on the shop floor.</li><li><strong>Pharmacy:</strong> reads DataMatrix marking codes.</li><li>Housing rated for drops from 1.8 m.</li></ul><p>Poson pairs the scanner with its base and sets up Bluetooth and the link to 1C. Official warranty, spare battery selection and service are handled in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Honeywell Voyager XP 1472g simsiz skaner — Poson',
@@ -231,9 +231,9 @@ return [
             'en' => 'Cordless 2D scanner with Bluetooth and a cradle for the shop floor, receiving and pharmacies; reads DataMatrix and screens.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra DS2278</strong> — DS2208 imkoniyatlarini simsiz erkinlik bilan birlashtiradi. Skaner bazaga Bluetooth orqali ulanadi, bazaga qoʻyilganda esa statsionar rejimda ishlay oladi.</p><ul><li><strong>Chakana savdo:</strong> kassada va savdo zalida bitta skaner bilan ishlash.</li><li><strong>Tovar qabuli:</strong> qutilar va yirik tovarlarni kassadan uzoqda skanerlash.</li><li><strong>Dorixona:</strong> DataMatrix markirovka kodlari va elektron retseptlardagi kodlar.</li><li>IP52 himoya va 1,5 m dan tushishga chidamlilik.</li></ul><p>Poson skaner va bazani ulaydi, kassa dasturi yoki 1C bilan ishlashni sozlaydi va xodimlarga qisqa yoʻriqnoma beradi. Kafolatli taʼmirlash oʻz servis markazimizda bajariladi.</p>',
-            'ru' => '<p><strong>Zebra DS2278</strong> объединяет возможности DS2208 со свободой беспроводной работы. Сканер связывается с подставкой по Bluetooth, а установленный в неё работает в режиме стационарного считывания.</p><ul><li><strong>Розница:</strong> один сканер и для кассы, и для торгового зала.</li><li><strong>Приёмка:</strong> сканирование коробок и крупного товара вдали от кассы.</li><li><strong>Аптека:</strong> коды маркировки DataMatrix и коды электронных рецептов.</li><li>Защита IP52 и устойчивость к падениям с 1,5 м.</li></ul><p>Poson подключит сканер и подставку, настроит работу с кассовой программой или 1С и проведёт короткий инструктаж для сотрудников. Гарантийный ремонт выполняется в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Zebra DS2278</strong> combines the DS2208\'s reading performance with cordless freedom. It links to its cradle over Bluetooth and works as a hands-free presentation scanner when docked.</p><ul><li><strong>Retail:</strong> one scanner for both the till and the shop floor.</li><li><strong>Receiving:</strong> scan cartons and bulky items away from the counter.</li><li><strong>Pharmacy:</strong> DataMatrix marking codes and e-prescription codes.</li><li>IP52 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner and cradle, sets up your POS software or 1C and gives your staff a short briefing. Warranty repairs are carried out in our own service center.</p>',
+            'uz' => '<p><strong>Zebra DS2278</strong> — DS2208 imkoniyatlarini simsiz erkinlik bilan birlashtiradi. Skaner bazaga Bluetooth orqali ulanadi, bazaga qoʻyilganda esa statsionar rejimda ishlay oladi.</p><ul><li><strong>Chakana savdo:</strong> kassada va savdo zalida bitta skaner bilan ishlash.</li><li><strong>Tovar qabuli:</strong> qutilar va yirik tovarlarni kassadan uzoqda skanerlash.</li><li><strong>Dorixona:</strong> DataMatrix markirovka kodlari va elektron retseptlardagi kodlar.</li><li>IP52 himoya va 1,5 m dan tushishga chidamlilik.</li></ul><p>Poson skaner va bazani ulaydi, 1C bilan ishlashni sozlaydi va xodimlarga qisqa yoʻriqnoma beradi. Kafolatli taʼmirlash oʻz servis markazimizda bajariladi.</p>',
+            'ru' => '<p><strong>Zebra DS2278</strong> объединяет возможности DS2208 со свободой беспроводной работы. Сканер связывается с подставкой по Bluetooth, а установленный в неё работает в режиме стационарного считывания.</p><ul><li><strong>Розница:</strong> один сканер и для кассы, и для торгового зала.</li><li><strong>Приёмка:</strong> сканирование коробок и крупного товара вдали от кассы.</li><li><strong>Аптека:</strong> коды маркировки DataMatrix и коды электронных рецептов.</li><li>Защита IP52 и устойчивость к падениям с 1,5 м.</li></ul><p>Poson подключит сканер и подставку, настроит работу с 1С и проведёт короткий инструктаж для сотрудников. Гарантийный ремонт выполняется в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Zebra DS2278</strong> combines the DS2208\'s reading performance with cordless freedom. It links to its cradle over Bluetooth and works as a hands-free presentation scanner when docked.</p><ul><li><strong>Retail:</strong> one scanner for both the till and the shop floor.</li><li><strong>Receiving:</strong> scan cartons and bulky items away from the counter.</li><li><strong>Pharmacy:</strong> DataMatrix marking codes and e-prescription codes.</li><li>IP52 sealing and a 1.5 m drop rating.</li></ul><p>Poson connects the scanner and cradle, sets up the link to 1C and gives your staff a short briefing. Warranty repairs are carried out in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra DS2278 simsiz 2D skaneri — Poson',
@@ -286,9 +286,9 @@ return [
             'en' => 'Presentation 2D scanner for busy checkouts: just pass the item in front of the window, or lift it for handheld use.',
         ],
         'description' => [
-            'uz' => '<p><strong>Honeywell Orbit 7190g</strong> — kassa stoliga oʻrnatiladigan statsionar skaner. Kassir tovarni nishonga olmasdan oʻqish oynasi oldidan oʻtkazadi, bu esa navbatni tezlashtiradi. Ogʻir yoki katta tovarlar uchun skanerni qoʻlga olib ishlatish mumkin.</p><ul><li><strong>Supermarket va doʻkon:</strong> xaridorlar oqimi katta kassalarda tez skanerlash.</li><li><strong>Dorixona:</strong> qadoqlardagi 1D va 2D kodlarni oʻqish.</li><li><strong>Ekrandagi kodlar:</strong> bonus kartalari va elektron kuponlar.</li></ul><p>Poson skanerni kassa dasturiga ulaydi, kassirlar uchun qulay oʻqish rejimini sozlaydi va periferiya bilan birga kassa joyini toʻliq ishga tushiradi. Kafolat davomida servisni oʻzimiz koʻrsatamiz.</p>',
-            'ru' => '<p><strong>Honeywell Orbit 7190g</strong> — стационарный сканер, который устанавливается на кассовый стол. Кассир проводит товар перед окном без прицеливания, и очередь движется быстрее. Тяжёлый или крупный товар можно отсканировать, сняв сканер в руку.</p><ul><li><strong>Супермаркет и магазин:</strong> быстрое сканирование на кассах с большим потоком.</li><li><strong>Аптека:</strong> чтение 1D- и 2D-кодов на упаковках.</li><li><strong>Коды с экрана:</strong> бонусные карты и электронные купоны.</li></ul><p>Poson подключит сканер к кассовой программе, настроит удобный для кассиров режим считывания и запустит кассовое место целиком вместе с периферией. Гарантийный сервис выполняем сами.</p>',
-            'en' => '<p>The <strong>Honeywell Orbit 7190g</strong> sits on the checkout counter and reads items as the cashier passes them in front of the window, with no aiming needed, so queues move faster. For heavy or bulky items, the scanner lifts out for handheld use.</p><ul><li><strong>Supermarkets and shops:</strong> fast scanning at high-traffic checkouts.</li><li><strong>Pharmacy:</strong> reads 1D and 2D codes on packs.</li><li><strong>On-screen codes:</strong> loyalty cards and digital coupons.</li></ul><p>Poson connects the scanner to your POS software, tunes the read mode for your cashiers and commissions the whole checkout station with its peripherals. Warranty service is provided by our own engineers.</p>',
+            'uz' => '<p><strong>Honeywell Orbit 7190g</strong> — kassa stoliga oʻrnatiladigan statsionar skaner. Kassir tovarni nishonga olmasdan oʻqish oynasi oldidan oʻtkazadi, bu esa navbatni tezlashtiradi. Ogʻir yoki katta tovarlar uchun skanerni qoʻlga olib ishlatish mumkin.</p><ul><li><strong>Supermarket va doʻkon:</strong> xaridorlar oqimi katta kassalarda tez skanerlash.</li><li><strong>Dorixona:</strong> qadoqlardagi 1D va 2D kodlarni oʻqish.</li><li><strong>Ekrandagi kodlar:</strong> bonus kartalari va elektron kuponlar.</li></ul><p>Poson skanerni oʻrnatadi, kassirlar uchun qulay oʻqish rejimini sozlaydi va periferiya bilan birga kassa joyini toʻliq ishga tushiradi. Kafolat davomida servisni oʻzimiz koʻrsatamiz.</p>',
+            'ru' => '<p><strong>Honeywell Orbit 7190g</strong> — стационарный сканер, который устанавливается на кассовый стол. Кассир проводит товар перед окном без прицеливания, и очередь движется быстрее. Тяжёлый или крупный товар можно отсканировать, сняв сканер в руку.</p><ul><li><strong>Супермаркет и магазин:</strong> быстрое сканирование на кассах с большим потоком.</li><li><strong>Аптека:</strong> чтение 1D- и 2D-кодов на упаковках.</li><li><strong>Коды с экрана:</strong> бонусные карты и электронные купоны.</li></ul><p>Poson установит сканер, настроит удобный для кассиров режим считывания и запустит кассовое место целиком вместе с периферией. Гарантийный сервис выполняем сами.</p>',
+            'en' => '<p>The <strong>Honeywell Orbit 7190g</strong> sits on the checkout counter and reads items as the cashier passes them in front of the window, with no aiming needed, so queues move faster. For heavy or bulky items, the scanner lifts out for handheld use.</p><ul><li><strong>Supermarkets and shops:</strong> fast scanning at high-traffic checkouts.</li><li><strong>Pharmacy:</strong> reads 1D and 2D codes on packs.</li><li><strong>On-screen codes:</strong> loyalty cards and digital coupons.</li></ul><p>Poson installs the scanner, tunes the read mode for your cashiers and commissions the whole checkout station with its peripherals. Warranty service is provided by our own engineers.</p>',
         ],
         'meta_title' => [
             'uz' => 'Honeywell Orbit 7190g statsionar skaneri — Poson',
@@ -296,9 +296,9 @@ return [
             'en' => 'Honeywell Orbit 7190g presentation scanner — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Honeywell Orbit 7190g statsionar skaneri gavjum kassalar uchun: 1D va 2D kodlarni tez oʻqiydi. Kassa dasturiga ulash, sozlash, kafolat va servis.',
-            'ru' => 'Стационарный сканер Honeywell Orbit 7190g для касс с большим потоком: быстро читает 1D и 2D коды. Подключение к кассовой программе, гарантия и сервис.',
-            'en' => 'Honeywell Orbit 7190g presentation scanner for busy checkouts: reads 1D and 2D codes as items pass. POS software setup, warranty and service by Poson.',
+            'uz' => 'Honeywell Orbit 7190g statsionar skaneri gavjum kassalar uchun: 1D va 2D kodlarni tez oʻqiydi. Oʻrnatish, sozlash, kafolat va servis.',
+            'ru' => 'Стационарный сканер Honeywell Orbit 7190g для касс с большим потоком: быстро читает 1D и 2D коды. Установка, настройка, гарантия и сервис.',
+            'en' => 'Honeywell Orbit 7190g presentation scanner for busy checkouts: reads 1D and 2D codes as items pass. Setup, warranty and service by Poson.',
         ],
         'specs' => [
             'scan_engine' => ['value' => '2D imidjer', 'key' => true],
@@ -336,9 +336,9 @@ return [
             'en' => 'Compact presentation 2D scanner for the checkout counter that quickly reads DataMatrix and codes on phone screens.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra DS9308</strong> — kassa stolida kam joy egallaydigan statsionar 2D skaner. Tovar va qadoqlardagi kodlar, shuningdek xaridor telefonidagi QR kodlar oʻqish oynasi oldida tez taniladi.</p><ul><li><strong>Doʻkon kassasi:</strong> tor kassa joylarida ham qulay joylashadi.</li><li><strong>Dorixona:</strong> markirovkalangan dorilardagi DataMatrix kodlari.</li><li><strong>Xizmat koʻrsatish nuqtalari:</strong> elektron chiptalar va buyurtma kodlarini tekshirish.</li></ul><p>Poson skanerni kassa dasturi yoki 1C ga ulaydi, DataMatrix va GS1 kodlarini toʻgʻri uzatishni sozlaydi. Rasmiy kafolat va servis Poson servis markazida.</p>',
-            'ru' => '<p><strong>Zebra DS9308</strong> — стационарный 2D-сканер, который занимает минимум места на кассовом столе. Коды на товаре и упаковке, а также QR-коды с телефона покупателя быстро распознаются перед окном сканера.</p><ul><li><strong>Касса магазина:</strong> удобно размещается даже на тесном кассовом месте.</li><li><strong>Аптека:</strong> DataMatrix на маркированных лекарствах.</li><li><strong>Точки обслуживания:</strong> проверка электронных билетов и кодов заказов.</li></ul><p>Poson подключит сканер к кассовой программе или 1С и настроит корректную передачу кодов DataMatrix и GS1. Официальная гарантия и сервис — в сервисном центре Poson.</p>',
-            'en' => '<p>The <strong>Zebra DS9308</strong> is a presentation 2D scanner with a small footprint on the checkout counter. Codes on products and packs, and QR codes on a customer\'s phone, are recognised quickly in front of the scan window.</p><ul><li><strong>Shop checkouts:</strong> fits even cramped till positions.</li><li><strong>Pharmacy:</strong> DataMatrix on marked medicines.</li><li><strong>Service counters:</strong> validate e-tickets and order codes.</li></ul><p>Poson connects the scanner to your POS software or 1C and configures correct transmission of DataMatrix and GS1 codes. Official warranty and service at the Poson service center.</p>',
+            'uz' => '<p><strong>Zebra DS9308</strong> — kassa stolida kam joy egallaydigan statsionar 2D skaner. Tovar va qadoqlardagi kodlar, shuningdek xaridor telefonidagi QR kodlar oʻqish oynasi oldida tez taniladi.</p><ul><li><strong>Doʻkon kassasi:</strong> tor kassa joylarida ham qulay joylashadi.</li><li><strong>Dorixona:</strong> markirovkalangan dorilardagi DataMatrix kodlari.</li><li><strong>Xizmat koʻrsatish nuqtalari:</strong> elektron chiptalar va buyurtma kodlarini tekshirish.</li></ul><p>Poson skanerni 1C ga ulaydi, DataMatrix va GS1 kodlarini toʻgʻri uzatishni sozlaydi. Rasmiy kafolat va servis Poson servis markazida.</p>',
+            'ru' => '<p><strong>Zebra DS9308</strong> — стационарный 2D-сканер, который занимает минимум места на кассовом столе. Коды на товаре и упаковке, а также QR-коды с телефона покупателя быстро распознаются перед окном сканера.</p><ul><li><strong>Касса магазина:</strong> удобно размещается даже на тесном кассовом месте.</li><li><strong>Аптека:</strong> DataMatrix на маркированных лекарствах.</li><li><strong>Точки обслуживания:</strong> проверка электронных билетов и кодов заказов.</li></ul><p>Poson подключит сканер к 1С и настроит корректную передачу кодов DataMatrix и GS1. Официальная гарантия и сервис — в сервисном центре Poson.</p>',
+            'en' => '<p>The <strong>Zebra DS9308</strong> is a presentation 2D scanner with a small footprint on the checkout counter. Codes on products and packs, and QR codes on a customer\'s phone, are recognised quickly in front of the scan window.</p><ul><li><strong>Shop checkouts:</strong> fits even cramped till positions.</li><li><strong>Pharmacy:</strong> DataMatrix on marked medicines.</li><li><strong>Service counters:</strong> validate e-tickets and order codes.</li></ul><p>Poson connects the scanner to 1C and configures correct transmission of DataMatrix and GS1 codes. Official warranty and service at the Poson service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra DS9308 statsionar 2D skaneri — Poson',
@@ -412,7 +412,6 @@ return [
         ],
         'related' => [
             ['sku' => 'LBL-DT-100X150-TOP', 'type' => 'consumable'],
-            ['sku' => 'ZEB-ZD3-PRO', 'type' => 'software'],
             ['sku' => 'TSC-TE210', 'type' => 'alternative'],
         ],
     ],
@@ -502,9 +501,9 @@ return [
             'en' => 'Desktop direct thermal and thermal transfer printer: 108 mm print width, 300 m ribbon, USB, RS232 and Ethernet.',
         ],
         'description' => [
-            'uz' => '<p><strong>Godex G500</strong> — kundalik yorliq chop etish uchun sodda va chidamli stol usti printer. U termo va termotransfer usulida ishlaydi, 300 m ribbon va 127 mm gacha diametrli rulonni qabul qiladi.</p><ul><li><strong>Chakana savdo:</strong> tovar va javon yorliqlari.</li><li><strong>Ombor:</strong> quti, joylashuv va joʻnatma yorliqlari.</li><li><strong>Kichik ishlab chiqarish:</strong> mahsulot va partiya yorliqlari.</li><li>203 dpi, 127 mm/s gacha tezlik, USB, RS232 va Ethernet.</li></ul><p>Poson printerni sozlaydi, kalibrlaydi va 1C yoki yorliq dasturiga ulaydi. Ish hajmingizga mos yorliq va ribbonni tanlaymiz, kafolat davomida servis va profilaktikani oʻz servis markazimizda bajaramiz.</p>',
-            'ru' => '<p><strong>Godex G500</strong> — простой и выносливый настольный принтер для повседневной печати этикеток. Работает в режимах прямой термопечати и термотрансфера, принимает риббон 300 м и рулон диаметром до 127 мм.</p><ul><li><strong>Розница:</strong> товарные этикетки и ценники.</li><li><strong>Склад:</strong> коробочные, адресные и транспортные этикетки.</li><li><strong>Малое производство:</strong> этикетки на продукцию и партии.</li><li>203 dpi, скорость до 127 мм/с, USB, RS232 и Ethernet.</li></ul><p>Poson настроит и откалибрует принтер, подключит его к 1С или программе для этикеток. Подберём этикетку и риббон под ваш объём, а гарантийный сервис и профилактику выполним в собственном сервисном центре.</p>',
-            'en' => '<p>The <strong>Godex G500</strong> is a straightforward, hard-wearing desktop printer for everyday labeling. It prints in direct thermal and thermal transfer modes and takes a 300 m ribbon and label rolls up to 127 mm in diameter.</p><ul><li><strong>Retail:</strong> product labels and shelf tags.</li><li><strong>Warehouse:</strong> carton, location and shipping labels.</li><li><strong>Small-scale production:</strong> product and batch labels.</li><li>203 dpi, up to 127 mm/s, USB, RS232 and Ethernet.</li></ul><p>Poson sets up and calibrates the printer and connects it to 1C or your label software. We match labels and ribbons to your volume and carry out warranty service and preventive maintenance in our own service center.</p>',
+            'uz' => '<p><strong>Godex G500</strong> — kundalik yorliq chop etish uchun sodda va chidamli stol usti printer. U termo va termotransfer usulida ishlaydi, 300 m ribbon va 127 mm gacha diametrli rulonni qabul qiladi.</p><ul><li><strong>Chakana savdo:</strong> tovar va javon yorliqlari.</li><li><strong>Ombor:</strong> quti, joylashuv va joʻnatma yorliqlari.</li><li><strong>Kichik ishlab chiqarish:</strong> mahsulot va partiya yorliqlari.</li><li>203 dpi, 127 mm/s gacha tezlik, USB, RS232 va Ethernet.</li></ul><p>Poson printerni sozlaydi, kalibrlaydi va 1C ga ulaydi. Ish hajmingizga mos yorliq va ribbonni tanlaymiz, kafolat davomida servis va profilaktikani oʻz servis markazimizda bajaramiz.</p>',
+            'ru' => '<p><strong>Godex G500</strong> — простой и выносливый настольный принтер для повседневной печати этикеток. Работает в режимах прямой термопечати и термотрансфера, принимает риббон 300 м и рулон диаметром до 127 мм.</p><ul><li><strong>Розница:</strong> товарные этикетки и ценники.</li><li><strong>Склад:</strong> коробочные, адресные и транспортные этикетки.</li><li><strong>Малое производство:</strong> этикетки на продукцию и партии.</li><li>203 dpi, скорость до 127 мм/с, USB, RS232 и Ethernet.</li></ul><p>Poson настроит и откалибрует принтер, подключит его к 1С. Подберём этикетку и риббон под ваш объём, а гарантийный сервис и профилактику выполним в собственном сервисном центре.</p>',
+            'en' => '<p>The <strong>Godex G500</strong> is a straightforward, hard-wearing desktop printer for everyday labeling. It prints in direct thermal and thermal transfer modes and takes a 300 m ribbon and label rolls up to 127 mm in diameter.</p><ul><li><strong>Retail:</strong> product labels and shelf tags.</li><li><strong>Warehouse:</strong> carton, location and shipping labels.</li><li><strong>Small-scale production:</strong> product and batch labels.</li><li>203 dpi, up to 127 mm/s, USB, RS232 and Ethernet.</li></ul><p>Poson sets up and calibrates the printer and connects it to 1C. We match labels and ribbons to your volume and carry out warranty service and preventive maintenance in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Godex G500 yorliq printeri 203 dpi — Poson',
@@ -563,9 +562,9 @@ return [
             'en' => 'Metal-frame industrial printer with speeds up to 356 mm/s and 450 m ribbons, built for continuous production and DC work.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra ZT411</strong> — katta hajmdagi yorliqlarni toʻxtovsiz chop etish uchun sanoat printeri. Metall korpus, 203 mm gacha diametrli rulon va 450 m ribbon smenalar davomida material almashtirishga kamroq vaqt sarflash imkonini beradi.</p><ul><li><strong>Ishlab chiqarish:</strong> mahsulot, quti va palleta yorliqlari, markirovka uchastkalari.</li><li><strong>Taqsimlash markazlari:</strong> joʻnatma va logistika yorliqlari.</li><li><strong>Ombor:</strong> sintetik yorliqlarga chidamli chop etish.</li><li>203 dpi, 356 mm/s gacha, USB, RS232, Ethernet va Bluetooth.</li></ul><p>Poson printerni ishlab chiqarish liniyasi, WMS yoki markirovka tizimi bilan integratsiya qiladi, yorliq va ribbonni sinovdan oʻtkazib tanlaydi. Rejali profilaktika va kafolatli servisni oʻz muhandislarimiz bajaradi. Narx konfiguratsiyaga qarab tijorat taklifida beriladi.</p>',
-            'ru' => '<p><strong>Zebra ZT411</strong> — промышленный принтер для непрерывной печати больших объёмов этикеток. Металлический корпус, рулон диаметром до 203 мм и риббон 450 м сокращают время на замену материалов в течение смены.</p><ul><li><strong>Производство:</strong> этикетки на продукцию, коробки и паллеты, участки маркировки.</li><li><strong>Распределительные центры:</strong> транспортные и логистические этикетки.</li><li><strong>Склад:</strong> стойкая печать на синтетических этикетках.</li><li>203 dpi, до 356 мм/с, USB, RS232, Ethernet и Bluetooth.</li></ul><p>Poson интегрирует принтер с производственной линией, WMS или системой маркировки, подберёт этикетку и риббон по результатам тестовой печати. Плановую профилактику и гарантийный сервис выполняют наши инженеры. Цена зависит от конфигурации и указывается в коммерческом предложении.</p>',
-            'en' => '<p>The <strong>Zebra ZT411</strong> is an industrial printer for non-stop, high-volume labeling. Its metal frame, rolls up to 203 mm in diameter and 450 m ribbons mean less time lost to media changes across a shift.</p><ul><li><strong>Manufacturing:</strong> product, carton and pallet labels, marking stations.</li><li><strong>Distribution centers:</strong> shipping and logistics labels.</li><li><strong>Warehouse:</strong> durable printing on synthetic labels.</li><li>203 dpi, up to 356 mm/s, USB, RS232, Ethernet and Bluetooth.</li></ul><p>Poson integrates the printer with your production line, WMS or marking system and selects label and ribbon after test prints. Our engineers provide scheduled preventive maintenance and warranty service. Pricing depends on configuration and is given in a quote.</p>',
+            'uz' => '<p><strong>Zebra ZT411</strong> — katta hajmdagi yorliqlarni toʻxtovsiz chop etish uchun sanoat printeri. Metall korpus, 203 mm gacha diametrli rulon va 450 m ribbon smenalar davomida material almashtirishga kamroq vaqt sarflash imkonini beradi.</p><ul><li><strong>Ishlab chiqarish:</strong> mahsulot, quti va palleta yorliqlari, markirovka uchastkalari.</li><li><strong>Taqsimlash markazlari:</strong> joʻnatma va logistika yorliqlari.</li><li><strong>Ombor:</strong> sintetik yorliqlarga chidamli chop etish.</li><li>203 dpi, 356 mm/s gacha, USB, RS232, Ethernet va Bluetooth.</li></ul><p>Poson printerni 1C bilan integratsiya qiladi, yorliq va ribbonni sinovdan oʻtkazib tanlaydi. Rejali profilaktika va kafolatli servisni oʻz muhandislarimiz bajaradi. Narx konfiguratsiyaga qarab tijorat taklifida beriladi.</p>',
+            'ru' => '<p><strong>Zebra ZT411</strong> — промышленный принтер для непрерывной печати больших объёмов этикеток. Металлический корпус, рулон диаметром до 203 мм и риббон 450 м сокращают время на замену материалов в течение смены.</p><ul><li><strong>Производство:</strong> этикетки на продукцию, коробки и паллеты, участки маркировки.</li><li><strong>Распределительные центры:</strong> транспортные и логистические этикетки.</li><li><strong>Склад:</strong> стойкая печать на синтетических этикетках.</li><li>203 dpi, до 356 мм/с, USB, RS232, Ethernet и Bluetooth.</li></ul><p>Poson интегрирует принтер с 1С, подберёт этикетку и риббон по результатам тестовой печати. Плановую профилактику и гарантийный сервис выполняют наши инженеры. Цена зависит от конфигурации и указывается в коммерческом предложении.</p>',
+            'en' => '<p>The <strong>Zebra ZT411</strong> is an industrial printer for non-stop, high-volume labeling. Its metal frame, rolls up to 203 mm in diameter and 450 m ribbons mean less time lost to media changes across a shift.</p><ul><li><strong>Manufacturing:</strong> product, carton and pallet labels, marking stations.</li><li><strong>Distribution centers:</strong> shipping and logistics labels.</li><li><strong>Warehouse:</strong> durable printing on synthetic labels.</li><li>203 dpi, up to 356 mm/s, USB, RS232, Ethernet and Bluetooth.</li></ul><p>Poson integrates the printer with 1C and selects label and ribbon after test prints. Our engineers provide scheduled preventive maintenance and warranty service. Pricing depends on configuration and is given in a quote.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra ZT411 sanoat yorliq printeri — Poson',
@@ -589,7 +588,6 @@ return [
         'related' => [
             ['sku' => 'LBL-TT-100X50-PP', 'type' => 'consumable'],
             ['sku' => 'RBN-WR-110X450', 'type' => 'consumable'],
-            ['sku' => 'ZEB-ZD3-PRO', 'type' => 'software'],
         ],
     ],
 
@@ -678,9 +676,9 @@ return [
             'en' => 'Rugged Android 11 mobile computer with a 5.7-inch screen, 2D scanner, IP67 sealing and a 5000 mAh battery for a full shift.',
         ],
         'description' => [
-            'uz' => '<p><strong>Urovo DT50</strong> — ombor va savdo uchun himoyalangan Android TSD. Oʻrnatilgan 2D skaner, 5,7 dyuymli ekran va almashtiriladigan 5000 mAh akkumulyator qogʻozsiz hisobni butun smena davomida yuritishga imkon beradi.</p><ul><li><strong>Ombor:</strong> tovar qabul qilish, joylashtirish, buyurtma yigʻish va inventarizatsiya.</li><li><strong>Chakana savdo:</strong> narxlarni tekshirish, qayta baholash va qoldiqlarni hisoblash.</li><li><strong>Dorixona:</strong> markirovka kodlarini skanerlash va qabul qilish.</li><li>IP67 himoya, 1,5 m dan tushishga chidamlilik, Wi-Fi, Bluetooth va 4G.</li></ul><p>Poson ombor ilovasini oʻrnatadi, 1C yoki WMS bilan almashinuvni sozlaydi va qurilmalarni MDM orqali boshqarishga tayyorlaydi. Rasmiy kafolat, zaxira akkumulyatorlar va taʼmirlash — oʻz servis markazimizda.</p>',
-            'ru' => '<p><strong>Urovo DT50</strong> — защищённый ТСД на Android для склада и розницы. Встроенный 2D-сканер, экран 5,7 дюйма и сменный аккумулятор 5000 мАч позволяют вести безбумажный учёт всю смену.</p><ul><li><strong>Склад:</strong> приёмка, размещение, сборка заказов и инвентаризация.</li><li><strong>Розница:</strong> проверка цен, переоценка и подсчёт остатков.</li><li><strong>Аптека:</strong> сканирование кодов маркировки на приёмке.</li><li>Защита IP67, падения с 1,5 м, Wi-Fi, Bluetooth и 4G.</li></ul><p>Poson установит складское приложение, настроит обмен с 1С или WMS и подготовит устройства к управлению через MDM. Официальная гарантия, запасные аккумуляторы и ремонт — в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Urovo DT50</strong> is a rugged Android mobile computer for warehouses and retail. A built-in 2D scanner, a 5.7-inch screen and a swappable 5000 mAh battery keep paper-free workflows running for a whole shift.</p><ul><li><strong>Warehouse:</strong> receiving, putaway, order picking and stocktaking.</li><li><strong>Retail:</strong> price checks, relabeling and stock counts.</li><li><strong>Pharmacy:</strong> scanning marking codes at receiving.</li><li>IP67 sealing, 1.5 m drop rating, Wi-Fi, Bluetooth and 4G.</li></ul><p>Poson installs your warehouse app, sets up data exchange with 1C or your WMS and prepares the devices for MDM. Official warranty, spare batteries and repairs are handled by our own service center.</p>',
+            'uz' => '<p><strong>Urovo DT50</strong> — ombor va savdo uchun himoyalangan Android TSD. Oʻrnatilgan 2D skaner, 5,7 dyuymli ekran va almashtiriladigan 5000 mAh akkumulyator qogʻozsiz hisobni butun smena davomida yuritishga imkon beradi.</p><ul><li><strong>Ombor:</strong> tovar qabul qilish, joylashtirish, buyurtma yigʻish va inventarizatsiya.</li><li><strong>Chakana savdo:</strong> narxlarni tekshirish, qayta baholash va qoldiqlarni hisoblash.</li><li><strong>Dorixona:</strong> markirovka kodlarini skanerlash va qabul qilish.</li><li>IP67 himoya, 1,5 m dan tushishga chidamlilik, Wi-Fi, Bluetooth va 4G.</li></ul><p>Poson terminallarni Wi-Fi tarmogʻiga ulaydi, ombor ilovasini oʻrnatadi va 1C bilan almashinuvni sozlaydi. Rasmiy kafolat, zaxira akkumulyatorlar va taʼmirlash — oʻz servis markazimizda.</p>',
+            'ru' => '<p><strong>Urovo DT50</strong> — защищённый ТСД на Android для склада и розницы. Встроенный 2D-сканер, экран 5,7 дюйма и сменный аккумулятор 5000 мАч позволяют вести безбумажный учёт всю смену.</p><ul><li><strong>Склад:</strong> приёмка, размещение, сборка заказов и инвентаризация.</li><li><strong>Розница:</strong> проверка цен, переоценка и подсчёт остатков.</li><li><strong>Аптека:</strong> сканирование кодов маркировки на приёмке.</li><li>Защита IP67, падения с 1,5 м, Wi-Fi, Bluetooth и 4G.</li></ul><p>Poson подключит терминалы к Wi-Fi, установит складское приложение и настроит обмен с 1С. Официальная гарантия, запасные аккумуляторы и ремонт — в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Urovo DT50</strong> is a rugged Android mobile computer for warehouses and retail. A built-in 2D scanner, a 5.7-inch screen and a swappable 5000 mAh battery keep paper-free workflows running for a whole shift.</p><ul><li><strong>Warehouse:</strong> receiving, putaway, order picking and stocktaking.</li><li><strong>Retail:</strong> price checks, relabeling and stock counts.</li><li><strong>Pharmacy:</strong> scanning marking codes at receiving.</li><li>IP67 sealing, 1.5 m drop rating, Wi-Fi, Bluetooth and 4G.</li></ul><p>Poson connects the devices to Wi-Fi, installs your warehouse app and sets up data exchange with 1C. Official warranty, spare batteries and repairs are handled by our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Urovo DT50 Android TSD — Poson',
@@ -688,9 +686,9 @@ return [
             'en' => 'Urovo DT50 Android mobile computer — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Urovo DT50 Android TSD: 5,7 dyuymli ekran, 2D skaner, IP67, 5000 mAh akkumulyator. Ombor ilovasini oʻrnatish, 1C bilan almashinuv, MDM va kafolat.',
-            'ru' => 'ТСД Urovo DT50 на Android: экран 5,7 дюйма, 2D-сканер, IP67, аккумулятор 5000 мАч. Установка складских приложений, обмен с 1С, MDM, гарантия и ремонт.',
-            'en' => 'Urovo DT50 Android mobile computer: 5.7-inch screen, 2D scanner, IP67, 5000 mAh battery. Warehouse app setup, 1C exchange, MDM, warranty and repair.',
+            'uz' => 'Urovo DT50 Android TSD: 5,7 dyuymli ekran, 2D skaner, IP67, 5000 mAh akkumulyator. Ombor ilovasini oʻrnatish, 1C bilan almashinuv va kafolat.',
+            'ru' => 'ТСД Urovo DT50 на Android: экран 5,7 дюйма, 2D-сканер, IP67, аккумулятор 5000 мАч. Установка складских приложений, обмен с 1С, гарантия и ремонт.',
+            'en' => 'Urovo DT50 Android mobile computer: 5.7-inch screen, 2D scanner, IP67, 5000 mAh battery. Warehouse app setup, 1C exchange, warranty and repair.',
         ],
         'specs' => [
             'os' => ['value' => 'Android 11', 'key' => true],
@@ -736,9 +734,9 @@ return [
             'en' => 'Smartphone-style Android mobile computer with a 6-inch screen, 2D scanner, Wi-Fi 6 and IP68 sealing for retail and warehouses.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra TC22</strong> — smartfon kabi qulay, lekin korporativ foydalanish uchun yaratilgan Android TSD. Katta 6 dyuymli ekran, 2D skaner va Wi-Fi 6 xodimlarga savdo zalida ham, omborda ham tez ishlash imkonini beradi.</p><ul><li><strong>Chakana savdo:</strong> qoldiqlarni tekshirish, qayta baholash, buyurtmalarni yigʻish.</li><li><strong>Ombor:</strong> qabul qilish, inventarizatsiya va koʻchirish.</li><li><strong>Dorixona:</strong> markirovkalangan tovarlarni qabul qilish va tekshirish.</li><li>IP68 himoya, 3800 mAh akkumulyator, Bluetooth va USB.</li></ul><p>Poson ilovalarni oʻrnatadi, TSDni 1C yoki WMS bilan integratsiya qiladi va qurilmalar parkini MDM orqali boshqarishni sozlaydi. Rasmiy kafolat va taʼmirlash oʻz servis markazimizda bajariladi.</p>',
-            'ru' => '<p><strong>Zebra TC22</strong> — ТСД на Android, удобный как смартфон, но созданный для корпоративной работы. Большой экран 6 дюймов, 2D-сканер и Wi-Fi 6 позволяют быстро работать и в торговом зале, и на складе.</p><ul><li><strong>Розница:</strong> проверка остатков, переоценка, сборка заказов.</li><li><strong>Склад:</strong> приёмка, инвентаризация и перемещения.</li><li><strong>Аптека:</strong> приёмка и проверка маркированного товара.</li><li>Защита IP68, аккумулятор 3800 мАч, Bluetooth и USB.</li></ul><p>Poson установит приложения, интегрирует ТСД с 1С или WMS и настроит управление парком устройств через MDM. Официальная гарантия и ремонт выполняются в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Zebra TC22</strong> is an Android mobile computer that feels like a smartphone but is built for enterprise work. A large 6-inch screen, 2D scanner and Wi-Fi 6 help staff work quickly on the shop floor and in the warehouse.</p><ul><li><strong>Retail:</strong> stock checks, relabeling and order picking.</li><li><strong>Warehouse:</strong> receiving, stocktaking and transfers.</li><li><strong>Pharmacy:</strong> receiving and checking marked goods.</li><li>IP68 sealing, 3800 mAh battery, Bluetooth and USB.</li></ul><p>Poson installs your apps, integrates the devices with 1C or your WMS and sets up fleet management through MDM. Official warranty and repairs are carried out in our own service center.</p>',
+            'uz' => '<p><strong>Zebra TC22</strong> — smartfon kabi qulay, lekin korporativ foydalanish uchun yaratilgan Android TSD. Katta 6 dyuymli ekran, 2D skaner va Wi-Fi 6 xodimlarga savdo zalida ham, omborda ham tez ishlash imkonini beradi.</p><ul><li><strong>Chakana savdo:</strong> qoldiqlarni tekshirish, qayta baholash, buyurtmalarni yigʻish.</li><li><strong>Ombor:</strong> qabul qilish, inventarizatsiya va koʻchirish.</li><li><strong>Dorixona:</strong> markirovkalangan tovarlarni qabul qilish va tekshirish.</li><li>IP68 himoya, 3800 mAh akkumulyator, Bluetooth va USB.</li></ul><p>Poson TSDni Wi-Fi tarmogʻiga ulaydi, ilovalarni oʻrnatadi va 1C bilan integratsiya qiladi. Rasmiy kafolat va taʼmirlash oʻz servis markazimizda bajariladi.</p>',
+            'ru' => '<p><strong>Zebra TC22</strong> — ТСД на Android, удобный как смартфон, но созданный для корпоративной работы. Большой экран 6 дюймов, 2D-сканер и Wi-Fi 6 позволяют быстро работать и в торговом зале, и на складе.</p><ul><li><strong>Розница:</strong> проверка остатков, переоценка, сборка заказов.</li><li><strong>Склад:</strong> приёмка, инвентаризация и перемещения.</li><li><strong>Аптека:</strong> приёмка и проверка маркированного товара.</li><li>Защита IP68, аккумулятор 3800 мАч, Bluetooth и USB.</li></ul><p>Poson подключит ТСД к Wi-Fi, установит приложения и интегрирует их с 1С. Официальная гарантия и ремонт выполняются в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Zebra TC22</strong> is an Android mobile computer that feels like a smartphone but is built for enterprise work. A large 6-inch screen, 2D scanner and Wi-Fi 6 help staff work quickly on the shop floor and in the warehouse.</p><ul><li><strong>Retail:</strong> stock checks, relabeling and order picking.</li><li><strong>Warehouse:</strong> receiving, stocktaking and transfers.</li><li><strong>Pharmacy:</strong> receiving and checking marked goods.</li><li>IP68 sealing, 3800 mAh battery, Bluetooth and USB.</li></ul><p>Poson connects the devices to Wi-Fi, installs your apps and integrates them with 1C. Official warranty and repairs are carried out in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra TC22 Android TSD — Poson',
@@ -746,9 +744,9 @@ return [
             'en' => 'Zebra TC22 Android mobile computer — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Zebra TC22 Android TSD: 6 dyuymli ekran, 2D skaner, Wi-Fi 6 va IP68 himoya. Ilovalarni oʻrnatish, WMS va 1C bilan integratsiya, MDM va kafolat.',
-            'ru' => 'ТСД Zebra TC22 на Android: экран 6 дюймов, 2D-сканер, Wi-Fi 6, защита IP68. Установка приложений, интеграция с WMS и 1С, MDM, гарантия и сервис.',
-            'en' => 'Zebra TC22 Android mobile computer with 6-inch screen, 2D scanner, Wi-Fi 6 and IP68. App installation, WMS and 1C integration, MDM and warranty.',
+            'uz' => 'Zebra TC22 Android TSD: 6 dyuymli ekran, 2D skaner, Wi-Fi 6 va IP68 himoya. Ilovalarni oʻrnatish, 1C bilan integratsiya va kafolat.',
+            'ru' => 'ТСД Zebra TC22 на Android: экран 6 дюймов, 2D-сканер, Wi-Fi 6, защита IP68. Установка приложений, интеграция с 1С, гарантия и сервис.',
+            'en' => 'Zebra TC22 Android mobile computer with 6-inch screen, 2D scanner, Wi-Fi 6 and IP68. App installation, 1C integration and warranty.',
         ],
         'specs' => [
             'os' => ['value' => 'Android 13', 'key' => true],
@@ -1264,9 +1262,9 @@ return [
             'en' => 'Four-port fixed reader for automatic UHF tag capture at dock doors, conveyors and portals.',
         ],
         'description' => [
-            'uz' => '<p><strong>Zebra FX9600</strong> — UHF RFID metkalarni xodim aralashuvisiz oʻqiydigan statsionar oʻquvchi. Toʻrt antenna porti bitta qurilma bilan darvoza yoki konveyer zonasini toʻliq qamrashga imkon beradi, Ethernet va PoE esa montajni soddalashtiradi.</p><ul><li><strong>Ombor:</strong> darvozalardan oʻtayotgan yuklarni avtomatik qayd etish.</li><li><strong>Logistika:</strong> konveyerda qutilar va palletalarni tekshirish.</li><li><strong>Chakana savdo:</strong> kiyim doʻkonlarida tovar harakatini nazorat qilish.</li><li>EPC Gen2 protokoli, USB, RS232 va Ethernet, GPIO kirish va chiqishlari.</li></ul><p>Poson loyihani pilotdan boshlaydi: oʻqish zonasini oʻlchaydi, antennalar joylashuvini hisoblaydi, montaj qiladi va RFID maʼlumotlarini hisob tizimingizga ulaydi. Narx loyiha tarkibiga qarab tijorat taklifida beriladi.</p>',
-            'ru' => '<p><strong>Zebra FX9600</strong> — стационарный считыватель, который читает UHF RFID-метки без участия сотрудника. Четыре антенных порта позволяют одним устройством полностью покрыть зону ворот или конвейера, а Ethernet и PoE упрощают монтаж.</p><ul><li><strong>Склад:</strong> автоматическая фиксация грузов, проходящих через ворота.</li><li><strong>Логистика:</strong> контроль коробов и паллет на конвейере.</li><li><strong>Розница:</strong> контроль движения товара в магазинах одежды.</li><li>Протокол EPC Gen2, USB, RS232 и Ethernet, входы и выходы GPIO.</li></ul><p>Poson начинает проект с пилота: замеряет зону считывания, рассчитывает расстановку антенн, выполняет монтаж и подключает RFID-данные к вашей учётной системе. Цена зависит от состава проекта и указывается в коммерческом предложении.</p>',
-            'en' => '<p>The <strong>Zebra FX9600</strong> is a fixed reader that captures UHF RFID tags without any staff involvement. Four antenna ports let one unit cover a whole dock door or conveyor zone, while Ethernet and PoE simplify installation.</p><ul><li><strong>Warehouse:</strong> automatic logging of goods passing through dock doors.</li><li><strong>Logistics:</strong> verifying cartons and pallets on conveyors.</li><li><strong>Retail:</strong> tracking stock movement in apparel stores.</li><li>EPC Gen2 protocol, USB, RS232 and Ethernet, GPIO inputs and outputs.</li></ul><p>Poson starts with a pilot: we survey the read zone, plan antenna placement, install the hardware and connect RFID data to your accounting system. Pricing depends on the project scope and is given in a quote.</p>',
+            'uz' => '<p><strong>Zebra FX9600</strong> — UHF RFID metkalarni xodim aralashuvisiz oʻqiydigan statsionar oʻquvchi. Toʻrt antenna porti bitta qurilma bilan darvoza yoki konveyer zonasini toʻliq qamrashga imkon beradi, Ethernet va PoE esa montajni soddalashtiradi.</p><ul><li><strong>Ombor:</strong> darvozalardan oʻtayotgan yuklarni avtomatik qayd etish.</li><li><strong>Logistika:</strong> konveyerda qutilar va palletalarni tekshirish.</li><li><strong>Chakana savdo:</strong> kiyim doʻkonlarida tovar harakatini nazorat qilish.</li><li>EPC Gen2 protokoli, USB, RS232 va Ethernet, GPIO kirish va chiqishlari.</li></ul><p>Poson loyihani pilotdan boshlaydi: oʻqish zonasini oʻlchaydi, antennalar joylashuvini hisoblaydi, montaj qiladi va RFID maʼlumotlarini 1C ga uzatishni sozlaydi. Narx loyiha tarkibiga qarab tijorat taklifida beriladi.</p>',
+            'ru' => '<p><strong>Zebra FX9600</strong> — стационарный считыватель, который читает UHF RFID-метки без участия сотрудника. Четыре антенных порта позволяют одним устройством полностью покрыть зону ворот или конвейера, а Ethernet и PoE упрощают монтаж.</p><ul><li><strong>Склад:</strong> автоматическая фиксация грузов, проходящих через ворота.</li><li><strong>Логистика:</strong> контроль коробов и паллет на конвейере.</li><li><strong>Розница:</strong> контроль движения товара в магазинах одежды.</li><li>Протокол EPC Gen2, USB, RS232 и Ethernet, входы и выходы GPIO.</li></ul><p>Poson начинает проект с пилота: замеряет зону считывания, рассчитывает расстановку антенн, выполняет монтаж и настраивает передачу RFID-данных в 1С. Цена зависит от состава проекта и указывается в коммерческом предложении.</p>',
+            'en' => '<p>The <strong>Zebra FX9600</strong> is a fixed reader that captures UHF RFID tags without any staff involvement. Four antenna ports let one unit cover a whole dock door or conveyor zone, while Ethernet and PoE simplify installation.</p><ul><li><strong>Warehouse:</strong> automatic logging of goods passing through dock doors.</li><li><strong>Logistics:</strong> verifying cartons and pallets on conveyors.</li><li><strong>Retail:</strong> tracking stock movement in apparel stores.</li><li>EPC Gen2 protocol, USB, RS232 and Ethernet, GPIO inputs and outputs.</li></ul><p>Poson starts with a pilot: we survey the read zone, plan antenna placement, install the hardware and set up the transfer of RFID data to 1C. Pricing depends on the project scope and is given in a quote.</p>',
         ],
         'meta_title' => [
             'uz' => 'Zebra FX9600 statsionar RFID oʻquvchisi — Poson',
@@ -1428,9 +1426,9 @@ return [
             'en' => 'Android POS terminal with a built-in 58 mm receipt printer, 4G and Wi-Fi for cafés, couriers and pop-up retail.',
         ],
         'description' => [
-            'uz' => '<p><strong>Sunmi V2s</strong> — qoʻlda ishlatiladigan Android POS terminal, unda kassa dasturi va 58 mm chek printeri bitta korpusda jamlangan. Xodim buyurtmani qabul qilib, chekni darhol stol yonida yoki yetkazib berish joyida chop etadi.</p><ul><li><strong>HoReCa:</strong> zalda buyurtma qabul qilish va hisobni chop etish.</li><li><strong>Yetkazib berish:</strong> kuryer uchun mobil kassa.</li><li><strong>Koʻchma savdo:</strong> yarmarka va tadbirlarda savdo nuqtasi.</li><li>Android 11, 5,5 dyuymli ekran, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson kassa dasturini oʻrnatadi, chek shablonini sozlaydi va terminalni hisob tizimingiz bilan bogʻlaydi. Konfiguratsiyani (NFC, 2D skaner) vazifangizga qarab tanlaymiz, rasmiy kafolat va servisni oʻz servis markazimizda koʻrsatamiz.</p>',
-            'ru' => '<p><strong>Sunmi V2s</strong> — мобильный POS-терминал на Android, в котором кассовая программа и чековый принтер 58 мм собраны в одном корпусе. Сотрудник принимает заказ и сразу печатает чек у столика или на месте доставки.</p><ul><li><strong>HoReCa:</strong> приём заказов в зале и печать счёта.</li><li><strong>Доставка:</strong> мобильная касса для курьера.</li><li><strong>Выездная торговля:</strong> точка продаж на ярмарках и мероприятиях.</li><li>Android 11, экран 5,5 дюйма, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson установит кассовую программу, настроит шаблон чека и свяжет терминал с вашей учётной системой. Комплектацию (NFC, 2D-сканер) подберём под задачу, официальную гарантию и сервис обеспечит наш сервисный центр.</p>',
-            'en' => '<p>The <strong>Sunmi V2s</strong> is a handheld Android POS terminal that combines your POS app and a 58 mm receipt printer in one body. Staff take the order and print the receipt right at the table or on the doorstep.</p><ul><li><strong>HoReCa:</strong> table-side ordering and bill printing.</li><li><strong>Delivery:</strong> a mobile till for couriers.</li><li><strong>Pop-up retail:</strong> a till for fairs and events.</li><li>Android 11, 5.5-inch screen, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson installs your POS software, sets up the receipt layout and links the terminal to your accounting system. We choose the configuration (NFC, 2D scanner) for your task and provide official warranty and service in our own service center.</p>',
+            'uz' => '<p><strong>Sunmi V2s</strong> — qoʻlda ishlatiladigan Android POS terminal, unda kassa dasturi va 58 mm chek printeri bitta korpusda jamlangan. Xodim buyurtmani qabul qilib, chekni darhol stol yonida yoki yetkazib berish joyida chop etadi.</p><ul><li><strong>HoReCa:</strong> zalda buyurtma qabul qilish va hisobni chop etish.</li><li><strong>Yetkazib berish:</strong> kuryer uchun mobil kassa.</li><li><strong>Koʻchma savdo:</strong> yarmarka va tadbirlarda savdo nuqtasi.</li><li>Android 11, 5,5 dyuymli ekran, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson oʻzi yetkazib beradigan kassa dasturini oʻrnatadi, chek shablonini sozlaydi va kerak boʻlsa terminalni 1C bilan bogʻlaydi. Konfiguratsiyani (NFC, 2D skaner) vazifangizga qarab tanlaymiz, rasmiy kafolat va servisni oʻz servis markazimizda koʻrsatamiz.</p>',
+            'ru' => '<p><strong>Sunmi V2s</strong> — мобильный POS-терминал на Android, в котором кассовая программа и чековый принтер 58 мм собраны в одном корпусе. Сотрудник принимает заказ и сразу печатает чек у столика или на месте доставки.</p><ul><li><strong>HoReCa:</strong> приём заказов в зале и печать счёта.</li><li><strong>Доставка:</strong> мобильная касса для курьера.</li><li><strong>Выездная торговля:</strong> точка продаж на ярмарках и мероприятиях.</li><li>Android 11, экран 5,5 дюйма, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson установит кассовую программу из своего ассортимента, настроит шаблон чека и при необходимости свяжет терминал с 1С. Комплектацию (NFC, 2D-сканер) подберём под задачу, официальную гарантию и сервис обеспечит наш сервисный центр.</p>',
+            'en' => '<p>The <strong>Sunmi V2s</strong> is a handheld Android POS terminal that combines your POS app and a 58 mm receipt printer in one body. Staff take the order and print the receipt right at the table or on the doorstep.</p><ul><li><strong>HoReCa:</strong> table-side ordering and bill printing.</li><li><strong>Delivery:</strong> a mobile till for couriers.</li><li><strong>Pop-up retail:</strong> a till for fairs and events.</li><li>Android 11, 5.5-inch screen, 4G, Wi-Fi, Bluetooth.</li></ul><p>Poson installs a POS program from its own range, sets up the receipt layout and, if needed, links the terminal to 1C. We choose the configuration (NFC, 2D scanner) for your task and provide official warranty and service in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Sunmi V2s mobil POS terminali — Poson',
@@ -1449,9 +1447,8 @@ return [
             'ram' => 2,
             'storage' => 16,
         ],
-        'related' => [
-            ['sku' => 'ATL-FRONTOL6', 'type' => 'software'],
-        ],
+        // CONFIRM: link a POS program here once its Sunmi V2s compatibility is confirmed.
+        'related' => [],
     ],
 
     // ─── Receipt printers ───────────────────────────────────────────────────
@@ -1482,9 +1479,9 @@ return [
             'en' => '80 mm thermal receipt printer with 200 mm/s speed, auto-cutter, USB and Ethernet for checkouts and kitchens.',
         ],
         'description' => [
-            'uz' => '<p><strong>Xprinter XP-Q200</strong> — 80 mm kenglikdagi termo chek printeri. Avtokesgich chekni avtomatik kesadi, Ethernet porti esa printerni tarmoq orqali bir nechta kassa yoki oshxona bilan ishlatish imkonini beradi.</p><ul><li><strong>Chakana savdo:</strong> kassa cheklari.</li><li><strong>HoReCa:</strong> oshxona va bar uchun buyurtma chiptalari tarmoq orqali.</li><li><strong>Dorixona va xizmat nuqtalari:</strong> cheklar va talonlar.</li><li>200 mm/s, avtokesgich, USB va Ethernet.</li></ul><p>Poson printerni kassa dasturiga ulaydi, chek shablonini sozlaydi va kerak boʻlsa pul yashigini ulab, chek chop etilganda avtomatik ochilishini sozlaydi. Kafolatli taʼmirlash oʻz servis markazimizda bajariladi.</p>',
-            'ru' => '<p><strong>Xprinter XP-Q200</strong> — термопринтер чеков шириной 80 мм. Автоотрезчик отрезает чек автоматически, а порт Ethernet позволяет использовать принтер по сети с несколькими кассами или на кухне.</p><ul><li><strong>Розница:</strong> кассовые чеки.</li><li><strong>HoReCa:</strong> бегунки заказов для кухни и бара по сети.</li><li><strong>Аптеки и точки обслуживания:</strong> чеки и талоны.</li><li>200 мм/с, автоотрезчик, USB и Ethernet.</li></ul><p>Poson подключит принтер к кассовой программе, настроит шаблон чека и при необходимости подключит денежный ящик с автоматическим открытием при печати чека. Гарантийный ремонт выполняется в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Xprinter XP-Q200</strong> is an 80 mm thermal receipt printer. The auto-cutter trims each receipt automatically, and the Ethernet port lets several tills or the kitchen share the printer over the network.</p><ul><li><strong>Retail:</strong> till receipts.</li><li><strong>HoReCa:</strong> kitchen and bar order tickets over the network.</li><li><strong>Pharmacies and service points:</strong> receipts and tickets.</li><li>200 mm/s, auto-cutter, USB and Ethernet.</li></ul><p>Poson connects the printer to your POS software, sets up the receipt layout and, if needed, connects a cash drawer that opens automatically when a receipt prints. Warranty repairs are handled in our own service center.</p>',
+            'uz' => '<p><strong>Xprinter XP-Q200</strong> — 80 mm kenglikdagi termo chek printeri. Avtokesgich chekni avtomatik kesadi, Ethernet porti esa printerni tarmoq orqali bir nechta kassa yoki oshxona bilan ishlatish imkonini beradi.</p><ul><li><strong>Chakana savdo:</strong> kassa cheklari.</li><li><strong>HoReCa:</strong> oshxona va bar uchun buyurtma chiptalari tarmoq orqali.</li><li><strong>Dorixona va xizmat nuqtalari:</strong> cheklar va talonlar.</li><li>200 mm/s, avtokesgich, USB va Ethernet.</li></ul><p>Poson printerni oʻrnatadi, chek shablonini sozlaydi va kerak boʻlsa pul yashigini ulab, chek chop etilganda avtomatik ochilishini sozlaydi. Kafolatli taʼmirlash oʻz servis markazimizda bajariladi.</p>',
+            'ru' => '<p><strong>Xprinter XP-Q200</strong> — термопринтер чеков шириной 80 мм. Автоотрезчик отрезает чек автоматически, а порт Ethernet позволяет использовать принтер по сети с несколькими кассами или на кухне.</p><ul><li><strong>Розница:</strong> кассовые чеки.</li><li><strong>HoReCa:</strong> бегунки заказов для кухни и бара по сети.</li><li><strong>Аптеки и точки обслуживания:</strong> чеки и талоны.</li><li>200 мм/с, автоотрезчик, USB и Ethernet.</li></ul><p>Poson установит принтер, настроит шаблон чека и при необходимости подключит денежный ящик с автоматическим открытием при печати чека. Гарантийный ремонт выполняется в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Xprinter XP-Q200</strong> is an 80 mm thermal receipt printer. The auto-cutter trims each receipt automatically, and the Ethernet port lets several tills or the kitchen share the printer over the network.</p><ul><li><strong>Retail:</strong> till receipts.</li><li><strong>HoReCa:</strong> kitchen and bar order tickets over the network.</li><li><strong>Pharmacies and service points:</strong> receipts and tickets.</li><li>200 mm/s, auto-cutter, USB and Ethernet.</li></ul><p>Poson installs the printer, sets up the receipt layout and, if needed, connects a cash drawer that opens automatically when a receipt prints. Warranty repairs are handled in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Xprinter XP-Q200 chek printeri 80 mm — Poson',
@@ -1492,7 +1489,7 @@ return [
             'en' => 'Xprinter XP-Q200 receipt printer 80 mm — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Xprinter XP-Q200 chek printeri: 80 mm, 200 mm/s, avtokesgich, USB va Ethernet. Doʻkon kassasi va oshxona uchun. Kassa dasturiga ulash, kafolat va servis.',
+            'uz' => 'Xprinter XP-Q200 chek printeri: 80 mm, 200 mm/s, avtokesgich, USB va Ethernet. Doʻkon kassasi va oshxona uchun. Oʻrnatish, kafolat va servis.',
             'ru' => 'Чековый принтер Xprinter XP-Q200: 80 мм, 200 мм/с, автоотрезчик, USB и Ethernet. Для кассы магазина и кухни. Подключение к кассе, гарантия и сервис.',
             'en' => 'Xprinter XP-Q200 80 mm receipt printer, 200 mm/s, auto-cutter, USB and Ethernet. For shop checkouts and kitchens. POS setup, warranty and service.',
         ],
@@ -1535,9 +1532,9 @@ return [
             'en' => 'Compact 58 mm USB receipt printer for small shops, cafés and service counters.',
         ],
         'description' => [
-            'uz' => '<p><strong>Xprinter XP-58IIH</strong> — kassa stolida kam joy egallaydigan ixcham 58 mm termo chek printeri. Cheklar soni oʻrtacha boʻlgan kichik savdo nuqtalari uchun mos.</p><ul><li><strong>Kichik doʻkonlar:</strong> kassa cheklari.</li><li><strong>Kafe:</strong> buyurtma va hisob cheklari.</li><li><strong>Xizmat koʻrsatish nuqtalari:</strong> qabul kvitansiyalari va talonlar.</li><li>58 mm lenta, USB interfeys, chek qoʻlda yirtib olinadi.</li></ul><p>Poson printerni kompyuter va kassa dasturiga ulaydi, drayver va chek shablonini sozlaydi. Cheklar soni oshsa, avtokesgichli 80 mm modelga oʻtishda maslahat beramiz. Kafolatli servis oʻz servis markazimizda.</p>',
-            'ru' => '<p><strong>Xprinter XP-58IIH</strong> — компактный термопринтер чеков 58 мм, который занимает минимум места на кассе. Подходит для небольших точек продаж со средним потоком чеков.</p><ul><li><strong>Небольшие магазины:</strong> кассовые чеки.</li><li><strong>Кафе:</strong> чеки заказов и счета.</li><li><strong>Сервисные точки:</strong> квитанции приёма и талоны.</li><li>Лента 58 мм, интерфейс USB, чек отрывается вручную.</li></ul><p>Poson подключит принтер к компьютеру и кассовой программе, настроит драйвер и шаблон чека. Если поток чеков вырастет, поможем перейти на модель 80 мм с автоотрезчиком. Гарантийный сервис — в нашем сервисном центре.</p>',
-            'en' => '<p>The <strong>Xprinter XP-58IIH</strong> is a compact 58 mm thermal receipt printer that takes up very little counter space. It suits small shops and counters with moderate receipt volumes.</p><ul><li><strong>Small shops:</strong> till receipts.</li><li><strong>Cafés:</strong> order receipts and bills.</li><li><strong>Service counters:</strong> drop-off slips and tickets.</li><li>58 mm paper, USB interface, manual tear-off.</li></ul><p>Poson connects the printer to your PC and POS software and sets up the driver and receipt layout. If your receipt volume grows, we will help you move to an 80 mm model with an auto-cutter. Warranty service is handled in our own service center.</p>',
+            'uz' => '<p><strong>Xprinter XP-58IIH</strong> — kassa stolida kam joy egallaydigan ixcham 58 mm termo chek printeri. Cheklar soni oʻrtacha boʻlgan kichik savdo nuqtalari uchun mos.</p><ul><li><strong>Kichik doʻkonlar:</strong> kassa cheklari.</li><li><strong>Kafe:</strong> buyurtma va hisob cheklari.</li><li><strong>Xizmat koʻrsatish nuqtalari:</strong> qabul kvitansiyalari va talonlar.</li><li>58 mm lenta, USB interfeys, chek qoʻlda yirtib olinadi.</li></ul><p>Poson printerni kompyuterga ulaydi, drayver va chek shablonini sozlaydi. Cheklar soni oshsa, avtokesgichli 80 mm modelga oʻtishda maslahat beramiz. Kafolatli servis oʻz servis markazimizda.</p>',
+            'ru' => '<p><strong>Xprinter XP-58IIH</strong> — компактный термопринтер чеков 58 мм, который занимает минимум места на кассе. Подходит для небольших точек продаж со средним потоком чеков.</p><ul><li><strong>Небольшие магазины:</strong> кассовые чеки.</li><li><strong>Кафе:</strong> чеки заказов и счета.</li><li><strong>Сервисные точки:</strong> квитанции приёма и талоны.</li><li>Лента 58 мм, интерфейс USB, чек отрывается вручную.</li></ul><p>Poson подключит принтер к компьютеру, настроит драйвер и шаблон чека. Если поток чеков вырастет, поможем перейти на модель 80 мм с автоотрезчиком. Гарантийный сервис — в нашем сервисном центре.</p>',
+            'en' => '<p>The <strong>Xprinter XP-58IIH</strong> is a compact 58 mm thermal receipt printer that takes up very little counter space. It suits small shops and counters with moderate receipt volumes.</p><ul><li><strong>Small shops:</strong> till receipts.</li><li><strong>Cafés:</strong> order receipts and bills.</li><li><strong>Service counters:</strong> drop-off slips and tickets.</li><li>58 mm paper, USB interface, manual tear-off.</li></ul><p>Poson connects the printer to your PC and sets up the driver and receipt layout. If your receipt volume grows, we will help you move to an 80 mm model with an auto-cutter. Warranty service is handled in our own service center.</p>',
         ],
         'meta_title' => [
             'uz' => 'Xprinter XP-58IIH chek printeri 58 mm — Poson',
@@ -1545,9 +1542,9 @@ return [
             'en' => 'Xprinter XP-58IIH receipt printer 58 mm — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Xprinter XP-58IIH ixcham 58 mm chek printeri, USB: kichik doʻkon, kafe va xizmat koʻrsatish nuqtalari uchun. Kassa dasturiga ulash, kafolat va servis.',
-            'ru' => 'Компактный чековый принтер Xprinter XP-58IIH 58 мм с USB для небольших магазинов, кафе и сервисных точек. Подключение к кассовой программе и гарантия.',
-            'en' => 'Xprinter XP-58IIH compact 58 mm receipt printer with USB for small shops, cafés and service counters. Connection to your POS software, warranty, service.',
+            'uz' => 'Xprinter XP-58IIH ixcham 58 mm chek printeri, USB: kichik doʻkon, kafe va xizmat koʻrsatish nuqtalari uchun. Ulash, sozlash, kafolat va servis.',
+            'ru' => 'Компактный чековый принтер Xprinter XP-58IIH 58 мм с USB для небольших магазинов, кафе и сервисных точек. Подключение, настройка и гарантия.',
+            'en' => 'Xprinter XP-58IIH compact 58 mm receipt printer with USB for small shops, cafés and service counters. Connection, setup, warranty and service.',
         ],
         'specs' => [
             'paper_width' => ['value' => '58', 'key' => true],
@@ -1608,60 +1605,63 @@ return [
         ],
     ],
 
-    // ─── Label design software ──────────────────────────────────────────────
+    // ─── Software (vendors per business-facts row 14) ───────────────────────
+    // All software: sale_mode quote, prices null (price on request).
+    // CONFIRM: stock_status 'on_order' for all licences (copied from the old demo item).
+
+    // ─── Inventory software ─────────────────────────────────────────────────
     [
-        'sku' => 'ZEB-ZD3-PRO',
-        'model' => 'ZebraDesigner 3 Professional',
-        'brand' => 'Zebra',
-        'category' => 'label-design-software',
+        'sku' => 'SW-MOYSKLAD',
+        'model' => 'MoySklad',
+        'brand' => 'MoySklad',
+        'category' => 'warehouse-software',
         'type' => 'software',
         'unit' => 'license',
         'min_qty' => 1,
-        'sale_mode' => 'both',
-        'stock_status' => 'in_stock',
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
         'warranty_months' => null,
         'badge' => null,
         'is_featured' => false,
-        'price' => 6200000,
-        'price_dealer' => 5580000,
-        'price_wholesale' => 5890000,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
         'name' => [
-            'uz' => 'ZebraDesigner 3 Professional litsenziyasi',
-            'ru' => 'Лицензия ZebraDesigner 3 Professional',
-            'en' => 'ZebraDesigner 3 Professional license',
+            'uz' => 'MoySklad savdo va ombor hisobi xizmati',
+            'ru' => 'МойСклад — сервис учёта торговли и склада',
+            'en' => 'MoySklad trade and inventory service',
         ],
         'short_description' => [
-            'uz' => 'Zebra printerlari uchun yorliq dizayni dasturi: shtrix-kod, DataMatrix va maʼlumotlar bazasidan olinadigan maydonlar.',
-            'ru' => 'Программа дизайна этикеток для принтеров Zebra: штрих-коды, DataMatrix и поля из базы данных.',
-            'en' => 'Label design software for Zebra printers with barcodes, DataMatrix and fields pulled from a database.',
+            'uz' => 'Savdo va ombor hisobi uchun bulutli xizmat: savdo, xaridlar, qoldiqlar va mijozlar. Poson sozlaydi va uskunangizni ulaydi.',
+            'ru' => 'Облачный сервис учёта торговли: продажи, закупки, складские остатки и клиенты. Poson настроит сервис и подключит оборудование.',
+            'en' => 'Cloud service for trade and inventory: orders, purchasing, stock levels and customers. Poson sets it up and connects your equipment.',
         ],
+        // CONFIRM: which MoySklad edition/plans Poson offers for Uzbekistan.
         'description' => [
-            'uz' => '<p><strong>ZebraDesigner 3 Professional</strong> — Zebra printerlarida yorliq shablonlarini yaratish va chop etish uchun dastur. Professional versiya maʼlumotlar bazasiga ulanish va oʻzgaruvchan maydonlarni qoʻllab-quvvatlaydi, shuning uchun bir shablondan minglab turli yorliqlarni chop etish mumkin.</p><ul><li><strong>Ishlab chiqarish:</strong> partiya raqami, sana va seriya raqamli mahsulot yorliqlari.</li><li><strong>Ombor:</strong> joylashuv va quti yorliqlari Excel yoki bazadan.</li><li><strong>Chakana savdo:</strong> GS1 va DataMatrix kodli tovar yorliqlari.</li><li>Muddatsiz litsenziya, bitta ish joyi.</li></ul><p>Poson litsenziyani faollashtiradi, dasturni oʻrnatadi, shablonlaringizni tayyorlaydi va yorliqlarni 1C maʼlumotlari bilan bogʻlaydi. Xodimlaringizni oʻqitamiz va keyinchalik shablonlarni oʻzgartirishda yordam beramiz.</p>',
-            'ru' => '<p><strong>ZebraDesigner 3 Professional</strong> — программа для создания и печати шаблонов этикеток на принтерах Zebra. Версия Professional поддерживает подключение к базам данных и переменные поля, поэтому из одного шаблона можно напечатать тысячи разных этикеток.</p><ul><li><strong>Производство:</strong> этикетки с номером партии, датой и серийным номером.</li><li><strong>Склад:</strong> адресные и коробочные этикетки из Excel или базы данных.</li><li><strong>Розница:</strong> товарные этикетки с кодами GS1 и DataMatrix.</li><li>Бессрочная лицензия на одно рабочее место.</li></ul><p>Poson активирует лицензию, установит программу, подготовит ваши шаблоны и свяжет этикетки с данными из 1С. Обучим сотрудников и поможем с изменением шаблонов в дальнейшем.</p>',
-            'en' => '<p><strong>ZebraDesigner 3 Professional</strong> is software for designing and printing label templates on Zebra printers. The Professional edition supports database connections and variable fields, so one template can print thousands of different labels.</p><ul><li><strong>Manufacturing:</strong> product labels with batch number, date and serial number.</li><li><strong>Warehouse:</strong> location and carton labels from Excel or a database.</li><li><strong>Retail:</strong> product labels with GS1 and DataMatrix codes.</li><li>Perpetual license for one workstation.</li></ul><p>Poson activates the license, installs the software, builds your templates and links the labels to data from 1C. We train your staff and help with template changes later on.</p>',
+            'uz' => '<p><strong>MoySklad</strong> — savdoni boshqarish uchun bulutli xizmat: savdo, xaridlar, ombor hisobi, moliya va mijozlar bilan ishlash bitta tizimda. Xizmat brauzerda va mobil qurilmalarda ishlaydi.</p><ul><li><strong>Chakana savdo:</strong> savdo nuqtalari boʻyicha qoldiqlar va savdo nazorati.</li><li><strong>Ombor:</strong> tovar kirimi, koʻchirish va inventarizatsiya.</li><li><strong>Ulgurji va onlayn buyurtmalar:</strong> buyurtmalarni qayta ishlash va xaridlarni rejalashtirish.</li><li>Kompyuter, planshet yoki smartfondan foydalanish.</li></ul><p>Poson tarif va modullarni biznesingizga moslab tanlashga yordam beradi, xizmatni sozlaydi, shtrix-kod skaneri va yorliq printerini ulaydi, xodimlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>МойСклад</strong> — облачный сервис для управления торговлей: продажи, закупки, складской учёт, финансы и работа с клиентами в одной системе. Работает в браузере и на мобильных устройствах.</p><ul><li><strong>Розница:</strong> контроль остатков и продаж по точкам.</li><li><strong>Склад:</strong> приёмка, перемещения и инвентаризация.</li><li><strong>Опт и интернет-заказы:</strong> обработка заказов и планирование закупок.</li><li>Доступ с компьютера, планшета или смартфона.</li></ul><p>Poson поможет подобрать тариф и модули под ваш бизнес, настроит сервис, подключит сканер штрих-кода и принтер этикеток, обучит сотрудников и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p><strong>MoySklad</strong> is a cloud service for running a trading business: orders, purchasing, stock records, finances and customer relations in one system. It works in a browser and on mobile devices.</p><ul><li><strong>Retail:</strong> stock levels and turnover by outlet.</li><li><strong>Warehouse:</strong> goods receipts, transfers and stocktaking.</li><li><strong>Wholesale and online orders:</strong> order processing and purchase planning.</li><li>Access from a computer, tablet or smartphone.</li></ul><p>Poson helps you choose the plan and modules for your business, sets up the service, connects barcode scanners and label printers, trains your staff and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
         ],
         'meta_title' => [
-            'uz' => 'ZebraDesigner 3 Professional litsenziyasi — Poson',
-            'ru' => 'Лицензия ZebraDesigner 3 Professional — Poson',
-            'en' => 'ZebraDesigner 3 Professional license — Poson',
+            'uz' => 'MoySklad: savdo va ombor hisobi — Poson',
+            'ru' => 'МойСклад: учёт торговли и склада — Poson',
+            'en' => 'MoySklad trade and inventory service — Poson',
         ],
         'meta_description' => [
-            'uz' => 'ZebraDesigner 3 Professional litsenziyasi: Zebra printerlari uchun shtrix-kod, DataMatrix va bazadan olinadigan maydonli yorliqlar. Shablonlar va oʻqitish.',
-            'ru' => 'Лицензия ZebraDesigner 3 Professional: этикетки со штрих-кодами, DataMatrix и полями из базы данных для принтеров Zebra. Шаблоны, связь с 1С, обучение.',
-            'en' => 'ZebraDesigner 3 Professional license for designing labels with barcodes, DataMatrix and database fields on Zebra printers. Templates, 1C link, training.',
+            'uz' => 'MoySklad bulutli xizmati: savdo, xaridlar, qoldiqlar va mijozlar hisobi. Poson sozlaydi, skaner va yorliq printerini ulaydi, xodimlarni oʻqitadi.',
+            'ru' => 'МойСклад — облачный учёт продаж, закупок, остатков и клиентов. Poson настроит сервис, подключит сканер и принтер этикеток и обучит сотрудников.',
+            'en' => 'MoySklad cloud service for orders, purchasing, stock and customer records. Poson sets it up, connects scanners and label printers and trains staff.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Muddatsiz', 'key' => true],
-            'seats' => ['value' => 1, 'key' => true],
+            'license_type' => ['value' => 'Obuna', 'key' => true],
         ],
         'related' => [],
     ],
-
-    // ─── POS software ───────────────────────────────────────────────────────
+    // ─── POS software (retail: Ox, Billz, Hippo, Pospoint, Rahmat; HoReCa: Aliposter) ───
     [
-        'sku' => 'ATL-FRONTOL6',
-        'model' => 'Frontol 6',
-        'brand' => 'Atol',
+        'sku' => 'SW-OX',
+        'model' => 'Ox',
+        'brand' => 'Ox',
         'category' => 'pos-software',
         'type' => 'software',
         'unit' => 'license',
@@ -1675,34 +1675,255 @@ return [
         'price_dealer' => null,
         'price_wholesale' => null,
         'name' => [
-            'uz' => 'Atol Frontol 6 kassa dasturi',
-            'ru' => 'Кассовая программа Frontol 6',
-            'en' => 'Atol Frontol 6 POS software',
+            'uz' => 'Ox kassa dasturi',
+            'ru' => 'Кассовая программа Ox',
+            'en' => 'Ox POS software',
         ],
         'short_description' => [
-            'uz' => 'Doʻkon, dorixona va kafe uchun kassa dasturi: savdo, tovar hisobi va hisobotlar, POS uskunasi bilan birga oʻrnatiladi.',
-            'ru' => 'Кассовая программа для магазинов, аптек и кафе: продажи, товарный учёт и отчёты, устанавливается вместе с POS-оборудованием.',
-            'en' => 'POS software for shops, pharmacies and cafés covering checkout operations, stock records and reports, installed with your POS hardware.',
+            'uz' => 'Chakana savdo doʻkonlari uchun kassa dasturi. Poson uni sozlaydi, skaner, chek printeri va pul yashigini ulaydi, kassirlarni oʻqitadi.',
+            'ru' => 'Кассовая программа для розничных магазинов. Poson настроит её, подключит сканер, чековый принтер и денежный ящик и обучит кассиров.',
+            'en' => 'POS software for retail shops. Poson sets it up, connects the scanner, receipt printer and cash drawer and trains your cashiers.',
         ],
         'description' => [
-            'uz' => '<p><strong>Frontol 6</strong> — Atol kompaniyasining kassa joyini avtomatlashtirish dasturi. U savdo va qaytarish operatsiyalari, tovar maʼlumotnomasi, kassirlar huquqlari va smena hisobotlarini bitta interfeysda jamlaydi.</p><ul><li><strong>Chakana savdo:</strong> skaner va tarozi bilan tez kassa ishi.</li><li><strong>Dorixona:</strong> tovar va qoldiqlar hisobi.</li><li><strong>HoReCa:</strong> buyurtmalar va oshxona chiptalari.</li><li>Muddatsiz litsenziya, bitta kassa joyi.</li></ul><p>Poson dasturni POS uskunangiz bilan birga oʻrnatadi, skaner, chek printeri va pul yashigini ulaydi, 1C bilan almashinuvni sozlaydi va kassirlarni oʻqitadi. Narx kassa joylari soni va konfiguratsiyaga qarab tijorat taklifida beriladi.</p>',
-            'ru' => '<p><strong>Frontol 6</strong> — программа АТОЛ для автоматизации кассового места. Она объединяет в одном интерфейсе продажи и возвраты, товарный справочник, права кассиров и сменные отчёты.</p><ul><li><strong>Розница:</strong> быстрая работа кассы со сканером и весами.</li><li><strong>Аптека:</strong> учёт товаров и остатков.</li><li><strong>HoReCa:</strong> заказы и кухонные бегунки.</li><li>Бессрочная лицензия на одно кассовое место.</li></ul><p>Poson установит программу вместе с POS-оборудованием, подключит сканер, чековый принтер и денежный ящик, настроит обмен с 1С и обучит кассиров. Цена зависит от числа касс и конфигурации и указывается в коммерческом предложении.</p>',
-            'en' => '<p><strong>Frontol 6</strong> is Atol\'s software for automating the checkout station. It brings checkout operations and returns, the product catalog, cashier permissions and shift reports together in one interface.</p><ul><li><strong>Retail:</strong> fast checkout work with scanners and scales.</li><li><strong>Pharmacy:</strong> product and stock records.</li><li><strong>HoReCa:</strong> orders and kitchen tickets.</li><li>Perpetual license for one checkout station.</li></ul><p>Poson installs the software with your POS hardware, connects the scanner, receipt printer and cash drawer, sets up data exchange with 1C and trains your cashiers. Pricing depends on the number of tills and the configuration and is given in a quote.</p>',
+            'uz' => '<p><strong>Ox</strong> — chakana savdo doʻkonlari uchun kassa dasturi. Poson uni doʻkoningizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur doʻkoningiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va savdo nuqtalari.</li><li><strong>Uskuna:</strong> skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>Ox</strong> — кассовая программа для розничных магазинов. Poson настроит её под ваш магазин и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего магазина.</li><li><strong>Настройка:</strong> товары, кассиры и точки продаж.</li><li><strong>Оборудование:</strong> подключение сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p><strong>Ox</strong> is POS software for retail shops. Poson configures it for your store and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your shop format.</li><li><strong>Setup:</strong> products, cashiers and outlets.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
         ],
         'meta_title' => [
-            'uz' => 'Atol Frontol 6 kassa dasturi — Poson',
-            'ru' => 'Кассовая программа Frontol 6 — Poson',
-            'en' => 'Atol Frontol 6 POS software — Poson',
+            'uz' => 'Ox kassa dasturi — Poson',
+            'ru' => 'Кассовая программа Ox — Poson',
+            'en' => 'Ox POS software — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Atol Frontol 6 kassa dasturi doʻkon, dorixona va kafe uchun: savdo, tovar hisobi va hisobotlar. Uskuna bilan birga oʻrnatish va kassirlarni oʻqitish.',
-            'ru' => 'Кассовая программа Frontol 6 от АТОЛ для магазинов, аптек и кафе: продажи, товарный учёт и отчёты. Установка вместе с оборудованием и обучение кассиров.',
-            'en' => 'Frontol 6 POS software by Atol for shops, pharmacies and cafés: checkout, stock records and reports. Installation with your hardware and cashier training.',
+            'uz' => 'Ox — doʻkonlar uchun kassa dasturi. Poson sozlaydi, skaner va chek printerini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
+            'ru' => 'Ox — кассовая программа для магазинов. Poson настроит её, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
+            'en' => 'Ox POS software for retail shops. Poson sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
+        ],
+        'specs' => [],
+        'related' => [],
+    ],
+    [
+        'sku' => 'SW-BILLZ',
+        'model' => 'Billz',
+        'brand' => 'Billz',
+        'category' => 'pos-software',
+        'type' => 'software',
+        'unit' => 'license',
+        'min_qty' => 1,
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
+        'warranty_months' => null,
+        'badge' => null,
+        'is_featured' => false,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
+        'name' => [
+            'uz' => 'Billz savdoni boshqarish tizimi',
+            'ru' => 'Billz — система управления розничной торговлей',
+            'en' => 'Billz retail management platform',
+        ],
+        'short_description' => [
+            'uz' => 'Doʻkonlar va savdo tarmoqlari uchun platforma: kassa, tovar hisobi, mijozlar bazasi va tahlil bitta tizimda.',
+            'ru' => 'Платформа для магазинов и торговых сетей: касса, товарный учёт, база клиентов и аналитика в одной системе.',
+            'en' => 'Platform for shops and store chains: checkout, stock records, customer base and analytics in one system.',
+        ],
+        'description' => [
+            'uz' => '<p><strong>Billz</strong> — Oʻzbekistonda ishlab chiqilgan chakana savdoni boshqarish platformasi. U kassa, tovar hisobi, mijozlar bazasi, onlayn doʻkon vositalari va tahlilni doʻkonlar hamda savdo tarmoqlari uchun bitta tizimda birlashtiradi.</p><ul><li><strong>Kiyim, poyabzal va elektronika:</strong> tovarlar roʻyxati va savdo nuqtalari boʻyicha qoldiqlar.</li><li><strong>Savdo tarmoqlari:</strong> bir nechta doʻkon bitta tizimda.</li><li><strong>Mijozlar bazasi:</strong> xaridorlarni hisobga olish va qayta xaridlar.</li><li><strong>Tahlil:</strong> egasi va boshqaruvchilar uchun hisobotlar.</li></ul><p>Poson tizim biznesingizga mos kelishini aniqlashga yordam beradi, uni sozlaydi, shtrix-kod skaneri, chek printeri va pul yashigini ulaydi, kassirlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>Billz</strong> — платформа для управления розничной торговлей, разработанная в Узбекистане. Она объединяет кассу, товарный учёт, базу клиентов, инструменты для интернет-магазина и аналитику в одной системе для магазинов и торговых сетей.</p><ul><li><strong>Одежда, обувь, электроника:</strong> товарный справочник и остатки по точкам.</li><li><strong>Торговые сети:</strong> несколько магазинов в одной системе.</li><li><strong>База клиентов:</strong> учёт покупателей и повторные покупки.</li><li><strong>Аналитика:</strong> отчёты для владельца и управляющих.</li></ul><p>Poson поможет понять, подходит ли система вашему бизнесу, настроит её, подключит сканер штрих-кода, чековый принтер и денежный ящик, обучит кассиров и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p><strong>Billz</strong> is a retail management platform developed in Uzbekistan. It combines the cash register, stock records, a customer base, online store tools and analytics in one system for shops and store chains.</p><ul><li><strong>Fashion, footwear and electronics:</strong> product catalogue and stock by outlet.</li><li><strong>Store chains:</strong> several shops in one system.</li><li><strong>Customer base:</strong> customer records and repeat purchases.</li><li><strong>Analytics:</strong> reports for owners and managers.</li></ul><p>Poson helps you decide whether the platform fits your business, sets it up, connects the barcode scanner, receipt printer and cash drawer, trains your cashiers and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
+        ],
+        'meta_title' => [
+            'uz' => 'Billz: savdoni boshqarish tizimi — Poson',
+            'ru' => 'Billz: управление розничной торговлей — Poson',
+            'en' => 'Billz retail management platform — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Billz — doʻkonlar uchun kassa, tovar hisobi, mijozlar bazasi va tahlil. Poson sozlaydi, skaner va chek printerini ulaydi, xodimlarni oʻqitadi.',
+            'ru' => 'Billz — касса, товарный учёт, база клиентов и аналитика для магазинов. Poson настроит систему, подключит сканер и чековый принтер, обучит персонал.',
+            'en' => 'Billz for shops: checkout, stock records, customer base and analytics. Poson sets it up, connects the scanner and receipt printer and trains staff.',
         ],
         'specs' => [
-            'license_type' => ['value' => 'Muddatsiz', 'key' => true],
-            'seats' => ['value' => 1, 'key' => true],
+            'license_type' => ['value' => 'Obuna', 'key' => true],
         ],
+        'related' => [],
+    ],
+    [
+        'sku' => 'SW-ALIPOSTER',
+        'model' => 'Aliposter',
+        'brand' => 'Aliposter',
+        'category' => 'pos-software',
+        'type' => 'software',
+        'unit' => 'license',
+        'min_qty' => 1,
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
+        'warranty_months' => null,
+        'badge' => null,
+        'is_featured' => false,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
+        'name' => [
+            'uz' => 'Aliposter kafe va restoranlar uchun kassa dasturi',
+            'ru' => 'Aliposter — кассовая программа для кафе и ресторанов',
+            'en' => 'Aliposter POS software for cafés and restaurants',
+        ],
+        'short_description' => [
+            'uz' => 'Kafe va restoranlar uchun kassa dasturi. Poson uni sozlaydi, chek printeri va pul yashigini ulaydi hamda xodimlarni oʻqitadi.',
+            'ru' => 'Кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик и обучит персонал.',
+            'en' => 'POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer and trains your staff.',
+        ],
+        'description' => [
+            'uz' => '<p><strong>Aliposter</strong> — HoReCa, yaʼni kafe va restoranlar uchun kassa dasturi. Poson uni muassasangizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur muassasangiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> menyu, xodimlar va kassa joylari.</li><li><strong>Uskuna:</strong> chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>Aliposter</strong> — кассовая программа для HoReCa: кафе и ресторанов. Poson настроит её под ваше заведение и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего заведения.</li><li><strong>Настройка:</strong> меню, сотрудники и кассовые места.</li><li><strong>Оборудование:</strong> подключение чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p><strong>Aliposter</strong> is POS software for HoReCa: cafés and restaurants. Poson configures it for your venue and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your venue.</li><li><strong>Setup:</strong> menu, staff and checkout stations.</li><li><strong>Equipment:</strong> connecting the receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
+        ],
+        'meta_title' => [
+            'uz' => 'Aliposter: kafe va restoran uchun kassa — Poson',
+            'ru' => 'Aliposter: касса для кафе и ресторанов — Poson',
+            'en' => 'Aliposter POS for cafés and restaurants — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Aliposter — kafe va restoranlar uchun kassa dasturi. Poson sozlaydi, chek printeri va pul yashigini ulaydi, xodimlarni oʻqitadi va qoʻllab-quvvatlaydi.',
+            'ru' => 'Aliposter — кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик, обучит персонал и поддержит.',
+            'en' => 'Aliposter POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer, trains staff and supports you.',
+        ],
+        'specs' => [],
+        'related' => [],
+    ],
+    [
+        'sku' => 'SW-HIPPO',
+        'model' => 'Hippo',
+        'brand' => 'Hippo',
+        'category' => 'pos-software',
+        'type' => 'software',
+        'unit' => 'license',
+        'min_qty' => 1,
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
+        'warranty_months' => null,
+        'badge' => null,
+        'is_featured' => false,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
+        'name' => [
+            'uz' => 'Hippo kassa dasturi',
+            'ru' => 'Кассовая программа Hippo',
+            'en' => 'Hippo POS software',
+        ],
+        'short_description' => [
+            'uz' => 'Savdo nuqtalari uchun kassa dasturi. Poson tanlash, sozlash, skaner va chek printerini ulash, oʻqitish va qoʻllab-quvvatlashni bajaradi.',
+            'ru' => 'Кассовая программа для торговых точек. Poson выполнит подбор, настройку, подключение сканера и чекового принтера, обучение и поддержку.',
+            'en' => 'POS software for retail outlets. Poson handles selection, setup, connecting the scanner and receipt printer, training and support.',
+        ],
+        'description' => [
+            'uz' => '<p><strong>Hippo</strong> — Poson savdo nuqtalari uchun yetkazib beradigan va sozlab beradigan kassa dasturi. Dastur imkoniyatlari va litsenziya shartlarini vazifangizga qarab tijorat taklifida batafsil tushuntiramiz.</p><ul><li><strong>Tanlash:</strong> dastur savdo jarayonlaringizga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va savdo nuqtalarini sozlash.</li><li><strong>Uskuna:</strong> dastur qoʻllab-quvvatlaydigan skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> kassirlarni oʻqitish, oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlash.</li></ul><p>Poson muhandislari dasturni doʻkoningizda ishga tushiradi va kassa joyi toʻliq ishlashini tekshiradi.</p>',
+            'ru' => '<p><strong>Hippo</strong> — кассовая программа, которую Poson поставляет и настраивает для торговых точек. Возможности программы и условия лицензии подробно опишем в коммерческом предложении под вашу задачу.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа вашим процессам.</li><li><strong>Настройка:</strong> товары, кассиры и точки продаж.</li><li><strong>Оборудование:</strong> подключение поддерживаемых сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> обучение кассиров, сопровождение на узбекском, русском и английском языках.</li></ul><p>Инженеры Poson запустят программу у вас в магазине и проверят работу кассового места целиком.</p>',
+            'en' => '<p><strong>Hippo</strong> is POS software that Poson supplies and sets up for retail outlets. We describe the program features and licence terms for your task in detail in the quote.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your processes.</li><li><strong>Setup:</strong> products, cashiers and outlets.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer the program supports.</li><li><strong>Training and support:</strong> cashier training and support in Uzbek, Russian and English.</li></ul><p>Poson engineers launch the program in your shop and check that the whole checkout station works.</p>',
+        ],
+        'meta_title' => [
+            'uz' => 'Hippo kassa dasturi — Poson',
+            'ru' => 'Кассовая программа Hippo — Poson',
+            'en' => 'Hippo POS software — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Hippo kassa dasturi: Poson tanlashga yordam beradi, sozlaydi, skaner va chek printerini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
+            'ru' => 'Кассовая программа Hippo: Poson поможет с выбором, настроит программу, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
+            'en' => 'Hippo POS software: Poson helps you choose, sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
+        ],
+        'specs' => [],
+        'related' => [],
+    ],
+    [
+        'sku' => 'SW-POSPOINT',
+        'model' => 'Pospoint',
+        'brand' => 'Pospoint',
+        'category' => 'pos-software',
+        'type' => 'software',
+        'unit' => 'license',
+        'min_qty' => 1,
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
+        'warranty_months' => null,
+        'badge' => null,
+        'is_featured' => false,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
+        'name' => [
+            'uz' => 'Pospoint kassa dasturi',
+            'ru' => 'Кассовая программа Pospoint',
+            'en' => 'Pospoint POS software',
+        ],
+        'short_description' => [
+            'uz' => 'Doʻkonlar uchun kassa dasturi. Poson tanlash, sozlash, kassa uskunasini ulash, kassirlarni oʻqitish va qoʻllab-quvvatlashni bajaradi.',
+            'ru' => 'Кассовая программа для магазинов. Poson выполнит подбор, настройку, подключение кассового оборудования, обучение кассиров и поддержку.',
+            'en' => 'POS software for shops. Poson handles selection, setup, connecting checkout hardware, cashier training and support.',
+        ],
+        'description' => [
+            'uz' => '<p><strong>Pospoint</strong> — Poson doʻkonlar uchun yetkazib beradigan va sozlab beradigan kassa dasturi. Dastur imkoniyatlari va litsenziya shartlarini vazifangizga qarab tijorat taklifida batafsil tushuntiramiz.</p><ul><li><strong>Tanlash:</strong> dastur doʻkoningiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> tovarlar, kassirlar va huquqlarni sozlash.</li><li><strong>Uskuna:</strong> dastur qoʻllab-quvvatlaydigan skaner, chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> kassirlarni oʻqitish, oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlash.</li></ul><p>Kerak boʻlsa, Poson muhandislari ish joyingizga chiqib, kassa joyini toʻliq ishga tushiradi.</p>',
+            'ru' => '<p><strong>Pospoint</strong> — кассовая программа, которую Poson поставляет и настраивает для магазинов. Возможности программы и условия лицензии подробно опишем в коммерческом предложении под вашу задачу.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего магазина.</li><li><strong>Настройка:</strong> товары, кассиры и права доступа.</li><li><strong>Оборудование:</strong> подключение поддерживаемых сканера, чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> обучение кассиров, сопровождение на узбекском, русском и английском языках.</li></ul><p>При необходимости инженеры Poson выедут к вам и запустят кассовое место под ключ.</p>',
+            'en' => '<p><strong>Pospoint</strong> is POS software that Poson supplies and sets up for shops. We describe the program features and licence terms for your task in detail in the quote.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your shop format.</li><li><strong>Setup:</strong> products, cashiers and access rights.</li><li><strong>Equipment:</strong> connecting the scanner, receipt printer and cash drawer the program supports.</li><li><strong>Training and support:</strong> cashier training and support in Uzbek, Russian and English.</li></ul><p>If needed, Poson engineers come on site and commission the complete checkout station.</p>',
+        ],
+        'meta_title' => [
+            'uz' => 'Pospoint kassa dasturi — Poson',
+            'ru' => 'Кассовая программа Pospoint — Poson',
+            'en' => 'Pospoint POS software — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Pospoint kassa dasturi: Poson tanlashga yordam beradi, sozlaydi, kassa uskunasini ulaydi, kassirlarni oʻqitadi va qoʻllab-quvvatlaydi.',
+            'ru' => 'Кассовая программа Pospoint: Poson поможет с выбором, настроит программу, подключит кассовое оборудование, обучит кассиров и поддержит.',
+            'en' => 'Pospoint POS software: Poson helps you choose, sets it up, connects your checkout hardware, trains cashiers and supports you.',
+        ],
+        'specs' => [],
+        'related' => [],
+    ],
+    // Source: Rahmat "Virtual kassa" user manual (rhmt.uz, RAHMAT TECH LLC): Windows 7/10/11, retail, food service and services.
+    // CONFIRM: licence model and which receipt printers Poson connects to it.
+    [
+        'sku' => 'SW-RAHMAT',
+        'model' => 'Rahmat Virtual kassa',
+        'brand' => 'Rahmat',
+        'category' => 'pos-software',
+        'type' => 'software',
+        'unit' => 'license',
+        'min_qty' => 1,
+        'sale_mode' => 'quote',
+        'stock_status' => 'on_order',
+        'warranty_months' => null,
+        'badge' => null,
+        'is_featured' => false,
+        'price' => null,
+        'price_dealer' => null,
+        'price_wholesale' => null,
+        'name' => [
+            'uz' => 'Rahmat virtual kassasi',
+            'ru' => 'Rahmat — виртуальная касса',
+            'en' => 'Rahmat virtual cash register',
+        ],
+        'short_description' => [
+            'uz' => 'Chakana savdo, umumiy ovqatlanish va xizmatlar uchun Windows virtual kassasi: savdo, qaytarish, smenalar va Z-hisobotlar.',
+            'ru' => 'Виртуальная касса для Windows для розницы, общепита и услуг: продажи, возвраты, смены и Z-отчёты.',
+            'en' => 'Virtual cash register for Windows for retail, food service and services: checkout, returns, shifts and Z-reports.',
+        ],
+        'description' => [
+            'uz' => '<p><strong>Rahmat virtual kassasi</strong> — Oʻzbekistonda chakana savdo, umumiy ovqatlanish va xizmat koʻrsatish korxonalari uchun Windows kompyuterida ishlaydigan kassa dasturi. U fiskal hisobot talablarini hisobga olgan holda savdo va qaytarishlarni roʻyxatdan oʻtkazadi.</p><ul><li><strong>Chakana savdo:</strong> savdo va qaytarish operatsiyalari.</li><li><strong>Umumiy ovqatlanish:</strong> kafe va oshxonalar kassasi.</li><li><strong>Smenalar:</strong> smenani ochish va yopish, Z-hisobotlar.</li><li><strong>Cheklar jurnali:</strong> berilgan cheklarni koʻrish.</li></ul><p>Poson dasturni kompyuteringizga oʻrnatadi, sozlaydi, chek printeri, skaner va pul yashigini ulaydi, kassirlarni oʻqitadi hamda oʻzbek, rus va ingliz tillarida qoʻllab-quvvatlaydi. Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>Rahmat — виртуальная касса</strong> — кассовая программа для компьютера на Windows для предприятий розничной торговли, общепита и сферы услуг в Узбекистане. Она регистрирует продажи и возвраты с учётом требований к фискальной отчётности.</p><ul><li><strong>Розница:</strong> операции продажи и возврата.</li><li><strong>Общепит:</strong> касса кафе и столовых.</li><li><strong>Смены:</strong> открытие и закрытие смены, Z-отчёты.</li><li><strong>Журнал чеков:</strong> просмотр выданных чеков.</li></ul><p>Poson установит программу на ваш компьютер, настроит её, подключит чековый принтер, сканер и денежный ящик, обучит кассиров и будет сопровождать вас на узбекском, русском и английском языках. Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p>The <strong>Rahmat virtual cash register</strong> is checkout software for Windows PCs used by retail, food service and service businesses in Uzbekistan. It records purchases and returns in line with fiscal reporting requirements.</p><ul><li><strong>Retail:</strong> purchase and return operations.</li><li><strong>Food service:</strong> tills for cafés and canteens.</li><li><strong>Shifts:</strong> opening and closing shifts, Z-reports.</li><li><strong>Receipt log:</strong> a record of issued receipts.</li></ul><p>Poson installs the software on your PC, sets it up, connects the receipt printer, scanner and cash drawer, trains your cashiers and supports you in Uzbek, Russian and English. Licence terms are confirmed in the quote.</p>',
+        ],
+        'meta_title' => [
+            'uz' => 'Rahmat virtual kassasi — Poson',
+            'ru' => 'Rahmat — виртуальная касса — Poson',
+            'en' => 'Rahmat virtual cash register — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Rahmat virtual kassasi Windows uchun: savdo, qaytarish, smenalar va Z-hisobotlar. Poson oʻrnatadi, chek printerini ulaydi va kassirlarni oʻqitadi.',
+            'ru' => 'Виртуальная касса Rahmat для Windows: продажи, возвраты, смены и Z-отчёты. Poson установит её, подключит чековый принтер и обучит кассиров.',
+            'en' => 'Rahmat virtual cash register for Windows: checkout, returns, shifts and Z-reports. Poson installs it, connects the receipt printer and trains cashiers.',
+        ],
+        'specs' => [],
         'related' => [],
     ],
 
@@ -1730,14 +1951,14 @@ return [
             'en' => 'Label printer setup and integration',
         ],
         'short_description' => [
-            'uz' => 'Poson muhandislari printerni ulaydi, kalibrlaydi, yorliq shablonlarini tayyorlaydi va 1C, WMS yoki markirovka tizimiga bogʻlaydi.',
-            'ru' => 'Инженеры Poson подключат и откалибруют принтер, подготовят шаблоны этикеток и свяжут их с 1С, WMS или системой маркировки.',
-            'en' => 'Poson engineers connect and calibrate your printer, build label templates and link them to 1C, your WMS or marking system.',
+            'uz' => 'Poson muhandislari printerni ulaydi, kalibrlaydi, yorliq shablonlarini tayyorlaydi va 1C dan chop etishni sozlaydi.',
+            'ru' => 'Инженеры Poson подключат и откалибруют принтер, подготовят шаблоны этикеток и настроят печать из 1С.',
+            'en' => 'Poson engineers connect and calibrate your printer, build label templates and set up printing from 1C.',
         ],
         'description' => [
-            'uz' => '<p>Yorliq printeri toʻgʻri sozlanmasa, yorliqlar siljiydi, shtrix-kodlar oʻqilmaydi va printer kallagi tez eskiradi. <strong>Poson</strong> muhandislari printerni ish jarayoningizga toʻliq moslab ishga tushiradi.</p><ul><li>Drayver oʻrnatish, printerni USB yoki tarmoq orqali ulash.</li><li>Yorliq va ribbon uchun kalibrlash, chop etish harorati va tezligini sozlash.</li><li>Yorliq shablonlarini tayyorlash: shtrix-kod, DataMatrix, GS1, oʻzgaruvchan maydonlar.</li><li>1C, WMS yoki markirovka tizimidan chop etishni sozlash.</li><li>Xodimlarga yorliq va ribbonni almashtirish hamda kallakni tozalashni oʻrgatish.</li></ul><p>Xizmat ofisingizda yoki masofadan bajariladi. <strong>Chakana savdo</strong>, <strong>ombor</strong> va <strong>dorixona</strong> uchun tayyor shablon namunalarimiz bor. Ish hajmi printerlar soni va integratsiya turiga qarab kelishiladi.</p>',
-            'ru' => '<p>Если принтер этикеток настроен неправильно, этикетки съезжают, штрих-коды не читаются, а печатающая головка быстро изнашивается. Инженеры <strong>Poson</strong> запустят принтер так, чтобы он полностью вписался в ваш процесс.</p><ul><li>Установка драйвера, подключение принтера по USB или по сети.</li><li>Калибровка под этикетку и риббон, настройка температуры и скорости печати.</li><li>Подготовка шаблонов: штрих-коды, DataMatrix, GS1, переменные поля.</li><li>Настройка печати из 1С, WMS или системы маркировки.</li><li>Обучение сотрудников замене этикетки и риббона и чистке головки.</li></ul><p>Работы выполняются у вас в офисе или удалённо. Для <strong>розницы</strong>, <strong>склада</strong> и <strong>аптеки</strong> у нас есть готовые образцы шаблонов. Объём работ согласуется по числу принтеров и типу интеграции.</p>',
-            'en' => '<p>A badly configured label printer means labels that drift, barcodes that will not scan and a printhead that wears out early. <strong>Poson</strong> engineers commission the printer so it fits your workflow end to end.</p><ul><li>Driver installation and USB or network connection.</li><li>Calibration for your label and ribbon, print darkness and speed tuning.</li><li>Label templates with barcodes, DataMatrix, GS1 and variable fields.</li><li>Printing set up from 1C, your WMS or marking system.</li><li>Staff training on loading labels and ribbons and cleaning the printhead.</li></ul><p>The work is done on site or remotely. We have ready-made template samples for <strong>retail</strong>, <strong>warehouse</strong> and <strong>pharmacy</strong> use. Scope is agreed by the number of printers and the type of integration.</p>',
+            'uz' => '<p>Yorliq printeri toʻgʻri sozlanmasa, yorliqlar siljiydi, shtrix-kodlar oʻqilmaydi va printer kallagi tez eskiradi. <strong>Poson</strong> muhandislari printerni ish jarayoningizga toʻliq moslab ishga tushiradi.</p><ul><li>Drayver oʻrnatish, printerni USB yoki tarmoq orqali ulash.</li><li>Yorliq va ribbon uchun kalibrlash, chop etish harorati va tezligini sozlash.</li><li>Yorliq shablonlarini tayyorlash: shtrix-kod, DataMatrix, GS1, oʻzgaruvchan maydonlar.</li><li>1C dan chop etishni sozlash.</li><li>Xodimlarga yorliq va ribbonni almashtirish hamda kallakni tozalashni oʻrgatish.</li></ul><p>Xizmat ofisingizda yoki masofadan bajariladi. <strong>Chakana savdo</strong>, <strong>ombor</strong> va <strong>dorixona</strong> uchun tayyor shablon namunalarimiz bor. Ish hajmi printerlar soni va integratsiya turiga qarab kelishiladi.</p>',
+            'ru' => '<p>Если принтер этикеток настроен неправильно, этикетки съезжают, штрих-коды не читаются, а печатающая головка быстро изнашивается. Инженеры <strong>Poson</strong> запустят принтер так, чтобы он полностью вписался в ваш процесс.</p><ul><li>Установка драйвера, подключение принтера по USB или по сети.</li><li>Калибровка под этикетку и риббон, настройка температуры и скорости печати.</li><li>Подготовка шаблонов: штрих-коды, DataMatrix, GS1, переменные поля.</li><li>Настройка печати из 1С.</li><li>Обучение сотрудников замене этикетки и риббона и чистке головки.</li></ul><p>Работы выполняются у вас в офисе или удалённо. Для <strong>розницы</strong>, <strong>склада</strong> и <strong>аптеки</strong> у нас есть готовые образцы шаблонов. Объём работ согласуется по числу принтеров и типу интеграции.</p>',
+            'en' => '<p>A badly configured label printer means labels that drift, barcodes that will not scan and a printhead that wears out early. <strong>Poson</strong> engineers commission the printer so it fits your workflow end to end.</p><ul><li>Driver installation and USB or network connection.</li><li>Calibration for your label and ribbon, print darkness and speed tuning.</li><li>Label templates with barcodes, DataMatrix, GS1 and variable fields.</li><li>Printing set up from 1C.</li><li>Staff training on loading labels and ribbons and cleaning the printhead.</li></ul><p>The work is done on site or remotely. We have ready-made template samples for <strong>retail</strong>, <strong>warehouse</strong> and <strong>pharmacy</strong> use. Scope is agreed by the number of printers and the type of integration.</p>',
         ],
         'meta_title' => [
             'uz' => 'Yorliq printerini sozlash va integratsiya — Poson',
@@ -1745,9 +1966,9 @@ return [
             'en' => 'Label printer setup and integration — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Poson muhandislari yorliq printerini sozlaydi: drayver va kalibrlash, yorliq shablonlari, 1C, WMS yoki markirovka tizimiga ulash va xodimlarni oʻqitish.',
-            'ru' => 'Инженеры Poson настроят принтер этикеток: драйвер и калибровка, шаблоны, подключение к 1С, WMS или системе маркировки и обучение сотрудников на месте.',
-            'en' => 'Label printer setup by Poson engineers: driver and calibration, label templates, connection to 1C, WMS or marking systems, and staff training on site.',
+            'uz' => 'Poson muhandislari yorliq printerini sozlaydi: drayver va kalibrlash, yorliq shablonlari, 1C ga ulash va xodimlarni joyida oʻqitish.',
+            'ru' => 'Инженеры Poson настроят принтер этикеток: драйвер и калибровка, шаблоны, подключение к 1С и обучение сотрудников на месте.',
+            'en' => 'Label printer setup by Poson engineers: driver and calibration, label templates, connection to 1C and staff training on site.',
         ],
         'specs' => [
             'service_duration' => ['value' => 3, 'key' => true],
@@ -1777,14 +1998,14 @@ return [
             'en' => 'Barcode scanner programming and setup',
         ],
         'short_description' => [
-            'uz' => 'Skanerni kod turlari, prefiks va suffikslar, DataMatrix va GS1 uchun dasturlash hamda 1C yoki kassa dasturiga ulash.',
-            'ru' => 'Программирование сканера под типы кодов, префиксы и суффиксы, DataMatrix и GS1, подключение к 1С или кассе.',
-            'en' => 'Scanner programming for symbologies, prefixes and suffixes, DataMatrix and GS1, plus connection to 1C or your POS.',
+            'uz' => 'Skanerni kod turlari, prefiks va suffikslar, DataMatrix va GS1 uchun dasturlash hamda 1C ga ulash.',
+            'ru' => 'Программирование сканера под типы кодов, префиксы и суффиксы, DataMatrix и GS1, подключение к 1С.',
+            'en' => 'Scanner programming for symbologies, prefixes and suffixes, DataMatrix and GS1, plus connection to 1C.',
         ],
         'description' => [
-            'uz' => '<p>Yangi skaner koʻpincha zavod sozlamalari bilan keladi va markirovka kodlarini hisob tizimiga notoʻgʻri uzatadi. <strong>Poson</strong> skanerni vazifangizga moslab dasturlaydi, shunda kassir yoki omborchi qoʻshimcha harakatsiz ishlaydi.</p><ul><li>Kerakli kod turlarini yoqish va keraksizlarini oʻchirish.</li><li>Prefiks, suffiks va Enter yoki Tab tugmasini sozlash.</li><li>DataMatrix va GS1 kodlarini guruh ajratgichlari bilan toʻgʻri uzatish.</li><li>Klaviatura tartibi, USB-HID yoki virtual COM-port rejimi.</li><li>1C, kassa yoki ombor dasturida sinov.</li></ul><p>Xizmat <strong>chakana savdo</strong>, <strong>ombor</strong> va <strong>dorixona</strong> uchun bir nechta skanerni bir xil sozlamalar bilan tayyorlashni ham oʻz ichiga oladi. Skanerni ofisimizga olib kelishingiz yoki muhandisni chaqirishingiz mumkin.</p>',
-            'ru' => '<p>Новый сканер обычно приходит с заводскими настройками и передаёт коды маркировки в учётную систему некорректно. <strong>Poson</strong> запрограммирует сканер под вашу задачу, чтобы кассир или кладовщик работали без лишних действий.</p><ul><li>Включение нужных типов кодов и отключение лишних.</li><li>Настройка префикса, суффикса и клавиши Enter или Tab.</li><li>Корректная передача DataMatrix и GS1 с разделителями групп.</li><li>Раскладка клавиатуры, режим USB-HID или виртуального COM-порта.</li><li>Проверка в 1С, кассовой или складской программе.</li></ul><p>Для <strong>розницы</strong>, <strong>склада</strong> и <strong>аптеки</strong> подготовим сразу несколько сканеров с одинаковыми настройками. Сканер можно привезти к нам в офис или вызвать инженера.</p>',
-            'en' => '<p>A new scanner usually ships with factory defaults and often passes marking codes to your system incorrectly. <strong>Poson</strong> programs the scanner for your task so cashiers and storekeepers can work without extra steps.</p><ul><li>Enable the symbologies you need and disable the rest.</li><li>Set prefix, suffix and the Enter or Tab key.</li><li>Pass DataMatrix and GS1 codes correctly with group separators.</li><li>Keyboard layout, USB-HID or virtual COM port mode.</li><li>Testing in 1C, your POS or warehouse software.</li></ul><p>For <strong>retail</strong>, <strong>warehouse</strong> and <strong>pharmacy</strong> rollouts we can prepare several scanners with identical settings. Bring the scanner to our office or book an engineer visit.</p>',
+            'uz' => '<p>Yangi skaner koʻpincha zavod sozlamalari bilan keladi va markirovka kodlarini hisob tizimiga notoʻgʻri uzatadi. <strong>Poson</strong> skanerni vazifangizga moslab dasturlaydi, shunda kassir yoki omborchi qoʻshimcha harakatsiz ishlaydi.</p><ul><li>Kerakli kod turlarini yoqish va keraksizlarini oʻchirish.</li><li>Prefiks, suffiks va Enter yoki Tab tugmasini sozlash.</li><li>DataMatrix va GS1 kodlarini guruh ajratgichlari bilan toʻgʻri uzatish.</li><li>Klaviatura tartibi, USB-HID yoki virtual COM-port rejimi.</li><li>1C da yoki siz ishlatadigan dasturda sinov (klaviatura emulyatsiyasi rejimida skaner istalgan dastur bilan ishlaydi).</li></ul><p>Xizmat <strong>chakana savdo</strong>, <strong>ombor</strong> va <strong>dorixona</strong> uchun bir nechta skanerni bir xil sozlamalar bilan tayyorlashni ham oʻz ichiga oladi. Skanerni ofisimizga olib kelishingiz yoki muhandisni chaqirishingiz mumkin.</p>',
+            'ru' => '<p>Новый сканер обычно приходит с заводскими настройками и передаёт коды маркировки в учётную систему некорректно. <strong>Poson</strong> запрограммирует сканер под вашу задачу, чтобы кассир или кладовщик работали без лишних действий.</p><ul><li>Включение нужных типов кодов и отключение лишних.</li><li>Настройка префикса, суффикса и клавиши Enter или Tab.</li><li>Корректная передача DataMatrix и GS1 с разделителями групп.</li><li>Раскладка клавиатуры, режим USB-HID или виртуального COM-порта.</li><li>Проверка в 1С или в вашей программе (в режиме эмуляции клавиатуры сканер работает с любой программой).</li></ul><p>Для <strong>розницы</strong>, <strong>склада</strong> и <strong>аптеки</strong> подготовим сразу несколько сканеров с одинаковыми настройками. Сканер можно привезти к нам в офис или вызвать инженера.</p>',
+            'en' => '<p>A new scanner usually ships with factory defaults and often passes marking codes to your system incorrectly. <strong>Poson</strong> programs the scanner for your task so cashiers and storekeepers can work without extra steps.</p><ul><li>Enable the symbologies you need and disable the rest.</li><li>Set prefix, suffix and the Enter or Tab key.</li><li>Pass DataMatrix and GS1 codes correctly with group separators.</li><li>Keyboard layout, USB-HID or virtual COM port mode.</li><li>Testing in 1C or the program you use (in keyboard emulation mode the scanner works with any program).</li></ul><p>For <strong>retail</strong>, <strong>warehouse</strong> and <strong>pharmacy</strong> rollouts we can prepare several scanners with identical settings. Bring the scanner to our office or book an engineer visit.</p>',
         ],
         'meta_title' => [
             'uz' => 'Shtrix-kod skanerini dasturlash — Poson',
@@ -1793,8 +2014,8 @@ return [
         ],
         'meta_description' => [
             'uz' => 'Poson shtrix-kod skanerini dasturlaydi: kod turlari, prefiks va suffikslar, DataMatrix va GS1 kodlari, klaviatura tartibi hamda 1C yoki kassaga ulash.',
-            'ru' => 'Программирование сканера штрих-кода в Poson: типы кодов, префиксы и суффиксы, DataMatrix и GS1, раскладка клавиатуры и подключение к 1С или кассе.',
-            'en' => 'Barcode scanner programming by Poson: symbologies, prefixes and suffixes, DataMatrix and GS1 parsing, keyboard layout and connection to 1C or your POS.',
+            'ru' => 'Программирование сканера штрих-кода в Poson: типы кодов, префиксы и суффиксы, DataMatrix и GS1, раскладка клавиатуры и подключение к 1С.',
+            'en' => 'Barcode scanner programming by Poson: symbologies, prefixes and suffixes, DataMatrix and GS1 parsing, keyboard layout and connection to 1C.',
         ],
         'specs' => [
             'service_duration' => ['value' => 1, 'key' => true],
@@ -1829,9 +2050,9 @@ return [
             'en' => 'Full mobile computer check at the Poson service center: scanner, battery, screen, connectivity and firmware, with a written report.',
         ],
         'description' => [
-            'uz' => '<p>TSD ishlamay qolsa, ombor yoki savdo zali toʻxtab qoladi. <strong>Poson</strong> servis markazida muhandislar qurilmani har tomonlama tekshiradi va nosozlik sababini aniqlaydi.</p><ul><li>Skanerlash moduli: oʻqish masofasi va 1D/2D kodlarni tanish.</li><li>Akkumulyator holati, zaryadlash kontaktlari va zaryadlash bazasi.</li><li>Ekran, sensor, tugmalar va korpus germetikligi.</li><li>Wi-Fi, Bluetooth va mobil aloqa.</li><li>Proshivka versiyasi va MDM sozlamalari.</li></ul><p>Diagnostikadan soʻng taʼmirlash rejasi, ehtiyot qismlar va muddatlar koʻrsatilgan yozma xulosa olasiz. Kafolat holatlari ishlab chiqaruvchi qoidalariga muvofiq rasmiylashtiriladi. <strong>Ombor</strong>, <strong>chakana savdo</strong> va <strong>dorixona</strong> uchun almashtirish fondini tashkil qilishda ham yordam beramiz.</p>',
-            'ru' => '<p>Когда ТСД выходит из строя, останавливается работа склада или торгового зала. Инженеры сервисного центра <strong>Poson</strong> всесторонне проверят устройство и найдут причину неисправности.</p><ul><li>Сканирующий модуль: дальность считывания и распознавание 1D/2D-кодов.</li><li>Состояние аккумулятора, зарядные контакты и зарядная база.</li><li>Экран, сенсор, кнопки и герметичность корпуса.</li><li>Wi-Fi, Bluetooth и мобильная связь.</li><li>Версия прошивки и настройки MDM.</li></ul><p>После диагностики вы получите письменное заключение с планом ремонта, запчастями и сроками. Гарантийные случаи оформляются по правилам производителя. Для <strong>склада</strong>, <strong>розницы</strong> и <strong>аптеки</strong> поможем организовать подменный фонд устройств.</p>',
-            'en' => '<p>When a mobile computer fails, the warehouse or shop floor grinds to a halt. Engineers at the <strong>Poson</strong> service center check the device thoroughly and pinpoint the cause of the fault.</p><ul><li>Scan engine: read range and 1D/2D decoding.</li><li>Battery health, charging contacts and charging cradle.</li><li>Screen, touch panel, keys and housing seals.</li><li>Wi-Fi, Bluetooth and cellular connectivity.</li><li>Firmware version and MDM settings.</li></ul><p>After diagnostics you receive a written report with the repair plan, parts and timeline. Warranty cases are processed under the manufacturer\'s rules. For <strong>warehouse</strong>, <strong>retail</strong> and <strong>pharmacy</strong> fleets we can also help you set up a pool of swap devices.</p>',
+            'uz' => '<p>TSD ishlamay qolsa, ombor yoki savdo zali toʻxtab qoladi. <strong>Poson</strong> servis markazida muhandislar qurilmani har tomonlama tekshiradi va nosozlik sababini aniqlaydi.</p><ul><li>Skanerlash moduli: oʻqish masofasi va 1D/2D kodlarni tanish.</li><li>Akkumulyator holati, zaryadlash kontaktlari va zaryadlash bazasi.</li><li>Ekran, sensor, tugmalar va korpus germetikligi.</li><li>Wi-Fi, Bluetooth va mobil aloqa.</li><li>Proshivka versiyasi va tizim sozlamalari.</li></ul><p>Diagnostikadan soʻng taʼmirlash rejasi, ehtiyot qismlar, narx va muddatlar koʻrsatilgan yozma xulosa olasiz; taʼmirlash faqat kelishuvingizdan soʻng boshlanadi. Kafolat holatlari ishlab chiqaruvchi qoidalariga muvofiq rasmiylashtiriladi. <strong>Ombor</strong>, <strong>chakana savdo</strong> va <strong>dorixona</strong> uchun muhandislarimiz ish joyingizga ham chiqadi.</p>',
+            'ru' => '<p>Когда ТСД выходит из строя, останавливается работа склада или торгового зала. Инженеры сервисного центра <strong>Poson</strong> всесторонне проверят устройство и найдут причину неисправности.</p><ul><li>Сканирующий модуль: дальность считывания и распознавание 1D/2D-кодов.</li><li>Состояние аккумулятора, зарядные контакты и зарядная база.</li><li>Экран, сенсор, кнопки и герметичность корпуса.</li><li>Wi-Fi, Bluetooth и мобильная связь.</li><li>Версия прошивки и системные настройки.</li></ul><p>После диагностики вы получите письменное заключение с планом ремонта, запчастями, стоимостью и сроками; ремонт начинается только после вашего согласия. Гарантийные случаи оформляются по правилам производителя. Для <strong>склада</strong>, <strong>розницы</strong> и <strong>аптеки</strong> наши инженеры выезжают и на объект.</p>',
+            'en' => '<p>When a mobile computer fails, the warehouse or shop floor grinds to a halt. Engineers at the <strong>Poson</strong> service center check the device thoroughly and pinpoint the cause of the fault.</p><ul><li>Scan engine: read range and 1D/2D decoding.</li><li>Battery health, charging contacts and charging cradle.</li><li>Screen, touch panel, keys and housing seals.</li><li>Wi-Fi, Bluetooth and cellular connectivity.</li><li>Firmware version and system settings.</li></ul><p>After diagnostics you receive a written report with the repair plan, parts, cost and timeline, and the repair starts only once you agree. Warranty cases are processed under the manufacturer\'s rules. For <strong>warehouse</strong>, <strong>retail</strong> and <strong>pharmacy</strong> customers our engineers also come on site.</p>',
         ],
         'meta_title' => [
             'uz' => 'TSD diagnostikasi va taʼmirlash — Poson',

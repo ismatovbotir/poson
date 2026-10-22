@@ -176,7 +176,7 @@
                         <td class="hidden whitespace-nowrap px-4 py-3 text-slate-600 xl:table-cell">{{ $product->effectiveSaleMode()->label() }}</td>
                         <td class="px-4 py-3">@include('livewire.admin.products.partials.languages', ['product' => $product])</td>
                         <td class="px-4 py-3">@include('livewire.admin.products.partials.status', ['product' => $product])</td>
-                        <td class="hidden whitespace-nowrap px-4 py-3 text-slate-500 2xl:table-cell">{{ ($inTrash ? $product->deleted_at : $product->updated_at)?->locale(app()->getLocale())->isoFormat('D MMM YYYY, HH:mm') }}</td>
+                        <td class="hidden whitespace-nowrap px-4 py-3 text-slate-500 2xl:table-cell">{{ \App\Support\DateFormat::iso($inTrash ? $product->deleted_at : $product->updated_at, 'D MMM YYYY, HH:mm') }}</td>
                         <td class="py-3 pr-5">@include('livewire.admin.products.partials.actions', ['product' => $product])</td>
                     </tr>
                 @endforeach

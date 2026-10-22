@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
+use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Attributes;
 use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
@@ -40,6 +41,10 @@ Route::post('/logout', LogoutController::class)
 
 Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/', Dashboard::class)->name('dashboard');
+
+    // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
+    Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');
+    Route::livewire('/analytics/ai', Analytics\AiVisibility::class)->name('analytics.ai');
 
     // Catalog (plan 03 3b). Each component authorizes in mount() and before writes.
     Route::livewire('/categories', Categories\Index::class)->name('categories.index');

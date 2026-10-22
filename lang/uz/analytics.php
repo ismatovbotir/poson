@@ -1,0 +1,139 @@
+<?php
+
+return [
+
+    'menu' => [
+        'traffic' => 'Analitika',
+        'ai' => 'SI koʻrinuvchanligi',
+    ],
+
+    'enums' => [
+        'traffic_channel' => [
+            'direct' => 'Toʻgʻridan-toʻgʻri',
+            'search' => 'Qidiruv tizimlari',
+            'ai' => 'SI yordamchilari',
+            'social' => 'Ijtimoiy tarmoqlar',
+            'referral' => 'Boshqa saytlar',
+            'campaign' => 'Kampaniyalar (UTM)',
+        ],
+        'device_type' => [
+            'desktop' => 'Kompyuter',
+            'mobile' => 'Telefon',
+            'tablet' => 'Planshet',
+        ],
+        'visit_type' => [
+            'page_view' => 'Koʻrish',
+            'lead' => 'Murojaat',
+        ],
+        'bot_purpose' => [
+            'training' => 'SI oʻqitish',
+            'ai_search' => 'SI qidiruvi',
+            'ai_user' => 'Foydalanuvchi soʻrovi boʻyicha SI',
+            'search' => 'Qidiruv tizimi',
+            'other' => 'Boshqa',
+        ],
+        'bot_verification' => [
+            'ip_ranges' => 'Eʼlon qilingan IP diapazonlar',
+            'rdns' => 'Teskari DNS',
+            'ua_only' => 'Faqat User-Agent boʻyicha',
+        ],
+    ],
+
+    'bots' => [
+        'other' => 'Boshqa botlar',
+    ],
+
+    'locales' => [
+        'uz' => 'Oʻzbekcha',
+        'ru' => 'Ruscha',
+        'en' => 'Inglizcha',
+    ],
+
+    'common' => [
+        'range' => 'Davr',
+        'days' => ':count kun',
+        'last_days' => 'Oxirgi :count kun',
+        'no_data' => 'Bu davr uchun hozircha maʼlumot yoʻq.',
+        'page' => 'Sahifa',
+        'visitors' => 'Tashrif buyuruvchilar',
+        'visitors_short' => 'kishi',
+        'leads' => 'Murojaatlar',
+        'conversion' => 'Konversiya',
+        'channel' => 'Kanal',
+        'source' => 'Manba',
+        'views' => 'Koʻrishlar',
+        'views_short' => 'koʻrish',
+    ],
+
+    'traffic' => [
+        'title' => 'Sayt tashriflari',
+        'subtitle' => 'Tashrif buyuruvchilar, manbalar va murojaatlarning oʻz hisobimiz. Cookie ishlatilmaydi; xodimlar tashriflari hisoblanmaydi.',
+        'external' => 'Batafsil hisobotlar:',
+        'open_ga4' => 'GA4 da ochish',
+        'open_metrika' => 'Metrikada ochish',
+        'kpis' => 'Asosiy koʻrsatkichlar',
+        'kpi' => [
+            'visitors' => 'Tashrif buyuruvchilar',
+            'page_views' => 'Sahifa koʻrishlari',
+            'leads' => 'Murojaatlar',
+            'conversion' => 'Konversiya',
+        ],
+        'empty' => 'Bu davr uchun hozircha tashriflar yoʻq. Yangi tashriflar bu yerda 15 daqiqa ichida chiqadi.',
+        'chart_title' => 'Kunlik tashrif buyuruvchilar',
+        'chart_label' => 'Kunlik tashrif buyuruvchilar ustunli diagrammasi',
+        'chart_tooltip' => 'tashrif buyuruvchilar: :visitors, murojaatlar: :leads',
+        'legend_visitors' => 'Tashrif buyuruvchilar',
+        'legend_leads' => 'Murojaat tushgan kun',
+        'channels' => 'Kanallar',
+        'sources' => 'Manbalar',
+        'sources_hint' => 'Tashrif buyuruvchilar qayerdan kelgan: sayt, qidiruv tizimi, SI yordamchisi yoki UTM kampaniya.',
+        'devices' => 'Qurilmalar',
+        'locales' => 'Sayt tillari',
+        'top_pages' => 'Ommabop sahifalar',
+        'top_products' => 'Ommabop mahsulotlar',
+        'privacy_note' => 'Tashrif buyuruvchilar har kuni anonim xesh bilan sanaladi; odamlarning IP manzillari saqlanmaydi. Xom tashriflar 30 kun, kunlik yigʻindilar 25 oy saqlanadi.',
+    ],
+
+    'ai' => [
+        'title' => 'SI koʻrinuvchanligi',
+        'subtitle' => 'SI va qidiruv botlari saytni qanday oʻqiydi va SI yordamchilaridan qancha odam keladi.',
+        'comparison' => 'Manba turi boʻyicha tashrif buyuruvchilar',
+        'groups' => [
+            'ai' => 'SI yordamchilaridan',
+            'search' => 'Qidiruv tizimlaridan',
+            'other' => 'Boshqa manbalar',
+        ],
+        'leads_conversion' => 'murojaatlar: :leads · konversiya :conversion',
+        'crawlers' => 'Botlar',
+        'crawlers_hint' => 'User-Agent boʻyicha soʻrovlar. Tasdiqlangan — IP bot egasiga tegishli; soxta — User-Agent qalbaki, IP bot egasiga tegishli emas. Har kecha tekshiriladi.',
+        'no_bots' => 'Bu davr uchun hozircha bot tashriflari yoʻq.',
+        'columns' => [
+            'bot' => 'Bot',
+            'purpose' => 'Maqsad',
+            'hits' => 'Soʻrovlar',
+            'ips' => 'IP manzillar',
+            'per_day' => 'Kunlik',
+            'verification' => 'Tekshiruv',
+            'errors' => '4xx / 5xx',
+            'last_seen' => 'Oxirgi tashrif',
+        ],
+        'sparkline_label' => ':bot kunlik soʻrovlari',
+        'verified' => 'tasdiqlangan: :count',
+        'unverified' => 'tasdiqlanmagan: :count',
+        'spoofed' => 'soxta: :count',
+        'errors_hint' => 'Oxirgi tashrif vaqti Toshkent vaqti boʻyicha. Bugungi raqamlar har 15 daqiqada yangilanadi.',
+        'filter_bot' => 'Bot',
+        'all_bots' => 'Barcha botlar',
+        'showing_bot' => ':bot uchun sahifalar va xatolar',
+        'showing_all' => 'Barcha botlar uchun sahifalar va xatolar',
+        'top_pages' => 'Eng koʻp skanerlangan sahifalar',
+        'top_products' => 'Eng koʻp skanerlangan mahsulotlar',
+        'hits_short' => 'soʻrov',
+        'not_found' => 'Topilmagan sahifalar (4xx)',
+        'not_found_hint' => 'Botlar soʻragan va 404 yoki boshqa mijoz xatosi (4xx) qaytgan sahifalar: havolalarni tuzating yoki yoʻnaltirish qoʻshing.',
+        'ai_sources' => 'Tashrif buyuruvchi olib keladigan SI yordamchilari',
+        'ai_sources_hint' => 'SI javobidagi havola orqali saytga oʻtgan odamlar.',
+        'leads_count' => 'murojaatlar: :count',
+    ],
+
+];

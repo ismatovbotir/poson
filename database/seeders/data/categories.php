@@ -7,7 +7,7 @@
  * scanners, label-printers, mobile-computers, labels-ribbons, rfid, pos, software.
  * All slugs are unique across the whole tree. Icons are keys of x-site.icon or null.
  *
- * Uzbek is Latin script; oʻ, gʻ and the tutuq belgisi use ʼ (U+02BB).
+ * Uzbek is Latin script; oʻ and gʻ use ʻ (U+02BB), the tutuq belgisi uses ʼ (U+02BC).
  *
  * @return list<array{
  *     slug: string,
@@ -33,9 +33,9 @@ return [
             'en' => 'Barcode scanners',
         ],
         'description' => [
-            'uz' => 'Chakana savdo kassalari, omborlar, dorixonalar va ishlab chiqarish uchun qoʻl, simsiz, statsionar va oʻrnatiladigan shtrix-kod skanerlari. 1D va 2D kodlarni, jumladan markirovkadagi DataMatrix kodlarini oʻqiydigan modelni vazifangiz va ish sharoitingizga qarab tanlashga yordam beramiz. Poson skanerni 1C, ERP yoki kassa dasturingizga ulaydi, prefiks va suffikslarni sozlaydi hamda kafolat davomida oʻz servis markazida xizmat koʻrsatadi.',
-            'ru' => 'Ручные, беспроводные, стационарные и встраиваемые сканеры штрих-кода для касс, складов, аптек и производства. Подберём модель под ваши коды и условия работы — от 1D до 2D, включая DataMatrix для маркировки. Специалисты Poson подключат сканер к 1С, ERP или кассовой программе, настроят префиксы и суффиксы, а гарантийное обслуживание выполнит наш собственный сервисный центр.',
-            'en' => 'Handheld, wireless, presentation and embedded barcode scanners for retail checkouts, warehouses, pharmacies and production lines. We help you choose the right model for your codes and environment, from 1D to 2D including DataMatrix for product marking. Poson connects the scanner to 1C, your ERP or POS software, configures prefixes and suffixes, and handles warranty service in its own service centre.',
+            'uz' => 'Chakana savdo kassalari, omborlar, dorixonalar va ishlab chiqarish uchun qoʻl, simsiz, statsionar va oʻrnatiladigan shtrix-kod skanerlari. 1D va 2D kodlarni, jumladan markirovkadagi DataMatrix kodlarini oʻqiydigan modelni vazifangiz va ish sharoitingizga qarab tanlashga yordam beramiz. Poson skanerni 1C ga ulaydi, prefiks va suffikslarni sozlaydi hamda kafolat davomida oʻz servis markazida xizmat koʻrsatadi.',
+            'ru' => 'Ручные, беспроводные, стационарные и встраиваемые сканеры штрих-кода для касс, складов, аптек и производства. Подберём модель под ваши коды и условия работы — от 1D до 2D, включая DataMatrix для маркировки. Специалисты Poson подключат сканер к 1С, настроят префиксы и суффиксы, а гарантийное обслуживание выполнит наш собственный сервисный центр.',
+            'en' => 'Handheld, wireless, presentation and embedded barcode scanners for retail checkouts, warehouses, pharmacies and production lines. We help you choose the right model for your codes and environment, from 1D to 2D including DataMatrix for product marking. Poson connects the scanner to 1C, configures prefixes and suffixes, and handles warranty service in its own service centre.',
         ],
         'meta_title' => [
             'uz' => 'Shtrix-kod skanerlari: tanlash va sozlash — Poson',
@@ -43,7 +43,7 @@ return [
             'en' => 'Barcode scanners: selection and setup — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Qoʻl, simsiz va statsionar shtrix-kod skanerlari: 1D, 2D va DataMatrix. 1C va POS bilan integratsiya, sozlash, rasmiy kafolat va servis. Toshkent.',
+            'uz' => 'Qoʻl, simsiz va statsionar shtrix-kod skanerlari: 1D, 2D va DataMatrix. 1C va POS bilan integratsiya, sozlash, rasmiy kafolat va servis.',
             'ru' => 'Сканеры штрих-кода для магазинов, складов и аптек: ручные, беспроводные, 2D с DataMatrix. Подбор, подключение к 1С, официальная гарантия и сервис Poson.',
             'en' => 'Handheld, wireless and presentation barcode scanners for retail, warehouses and pharmacies. Expert selection, 1C and POS integration, warranty service.',
         ],
@@ -110,9 +110,9 @@ return [
                     'en' => 'Presentation scanners',
                 ],
                 'description' => [
-                    'uz' => 'Kassa yoniga yoki ichiga oʻrnatiladigan statsionar va koʻp tekislikli skanerlar xaridorlar oqimi katta boʻlgan joylarda tovarni tez oʻqiydi. Poson skanerni kassa dasturiga ulaydi va kassirlar uchun qulay oʻqish rejimini sozlaydi.',
-                    'ru' => 'Стационарные и многоплоскостные сканеры для касс с большим потоком покупателей: товар считывается без лишних движений. Poson подключит сканер к кассовой программе и настроит удобный для кассира режим считывания.',
-                    'en' => 'Presentation and multi-plane scanners for busy checkouts read items as they pass, with no aiming needed. Poson connects the scanner to your POS software and tunes the read mode for cashiers.',
+                    'uz' => 'Kassa yoniga yoki ichiga oʻrnatiladigan statsionar va koʻp tekislikli skanerlar xaridorlar oqimi katta boʻlgan joylarda tovarni tez oʻqiydi. Poson skanerni oʻrnatadi va kassirlar uchun qulay oʻqish rejimini sozlaydi.',
+                    'ru' => 'Стационарные и многоплоскостные сканеры для касс с большим потоком покупателей: товар считывается без лишних движений. Poson установит сканер и настроит удобный для кассира режим считывания.',
+                    'en' => 'Presentation and multi-plane scanners for busy checkouts read items as they pass, with no aiming needed. Poson installs the scanner and tunes the read mode for cashiers.',
                 ],
                 'meta_title' => [
                     'uz' => 'Statsionar shtrix-kod skanerlari — Poson',
@@ -120,9 +120,9 @@ return [
                     'en' => 'Presentation barcode scanners — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Kassalar uchun statsionar va koʻp tekislikli shtrix-kod skanerlari: tez oʻqish, 2D va DataMatrix. Kassa dasturiga ulash, sozlash, kafolat va servis.',
-                    'ru' => 'Стационарные и многоплоскостные сканеры штрих-кода для касс с большим потоком покупателей. Подключение к кассовой программе, настройка и сервис.',
-                    'en' => 'Presentation and multi-plane barcode scanners for busy retail checkouts, with 2D and DataMatrix reading. POS integration, setup and warranty service.',
+                    'uz' => 'Kassalar uchun statsionar va koʻp tekislikli shtrix-kod skanerlari: tez oʻqish, 2D va DataMatrix. Oʻrnatish, sozlash, kafolat va servis.',
+                    'ru' => 'Стационарные и многоплоскостные сканеры штрих-кода для касс с большим потоком покупателей. Установка, настройка, гарантия и сервис.',
+                    'en' => 'Presentation and multi-plane barcode scanners for busy retail checkouts, with 2D and DataMatrix reading. Installation, setup and warranty service.',
                 ],
                 'children' => [],
             ],
@@ -166,9 +166,9 @@ return [
             'en' => 'Label printers',
         ],
         'description' => [
-            'uz' => 'Chakana savdo, ombor, logistika va ishlab chiqarish uchun stol usti, sanoat va mobil yorliq printerlari. Kunlik chop etish hajmi, yorliq oʻlchami va chop etish usuliga (termo yoki termotransfer) qarab mos modelni tanlaymiz. Poson printerni 1C, WMS yoki markirovka tizimiga ulaydi, yorliq shablonlarini tayyorlaydi va oʻz servis markazida kafolatli xizmat koʻrsatadi.',
-            'ru' => 'Настольные, промышленные и мобильные принтеры этикеток для розницы, складов, логистики и производства. Подберём модель по объёму печати, размеру этикетки и способу печати — прямая термопечать или термотрансфер. Poson подключит принтер к 1С, WMS или системе маркировки, подготовит шаблоны этикеток и обеспечит гарантийное обслуживание в собственном сервисном центре.',
-            'en' => 'Desktop, industrial and mobile label printers for retail, warehousing, logistics and manufacturing. We match the model to your daily volume, label size and print method, direct thermal or thermal transfer. Poson connects the printer to 1C, your WMS or marking system, prepares label templates and provides warranty service in its own service centre.',
+            'uz' => 'Chakana savdo, ombor, logistika va ishlab chiqarish uchun stol usti, sanoat va mobil yorliq printerlari. Kunlik chop etish hajmi, yorliq oʻlchami va chop etish usuliga (termo yoki termotransfer) qarab mos modelni tanlaymiz. Poson printerni 1C ga ulaydi, yorliq shablonlarini tayyorlaydi va oʻz servis markazida kafolatli xizmat koʻrsatadi.',
+            'ru' => 'Настольные, промышленные и мобильные принтеры этикеток для розницы, складов, логистики и производства. Подберём модель по объёму печати, размеру этикетки и способу печати — прямая термопечать или термотрансфер. Poson подключит принтер к 1С, подготовит шаблоны этикеток и обеспечит гарантийное обслуживание в собственном сервисном центре.',
+            'en' => 'Desktop, industrial and mobile label printers for retail, warehousing, logistics and manufacturing. We match the model to your daily volume, label size and print method, direct thermal or thermal transfer. Poson connects the printer to 1C, prepares label templates and provides warranty service in its own service centre.',
         ],
         'meta_title' => [
             'uz' => 'Yorliq printerlari: tanlash va sozlash — Poson',
@@ -176,9 +176,9 @@ return [
             'en' => 'Label printers: selection and setup — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Stol usti, sanoat va mobil yorliq printerlari: termo va termotransfer chop etish. Shablonlar, 1C va WMS bilan integratsiya, rasmiy kafolat va servis.',
-            'ru' => 'Настольные, промышленные и мобильные принтеры этикеток: термо и термотрансфер. Шаблоны этикеток, интеграция с 1С и WMS, гарантия и сервис Poson.',
-            'en' => 'Desktop, industrial and mobile label printers, direct thermal and thermal transfer. Label templates, 1C and WMS integration, warranty and service by Poson.',
+            'uz' => 'Stol usti, sanoat va mobil yorliq printerlari: termo va termotransfer chop etish. Shablonlar, 1C bilan integratsiya, rasmiy kafolat va servis.',
+            'ru' => 'Настольные, промышленные и мобильные принтеры этикеток: термо и термотрансфер. Шаблоны этикеток, интеграция с 1С, гарантия и сервис Poson.',
+            'en' => 'Desktop, industrial and mobile label printers, direct thermal and thermal transfer. Label templates, 1C integration, warranty and service by Poson.',
         ],
         'children' => [
             [
@@ -217,9 +217,9 @@ return [
                     'en' => 'Industrial label printers',
                 ],
                 'description' => [
-                    'uz' => 'Metall korpusli printerlar katta hajmdagi yorliqlarni uzluksiz chop etadi: ishlab chiqarish liniyalari, taqsimlash markazlari va markirovka uchastkalari uchun. Poson printerni liniya yoki WMS bilan integratsiya qiladi va profilaktik xizmat koʻrsatadi.',
-                    'ru' => 'Принтеры в металлическом корпусе для непрерывной печати больших объёмов на производстве, в распределительных центрах и на участках маркировки. Poson интегрирует принтер с линией или WMS и проводит плановое обслуживание.',
-                    'en' => 'Metal-frame printers built for continuous high-volume printing on production lines, in distribution centres and at marking stations. Poson integrates the printer with your line or WMS and provides preventive maintenance.',
+                    'uz' => 'Metall korpusli printerlar katta hajmdagi yorliqlarni uzluksiz chop etadi: ishlab chiqarish liniyalari, taqsimlash markazlari va markirovka uchastkalari uchun. Poson printerni 1C bilan integratsiya qiladi va profilaktik xizmat koʻrsatadi.',
+                    'ru' => 'Принтеры в металлическом корпусе для непрерывной печати больших объёмов на производстве, в распределительных центрах и на участках маркировки. Poson интегрирует принтер с 1С и проводит плановое обслуживание.',
+                    'en' => 'Metal-frame printers built for continuous high-volume printing on production lines, in distribution centres and at marking stations. Poson integrates the printer with 1C and provides preventive maintenance.',
                 ],
                 'meta_title' => [
                     'uz' => 'Sanoat yorliq printerlari — Poson',
@@ -229,7 +229,7 @@ return [
                 'meta_description' => [
                     'uz' => 'Ishlab chiqarish va taqsimlash markazlari uchun sanoat yorliq printerlari: uzluksiz ish, 300 va 600 dpi. Integratsiya, profilaktika, kafolat va servis.',
                     'ru' => 'Промышленные принтеры этикеток для производства и распределительных центров: непрерывная работа, 300 и 600 dpi. Интеграция, гарантия и сервис.',
-                    'en' => 'Industrial label printers for production lines and distribution centres: continuous duty, 300 and 600 dpi. Line and WMS integration, maintenance, warranty.',
+                    'en' => 'Industrial label printers for production lines and distribution centres: continuous duty, 300 and 600 dpi. 1C integration, maintenance and warranty.',
                 ],
                 'children' => [],
             ],
@@ -273,9 +273,9 @@ return [
             'en' => 'Mobile computers',
         ],
         'description' => [
-            'uz' => 'Android asosidagi TSD tovar qabul qilish, inventarizatsiya, buyurtma yigʻish va yetkazib berishni qogʻozsiz bajarishga va hisobdagi xatolarni kamaytirishga yordam beradi. Skanerlash moduli, ekran oʻlchami, himoya darajasi va RFID imkoniyatiga qarab mos modelni tanlaymiz. Poson terminallarni 1C, WMS yoki mobil ilovangizga ulaydi, MDM orqali sozlaydi va oʻz servis markazida taʼmirlaydi.',
-            'ru' => 'Терминалы сбора данных на Android переводят приёмку, инвентаризацию, сборку заказов и доставку в электронный вид и сокращают ошибки учёта. Подберём модель по сканирующему модулю, размеру экрана, степени защиты и поддержке RFID. Poson подключит ТСД к 1С, WMS или вашему мобильному приложению, настроит парк устройств через MDM и обеспечит ремонт в собственном сервисном центре.',
-            'en' => 'Android mobile computers take receiving, stocktaking, order picking and proof of delivery off paper and cut data-entry errors. We help you choose by scan engine, screen size, ruggedness rating and RFID support. Poson connects the devices to 1C, your WMS or mobile app, configures the fleet through MDM and repairs them in its own service centre.',
+            'uz' => 'Android asosidagi TSD tovar qabul qilish, inventarizatsiya, buyurtma yigʻish va yetkazib berishni qogʻozsiz bajarishga va hisobdagi xatolarni kamaytirishga yordam beradi. Skanerlash moduli, ekran oʻlchami, himoya darajasi va RFID imkoniyatiga qarab mos modelni tanlaymiz. Poson terminallarni Wi-Fi tarmogʻingizga ulaydi, ilovalarni oʻrnatadi, 1C bilan almashinuvni sozlaydi va oʻz servis markazida taʼmirlaydi.',
+            'ru' => 'Терминалы сбора данных на Android переводят приёмку, инвентаризацию, сборку заказов и доставку в электронный вид и сокращают ошибки учёта. Подберём модель по сканирующему модулю, размеру экрана, степени защиты и поддержке RFID. Poson подключит ТСД к вашей сети Wi-Fi, установит приложения, настроит обмен с 1С и обеспечит ремонт в собственном сервисном центре.',
+            'en' => 'Android mobile computers take receiving, stocktaking, order picking and proof of delivery off paper and cut data-entry errors. We help you choose by scan engine, screen size, ruggedness rating and RFID support. Poson connects the devices to your Wi-Fi, installs the apps, sets up data exchange with 1C and repairs them in its own service centre.',
         ],
         'meta_title' => [
             'uz' => 'Maʼlumot yigʻish terminallari (TSD) — Poson',
@@ -283,9 +283,9 @@ return [
             'en' => 'Mobile computers for warehouse and retail — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Ombor, savdo va logistika uchun Android TSD: 2D skaner, IP himoya, RFID. 1C va WMS bilan integratsiya, MDM sozlash, kafolat va servis markazi.',
-            'ru' => 'ТСД на Android для склада, магазина и логистики: 2D-сканер, защита IP, RFID. Интеграция с 1С и WMS, настройка через MDM, гарантия и сервис Poson.',
-            'en' => 'Android mobile computers for warehouses, retail and logistics: 2D scanning, rugged IP-rated design, RFID. 1C and WMS integration, MDM setup and service.',
+            'uz' => 'Ombor, savdo va logistika uchun Android TSD: 2D skaner, IP himoya, RFID. 1C bilan integratsiya, sozlash, kafolat va servis markazi.',
+            'ru' => 'ТСД на Android для склада, магазина и логистики: 2D-сканер, защита IP, RFID. Интеграция с 1С, настройка устройств, гарантия и сервис Poson.',
+            'en' => 'Android mobile computers for warehouses, retail and logistics: 2D scanning, rugged IP-rated design, RFID. 1C integration, device setup and service.',
         ],
         'children' => [
             [
@@ -298,9 +298,9 @@ return [
                     'en' => 'Android mobile computers',
                 ],
                 'description' => [
-                    'uz' => 'Qoʻlda ishlatiladigan Android terminallar 2D skaner, Wi-Fi va modelga qarab mobil aloqa bilan: omborda, savdo zalida va kuryerlik ishida foydalanish uchun. Poson ilovalarni oʻrnatadi, hisob tizimingiz bilan almashinuvni sozlaydi va qurilmalarni MDM orqali boshqarishga tayyorlaydi.',
-                    'ru' => 'Ручные терминалы на Android со 2D-сканером, Wi-Fi и, в зависимости от модели, мобильной связью — для склада, торгового зала и курьеров. Poson установит приложения, настроит обмен с учётной системой и подготовит устройства к управлению через MDM.',
-                    'en' => 'Handheld Android terminals with a 2D scanner, Wi-Fi and, depending on the model, cellular connectivity for warehouse, shop-floor and courier work. Poson installs your apps, sets up data exchange with your accounting system and prepares the devices for MDM.',
+                    'uz' => 'Qoʻlda ishlatiladigan Android terminallar 2D skaner, Wi-Fi va modelga qarab mobil aloqa bilan: omborda, savdo zalida va kuryerlik ishida foydalanish uchun. Poson qurilmalarni Wi-Fi tarmogʻiga ulaydi, ilovalarni oʻrnatadi va 1C bilan almashinuvni sozlaydi.',
+                    'ru' => 'Ручные терминалы на Android со 2D-сканером, Wi-Fi и, в зависимости от модели, мобильной связью — для склада, торгового зала и курьеров. Poson подключит устройства к Wi-Fi, установит приложения и настроит обмен с 1С.',
+                    'en' => 'Handheld Android terminals with a 2D scanner, Wi-Fi and, depending on the model, cellular connectivity for warehouse, shop-floor and courier work. Poson connects the devices to Wi-Fi, installs your apps and sets up data exchange with 1C.',
                 ],
                 'meta_title' => [
                     'uz' => 'Android TSD terminallari — Poson',
@@ -308,9 +308,9 @@ return [
                     'en' => 'Android mobile computers — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Ombor, doʻkon va kuryerlar uchun Android TSD: 2D skaner, Wi-Fi, IP himoya. Ilovalarni oʻrnatish, 1C bilan almashinuv, MDM, rasmiy kafolat va servis.',
-                    'ru' => 'ТСД на Android для склада, магазина и курьеров: 2D-сканер, Wi-Fi, защищённый корпус. Установка приложений, обмен с 1С, MDM, гарантия и сервис.',
-                    'en' => 'Android mobile computers for warehouses, stores and couriers: 2D scanner, Wi-Fi, rugged housing. App installation, 1C data exchange, MDM and warranty.',
+                    'uz' => 'Ombor, doʻkon va kuryerlar uchun Android TSD: 2D skaner, Wi-Fi, IP himoya. Ilovalarni oʻrnatish, 1C bilan almashinuv, rasmiy kafolat va servis.',
+                    'ru' => 'ТСД на Android для склада, магазина и курьеров: 2D-сканер, Wi-Fi, защищённый корпус. Установка приложений, обмен с 1С, гарантия и сервис.',
+                    'en' => 'Android mobile computers for warehouses, stores and couriers: 2D scanner, Wi-Fi, rugged housing. App installation, 1C data exchange, warranty and service.',
                 ],
                 'children' => [],
             ],
@@ -324,9 +324,9 @@ return [
                     'en' => 'Wearable computers',
                 ],
                 'description' => [
-                    'uz' => 'Qoʻlga taqiladigan terminallar va halqa skanerlar buyurtma yigʻuvchining ikki qoʻlini boʻshatadi va yigʻishni tezlashtiradi. Poson qurilmalarni WMS bilan ulab, omboringizda pilot loyiha oʻtkazishga yordam beradi.',
-                    'ru' => 'Носимые терминалы на запястье и кольцевые сканеры освобождают обе руки комплектовщика и ускоряют сборку заказов. Poson подключит устройства к WMS и поможет провести пилот на вашем складе.',
-                    'en' => 'Wrist-mounted computers and ring scanners keep both of the picker\'s hands free and speed up order picking. Poson connects the devices to your WMS and helps you run a pilot in your warehouse.',
+                    'uz' => 'Qoʻlga taqiladigan terminallar va halqa skanerlar buyurtma yigʻuvchining ikki qoʻlini boʻshatadi va yigʻishni tezlashtiradi. Poson qurilmalarni 1C bilan ulab, omboringizda pilot loyiha oʻtkazishga yordam beradi.',
+                    'ru' => 'Носимые терминалы на запястье и кольцевые сканеры освобождают обе руки комплектовщика и ускоряют сборку заказов. Poson подключит устройства к 1С и поможет провести пилот на вашем складе.',
+                    'en' => 'Wrist-mounted computers and ring scanners keep both of the picker\'s hands free and speed up order picking. Poson connects the devices to 1C and helps you run a pilot in your warehouse.',
                 ],
                 'meta_title' => [
                     'uz' => 'Taqiladigan terminallar va halqa skanerlar — Poson',
@@ -334,9 +334,9 @@ return [
                     'en' => 'Wearable computers and ring scanners — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Buyurtma yigʻish uchun qoʻlga taqiladigan terminallar va halqa skanerlar: ikki qoʻl boʻsh. WMS bilan integratsiya, pilot loyiha, kafolat va servis.',
-                    'ru' => 'Носимые терминалы и кольцевые сканеры для сборки заказов: обе руки свободны. Интеграция с WMS, пилотный проект на складе, гарантия и сервис Poson.',
-                    'en' => 'Wearable wrist computers and ring scanners for hands-free order picking. WMS integration, a pilot in your warehouse, warranty and service by Poson.',
+                    'uz' => 'Buyurtma yigʻish uchun qoʻlga taqiladigan terminallar va halqa skanerlar: ikki qoʻl boʻsh. 1C bilan integratsiya, pilot loyiha, kafolat va servis.',
+                    'ru' => 'Носимые терминалы и кольцевые сканеры для сборки заказов: обе руки свободны. Интеграция с 1С, пилотный проект на складе, гарантия и сервис Poson.',
+                    'en' => 'Wearable wrist computers and ring scanners for hands-free order picking. 1C integration, a pilot in your warehouse, warranty and service by Poson.',
                 ],
                 'children' => [],
             ],
@@ -672,9 +672,9 @@ return [
             'en' => 'POS equipment',
         ],
         'description' => [
-            'uz' => 'Doʻkon, dorixona, kafe va restoran kassalari uchun POS terminallar, chek printerlari, pul yashiklari, xaridor displeylari va yorliq chop etuvchi tarozilar. Kassa joyini toʻliq jamlaymiz va har bir qurilma kassa dasturingiz bilan mos ishlashini tekshiramiz. Poson uskunani oʻrnatadi, kassa dasturi va 1C bilan integratsiya qiladi hamda kafolat davomida oʻz servis markazida xizmat koʻrsatadi.',
-            'ru' => 'POS-терминалы, чековые принтеры, денежные ящики, дисплеи покупателя и весы с печатью этикеток для магазинов, аптек, кафе и ресторанов. Комплектуем кассовое место целиком и проверяем совместимость каждого устройства с вашей кассовой программой. Poson устанавливает оборудование, интегрирует его с кассовой программой и 1С и обслуживает по гарантии в собственном сервисном центре.',
-            'en' => 'POS terminals, receipt printers, cash drawers, customer displays and label-printing scales for shops, pharmacies, cafés and restaurants. We put together the complete checkout station and check that every device works with your POS software. Poson installs the equipment, integrates it with your POS software and 1C, and provides warranty service in its own service centre.',
+            'uz' => 'Doʻkon, dorixona, kafe va restoran kassalari uchun POS terminallar, chek printerlari, pul yashiklari, xaridor displeylari va yorliq chop etuvchi tarozilar. Kassa joyini toʻliq jamlaymiz va har bir qurilma kassa dasturingiz bilan mos ishlashini tekshiramiz. Poson uskunani oʻrnatadi, 1C bilan integratsiya qiladi hamda kafolat davomida oʻz servis markazida xizmat koʻrsatadi.',
+            'ru' => 'POS-терминалы, чековые принтеры, денежные ящики, дисплеи покупателя и весы с печатью этикеток для магазинов, аптек, кафе и ресторанов. Комплектуем кассовое место целиком и проверяем совместимость каждого устройства с вашей кассовой программой. Poson устанавливает оборудование, интегрирует его с 1С и обслуживает по гарантии в собственном сервисном центре.',
+            'en' => 'POS terminals, receipt printers, cash drawers, customer displays and label-printing scales for shops, pharmacies, cafés and restaurants. We put together the complete checkout station and check that every device works with your POS software. Poson installs the equipment, integrates it with 1C and provides warranty service in its own service centre.',
         ],
         'meta_title' => [
             'uz' => 'POS uskunalari: kassa joyini jihozlash — Poson',
@@ -683,7 +683,7 @@ return [
         ],
         'meta_description' => [
             'uz' => 'POS terminallar, chek printerlari, pul yashiklari, displeylar va tarozilar doʻkon, dorixona va HoReCa uchun. Oʻrnatish, integratsiya va servis.',
-            'ru' => 'POS-терминалы, чековые принтеры, денежные ящики, дисплеи и весы для магазинов, аптек и HoReCa. Установка, интеграция с кассовой программой, сервис.',
+            'ru' => 'POS-терминалы, чековые принтеры, денежные ящики, дисплеи и весы для магазинов, аптек и HoReCa. Установка, интеграция с 1С, гарантия и сервис.',
             'en' => 'POS terminals, receipt printers, cash drawers, customer displays and scales for retail, pharmacies and HoReCa. Installation, integration and service.',
         ],
         'children' => [
@@ -723,9 +723,9 @@ return [
                     'en' => 'Receipt printers',
                 ],
                 'description' => [
-                    'uz' => 'Kassa, oshxona va buyurtma chiptalari uchun 58 va 80 mm kenglikdagi termoprinterlar, avtokesgichli va avtokesgichsiz. Poson printerni kassa dasturi va pul yashigi bilan ulaydi hamda chek shablonini sozlaydi.',
-                    'ru' => 'Термопринтеры с шириной печати 58 и 80 мм для кассы, кухни и печати заказов, с автоотрезчиком и без. Poson подключит принтер к кассовой программе и денежному ящику и настроит шаблон чека.',
-                    'en' => '58 mm and 80 mm thermal printers for checkouts, kitchens and order tickets, with or without an auto-cutter. Poson connects the printer to your POS software and cash drawer and sets up the receipt layout.',
+                    'uz' => 'Kassa, oshxona va buyurtma chiptalari uchun 58 va 80 mm kenglikdagi termoprinterlar, avtokesgichli va avtokesgichsiz. Poson printerni oʻrnatadi, pul yashigini ulaydi hamda chek shablonini sozlaydi.',
+                    'ru' => 'Термопринтеры с шириной печати 58 и 80 мм для кассы, кухни и печати заказов, с автоотрезчиком и без. Poson установит принтер, подключит к нему денежный ящик и настроит шаблон чека.',
+                    'en' => '58 mm and 80 mm thermal printers for checkouts, kitchens and order tickets, with or without an auto-cutter. Poson installs the printer, connects the cash drawer to it and sets up the receipt layout.',
                 ],
                 'meta_title' => [
                     'uz' => 'Chek printerlari 58 va 80 mm — Poson',
@@ -733,9 +733,9 @@ return [
                     'en' => 'Receipt printers 58 and 80 mm — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Kassa va oshxona uchun 58 va 80 mm chek printerlari: avtokesgich, USB, Ethernet, Bluetooth. Kassa dasturiga ulash, sozlash, rasmiy kafolat va servis.',
-                    'ru' => 'Чековые принтеры 58 и 80 мм для кассы и кухни: автоотрезчик, USB, Ethernet, Bluetooth. Подключение к кассовой программе, официальная гарантия и сервис.',
-                    'en' => '58 mm and 80 mm receipt printers for checkouts and kitchens: auto-cutter, USB, Ethernet, Bluetooth. POS software setup, official warranty and service.',
+                    'uz' => 'Kassa va oshxona uchun 58 va 80 mm chek printerlari: avtokesgich, USB, Ethernet, Bluetooth. Oʻrnatish, sozlash, rasmiy kafolat va servis.',
+                    'ru' => 'Чековые принтеры 58 и 80 мм для кассы и кухни: автоотрезчик, USB, Ethernet, Bluetooth. Установка, настройка, официальная гарантия и сервис.',
+                    'en' => '58 mm and 80 mm receipt printers for checkouts and kitchens: auto-cutter, USB, Ethernet, Bluetooth. Installation, setup, official warranty and service.',
                 ],
                 'children' => [],
             ],
@@ -775,9 +775,9 @@ return [
                     'en' => 'Customer displays',
                 ],
                 'description' => [
-                    'uz' => 'Xaridorga xarid tafsilotlarini koʻrsatadigan matnli va grafik displeylar hamda ikkinchi ekranlar. Poson displeyni kassa dasturiga ulab, kerakli maʼlumotlar chiqishini sozlaydi.',
-                    'ru' => 'Текстовые и графические дисплеи покупателя и вторые экраны, на которых покупатель видит состав покупки. Poson подключит дисплей к кассовой программе и настроит вывод информации.',
-                    'en' => 'Text and graphic customer displays and second screens that show shoppers the details of their purchase. Poson connects the display to your POS software and sets up what it shows.',
+                    'uz' => 'Xaridorga xarid tafsilotlarini koʻrsatadigan matnli va grafik displeylar hamda ikkinchi ekranlar. Poson displeyni POS terminalga ulab, kerakli maʼlumotlar chiqishini sozlaydi.',
+                    'ru' => 'Текстовые и графические дисплеи покупателя и вторые экраны, на которых покупатель видит состав покупки. Poson подключит дисплей к POS-терминалу и настроит вывод информации.',
+                    'en' => 'Text and graphic customer displays and second screens that show shoppers the details of their purchase. Poson connects the display to the POS terminal and sets up what it shows.',
                 ],
                 'meta_title' => [
                     'uz' => 'Xaridor displeylari — Poson',
@@ -785,9 +785,9 @@ return [
                     'en' => 'Customer displays — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Kassa uchun matnli va grafik xaridor displeylari hamda ikkinchi ekranlar. Kassa dasturiga ulash, maʼlumot chiqarishni sozlash, kafolat va servis.',
-                    'ru' => 'Текстовые и графические дисплеи покупателя и вторые экраны для кассы. Подключение к кассовой программе, настройка вывода, гарантия и сервис Poson.',
-                    'en' => 'Text and graphic customer displays and second screens for checkouts. Connection to your POS software, display setup, warranty and service by Poson.',
+                    'uz' => 'Kassa uchun matnli va grafik xaridor displeylari hamda ikkinchi ekranlar. Ulash, maʼlumot chiqarishni sozlash, kafolat va servis.',
+                    'ru' => 'Текстовые и графические дисплеи покупателя и вторые экраны для кассы. Подключение, настройка вывода, гарантия и сервис Poson.',
+                    'en' => 'Text and graphic customer displays and second screens for checkouts. Connection, display setup, warranty and service by Poson.',
                 ],
                 'children' => [],
             ],
@@ -801,9 +801,9 @@ return [
                     'en' => 'Label-printing scales',
                 ],
                 'description' => [
-                    'uz' => 'Tortib sotiladigan tovarlar uchun yorliq chop etuvchi va kassa tarozilari: oziq-ovqat doʻkonlari va supermarketlar uchun. Poson tovar bazasini yuklaydi, yorliq shablonini sozlaydi va tarozini hisob tizimi bilan bogʻlaydi.',
-                    'ru' => 'Весы с печатью этикеток и кассовые весы для весового товара в продуктовых магазинах и супермаркетах. Poson загрузит товарную базу, настроит шаблон этикетки и свяжет весы с учётной системой.',
-                    'en' => 'Label-printing and checkout scales for weighed goods in grocery stores and supermarkets. Poson loads the product database, sets up the label template and links the scales to your accounting system.',
+                    'uz' => 'Tortib sotiladigan tovarlar uchun yorliq chop etuvchi va kassa tarozilari: oziq-ovqat doʻkonlari va supermarketlar uchun. Poson tarozini oʻrnatadi, sozlaydi va yorliq shablonini tayyorlaydi; tovarlar roʻyxatini mijoz oʻzi yuritadi.',
+                    'ru' => 'Весы с печатью этикеток и кассовые весы для весового товара в продуктовых магазинах и супермаркетах. Poson установит и настроит весы и шаблон этикетки; товарный справочник ведёт сам клиент.',
+                    'en' => 'Label-printing and checkout scales for weighed goods in grocery stores and supermarkets. Poson installs and configures the scales and the label template; the product list is maintained by the customer.',
                 ],
                 'meta_title' => [
                     'uz' => 'Yorliq chop etuvchi tarozilar — Poson',
@@ -811,9 +811,9 @@ return [
                     'en' => 'Label-printing scales — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Oziq-ovqat doʻkonlari va supermarketlar uchun yorliq chop etuvchi va kassa tarozilari. Tovar bazasini yuklash, shablon sozlash, 1C bilan bogʻlash.',
-                    'ru' => 'Весы с печатью этикеток и кассовые весы для продуктовых магазинов и супермаркетов. Загрузка товарной базы, шаблоны этикеток, связь с 1С и сервис.',
-                    'en' => 'Label-printing and checkout scales for grocery stores and supermarkets. Product database upload, label templates, 1C integration and service by Poson.',
+                    'uz' => 'Oziq-ovqat doʻkonlari va supermarketlar uchun yorliq chop etuvchi va kassa tarozilari. Oʻrnatish, sozlash, yorliq shablonlari, kafolat va servis.',
+                    'ru' => 'Весы с печатью этикеток и кассовые весы для продуктовых магазинов и супермаркетов. Установка, настройка, шаблоны этикеток, гарантия и сервис.',
+                    'en' => 'Label-printing and checkout scales for grocery stores and supermarkets. Installation, setup, label templates, warranty and service by Poson.',
                 ],
                 'children' => [],
             ],
@@ -831,60 +831,34 @@ return [
             'en' => 'Software',
         ],
         'description' => [
-            'uz' => 'Ombor hisobi, kassa, yorliq dizayni va mobil qurilmalarni boshqarish (MDM) uchun dasturlar va litsenziyalar. Uskunangiz va hisob tizimingizga mos dasturni tanlaymiz, shunda skaner, printer va TSD yagona tizim sifatida ishlaydi. Poson litsenziyani faollashtiradi, dasturni oʻrnatadi, 1C bilan integratsiyani sozlaydi va xodimlaringizni oʻqitadi.',
-            'ru' => 'Программы и лицензии для складского учёта, кассы, дизайна этикеток и управления мобильными устройствами (MDM). Подбираем ПО под ваше оборудование и учётную систему, чтобы сканеры, принтеры и ТСД работали как единое целое. Poson активирует лицензии, устанавливает и настраивает программы, выполняет интеграцию с 1С и обучает сотрудников.',
-            'en' => 'Software and licences for inventory management, POS, label design and mobile device management (MDM). We pick software that fits your hardware and accounting system so scanners, printers and mobile computers work as one. Poson activates licences, installs and configures the software, integrates it with 1C and trains your staff.',
+            'uz' => 'Chakana savdo, HoReCa va ombor uchun kassa, savdoni boshqarish va tovar hisobi dasturlari. Biznesingiz turi, savdo nuqtalari soni va ishlatiladigan uskunaga qarab mos dasturni tanlashga yordam beramiz. Poson dasturni sozlaydi, unga skaner, chek va yorliq printerlari hamda pul yashigini ulaydi, xodimlaringizni oʻqitadi va keyinchalik qoʻllab-quvvatlaydi.',
+            'ru' => 'Кассовые программы, системы управления магазином и товарного учёта для розницы, HoReCa и склада. Поможем выбрать программу под формат бизнеса, число точек продаж и ваше оборудование. Poson настроит программу, подключит к ней сканеры, чековые принтеры, принтеры этикеток и денежный ящик, обучит сотрудников и поддержит в работе.',
+            'en' => 'POS, store management and inventory software for retail, HoReCa and warehouses. We help you choose a program that fits your business type, number of outlets and equipment. Poson sets up the program, connects scanners, receipt and label printers and cash drawers to it, trains your staff and supports you afterwards.',
         ],
         'meta_title' => [
-            'uz' => 'Dasturiy taʼminot va litsenziyalar — Poson',
-            'ru' => 'Программное обеспечение и лицензии — Poson',
-            'en' => 'Software and licences — Poson',
+            'uz' => 'Kassa va savdo hisobi dasturlari — Poson',
+            'ru' => 'Кассовые программы и товарный учёт — Poson',
+            'en' => 'POS and inventory software — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Ombor hisobi, kassa, yorliq dizayni va MDM uchun dasturlar va litsenziyalar. Oʻrnatish, 1C bilan integratsiya, xodimlarni oʻqitish va qoʻllab-quvvatlash.',
-            'ru' => 'Программы для складского учёта, кассы, дизайна этикеток и MDM, лицензии. Установка, интеграция с 1С, обучение сотрудников и техподдержка Poson.',
-            'en' => 'Inventory, POS, label design and MDM software and licences. Installation, 1C integration, staff training and ongoing support from Poson engineers.',
+            'uz' => 'Doʻkon, kafe va ombor uchun kassa va tovar hisobi dasturlari. Tanlash, sozlash, skaner va printerlarni ulash, xodimlarni oʻqitish va qoʻllab-quvvatlash.',
+            'ru' => 'Кассовые программы и товарный учёт для магазинов, кафе и складов. Подбор, настройка, подключение сканеров и принтеров, обучение и поддержка Poson.',
+            'en' => 'POS and inventory software for shops, cafés and warehouses. Selection, setup, connecting scanners and printers, staff training and support by Poson.',
         ],
         'children' => [
             [
-                'slug' => 'warehouse-software',
-                'icon' => null,
-                'sort' => 1,
-                'name' => [
-                    'uz' => 'Ombor hisobi dasturlari',
-                    'ru' => 'ПО для складского учёта',
-                    'en' => 'Warehouse software',
-                ],
-                'description' => [
-                    'uz' => 'TSD uchun tovar qabul qilish, joylashtirish, inventarizatsiya va buyurtma yigʻish ilovalari hamda WMS yechimlari. Poson dasturni 1C yoki ERP bilan bogʻlab, ombor jarayonlaringizga moslaydi.',
-                    'ru' => 'Мобильные приложения для ТСД и WMS-решения для приёмки, размещения, инвентаризации и сборки заказов. Poson свяжет программу с 1С или ERP и настроит под ваши складские процессы.',
-                    'en' => 'Mobile apps for handhelds and WMS solutions covering receiving, putaway, stocktaking and order picking. Poson links the software to 1C or your ERP and tailors it to your warehouse processes.',
-                ],
-                'meta_title' => [
-                    'uz' => 'Ombor hisobi dasturlari va WMS — Poson',
-                    'ru' => 'ПО для склада и WMS — Poson',
-                    'en' => 'Warehouse and inventory software — Poson',
-                ],
-                'meta_description' => [
-                    'uz' => 'TSD uchun ombor ilovalari va WMS: qabul, joylashtirish, inventarizatsiya, buyurtma yigʻish. 1C va ERP bilan integratsiya, sozlash va oʻqitish.',
-                    'ru' => 'Приложения для ТСД и WMS: приёмка, размещение, инвентаризация, сборка заказов. Интеграция с 1С и ERP, настройка процессов и обучение персонала.',
-                    'en' => 'Mobile apps for handhelds and WMS for receiving, putaway, stocktaking and picking. 1C and ERP integration, process setup and staff training by Poson.',
-                ],
-                'children' => [],
-            ],
-            [
                 'slug' => 'pos-software',
                 'icon' => null,
-                'sort' => 2,
+                'sort' => 1,
                 'name' => [
                     'uz' => 'Kassa dasturlari',
                     'ru' => 'Кассовые программы',
                     'en' => 'POS software',
                 ],
                 'description' => [
-                    'uz' => 'Doʻkon, dorixona va HoReCa uchun kassa dasturlari: tovar hisobi, kassa operatsiyalari va hisobotlar. Poson dasturni POS uskunasi bilan birga oʻrnatadi va kassirlarni oʻqitadi.',
-                    'ru' => 'Кассовые программы для магазинов, аптек и HoReCa: товарный учёт, кассовые операции и отчёты. Poson установит программу вместе с POS-оборудованием и обучит кассиров.',
-                    'en' => 'POS software for shops, pharmacies and HoReCa covering stock records, checkout operations and reports. Poson installs it together with the POS hardware and trains your cashiers.',
+                    'uz' => 'Doʻkon va HoReCa uchun kassa va savdoni boshqarish dasturlari: savdo, qaytarish, tovarlar roʻyxati va hisobotlar. Poson dasturni sozlaydi, skaner, chek printeri va pul yashigini ulaydi hamda kassirlarni oʻqitadi.',
+                    'ru' => 'Кассовые программы и системы управления магазином для розницы и HoReCa: продажи, возвраты, товарный справочник и отчёты. Poson настроит программу, подключит сканер, чековый принтер и денежный ящик и обучит кассиров.',
+                    'en' => 'POS and store management software for retail and HoReCa: checkout, returns, product catalogue and reports. Poson sets up the program, connects the scanner, receipt printer and cash drawer and trains your cashiers.',
                 ],
                 'meta_title' => [
                     'uz' => 'Kassa dasturlari — Poson',
@@ -892,61 +866,36 @@ return [
                     'en' => 'POS software — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Doʻkon, dorixona va HoReCa uchun kassa dasturlari: tovar hisobi va hisobotlar. POS uskunasi bilan oʻrnatish, sozlash, kassirlarni oʻqitish va yordam.',
-                    'ru' => 'Кассовые программы для магазинов, аптек и HoReCa: товарный учёт и отчёты. Установка вместе с POS-оборудованием, настройка, обучение кассиров и поддержка.',
-                    'en' => 'POS software for shops, pharmacies and HoReCa with stock records and reports. Installation with your POS hardware, setup and cashier training.',
+                    'uz' => 'Doʻkon va HoReCa uchun kassa dasturlari: savdo, tovarlar va hisobotlar. Sozlash, skaner va chek printerini ulash, kassirlarni oʻqitish va yordam.',
+                    'ru' => 'Кассовые программы для магазинов и HoReCa: продажи, товары и отчёты. Настройка, подключение сканера и чекового принтера, обучение кассиров и поддержка.',
+                    'en' => 'POS software for shops and HoReCa: checkout, products and reports. Setup, connecting the scanner and receipt printer, cashier training and support.',
                 ],
                 'children' => [],
             ],
+            // CONFIRM: 1C data exchange is stated per business-facts row 3 ("software"); confirm it applies to each inventory program sold.
             [
-                'slug' => 'label-design-software',
+                'slug' => 'warehouse-software',
                 'icon' => null,
-                'sort' => 3,
+                'sort' => 2,
                 'name' => [
-                    'uz' => 'Yorliq dizayni dasturlari',
-                    'ru' => 'Программы для дизайна этикеток',
-                    'en' => 'Label design software',
+                    'uz' => 'Tovar va ombor hisobi dasturlari',
+                    'ru' => 'Программы товарного и складского учёта',
+                    'en' => 'Inventory software',
                 ],
                 'description' => [
-                    'uz' => 'Shtrix-kod, DataMatrix va maʼlumotlar bazasidan olinadigan maydonlar bilan yorliq shablonlarini yaratish va chop etish uchun dasturlar. Poson shablonlarni tayyorlaydi va dasturni hisob tizimingiz bilan bogʻlaydi.',
-                    'ru' => 'Программы для создания и печати шаблонов этикеток со штрих-кодами, DataMatrix и полями из базы данных. Poson подготовит шаблоны и свяжет программу с вашей учётной системой.',
-                    'en' => 'Software for designing and printing label templates with barcodes, DataMatrix and fields pulled from a database. Poson prepares the templates and links the software to your accounting system.',
+                    'uz' => 'Tovar qoldiqlari, kirim, koʻchirish va inventarizatsiyani yuritish uchun dasturlar. Poson dasturni sozlaydi, skaner va yorliq printerini ulaydi, dastur imkon bersa 1C bilan maʼlumot almashinuvini yoʻlga qoʻyadi va xodimlarni oʻqitadi.',
+                    'ru' => 'Программы для учёта остатков, поступлений, перемещений и инвентаризации. Poson настроит программу, подключит сканер и принтер этикеток, если программа это поддерживает, настроит обмен с 1С и обучит сотрудников.',
+                    'en' => 'Software for tracking stock levels, goods receipts, transfers and stocktaking. Poson sets up the program, connects scanners and label printers, configures data exchange with 1C where the program supports it, and trains your staff.',
                 ],
                 'meta_title' => [
-                    'uz' => 'Yorliq dizayni dasturlari — Poson',
-                    'ru' => 'Программы для дизайна этикеток — Poson',
-                    'en' => 'Label design software — Poson',
+                    'uz' => 'Tovar va ombor hisobi dasturlari — Poson',
+                    'ru' => 'Программы товарного учёта — Poson',
+                    'en' => 'Inventory and stock software — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Shtrix-kod, DataMatrix va bazadan olingan maydonlar bilan yorliq yaratish dasturlari. Shablon tayyorlash, 1C bilan bogʻlash, litsenziya va oʻqitish.',
-                    'ru' => 'Программы для дизайна этикеток со штрих-кодами, DataMatrix и полями из базы данных. Подготовка шаблонов, связь с 1С, лицензии и обучение сотрудников.',
-                    'en' => 'Label design software with barcodes, DataMatrix and database-driven fields. Template preparation, 1C connection, licensing and training by Poson.',
-                ],
-                'children' => [],
-            ],
-            [
-                'slug' => 'mdm-software',
-                'icon' => null,
-                'sort' => 4,
-                'name' => [
-                    'uz' => 'MDM — qurilmalarni boshqarish',
-                    'ru' => 'MDM — управление устройствами',
-                    'en' => 'MDM software',
-                ],
-                'description' => [
-                    'uz' => 'TSD va planshetlar parkini markazlashgan holda boshqarish uchun MDM litsenziyalari: sozlamalar, ilovalar, yangilanishlar va kiosk rejimi. Poson qurilmalarni roʻyxatga oladi va boshqaruv siyosatlarini sozlaydi.',
-                    'ru' => 'Лицензии MDM для централизованного управления парком ТСД и планшетов: настройки, приложения, обновления и режим киоска. Poson зарегистрирует устройства и настроит политики.',
-                    'en' => 'MDM licences for central management of mobile computer and tablet fleets: settings, apps, updates and kiosk mode. Poson enrols the devices and configures the policies.',
-                ],
-                'meta_title' => [
-                    'uz' => 'MDM: TSD parkini boshqarish — Poson',
-                    'ru' => 'MDM: управление парком ТСД — Poson',
-                    'en' => 'MDM for mobile computer fleets — Poson',
-                ],
-                'meta_description' => [
-                    'uz' => 'TSD va planshetlar parkini markazlashgan boshqarish uchun MDM: sozlamalar, ilovalar, yangilanishlar, kiosk rejimi. Roʻyxatga olish va sozlash.',
-                    'ru' => 'MDM для централизованного управления парком ТСД и планшетов: настройки, приложения, обновления, киоск-режим. Регистрация устройств и настройка.',
-                    'en' => 'MDM for central management of mobile computer and tablet fleets: settings, apps, updates, kiosk mode. Device enrolment and policy setup by Poson.',
+                    'uz' => 'Tovar qoldiqlari, kirim va inventarizatsiya hisobi dasturlari. Sozlash, skaner va yorliq printerini ulash, 1C bilan almashinuv va xodimlarni oʻqitish.',
+                    'ru' => 'Программы учёта остатков, поступлений и инвентаризации. Настройка, подключение сканера и принтера этикеток, обмен с 1С и обучение сотрудников.',
+                    'en' => 'Software for stock levels, goods receipts and stocktaking. Setup, connecting scanners and label printers, 1C data exchange and staff training.',
                 ],
                 'children' => [],
             ],
@@ -964,9 +913,9 @@ return [
             'en' => 'Services',
         ],
         'description' => [
-            'uz' => 'Poson nafaqat uskuna yetkazib beradi, balki uning butun xizmat muddati davomida ishonchli ishlashini taʼminlaydi. Muhandislarimiz skanerlar, yorliq printerlari, TSD, RFID va POS uskunalarini oʻrnatadi, 1C, WMS va markirovka tizimlari bilan integratsiya qiladi hamda xodimlaringizni oʻqitadi. Oʻz servis markazimizda diagnostika, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika bajariladi, muddatlar esa oldindan kelishiladi.',
-            'ru' => 'Poson не только поставляет оборудование, но и отвечает за его надёжную работу на всём сроке службы. Наши инженеры устанавливают сканеры, принтеры этикеток, ТСД, RFID- и POS-оборудование, интегрируют его с 1С, WMS и системами маркировки и обучают ваших сотрудников. В собственном сервисном центре мы проводим диагностику, гарантийный и постгарантийный ремонт и плановую профилактику, а сроки согласуем заранее.',
-            'en' => 'Poson does more than supply equipment: we keep it running reliably for its whole service life. Our engineers install scanners, label printers, mobile computers, RFID and POS hardware, integrate it with 1C, WMS and marking systems and train your staff. Our own service centre handles diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance, with timelines agreed up front.',
+            'uz' => 'Poson nafaqat uskuna yetkazib beradi, balki uning butun xizmat muddati davomida ishonchli ishlashini taʼminlaydi. Muhandislarimiz skanerlar, yorliq printerlari, TSD, RFID va POS uskunalarini oʻrnatadi, 1C bilan integratsiya qiladi hamda xodimlaringizni oʻqitadi. Oʻz servis markazimizda diagnostika, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika bajariladi, muddatlar esa oldindan kelishiladi.',
+            'ru' => 'Poson не только поставляет оборудование, но и отвечает за его надёжную работу на всём сроке службы. Наши инженеры устанавливают сканеры, принтеры этикеток, ТСД, RFID- и POS-оборудование, интегрируют его с 1С и обучают ваших сотрудников. В собственном сервисном центре мы проводим диагностику, гарантийный и постгарантийный ремонт и плановую профилактику, а сроки согласуем заранее.',
+            'en' => 'Poson does more than supply equipment: we keep it running reliably for its whole service life. Our engineers install scanners, label printers, mobile computers, RFID and POS hardware, integrate it with 1C and train your staff. Our own service centre handles diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance, with timelines agreed up front.',
         ],
         'meta_title' => [
             'uz' => 'Servis: oʻrnatish, sozlash va taʼmirlash — Poson',
@@ -974,9 +923,9 @@ return [
             'en' => 'Services: setup, integration and repair — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Auto-ID uskunalari uchun Poson servisi: oʻrnatish, sozlash, 1C va WMS bilan integratsiya, diagnostika, taʼmirlash va oʻz servis markazimizda profilaktika.',
-            'ru' => 'Сервис Poson для Auto-ID оборудования: установка, настройка, интеграция с 1С и WMS, диагностика, ремонт и обслуживание в собственном сервисном центре.',
-            'en' => 'Poson service for Auto-ID equipment: installation, setup and integration with 1C and WMS, diagnostics, repair and maintenance in our own service centre.',
+            'uz' => 'Auto-ID uskunalari uchun Poson servisi: oʻrnatish, sozlash, 1C bilan integratsiya, diagnostika, taʼmirlash va oʻz servis markazimizda profilaktika.',
+            'ru' => 'Сервис Poson для Auto-ID оборудования: установка, настройка, интеграция с 1С, диагностика, ремонт и обслуживание в собственном сервисном центре.',
+            'en' => 'Poson service for Auto-ID equipment: installation, setup and integration with 1C, diagnostics, repair and maintenance in our own service centre.',
         ],
         'children' => [
             [
@@ -989,9 +938,9 @@ return [
                     'en' => 'Setup and integration',
                 ],
                 'description' => [
-                    'uz' => 'Uskunani oʻrnatish, sozlash va hisob tizimingiz bilan bogʻlash: skanerlarni dasturlash, yorliq printerlarini kalibrlash va shablonlar, TSDga ilovalar va MDM, kassa joyini toʻliq ishga tushirish. Poson muhandislari ishni ofisingizda yoki masofadan bajaradi va xodimlarni oʻqitadi.',
-                    'ru' => 'Установка, настройка и связь оборудования с вашей учётной системой: программирование сканеров, калибровка и шаблоны для принтеров этикеток, приложения и MDM для ТСД, запуск кассового места под ключ. Инженеры Poson работают у вас на месте или удалённо и обучают сотрудников.',
-                    'en' => 'Installing, configuring and connecting equipment to your accounting system: scanner programming, label printer calibration and templates, apps and MDM for mobile computers, and complete checkout commissioning. Poson engineers work on site or remotely and train your staff.',
+                    'uz' => 'Uskunani oʻrnatish, sozlash va 1C bilan bogʻlash: skanerlarni dasturlash, yorliq printerlarini kalibrlash va shablonlar, TSDni Wi-Fi ga ulash va ilovalarni oʻrnatish, kassa joyini toʻliq ishga tushirish. Poson muhandislari ishni ofisingizda yoki masofadan bajaradi va xodimlarni oʻqitadi.',
+                    'ru' => 'Установка, настройка и связь оборудования с 1С: программирование сканеров, калибровка и шаблоны для принтеров этикеток, подключение ТСД к Wi-Fi и установка приложений, запуск кассового места под ключ. Инженеры Poson работают у вас на месте или удалённо и обучают сотрудников.',
+                    'en' => 'Installing, configuring and connecting equipment to 1C: scanner programming, label printer calibration and templates, Wi-Fi and app setup for mobile computers, and complete checkout commissioning. Poson engineers work on site or remotely and train your staff.',
                 ],
                 'meta_title' => [
                     'uz' => 'Uskunani oʻrnatish va integratsiya — Poson',
@@ -999,9 +948,9 @@ return [
                     'en' => 'Equipment setup and integration — Poson',
                 ],
                 'meta_description' => [
-                    'uz' => 'Skaner, yorliq printeri, TSD va POS uskunalarini Poson muhandislari oʻrnatadi: 1C, WMS va markirovka bilan integratsiya hamda xodimlarni oʻqitish.',
-                    'ru' => 'Установка и настройка сканеров, принтеров этикеток, ТСД и POS инженерами Poson: интеграция с 1С, WMS и системой маркировки, обучение сотрудников.',
-                    'en' => 'Installation and setup of scanners, label printers, mobile computers and POS by Poson engineers: integration with 1C, WMS and marking, plus staff training.',
+                    'uz' => 'Skaner, yorliq printeri, TSD va POS uskunalarini Poson muhandislari oʻrnatadi: 1C bilan integratsiya, ish joyiga chiqish va xodimlarni oʻqitish.',
+                    'ru' => 'Установка и настройка сканеров, принтеров этикеток, ТСД и POS инженерами Poson: интеграция с 1С, выезд на объект и обучение сотрудников.',
+                    'en' => 'Installation and setup of scanners, label printers, mobile computers and POS by Poson engineers: 1C integration, on-site visits and staff training.',
                 ],
                 'children' => [],
             ],
@@ -1015,9 +964,9 @@ return [
                     'en' => 'Repair and maintenance',
                 ],
                 'description' => [
-                    'uz' => 'Skanerlar, printerlar, TSD va POS uskunalarini diagnostika qilish, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika. Poson servis markazi nosozlik sababini aniqlaydi, taʼmirlash rejasi va muddatlarini yozma ravishda beradi va almashtirish fondini tashkil qilishga yordam beradi.',
-                    'ru' => 'Диагностика, гарантийный и постгарантийный ремонт и плановая профилактика сканеров, принтеров, ТСД и POS-оборудования. Сервисный центр Poson найдёт причину неисправности, письменно согласует план и сроки ремонта и поможет организовать подменный фонд.',
-                    'en' => 'Diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance for scanners, printers, mobile computers and POS hardware. The Poson service centre finds the root cause, agrees the repair plan and timeline in writing and helps you set up a pool of swap devices.',
+                    'uz' => 'Skanerlar, printerlar, TSD va POS uskunalarini diagnostika qilish, kafolatli va kafolatdan keyingi taʼmirlash hamda rejali profilaktika. Poson servis markazi nosozlik sababini aniqlaydi, taʼmirlash boshlanishidan oldin narx va muddatlarni yozma ravishda kelishadi.',
+                    'ru' => 'Диагностика, гарантийный и постгарантийный ремонт и плановая профилактика сканеров, принтеров, ТСД и POS-оборудования. Сервисный центр Poson найдёт причину неисправности, и до начала ремонта письменно согласует с вами стоимость и сроки.',
+                    'en' => 'Diagnostics, in-warranty and post-warranty repair and scheduled preventive maintenance for scanners, printers, mobile computers and POS hardware. The Poson service centre finds the root cause, and gives you a written estimate of cost and timeline before the repair starts.',
                 ],
                 'meta_title' => [
                     'uz' => 'Uskunani taʼmirlash va texnik xizmat — Poson',

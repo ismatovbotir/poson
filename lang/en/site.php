@@ -58,7 +58,7 @@ return [
             'title_before' => 'Scanners, printers and mobile computers, ',
             'title_highlight' => 'set up and serviced',
             'title_after' => '',
-            'text' => 'We select the right hardware for your task, integrate it with 1C, ERP and POS systems, and set up DataMatrix marking workflows. Official warranty and our own service center.',
+            'text' => 'We select the right hardware for your task, connect it to 1C and set up the POS and inventory software we supply. Official warranty and our own service center.',
             'cta_catalog' => 'Browse the catalog',
             'cta_quote' => 'Request a quote',
             'badge_warranty_title' => 'Official warranty',
@@ -104,7 +104,7 @@ return [
                 ],
                 'setup' => [
                     'title' => 'Setup and integration',
-                    'text' => 'We connect devices to 1C, ERP and POS systems and train your staff to use them.',
+                    'text' => 'We connect devices to 1C, set up POS and inventory software and train your staff to use them.',
                 ],
                 'support' => [
                     'title' => 'Fast support',
@@ -120,11 +120,11 @@ return [
             'items' => [
                 'warehouse' => [
                     'title' => 'Warehouse automation',
-                    'text' => 'We connect mobile computers, scanners and label printers to your inventory system to speed up receiving, stocktaking and picking.',
+                    'text' => 'We connect mobile computers, scanners and label printers to 1C to speed up receiving, stocktaking and picking.',
                 ],
                 'marking' => [
-                    'title' => 'Mandatory product marking',
-                    'text' => 'Selection, setup and integration of hardware for scanning and printing DataMatrix codes.',
+                    'title' => 'DataMatrix codes',
+                    'text' => 'Selection and setup of scanners and label printers that read and print DataMatrix codes, with printing from 1C.',
                 ],
                 'repair' => [
                     'title' => 'Repair and service',
@@ -266,7 +266,7 @@ return [
         'copy' => 'Copy',
         'copied' => 'Copied',
         'delivery' => [
-            'shipping' => 'Courier delivery in Tashkent, shipping across Uzbekistan by transport companies, or pickup from our warehouse.',
+            'shipping' => 'Delivery within Kokand is free. Courier delivery across Uzbekistan, or pickup from our Kokand office.',
             'payment' => 'Payment in cash, by card, through Click or Payme, or by bank transfer for companies.',
             'setup' => 'We set up the equipment and connect it to your software.',
             'warranty' => 'Official warranty: :months',
@@ -311,7 +311,7 @@ return [
     'seo' => [
         'home' => [
             'title' => 'Poson — Barcode Scanners, Label Printers, Mobile Computers',
-            'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment in Tashkent. Selection, 1C integration, official warranty and service.',
+            'description' => 'Barcode scanners, label printers, mobile computers, RFID and POS equipment across Uzbekistan. Selection, 1C integration, official warranty and service.',
         ],
     ],
 

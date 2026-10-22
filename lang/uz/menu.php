@@ -11,13 +11,13 @@ return [
         'service' => 'Servis',
         'content' => 'Kontent',
         'telegram' => 'Telegram',
-        'ai' => 'AI yordamchi',
+        'ai' => 'SI yordamchi',
         'settings' => 'Sozlamalar',
     ],
 
     'items' => [
         'dashboard' => 'Bosh sahifa',
-        'leads' => 'Lidlar',
+        'leads' => 'Murojaatlar',
         'customers' => 'Mijozlar',
         'quotes' => 'Tijorat takliflari',
         'orders' => 'Buyurtmalar',
@@ -43,7 +43,7 @@ return [
 
     'tabs' => [
         'home' => 'Bosh sahifa',
-        'leads' => 'Lidlar',
+        'leads' => 'Murojaatlar',
         'catalog' => 'Katalog',
         'orders' => 'Buyurtmalar',
         'menu' => 'Menyu',

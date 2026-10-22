@@ -21,14 +21,17 @@ use App\Support\Catalog\CategoryTree;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Demo products for local / staging (plan 03 T15) from data/products.php.
  * Never runs in production. Needs CatalogSeeder first (categories,
  * attributes with options, brands).
  *
- * Every product goes through SaveProduct (published, so its required specs
- * must be complete). Specs map attribute codes to values: select and
+ * Every product goes through SaveProduct, published; a product whose
+ * required specs are incomplete in the data (e.g. a licence type confirmed
+ * only in the quote) is saved as a draft instead, with a warning, rather
+ * than inventing a value. Specs map attribute codes to values: select and
  * multiselect values are matched to options by their uz value; unknown codes
  * or values are logged and skipped, never fatal. At most
  * Product::MAX_KEY_SPECS key specs are kept. Relations are linked once all
@@ -68,7 +71,7 @@ class DemoProductsSeeder extends Seeder
             $product = Product::withTrashed()->where('sku', mb_strtoupper($row['sku']))->first();
             $product?->restore();
 
-            $saveProduct->handle($product, [
+            $attributesForSave = [
                 'type' => ProductType::from($row['type']),
                 'category_id' => (int) $categoryId,
                 'brand_id' => $row['brand'] !== null ? ($brands[$row['brand']] ?? null) : null,
@@ -91,7 +94,19 @@ class DemoProductsSeeder extends Seeder
                 'badge' => isset($row['badge']) ? ProductBadge::from($row['badge']) : null,
                 'is_active' => true,
                 'is_featured' => (bool) ($row['is_featured'] ?? false),
-            ], $this->specs($row['sku'], $row['specs'] ?? [], $attributes));
+            ];
+            $specs = $this->specs($row['sku'], $row['specs'] ?? [], $attributes);
+
+            try {
+                $saveProduct->handle($product, $attributesForSave, $specs);
+            } catch (ValidationException $exception) {
+                if (! array_key_exists('specs', $exception->errors())) {
+                    throw $exception;
+                }
+
+                $this->warn($row['sku'], 'required specs incomplete, seeded as a draft');
+                $saveProduct->handle($product, [...$attributesForSave, 'is_active' => false], $specs);
+            }
         }
 
         $this->linkRelations($rows, $addRelation);

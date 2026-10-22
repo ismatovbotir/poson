@@ -189,7 +189,7 @@ describe('structured data', function () {
         $business = collect(jsonLdBlocks($html))->firstWhere('@type', 'LocalBusiness');
 
         expect($business)->not->toBeNull()
-            ->and($business['address']['addressLocality'])->toBe('Tashkent')
+            ->and($business['address']['addressLocality'])->toBe('Kokand')
             ->and($business['geo'])->toBe(['@type' => 'GeoCoordinates', 'latitude' => 41.311081, 'longitude' => 69.240562])
             ->and($business['openingHoursSpecification'])->toHaveCount(2)
             ->and($business['openingHoursSpecification'][0]['dayOfWeek'][0])->toBe('https://schema.org/Monday')

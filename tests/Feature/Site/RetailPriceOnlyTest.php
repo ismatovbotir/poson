@@ -59,7 +59,8 @@ it('uses no discount, sale or low-price wording on the public catalog pages', fu
         $pages[] = "/{$locale}/catalog/{$slug}";
     }
 
-    foreach (Product::query()->pluck('slug') as $slug) {
+    // Published products only (drafts are 404 on the site).
+    foreach (Product::query()->where('is_active', true)->pluck('slug') as $slug) {
         $pages[] = "/{$locale}/product/{$slug}";
     }
 

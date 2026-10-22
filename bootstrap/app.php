@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackVisit;
 use App\Http\Middleware\TrustProxies;
 use App\Support\Site\CanonicalHost;
 use Illuminate\Foundation\Application;
@@ -44,6 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
             | Request::HEADER_X_FORWARDED_HOST
             | Request::HEADER_X_FORWARDED_PORT
             | Request::HEADER_X_FORWARDED_PROTO);
+
+        // Traffic analytics (plan 04 4c): TrackVisit is global so 404s are seen and crawlers
+        // get no session; CaptureAttribution runs inside the session (first-touch attribution).
+        $middleware->append(TrackVisit::class);
+        $middleware->web(append: [CaptureAttribution::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

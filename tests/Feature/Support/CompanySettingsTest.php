@@ -30,9 +30,9 @@ it('resolves translatable values to the current locale', function (string $local
         ->and(settings()->workingHours())->toBe($hours)
         ->and(settings()->address())->not->toBeEmpty();
 })->with([
-    ['uz', 'Toshkent', 'Du–Sh 9:00–18:00'],
-    ['ru', 'Ташкент', 'Пн–Сб 9:00–18:00'],
-    ['en', 'Tashkent', 'Mon–Sat 9:00–18:00'],
+    ['uz', 'Qoʻqon', 'Du–Sh 9:00–18:00'],
+    ['ru', 'Коканд', 'Пн–Сб 9:00–18:00'],
+    ['en', 'Kokand', 'Mon–Sat 9:00–18:00'],
 ]);
 
 it('resolves hero stats to the current locale', function () {

@@ -27,7 +27,11 @@ class CatalogSeeder extends Seeder
      *
      * @var list<string>
      */
-    public const BRANDS = ['Zebra', 'Honeywell', 'Datalogic', 'Urovo', 'Newland', 'Godex', 'TSC', 'Xprinter', 'Sunmi', 'Atol'];
+    public const BRANDS = [
+        'Zebra', 'Honeywell', 'Datalogic', 'Urovo', 'Newland', 'Godex', 'TSC', 'Xprinter', 'Sunmi', 'Atol',
+        // Software vendors of the demo software products.
+        'MoySklad', 'Billz', 'Ox', 'Aliposter', 'Hippo', 'Pospoint', 'Rahmat',
+    ];
 
     public function run(): void
     {

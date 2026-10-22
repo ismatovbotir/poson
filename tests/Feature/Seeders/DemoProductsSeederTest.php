@@ -13,7 +13,7 @@ function demoProductRows(): array
     return require database_path('seeders/data/products.php');
 }
 
-it('seeds every demo product through SaveProduct, published and complete', function () {
+it('seeds every demo product through SaveProduct, published and complete unless the data lacks a required spec', function () {
     $this->seed(CatalogSeeder::class);
     $seeder = app(DemoProductsSeeder::class);
     $seeder->setContainer(app())->__invoke();
@@ -21,12 +21,15 @@ it('seeds every demo product through SaveProduct, published and complete', funct
     $rows = demoProductRows();
     $skus = array_map(fn (array $row) => mb_strtoupper($row['sku']), $rows);
 
-    expect($seeder->warnings)->toBe([])
-        ->and($skus)->toHaveCount(34)
-        ->and(array_unique($skus))->toHaveCount(34)
-        ->and(Product::query()->count())->toBe(34)
-        ->and(Product::query()->where('is_active', true)->count())->toBe(34)
-        ->and(Product::query()->where('has_missing_specs', true)->count())->toBe(0)
+    // POS software whose licence type is confirmed only in the quote: kept as drafts, not given an invented value.
+    $drafts = ['SW-OX', 'SW-ALIPOSTER', 'SW-HIPPO', 'SW-POSPOINT', 'SW-RAHMAT'];
+
+    expect($seeder->warnings)->toEqualCanonicalizing(array_map(fn (string $sku) => "{$sku}: required specs incomplete, seeded as a draft", $drafts))
+        ->and($skus)->toHaveCount(39)
+        ->and(array_unique($skus))->toHaveCount(39)
+        ->and(Product::query()->count())->toBe(39)
+        ->and(Product::query()->where('is_active', false)->pluck('sku')->all())->toEqualCanonicalizing($drafts)
+        ->and(Product::query()->where('is_active', true)->where('has_missing_specs', true)->count())->toBe(0)
         ->and(Product::query()->whereNull('search_text')->count())->toBe(0)
         ->and(ProductRelation::query()->count())->toBe(collect($rows)->sum(fn ($row) => count($row['related'] ?? [])));
 });

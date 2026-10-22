@@ -38,7 +38,7 @@
             @include('livewire.admin.products.partials.status', ['product' => $product])
             <span>{{ __('admin.products.fields.sku') }} <span class="font-mono">{{ $product->sku }}</span></span>
             <span aria-hidden="true">·</span>
-            <span>{{ __('admin.products.last_changed', ['date' => $product->updated_at?->locale(app()->getLocale())->isoFormat('D MMM YYYY, HH:mm')]) }}</span>
+            <span>{{ __('admin.products.last_changed', ['date' => \App\Support\DateFormat::iso($product->updated_at, 'D MMM YYYY, HH:mm')]) }}</span>
         </div>
     @endif
 

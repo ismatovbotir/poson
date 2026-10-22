@@ -173,7 +173,7 @@ it('adds valid Organization JSON-LD to the head', function () {
         ->and($organization['email'])->toBe($company->email())
         ->and($organization['address']['@type'])->toBe('PostalAddress')
         ->and($organization['address']['addressCountry'])->toBe('UZ')
-        ->and($organization['address']['addressLocality'])->toBe('Ташкент')
+        ->and($organization['address']['addressLocality'])->toBe('Коканд')
         ->and(strpos($html, 'application/ld+json'))->toBeLessThan(strpos($html, '</head>'));
 });
 

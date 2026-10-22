@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Site;
 
+use App\Actions\Analytics\RecordConversion;
 use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadType;
 use App\Models\Product;
 use App\Rules\UzPhone;
+use App\Support\Analytics\Attribution;
 use App\Support\Phone;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,6 +24,10 @@ use Livewire\Component;
  *
  * The product id is locked and checked against the published catalog on
  * mount and again on submit; its SKU is read from the database.
+ *
+ * The session's first-touch attribution (channel, source, UTM tags, landing;
+ * see App\Support\Analytics\Attribution) goes with the lead, and a valid
+ * lead is recorded as a conversion (RecordConversion) for the analytics.
  */
 class LeadForm extends Component
 {
@@ -44,12 +50,12 @@ class LeadForm extends Component
      */
     public const MIN_FILL_SECONDS = 2;
 
-    public const UTM_MAX_LENGTH = 255;
+    public const UTM_MAX_LENGTH = Attribution::UTM_MAX_LENGTH;
 
     /**
      * @var list<string>
      */
-    public const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+    public const UTM_KEYS = Attribution::UTM_KEYS;
 
     public string $name = '';
 
@@ -85,10 +91,20 @@ class LeadForm extends Component
     public ?string $pageUrl = null;
 
     /**
+     * UTM tags of the session's first touch.
+     *
      * @var array<string, string>
      */
     #[Locked]
     public array $utm = [];
+
+    /**
+     * First-touch attribution of the session (channel, source, UTM tags, landing).
+     *
+     * @var array<string, string>
+     */
+    #[Locked]
+    public array $attribution = [];
 
     /**
      * Unix time the form was rendered (minimum fill-time check).
@@ -104,7 +120,8 @@ class LeadForm extends Component
         $this->productLabel = $product !== null ? $product->name.' ('.$product->sku.')' : null;
         $this->locale = app()->getLocale();
         $this->pageUrl = url()->current();
-        $this->utm = $this->captureUtm();
+        $this->attribution = $this->captureAttribution();
+        $this->utm = Attribution::utm($this->attribution);
         $this->renderedAt = now()->getTimestamp();
     }
 
@@ -134,7 +151,7 @@ class LeadForm extends Component
         ];
     }
 
-    public function submit(SubmitSiteLead $submitSiteLead): void
+    public function submit(SubmitSiteLead $submitSiteLead, RecordConversion $recordConversion): void
     {
         $validated = $this->validate();
         $phone = Phone::normalize($validated['phone']);
@@ -169,7 +186,12 @@ class LeadForm extends Component
                 pageUrl: $this->pageUrl,
                 productId: $product?->id,
                 productSku: $product?->sku,
+                trafficChannel: Attribution::channel($this->attribution),
+                trafficSource: $this->attribution['source'] ?? null,
+                landingPath: $this->attribution['landing'] ?? null,
             ));
+
+            $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale, $product?->id);
         }
 
         $this->reset('name', 'phone', 'company', 'message', 'fax_ext');
@@ -214,51 +236,28 @@ class LeadForm extends Component
     }
 
     /**
-     * UTM tags from the landing URL (remembered in the session), else from the session.
+     * The session's first-touch attribution; empty if analytics fails (the form must always work).
      *
      * @return array<string, string>
      */
-    protected function captureUtm(): array
+    protected function captureAttribution(): array
     {
-        $fromQuery = static::sanitizeUtm(request()->query());
+        try {
+            return app(Attribution::class)->current(request());
+        } catch (\Throwable $exception) {
+            report($exception);
 
-        if ($fromQuery !== []) {
-            session()->put('utm', $fromQuery);
-
-            return $fromQuery;
+            return [];
         }
-
-        return static::sanitizeUtm(session('utm', []));
     }
 
     /**
-     * Keep whitelisted keys with non-empty string values; strip control
-     * characters and cut each value to UTM_MAX_LENGTH characters.
+     * Keep whitelisted UTM keys with non-empty string values (see Attribution::sanitizeUtm()).
      *
      * @return array<string, string>
      */
     public static function sanitizeUtm(mixed $input): array
     {
-        if (! is_array($input)) {
-            return [];
-        }
-
-        $utm = [];
-
-        foreach (self::UTM_KEYS as $key) {
-            $value = $input[$key] ?? null;
-
-            if (! is_string($value)) {
-                continue;
-            }
-
-            $value = trim((string) preg_replace('/\p{Cc}+/u', '', $value));
-
-            if ($value !== '') {
-                $utm[$key] = mb_substr($value, 0, self::UTM_MAX_LENGTH);
-            }
-        }
-
-        return $utm;
+        return Attribution::sanitizeUtm($input);
     }
 }

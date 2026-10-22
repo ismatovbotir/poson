@@ -26,24 +26,24 @@ return [
 
     // List of ['label' => PhoneLabel value, 'number' => E.164, 'primary' => bool, 'site' => bool].
     // The primary number is the main one on the site (topbar, header, JSON-LD telephone).
-    // TODO: placeholder (well-formed Tashkent landline), replace with the real sales phone.
+    // TODO: placeholder (well-formed landline format only), replace with the real sales phone (Kokand office).
     'phones' => [
         ['label' => 'orders', 'number' => '+998712000000', 'primary' => true, 'site' => true],
     ],
 
     'email' => 'info@poson.uz',
 
-    // TODO: real office address.
+    // TODO: real office address (main office in Kokand).
     'address' => [
-        'uz' => 'Toshkent sh., manzil aniqlanmoqda',
-        'ru' => 'г. Ташкент, адрес уточняется',
-        'en' => 'Tashkent, address TBD',
+        'uz' => 'Qoʻqon sh., manzil aniqlanmoqda',
+        'ru' => 'г. Коканд, адрес уточняется',
+        'en' => 'Kokand, address TBD',
     ],
 
     'city' => [
-        'uz' => 'Toshkent',
-        'ru' => 'Ташкент',
-        'en' => 'Tashkent',
+        'uz' => 'Qoʻqon',
+        'ru' => 'Коканд',
+        'en' => 'Kokand',
     ],
 
     // ['lat' => float, 'lng' => float] or null. The map link is built from it (Yandex, plan 04 S9).

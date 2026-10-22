@@ -48,7 +48,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
     expect(menuTree($role))->toBe($expected);
 })->with([
     'admin' => [Role::Admin, [
-        'dashboard' => ['dashboard'],
+        'dashboard' => ['dashboard', 'analytics', 'ai-visibility'],
         'sales' => ['leads', 'customers', 'quotes', 'orders', 'payments'],
         'catalog' => [...$catalogItems, 'price-import'],
         'service' => ['service-requests', 'repairs'],

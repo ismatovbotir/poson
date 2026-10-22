@@ -41,6 +41,9 @@ final class Menu
         return [
             new MenuGroup('dashboard', 'menu.groups.dashboard', [
                 new MenuItem('dashboard', 'menu.items.dashboard', 'dashboard', 'admin.dashboard'),
+                // Plan 04c (labels in lang/*/analytics.php). Explicit active patterns: the two routes share a prefix.
+                new MenuItem('analytics', 'analytics.menu.traffic', 'chart', 'admin.analytics.index', permission: 'analytics.view', active: 'admin.analytics.index'),
+                new MenuItem('ai-visibility', 'analytics.menu.ai', 'radar', 'admin.analytics.ai', permission: 'analytics.view', active: 'admin.analytics.ai'),
             ], collapsible: false),
 
             new MenuGroup('sales', 'menu.groups.sales', [

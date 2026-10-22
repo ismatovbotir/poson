@@ -1,6 +1,6 @@
 <div>
     <x-admin.page-header :title="__('admin.dashboard.greeting', ['name' => $user->name])">
-        <x-slot:breadcrumbs>{{ now()->locale(app()->getLocale())->isoFormat('dddd, D MMMM YYYY') }}</x-slot:breadcrumbs>
+        <x-slot:breadcrumbs>{{ \App\Support\DateFormat::iso(now(), 'dddd, D MMMM YYYY') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
     <x-admin.card class="mt-6">

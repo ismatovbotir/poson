@@ -28,6 +28,7 @@ class SubmitSiteLead
             'locale' => $data->locale,
             'source' => $data->source->value,
             'type' => $data->type->value,
+            'channel' => $data->trafficChannel?->value,
             'product_sku' => $data->productSku,
         ], fn (?string $value): bool => $value !== null));
 

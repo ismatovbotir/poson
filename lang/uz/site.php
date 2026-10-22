@@ -58,7 +58,7 @@ return [
             'title_before' => 'Skanerlar, printerlar va TSD — ',
             'title_highlight' => 'sozlash va servis bilan',
             'title_after' => '',
-            'text' => 'Vazifangizga mos uskunani tanlaymiz, uni 1C, ERP va POS tizimlariga ulaymiz, DataMatrix markirovkasini sozlaymiz. Rasmiy kafolat va oʻz servis markazimiz.',
+            'text' => 'Vazifangizga mos uskunani tanlaymiz, uni 1C ga ulaymiz va biz taklif qiladigan kassa hamda hisob dasturlarini sozlaymiz. Rasmiy kafolat va oʻz servis markazimiz.',
             'cta_catalog' => 'Katalogga oʻtish',
             'cta_quote' => 'Tijorat taklifini soʻrash',
             'badge_warranty_title' => 'Rasmiy kafolat',
@@ -104,7 +104,7 @@ return [
                 ],
                 'setup' => [
                     'title' => 'Sozlash va integratsiya',
-                    'text' => 'Uskunani 1C, ERP va POS tizimlariga ulaymiz, xodimlaringizga u bilan ishlashni oʻrgatamiz.',
+                    'text' => 'Uskunani 1C ga ulaymiz, kassa va hisob dasturlarini sozlaymiz hamda xodimlaringizni oʻqitamiz.',
                 ],
                 'support' => [
                     'title' => 'Tezkor yordam',
@@ -120,11 +120,11 @@ return [
             'items' => [
                 'warehouse' => [
                     'title' => 'Omborni avtomatlashtirish',
-                    'text' => 'TSD, skanerlar va yorliq printerlarini hisob tizimingiz bilan bogʻlaymiz: qabul, inventarizatsiya va buyurtma yigʻish tezlashadi.',
+                    'text' => 'TSD, skanerlar va yorliq printerlarini 1C bilan bogʻlaymiz: qabul, inventarizatsiya va buyurtma yigʻish tezlashadi.',
                 ],
                 'marking' => [
-                    'title' => 'Majburiy markirovka',
-                    'text' => 'DataMatrix kodlarini skanerlash va chop etish uchun uskuna tanlash, sozlash va integratsiya.',
+                    'title' => 'DataMatrix kodlari',
+                    'text' => 'DataMatrix kodlarini oʻqiydigan va chop etadigan skaner hamda yorliq printerlarini tanlash va sozlash, 1C dan chop etish bilan.',
                 ],
                 'repair' => [
                     'title' => 'Taʼmirlash va servis',
@@ -266,7 +266,7 @@ return [
         'copy' => 'Nusxalash',
         'copied' => 'Nusxalandi',
         'delivery' => [
-            'shipping' => 'Toshkent boʻylab kuryer orqali, Oʻzbekiston boʻylab transport kompaniyasi orqali yetkazib beramiz yoki ombordan olib ketishingiz mumkin.',
+            'shipping' => 'Qoʻqon shahri boʻylab yetkazib berish bepul. Oʻzbekiston boʻylab kuryer xizmati orqali yetkazib beramiz, Qoʻqondagi ofisimizdan olib ketish ham mumkin.',
             'payment' => 'Toʻlov: naqd pul, karta, Click yoki Payme orqali, yuridik shaxslar uchun bank oʻtkazmasi.',
             'setup' => 'Uskunani sozlaymiz va dasturingizga ulaymiz.',
             'warranty' => 'Rasmiy kafolat: :months',
@@ -311,7 +311,7 @@ return [
     'seo' => [
         'home' => [
             'title' => 'Poson — shtrix-kod skanerlari, printerlar va TSD',
-            'description' => 'Shtrix-kod skanerlari, yorliq printerlari, TSD, RFID va POS uskunalari. Tanlash, 1C bilan integratsiya, rasmiy kafolat va servis. Toshkent.',
+            'description' => 'Shtrix-kod skanerlari, yorliq printerlari, TSD, RFID va POS uskunalari. 1C bilan integratsiya, rasmiy kafolat, servis, Oʻzbekiston boʻylab yetkazib berish.',
         ],
     ],
 

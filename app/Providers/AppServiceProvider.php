@@ -8,6 +8,8 @@ use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\Analytics\DnsResolver;
+use App\Support\Analytics\SystemDnsResolver;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
 use Illuminate\Console\Events\CommandFinished;
@@ -34,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         // Singleton: keeps the captured .env values and the applied version
         // for the whole process (queue workers included).
         $this->app->singleton(Secrets::class);
+
+        // Crawler verification DNS (tests bind a fake resolver).
+        $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
     }
 
     /**

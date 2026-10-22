@@ -241,22 +241,32 @@ it('rejects tampering with locked properties', function (string $property, mixed
     Livewire::test(LeadForm::class)->set($property, $value);
 })->with([
     'utm' => ['utm', ['utm_source' => 'evil']],
+    'attribution' => ['attribution', ['channel' => 'ai']],
     'locale' => ['locale', 'de'],
     'pageUrl' => ['pageUrl', 'https://evil.example'],
     'renderedAt' => ['renderedAt', 0],
 ])->throws(CannotUpdateLockedPropertyException::class);
 
-it('falls back to UTM tags remembered in the session', function () {
-    session()->put('utm', ['utm_source' => 'google', 'utm_medium' => 'cpc']);
+it('falls back to UTM tags of the first-touch attribution in the session', function () {
+    session()->put('attribution', ['channel' => 'campaign', 'source' => 'google', 'utm_source' => 'google', 'utm_medium' => 'cpc']);
 
     Livewire::test(LeadForm::class)
         ->assertSet('utm', ['utm_source' => 'google', 'utm_medium' => 'cpc']);
 });
 
-it('remembers UTM tags from the query in the session', function () {
+it('remembers UTM tags from the query as the first-touch attribution', function () {
     Livewire::withQueryParams(['utm_source' => 'telegram'])->test(LeadForm::class);
 
-    expect(session('utm'))->toBe(['utm_source' => 'telegram']);
+    expect(session('attribution'))->toMatchArray(['channel' => 'campaign', 'source' => 'telegram', 'utm_source' => 'telegram']);
+});
+
+it('keeps the first touch when a later page carries other UTM tags', function () {
+    session()->put('attribution', ['channel' => 'ai', 'source' => 'chatgpt.com', 'utm_source' => 'chatgpt.com']);
+
+    Livewire::withQueryParams(['utm_source' => 'telegram'])
+        ->test(LeadForm::class)
+        ->assertSet('utm', ['utm_source' => 'chatgpt.com'])
+        ->assertSet('attribution.channel', 'ai');
 });
 
 it('sanitizes UTM tags from the query and the session', function (string $from) {
@@ -272,7 +282,7 @@ it('sanitizes UTM tags from the query and the session', function (string $from) 
     $component = $from === 'query'
         ? Livewire::withQueryParams($input)->test(LeadForm::class)
         : (function () use ($input) {
-            session()->put('utm', $input);
+            session()->put('attribution', $input);
 
             return Livewire::test(LeadForm::class);
         })();
@@ -283,8 +293,8 @@ it('sanitizes UTM tags from the query and the session', function (string $from) 
     ]);
 })->with(['query', 'session']);
 
-it('ignores a session UTM value that is not an array', function () {
-    session()->put('utm', 'utm_source=evil');
+it('ignores a session attribution that is not an array', function () {
+    session()->put('attribution', 'utm_source=evil');
 
     Livewire::test(LeadForm::class)->assertSet('utm', []);
 });
