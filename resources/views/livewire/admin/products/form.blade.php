@@ -16,6 +16,7 @@
         'specs' => __('admin.products.sections.specs'),
         'media' => __('admin.products.sections.images'),
         'docs' => __('admin.products.sections.documents'),
+        'faq' => __('admin.faq.title'),
         'seo' => __('admin.catalog.seo'),
     ];
 @endphp
@@ -181,6 +182,16 @@
                     <livewire:admin.products.documents :product="$product" :key="'documents-'.$product->id" />
                 @else
                     <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.products.sections.documents') }}</h2></div>
+                    <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.products.save_first') }}</p>
+                @endif
+            </section>
+
+            {{-- FAQ --}}
+            <section id="s-faq" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
+                @if ($product)
+                    <livewire:admin.faq.faq-items :product="$product" :key="'faq-product-'.$product->id" />
+                @else
+                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.faq.title') }}</h2></div>
                     <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.products.save_first') }}</p>
                 @endif
             </section>

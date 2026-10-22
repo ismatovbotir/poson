@@ -109,6 +109,8 @@ return [
         'hero' => 'Home hero',
         'seo' => 'SEO',
         'tracking' => 'Analytics',
+        'ai_bots' => 'AI bots',
+        'faq' => 'FAQ',
         'integrations' => 'Integrations',
     ],
 

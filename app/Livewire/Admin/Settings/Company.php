@@ -8,6 +8,7 @@ use App\Enums\PhoneLabel;
 use App\Enums\SettingsArea;
 use App\Enums\SocialNetwork;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Forms\Admin\Settings\AiBotsForm;
 use App\Livewire\Forms\Admin\Settings\ContactsForm;
 use App\Livewire\Forms\Admin\Settings\HeroForm;
 use App\Livewire\Forms\Admin\Settings\LegalForm;
@@ -17,6 +18,7 @@ use App\Livewire\Forms\Admin\Settings\SocialForm;
 use App\Livewire\Forms\Admin\Settings\TrackingForm;
 use App\Models\Setting;
 use App\Support\CompanySettings;
+use App\Support\Site\AiBotRules;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -25,8 +27,10 @@ use Livewire\WithFileUploads;
 
 /**
  * Settings → Company (/admin/settings/company, plan 04a T2). Tabs Contacts ·
- * Legal · Social · Hero · SEO · Tracking, one Form object each. "Save"
- * saves the open tab; the other tabs keep their edits until saved.
+ * Legal · Social · Hero · SEO · Tracking · AI bots, one Form object each.
+ * "Save" saves the open tab; the other tabs keep their edits until saved.
+ * The FAQ tab (plan 04 T12) holds the general FAQ editor (child component
+ * Admin\Faq\FaqItems, which saves each item itself) and has no Save.
  *
  * Authorized on every request in boot() (settings.company), and per area on
  * save (Legal and Tracking also need settings.integrations). Writes go
@@ -39,7 +43,12 @@ class Company extends Component
 {
     use HandlesActionErrors, WithFileUploads;
 
-    public const TABS = ['contacts', 'legal', 'social', 'hero', 'seo', 'tracking'];
+    public const TABS = ['contacts', 'legal', 'social', 'hero', 'seo', 'tracking', 'ai_bots', 'faq'];
+
+    /**
+     * Tabs saved through a Form object and the Save button.
+     */
+    public const FORM_TABS = ['contacts', 'legal', 'social', 'hero', 'seo', 'tracking', 'ai_bots'];
 
     #[Url]
     public string $tab = 'contacts';
@@ -56,6 +65,8 @@ class Company extends Component
 
     public TrackingForm $tracking;
 
+    public AiBotsForm $aiBots;
+
     /**
      * Runs on every request (initial render and each update, uploads included).
      */
@@ -66,7 +77,7 @@ class Company extends Component
 
     public function mount(CompanySettings $settings): void
     {
-        foreach (self::TABS as $tab) {
+        foreach (self::FORM_TABS as $tab) {
             if ($this->canManage(SettingsArea::from($tab))) {
                 $this->form($tab)->fillFrom($settings);
             }
@@ -111,6 +122,16 @@ class Company extends Component
     }
 
     /**
+     * Fill the AI bot toggles from a preset (saved with Save, like any edit).
+     */
+    public function applyBotPreset(string $preset): void
+    {
+        $this->authorize('manageArea', [Setting::class, SettingsArea::AiBots]);
+
+        $this->aiBots->applyPreset($preset);
+    }
+
+    /**
      * Validate a new upload right away (type, size, dimensions), before saving.
      */
     public function updatedSeoLogo(): void
@@ -152,7 +173,7 @@ class Company extends Component
     {
         $area = SettingsArea::tryFrom($this->tab);
 
-        abort_unless($area !== null && in_array($area->value, self::TABS, true), 404);
+        abort_unless($area !== null && in_array($area->value, self::FORM_TABS, true), 404);
 
         $this->authorize('manageArea', [Setting::class, $area]);
 
@@ -199,6 +220,10 @@ class Company extends Component
             'ogImageUrl' => $media['og_image']['url'],
             'logoProcessing' => $media['logo']['processing'],
             'ogImageProcessing' => $media['og_image']['processing'],
+            'aiBotList' => AiBotRules::editable(),
+            'searchEngines' => AiBotRules::searchEngines(),
+            'botPreset' => $this->tab === 'ai_bots' ? $this->aiBots->currentPreset() : null,
+            'hasSave' => in_array($this->tab, self::FORM_TABS, true),
         ])->title(__('admin.settings.company.title'));
     }
 
@@ -211,6 +236,7 @@ class Company extends Component
             'hero' => $this->hero,
             'seo' => $this->seo,
             'tracking' => $this->tracking,
+            'ai_bots' => $this->aiBots,
         };
     }
 

@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\LlmsTxt;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,6 +40,9 @@ class ReorderCategory
 
         // Mass updates skip model events.
         CategoryTree::flush();
-        DB::afterCommit(fn () => CategoryTree::flush());
+        DB::afterCommit(function (): void {
+            CategoryTree::flush();
+            LlmsTxt::flush();
+        });
     }
 }

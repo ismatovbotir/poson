@@ -2,14 +2,20 @@
 
 namespace App\Support\Site;
 
+use App\Support\CompanySettings;
+
 /**
  * /robots.txt (plan 03 D16 base rules; plan 04 adds per-bot groups).
  *
  * The "*" group keeps crawlers out of the admin, Livewire endpoints, search
  * results and filtered or sorted listings. Filter URLs carry brackets
  * ("f[code][0]=12"), which some clients percent-encode, so both forms are
- * listed. Plan 04 adds groups with withGroup() (e.g. from a service
- * provider or the settings) without touching the base rules.
+ * listed.
+ *
+ * Plan 04 T12: each AI crawler denied in Settings → Company → AI bots gets
+ * its own "User-agent: <token> / Disallow: /" group after "*"; allowed
+ * crawlers simply follow "*" (no empty groups). withGroup() adds further
+ * groups without touching the base rules.
  */
 class RobotsTxt
 {
@@ -43,6 +49,8 @@ class RobotsTxt
      */
     private array $extraGroups = [];
 
+    public function __construct(private ?CompanySettings $settings = null) {}
+
     /**
      * Add a group after the base "*" group (e.g. rules for one AI crawler).
      */
@@ -58,7 +66,13 @@ class RobotsTxt
      */
     public function groups(): array
     {
-        return [new RobotsGroup(['*'], self::DISALLOW, self::ALLOW), ...$this->extraGroups];
+        $settings = $this->settings ?? app(CompanySettings::class);
+
+        return [
+            new RobotsGroup(['*'], self::DISALLOW, self::ALLOW),
+            ...AiBotRules::deniedGroups($settings->aiBots()),
+            ...$this->extraGroups,
+        ];
     }
 
     /**

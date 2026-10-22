@@ -322,4 +322,9 @@ return [
         'hours' => 'Working hours',
     ],
 
+    'faq' => [
+        'title' => 'Frequently asked questions',
+        'subtitle' => 'Delivery, warranty, setup and service',
+    ],
+
 ];

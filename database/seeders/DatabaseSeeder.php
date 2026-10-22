@@ -8,11 +8,12 @@ use Illuminate\Database\Seeder;
 
 /**
  * Local / testing seed: roles and permissions, the catalog base data
- * (categories, attributes, brands), demo products on local / staging,
- * plus a non-staff test user.
+ * (categories, attributes, brands), the FAQ, demo products on local /
+ * staging, plus a non-staff test user.
  *
  * Production deploys do not run this seeder; they run
  * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
+ * (and `--class=FaqSeeder` once the categories exist; it is idempotent)
  * and create staff with `php artisan admin:create-user`.
  */
 class DatabaseSeeder extends Seeder
@@ -27,6 +28,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             CatalogSeeder::class,
+            // Real FAQ content (general + top-level categories), every environment.
+            FaqSeeder::class,
         ]);
 
         // Demo catalog: local and staging only, never production.

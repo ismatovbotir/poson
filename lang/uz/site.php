@@ -322,4 +322,9 @@ return [
         'hours' => 'Ish vaqti',
     ],
 
+    'faq' => [
+        'title' => 'Koʻp beriladigan savollar',
+        'subtitle' => 'Yetkazib berish, kafolat, sozlash va servis',
+    ],
+
 ];

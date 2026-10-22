@@ -1657,7 +1657,7 @@ return [
         ],
         'related' => [],
     ],
-    // ─── POS software (retail: Ox, Billz, Hippo, Pospoint, Rahmat; HoReCa: Aliposter) ───
+    // ─── POS software (retail: Ox, Billz, Hippo, Pospoint, Rahmat; HoReCa: AliPos) ───
     [
         'sku' => 'SW-OX',
         'model' => 'Ox',
@@ -1699,7 +1699,9 @@ return [
             'ru' => 'Ox — кассовая программа для магазинов. Poson настроит её, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
             'en' => 'Ox POS software for retail shops. Poson sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
         ],
-        'specs' => [],
+        'specs' => [
+            'license_type' => ['value' => 'Obuna', 'key' => true],
+        ],
         'related' => [],
     ],
     [
@@ -1749,9 +1751,9 @@ return [
         'related' => [],
     ],
     [
-        'sku' => 'SW-ALIPOSTER',
-        'model' => 'Aliposter',
-        'brand' => 'Aliposter',
+        'sku' => 'SW-ALIPOS',
+        'model' => 'AliPos',
+        'brand' => 'AliPos',
         'category' => 'pos-software',
         'type' => 'software',
         'unit' => 'license',
@@ -1765,9 +1767,9 @@ return [
         'price_dealer' => null,
         'price_wholesale' => null,
         'name' => [
-            'uz' => 'Aliposter kafe va restoranlar uchun kassa dasturi',
-            'ru' => 'Aliposter — кассовая программа для кафе и ресторанов',
-            'en' => 'Aliposter POS software for cafés and restaurants',
+            'uz' => 'AliPos kafe va restoranlar uchun kassa dasturi',
+            'ru' => 'AliPos — кассовая программа для кафе и ресторанов',
+            'en' => 'AliPos POS software for cafés and restaurants',
         ],
         'short_description' => [
             'uz' => 'Kafe va restoranlar uchun kassa dasturi. Poson uni sozlaydi, chek printeri va pul yashigini ulaydi hamda xodimlarni oʻqitadi.',
@@ -1775,21 +1777,23 @@ return [
             'en' => 'POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer and trains your staff.',
         ],
         'description' => [
-            'uz' => '<p><strong>Aliposter</strong> — HoReCa, yaʼni kafe va restoranlar uchun kassa dasturi. Poson uni muassasangizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur muassasangiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> menyu, xodimlar va kassa joylari.</li><li><strong>Uskuna:</strong> chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
-            'ru' => '<p><strong>Aliposter</strong> — кассовая программа для HoReCa: кафе и ресторанов. Poson настроит её под ваше заведение и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего заведения.</li><li><strong>Настройка:</strong> меню, сотрудники и кассовые места.</li><li><strong>Оборудование:</strong> подключение чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
-            'en' => '<p><strong>Aliposter</strong> is POS software for HoReCa: cafés and restaurants. Poson configures it for your venue and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your venue.</li><li><strong>Setup:</strong> menu, staff and checkout stations.</li><li><strong>Equipment:</strong> connecting the receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
+            'uz' => '<p><strong>AliPos</strong> — HoReCa, yaʼni kafe va restoranlar uchun kassa dasturi. Poson uni muassasangizga moslab sozlaydi va kassa uskunasi bilan birga ishga tushiradi.</p><ul><li><strong>Tanlash:</strong> dastur muassasangiz formatiga mos kelishini birga baholaymiz.</li><li><strong>Sozlash:</strong> menyu, xodimlar va kassa joylari.</li><li><strong>Uskuna:</strong> chek printeri va pul yashigini ulash.</li><li><strong>Oʻqitish va yordam:</strong> joyida va masofadan, oʻzbek, rus va ingliz tillarida.</li></ul><p>Litsenziya shartlari tijorat taklifida tasdiqlanadi.</p>',
+            'ru' => '<p><strong>AliPos</strong> — кассовая программа для HoReCa: кафе и ресторанов. Poson настроит её под ваше заведение и запустит вместе с кассовым оборудованием.</p><ul><li><strong>Подбор:</strong> вместе оценим, подходит ли программа формату вашего заведения.</li><li><strong>Настройка:</strong> меню, сотрудники и кассовые места.</li><li><strong>Оборудование:</strong> подключение чекового принтера и денежного ящика.</li><li><strong>Обучение и поддержка:</strong> на месте и удалённо, на узбекском, русском и английском языках.</li></ul><p>Условия лицензии подтверждаем в коммерческом предложении.</p>',
+            'en' => '<p><strong>AliPos</strong> is POS software for HoReCa: cafés and restaurants. Poson configures it for your venue and launches it together with your checkout hardware.</p><ul><li><strong>Selection:</strong> we assess together whether the program fits your venue.</li><li><strong>Setup:</strong> menu, staff and checkout stations.</li><li><strong>Equipment:</strong> connecting the receipt printer and cash drawer.</li><li><strong>Training and support:</strong> on site and remotely, in Uzbek, Russian and English.</li></ul><p>Licence terms are confirmed in the quote.</p>',
         ],
         'meta_title' => [
-            'uz' => 'Aliposter: kafe va restoran uchun kassa — Poson',
-            'ru' => 'Aliposter: касса для кафе и ресторанов — Poson',
-            'en' => 'Aliposter POS for cafés and restaurants — Poson',
+            'uz' => 'AliPos: kafe va restoran uchun kassa — Poson',
+            'ru' => 'AliPos: касса для кафе и ресторанов — Poson',
+            'en' => 'AliPos POS for cafés and restaurants — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Aliposter — kafe va restoranlar uchun kassa dasturi. Poson sozlaydi, chek printeri va pul yashigini ulaydi, xodimlarni oʻqitadi va qoʻllab-quvvatlaydi.',
-            'ru' => 'Aliposter — кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик, обучит персонал и поддержит.',
-            'en' => 'Aliposter POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer, trains staff and supports you.',
+            'uz' => 'AliPos — kafe va restoranlar uchun kassa dasturi. Poson sozlaydi, chek printeri va pul yashigini ulaydi, xodimlarni oʻqitadi va qoʻllab-quvvatlaydi.',
+            'ru' => 'AliPos — кассовая программа для кафе и ресторанов. Poson настроит её, подключит чековый принтер и денежный ящик, обучит персонал и поддержит.',
+            'en' => 'AliPos POS software for cafés and restaurants. Poson sets it up, connects the receipt printer and cash drawer, trains staff and supports you.',
         ],
-        'specs' => [],
+        'specs' => [
+            'license_type' => ['value' => 'Obuna', 'key' => true],
+        ],
         'related' => [],
     ],
     [
@@ -1833,7 +1837,9 @@ return [
             'ru' => 'Кассовая программа Hippo: Poson поможет с выбором, настроит программу, подключит сканер и чековый принтер, обучит кассиров и поддержит.',
             'en' => 'Hippo POS software: Poson helps you choose, sets it up, connects the scanner and receipt printer, trains cashiers and supports you.',
         ],
-        'specs' => [],
+        'specs' => [
+            'license_type' => ['value' => 'Obuna', 'key' => true],
+        ],
         'related' => [],
     ],
     [
@@ -1877,7 +1883,9 @@ return [
             'ru' => 'Кассовая программа Pospoint: Poson поможет с выбором, настроит программу, подключит кассовое оборудование, обучит кассиров и поддержит.',
             'en' => 'Pospoint POS software: Poson helps you choose, sets it up, connects your checkout hardware, trains cashiers and supports you.',
         ],
-        'specs' => [],
+        'specs' => [
+            'license_type' => ['value' => 'Obuna', 'key' => true],
+        ],
         'related' => [],
     ],
     // Source: Rahmat "Virtual kassa" user manual (rhmt.uz, RAHMAT TECH LLC): Windows 7/10/11, retail, food service and services.
@@ -1923,7 +1931,9 @@ return [
             'ru' => 'Виртуальная касса Rahmat для Windows: продажи, возвраты, смены и Z-отчёты. Poson установит её, подключит чековый принтер и обучит кассиров.',
             'en' => 'Rahmat virtual cash register for Windows: checkout, returns, shifts and Z-reports. Poson installs it, connects the receipt printer and trains cashiers.',
         ],
-        'specs' => [],
+        'specs' => [
+            'license_type' => ['value' => 'Obuna', 'key' => true],
+        ],
         'related' => [],
     ],
 

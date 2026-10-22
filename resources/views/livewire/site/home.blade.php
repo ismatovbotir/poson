@@ -9,6 +9,9 @@
     @push('head')
         <script type="application/ld+json">{!! $organization !!}</script>
         <script type="application/ld+json">{!! $localBusiness !!}</script>
+        @if ($faqJson)
+            <script type="application/ld+json">{!! $faqJson !!}</script>
+        @endif
     @endpush
 
     {{-- Hero --}}
@@ -201,6 +204,13 @@
                 </ul>
             </div>
         </section>
+    @endif
+
+    {{-- FAQ (general) --}}
+    @if ($faq !== [])
+        <div class="bg-bg-soft py-12 md:py-[72px]">
+            <x-site.faq class="site-container" id="faq-title" :items="$faq" :title="__('site.faq.title')" :subtitle="__('site.faq.subtitle')" />
+        </div>
     @endif
 
     {{-- Lead form --}}

@@ -269,6 +269,11 @@
         </section>
     @endforeach
 
+    {{-- FAQ: the product's, else its category's --}}
+    @if ($faq !== [])
+        <x-site.faq class="mt-12 md:mt-[72px]" id="product-faq-title" :items="$faq" :title="__('site.faq.title')" />
+    @endif
+
     {{-- Quote form --}}
     <section id="quote" class="mt-12 scroll-mt-28 md:mt-[72px]" aria-labelledby="quote-title">
         <div class="grid items-center gap-8 rounded-[28px] bg-bg-tint px-6 py-8 md:grid-cols-2 md:gap-12 md:p-14">

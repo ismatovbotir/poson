@@ -11,8 +11,9 @@ use Illuminate\Support\Str;
 
 /**
  * schema.org JSON-LD for public pages: Organization and LocalBusiness (home),
- * BreadcrumbList and Product with its Offer. FAQ comes in plan 04c; every
- * block is printed with toScript().
+ * BreadcrumbList, Product with its Offer, and FAQPage (plan 04 T12; only
+ * where the FAQ is visible on the page). Every block is printed with
+ * toScript().
  *
  * Brand rule: the Offer carries the Retail price only; Dealer and Wholesale
  * prices never appear in structured data.
@@ -263,6 +264,29 @@ class StructuredData
         }
 
         return $data;
+    }
+
+    /**
+     * FAQPage for the questions shown on the page (plain text answers).
+     * Call only with a non-empty list: no FAQ on the page, no FAQPage.
+     *
+     * @param  list<array{question: string, answer: string}>  $items
+     * @return array<string, mixed>
+     */
+    public function faqPage(array $items): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => array_map(fn (array $item): array => [
+                '@type' => 'Question',
+                'name' => $item['question'],
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $item['answer'],
+                ],
+            ], array_values($items)),
+        ];
     }
 
     /**

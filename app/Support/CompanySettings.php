@@ -7,6 +7,8 @@ use App\Enums\SocialNetwork;
 use App\Models\Setting;
 use App\Rules\BrandSafeText;
 use App\Support\Settings\SettingsFormat;
+use App\Support\Site\AiBotRules;
+use App\Support\Site\LlmsTxt;
 use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
@@ -449,6 +451,33 @@ class CompanySettings
     }
 
     /**
+     * Per-crawler robots.txt policy: every editable AI bot key => "allow" | "deny"
+     * (see AiBotRules; missing or invalid values are allowed). The key holds a
+     * dot, so it is read directly instead of through get().
+     *
+     * @return array<string, string>
+     */
+    public function aiBots(): array
+    {
+        return $this->memo('ai_bots', function (): array {
+            $overrides = $this->overrides();
+
+            return AiBotRules::normalize(array_key_exists(AiBotRules::SETTING_KEY, $overrides)
+                ? $overrides[AiBotRules::SETTING_KEY]
+                : config('company.'.AiBotRules::SETTING_KEY));
+        });
+    }
+
+    /**
+     * Whether a key was saved in admin (a settings row), as opposed to the
+     * config/company.php default (placeholders until the client fills them in).
+     */
+    public function isCustomized(string $key): bool
+    {
+        return array_key_exists($key, $this->overrides());
+    }
+
+    /**
      * Uploaded logo (WebP conversion), or '' while none is ready.
      */
     public function logoUrl(): string
@@ -504,6 +533,9 @@ class CompanySettings
     {
         Cache::forget(self::CACHE_KEY);
         Cache::forget(self::MEDIA_CACHE_KEY);
+
+        // /llms.txt prints the contacts.
+        LlmsTxt::flush();
 
         static::$current?->get()?->forgetMemoized();
     }

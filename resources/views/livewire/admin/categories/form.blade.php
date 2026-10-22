@@ -195,6 +195,16 @@
                     @endforeach
                 </x-admin.locale-tabs>
             </x-admin.card>
+
+            {{-- FAQ --}}
+            <section class="rounded-2xl border border-slate-200 bg-white">
+                @if ($category)
+                    <livewire:admin.faq.faq-items :category="$category" :key="'faq-category-'.$category->id" />
+                @else
+                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.faq.title') }}</h2></div>
+                    <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.faq.save_first') }}</p>
+                @endif
+            </section>
         </div>
 
         {{-- Side column --}}

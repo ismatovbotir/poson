@@ -11,6 +11,7 @@ use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductCards;
 use App\Support\HtmlSanitizer;
+use App\Support\Site\FaqContent;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
 use Illuminate\Contracts\View\View;
@@ -60,7 +61,7 @@ class Show extends Component
         abort_unless($this->product->exists && $this->product->fresh()?->isVisible(), 404);
     }
 
-    public function render(ProductAttributeResolver $resolver, StructuredData $structuredData): View
+    public function render(ProductAttributeResolver $resolver, StructuredData $structuredData, FaqContent $faqContent): View
     {
         $product = $this->product->load([
             'brand',
@@ -74,6 +75,9 @@ class Show extends Component
         $url = route('site.product', ['product' => $product->slug]);
         $breadcrumbs = $this->breadcrumbs();
         $image = $product->imageUrl('large');
+        // The product's FAQ, else its category's (or the nearest ancestor's), plan 04 T12.
+        // FAQPage JSON-LD only for the product's own items (inherited ones belong to the category page).
+        $faq = $faqContent->forProduct($product);
 
         return view('livewire.site.catalog.show', [
             'images' => $this->images(),
@@ -88,10 +92,12 @@ class Show extends Component
             // Sanitized on save already; again on output as defense in depth.
             'description' => HtmlSanitizer::clean((string) $product->description),
             'showCart' => config('site.cart_enabled') && $product->effectiveSaleMode()->allowsCart(),
-            'jsonLd' => [
+            'faq' => $faq['items'],
+            'jsonLd' => array_values(array_filter([
                 StructuredData::toScript($structuredData->product($product, $url)),
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),
-            ],
+                $faq['own'] && $faq['items'] !== [] ? StructuredData::toScript($structuredData->faqPage($faq['items'])) : null,
+            ])),
         ])
             ->title(SeoText::title($product->getTranslation('meta_title', app()->getLocale(), false), (string) $product->name))
             ->layoutData([

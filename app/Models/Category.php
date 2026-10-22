@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\Translatable\HasTranslations;
@@ -62,11 +64,13 @@ class Category extends Model implements HasMedia
             DB::afterCommit(function (): void {
                 CategoryTree::flush();
                 Sitemap::flush();
+                LlmsTxt::flush();
             });
         };
 
         static::saved($flush);
         static::deleted($flush);
+        static::deleted(fn (Category $category) => $category->faqItems()->delete());
     }
 
     /**
@@ -141,6 +145,16 @@ class Category extends Model implements HasMedia
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * FAQ of the category page (plan 04 T12), in admin order.
+     *
+     * @return MorphMany<FaqItem, $this>
+     */
+    public function faqItems(): MorphMany
+    {
+        return $this->morphMany(FaqItem::class, 'faqable')->orderBy('sort')->orderBy('id');
     }
 
     /**

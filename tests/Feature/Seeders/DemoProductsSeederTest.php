@@ -21,14 +21,16 @@ it('seeds every demo product through SaveProduct, published and complete unless 
     $rows = demoProductRows();
     $skus = array_map(fn (array $row) => mb_strtoupper($row['sku']), $rows);
 
-    // POS software whose licence type is confirmed only in the quote: kept as drafts, not given an invented value.
-    $drafts = ['SW-OX', 'SW-ALIPOSTER', 'SW-HIPPO', 'SW-POSPOINT', 'SW-RAHMAT'];
+    // POS software licences are subscriptions (decision 2026-10-22), so every demo product is published.
+    $posSoftware = ['SW-OX', 'SW-ALIPOS', 'SW-HIPPO', 'SW-POSPOINT', 'SW-RAHMAT'];
 
-    expect($seeder->warnings)->toEqualCanonicalizing(array_map(fn (string $sku) => "{$sku}: required specs incomplete, seeded as a draft", $drafts))
+    expect($seeder->warnings)->toBe([])
+        ->and(Product::query()->whereIn('sku', $posSoftware)->where('is_active', false)->count())->toBe(0)
+        ->and(Product::query()->whereIn('sku', $posSoftware)->count())->toBe(5)
         ->and($skus)->toHaveCount(39)
         ->and(array_unique($skus))->toHaveCount(39)
         ->and(Product::query()->count())->toBe(39)
-        ->and(Product::query()->where('is_active', false)->pluck('sku')->all())->toEqualCanonicalizing($drafts)
+        ->and(Product::query()->where('is_active', false)->count())->toBe(0)
         ->and(Product::query()->where('is_active', true)->where('has_missing_specs', true)->count())->toBe(0)
         ->and(Product::query()->whereNull('search_text')->count())->toBe(0)
         ->and(ProductRelation::query()->count())->toBe(collect($rows)->sum(fn ($row) => count($row['related'] ?? [])));

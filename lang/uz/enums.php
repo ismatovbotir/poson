@@ -109,6 +109,8 @@ return [
         'hero' => 'Bosh ekran',
         'seo' => 'SEO',
         'tracking' => 'Analitika',
+        'ai_bots' => 'SI botlar',
+        'faq' => 'Koʻp beriladigan savollar',
         'integrations' => 'Integratsiyalar',
     ],
 

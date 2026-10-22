@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Support\Catalog\CatalogQuery;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductCards;
+use App\Support\Site\FaqContent;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
 use Illuminate\Contracts\View\View;
@@ -190,7 +191,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function render(StructuredData $structuredData): View
+    public function render(StructuredData $structuredData, FaqContent $faqContent): View
     {
         $query = new CatalogQuery(
             category: $this->category,
@@ -210,6 +211,10 @@ class Index extends Component
         abort_if($products->currentPage() > max(1, $products->lastPage()), 404);
 
         $breadcrumbs = $this->breadcrumbs();
+        // A category's FAQ, or its nearest ancestor's (plan 04 T12); none on /catalog.
+        // FAQPage JSON-LD only for the category's own items, on the first page.
+        $faq = $this->category !== null ? $faqContent->forCategory($this->category->id) : ['items' => [], 'own' => false];
+        $faqMarkup = $faq['own'] && $faq['items'] !== [] && $products->currentPage() === 1;
         $currentUrl = $this->category !== null
             ? route('site.catalog.category', ['category' => $this->category->slug])
             : route('site.catalog.index');
@@ -225,6 +230,8 @@ class Index extends Component
             'heading' => $this->category !== null ? (string) $this->category->name : __('site.catalog.title'),
             'sorts' => CatalogQuery::SORTS,
             'breadcrumbsJson' => StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $currentUrl)),
+            'faq' => $faq['items'],
+            'faqJson' => $faqMarkup ? StructuredData::toScript($structuredData->faqPage($faq['items'])) : null,
         ])
             ->title($this->seoTitle())
             ->layoutData([

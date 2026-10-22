@@ -588,6 +588,32 @@ return [
         'alt' => 'Alt text',
     ],
 
+    'faq' => [
+        'title' => 'FAQ',
+        'help' => 'Questions and answers shown on this page of the site. Without its own items, a product shows its category’s FAQ, and a subcategory its parent’s.',
+        'help_general' => 'General questions and answers: the first 6 active ones are shown on the home page.',
+        'add' => 'Add question',
+        'saved' => 'Question saved.',
+        'deleted' => 'Question deleted.',
+        'delete_title' => 'Delete the question?',
+        'delete_body' => '“:name” will be removed from the site.',
+        'none' => 'No questions yet.',
+        'none_general' => 'No general questions yet.',
+        'hidden' => 'Hidden',
+        'not_on_home' => 'Not on the home page (only the first :limit active)',
+        'answer_hint' => 'Plain text, 2–4 sentences. Line breaks are kept; no links or formatting. No prices or discount claims.',
+        'is_active_hint' => 'Hidden questions stay in admin only.',
+        'save_first' => 'Save the category first, then add questions.',
+        'fields' => [
+            'question' => 'Question',
+            'answer' => 'Answer',
+            'is_active' => 'Show on the site',
+        ],
+        'errors' => [
+            'not_found' => 'This question doesn’t belong here. Reload the page.',
+        ],
+    ],
+
     'settings' => [
         'company' => [
             'title' => 'Company',
@@ -602,6 +628,8 @@ return [
                 'hero' => 'Home hero',
                 'seo' => 'SEO',
                 'tracking' => 'Analytics',
+                'ai_bots' => 'AI bots',
+                'faq' => 'FAQ',
             ],
             'sections' => [
                 'company' => 'Company',
@@ -672,6 +700,27 @@ return [
                 'tracking_enabled' => 'Needs at least one ID below.',
                 'ga4' => 'Google Analytics → Admin → Data streams → your web stream → Measurement ID (starts with G-).',
                 'metrika' => 'Yandex Metrika → My counters: the number next to the counter name (digits only).',
+            ],
+            'ai_bots' => [
+                'note' => 'robots.txt is advisory: well-behaved crawlers follow it, others may ignore it. Check the AI visibility analytics to see which bots actually visit the site.',
+                'analytics_link' => 'Open AI visibility',
+                'presets_title' => 'Presets',
+                'presets_help' => 'A preset sets the switches below; press Save to apply it to robots.txt.',
+                'presets' => [
+                    'allow_all' => 'Allow all',
+                    'search_only' => 'Search only, no training',
+                ],
+                'preset_hints' => [
+                    'allow_all' => 'Every AI crawler may read the site (default).',
+                    'search_only' => 'Crawlers that collect pages for AI training are blocked; AI search and assistant requests stay allowed.',
+                ],
+                'custom' => 'Custom choice',
+                'list_title' => 'AI crawlers',
+                'list_help' => 'A crawler that is switched off gets “Disallow: /” in robots.txt.',
+                'allow' => 'Allowed',
+                'search_title' => 'Search engines',
+                'search_help' => 'Always allowed, so the site stays in search results.',
+                'always_allowed' => 'Always allowed',
             ],
             'map_preview' => 'Check on Yandex Maps',
             'add_phone' => 'Add number',

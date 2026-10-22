@@ -131,4 +131,14 @@ return [
         'metrika' => '',
     ],
 
+    /*
+    | robots.txt per AI crawler (Settings → Company → AI bots): bot key from
+    | config/ai-bots.php => 'allow' | 'deny'. Empty = allow all (decision
+    | 2026-10-21). Stored under the setting key "robots.ai_bots".
+    */
+
+    'robots' => [
+        'ai_bots' => [],
+    ],
+
 ];

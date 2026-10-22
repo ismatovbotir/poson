@@ -588,6 +588,32 @@ return [
         'alt' => 'Alt-matn',
     ],
 
+    'faq' => [
+        'title' => 'Koʻp beriladigan savollar',
+        'help' => 'Saytning ushbu sahifasidagi savol va javoblar. Oʻz savollari boʻlmasa, mahsulot oʻz toifasining, ichki toifa esa yuqori toifaning savollarini koʻrsatadi.',
+        'help_general' => 'Umumiy savol va javoblar: dastlabki 6 ta faol savol bosh sahifada koʻrsatiladi.',
+        'add' => 'Savol qoʻshish',
+        'saved' => 'Savol saqlandi.',
+        'deleted' => 'Savol oʻchirildi.',
+        'delete_title' => 'Savol oʻchirilsinmi?',
+        'delete_body' => '«:name» saytdan olib tashlanadi.',
+        'none' => 'Hozircha savollar yoʻq.',
+        'none_general' => 'Hozircha umumiy savollar yoʻq.',
+        'hidden' => 'Yashirin',
+        'not_on_home' => 'Bosh sahifada emas (faqat dastlabki :limit ta faol)',
+        'answer_hint' => 'Oddiy matn, 2–4 gap. Qator koʻchirishlari saqlanadi; havola va formatlashsiz. Narx va chegirma haqidagi daʼvolarsiz.',
+        'is_active_hint' => 'Yashirin savollar faqat admin panelda koʻrinadi.',
+        'save_first' => 'Avval toifani saqlang, keyin savollar qoʻshing.',
+        'fields' => [
+            'question' => 'Savol',
+            'answer' => 'Javob',
+            'is_active' => 'Saytda koʻrsatish',
+        ],
+        'errors' => [
+            'not_found' => 'Bu savol boshqa sahifaga tegishli. Sahifani yangilang.',
+        ],
+    ],
+
     'settings' => [
         'company' => [
             'title' => 'Kompaniya',
@@ -602,6 +628,8 @@ return [
                 'hero' => 'Bosh ekran',
                 'seo' => 'SEO',
                 'tracking' => 'Analitika',
+                'ai_bots' => 'SI botlar',
+                'faq' => 'Koʻp beriladigan savollar',
             ],
             'sections' => [
                 'company' => 'Kompaniya',
@@ -672,6 +700,27 @@ return [
                 'tracking_enabled' => 'Quyida kamida bitta identifikator kerak.',
                 'ga4' => 'Google Analytics → Admin → Data streams → veb-oqimingiz → Measurement ID (G- bilan boshlanadi).',
                 'metrika' => 'Yandex Metrika → Hisoblagichlarim: hisoblagich nomi yonidagi raqam (faqat raqamlar).',
+            ],
+            'ai_bots' => [
+                'note' => 'robots.txt faqat tavsiya xarakteriga ega: vijdonli botlar unga amal qiladi, boshqalari eʼtiborsiz qoldirishi mumkin. Saytga qaysi botlar haqiqatda kirayotganini «SI koʻrinuvchanligi» analitikasida tekshiring.',
+                'analytics_link' => 'SI koʻrinuvchanligini ochish',
+                'presets_title' => 'Tayyor sozlamalar',
+                'presets_help' => 'Tayyor sozlama quyidagi almashtirgichlarni belgilaydi; robots.txt ga qoʻllash uchun «Saqlash» tugmasini bosing.',
+                'presets' => [
+                    'allow_all' => 'Hammasiga ruxsat berish',
+                    'search_only' => 'Faqat qidiruv, oʻqitishsiz',
+                ],
+                'preset_hints' => [
+                    'allow_all' => 'Barcha SI botlar saytni oʻqiy oladi (standart).',
+                    'search_only' => 'SI ni oʻqitish uchun sahifa yigʻadigan botlar yopiladi; SI qidiruvi va assistent soʻrovlariga ruxsat qoladi.',
+                ],
+                'custom' => 'Oʻz tanlovingiz',
+                'list_title' => 'SI botlar',
+                'list_help' => 'Oʻchirilgan bot uchun robots.txt ga «Disallow: /» qoʻshiladi.',
+                'allow' => 'Ruxsat berilgan',
+                'search_title' => 'Qidiruv tizimlari',
+                'search_help' => 'Sayt qidiruv natijalarida qolishi uchun doim ruxsat berilgan.',
+                'always_allowed' => 'Doim ruxsat',
             ],
             'map_preview' => 'Yandex Xaritalarda tekshirish',
             'add_phone' => 'Raqam qoʻshish',

@@ -4,7 +4,9 @@ namespace App\Enums;
 
 /**
  * Part of the settings a change belongs to (settings_audits.area): the tabs
- * of Settings → Company, plus Integrations (plan 04b).
+ * of Settings → Company, plus Integrations (plan 04b). AiBots holds the
+ * per-crawler robots.txt policy (key robots.ai_bots); Faq is the general FAQ
+ * tab (faq_items rows, not settings keys) and is used for access only.
  */
 enum SettingsArea: string
 {
@@ -14,6 +16,8 @@ enum SettingsArea: string
     case Hero = 'hero';
     case Seo = 'seo';
     case Tracking = 'tracking';
+    case AiBots = 'ai_bots';
+    case Faq = 'faq';
     case Integrations = 'integrations';
 
     public function label(): string
@@ -27,8 +31,8 @@ enum SettingsArea: string
     public function group(): string
     {
         return match ($this) {
-            self::Contacts, self::Legal, self::Social, self::Hero => 'company',
-            self::Seo, self::Tracking => 'seo',
+            self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
+            self::Seo, self::Tracking, self::AiBots => 'seo',
             self::Integrations => 'integrations',
         };
     }

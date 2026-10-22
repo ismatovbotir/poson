@@ -4,14 +4,16 @@
     $days = array_keys(\App\Support\Settings\SettingsFormat::DAYS);
 @endphp
 
-{{-- Settings → Company (plan 04a T2). "Save" saves the open tab. --}}
+{{-- Settings → Company (plan 04a T2). "Save" saves the open tab; the FAQ tab saves each item itself. --}}
 <form wire:submit="save" novalidate>
     <x-admin.page-header :title="__($t.'.title')" :subtitle="__($t.'.subtitle')">
-        <x-slot:actions>
-            <div class="hidden gap-2 lg:flex">
-                <x-admin.button type="submit" icon="check" loading="save">{{ __('admin.common.save') }}</x-admin.button>
-            </div>
-        </x-slot:actions>
+        @if ($hasSave)
+            <x-slot:actions>
+                <div class="hidden gap-2 lg:flex">
+                    <x-admin.button type="submit" icon="check" loading="save">{{ __('admin.common.save') }}</x-admin.button>
+                </div>
+            </x-slot:actions>
+        @endif
     </x-admin.page-header>
 
     {{-- Tabs --}}
@@ -35,7 +37,7 @@
                     @if (in_array($key, ['legal', 'tracking'], true))
                         <x-admin.icon name="lock" size="size-3.5" class="text-slate-400" />
                     @endif
-                    @if ($errors->has($key.'.*'))
+                    @if ($errors->has(\Illuminate\Support\Str::camel($key).'.*'))
                         <span class="size-1.5 rounded-full bg-danger" aria-hidden="true"></span>
                         <span class="sr-only">({{ __('admin.form.locale_has_errors') }})</span>
                     @endif
@@ -227,7 +229,88 @@
                 </div>
             </x-admin.card>
         @endif
+
+        @if ($tab === 'ai_bots')
+            <div class="flex gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3.5 text-sm text-sky-900" role="note" data-ai-bots-note>
+                <x-admin.icon name="info" class="mt-0.5 shrink-0 text-sky-600" />
+                <p>
+                    {{ __($t.'.ai_bots.note') }}
+                    @if (\Illuminate\Support\Facades\Route::has('admin.analytics.ai'))
+                        @can('analytics.view')
+                            <a href="{{ route('admin.analytics.ai') }}" wire:navigate class="font-semibold underline">{{ __($t.'.ai_bots.analytics_link') }}</a>
+                        @endcan
+                    @endif
+                </p>
+            </div>
+
+            <x-admin.card :title="__($t.'.ai_bots.presets_title')" :description="__($t.'.ai_bots.presets_help')">
+                <div class="flex flex-wrap items-center gap-2" role="group" aria-label="{{ __($t.'.ai_bots.presets_title') }}">
+                    @foreach (\App\Support\Site\AiBotRules::PRESETS as $preset)
+                        <button
+                            type="button"
+                            wire:click="applyBotPreset('{{ $preset }}')"
+                            aria-pressed="{{ $botPreset === $preset ? 'true' : 'false' }}"
+                            data-bot-preset="{{ $preset }}"
+                            @class([
+                                'inline-flex h-10 items-center gap-1.5 rounded-lg border px-4 text-sm font-semibold',
+                                'border-brand-600 bg-brand-50 text-brand-700' => $botPreset === $preset,
+                                'border-slate-200 text-slate-700 hover:bg-slate-50' => $botPreset !== $preset,
+                            ])
+                        >
+                            @if ($botPreset === $preset)<x-admin.icon name="check" size="size-4" />@endif
+                            {{ __($t.'.ai_bots.presets.'.$preset) }}
+                        </button>
+                    @endforeach
+                    @if ($botPreset === null)
+                        <x-admin.badge color="amber" data-bot-preset-custom>{{ __($t.'.ai_bots.custom') }}</x-admin.badge>
+                    @endif
+                </div>
+                <ul class="mt-3 space-y-1 text-xs text-slate-500">
+                    @foreach (\App\Support\Site\AiBotRules::PRESETS as $preset)
+                        <li><span class="font-semibold text-slate-700">{{ __($t.'.ai_bots.presets.'.$preset) }}:</span> {{ __($t.'.ai_bots.preset_hints.'.$preset) }}</li>
+                    @endforeach
+                </ul>
+            </x-admin.card>
+
+            <x-admin.card :title="__($t.'.ai_bots.list_title')" :description="__($t.'.ai_bots.list_help')">
+                <ul class="-my-3 divide-y divide-slate-100">
+                    @foreach ($aiBotList as $key => $bot)
+                        <li wire:key="bot-{{ $key }}" class="flex flex-wrap items-center gap-3 py-3" data-bot="{{ $key }}">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold">{{ $bot->name }}</p>
+                                <p class="text-xs text-slate-500">{{ $bot->vendor }} · <code class="font-mono">User-agent: {{ $bot->robotsToken }}</code></p>
+                            </div>
+                            <x-admin.badge :color="$bot->purpose->color()">{{ $bot->purpose->label() }}</x-admin.badge>
+                            <x-admin.toggle wire:model.live="aiBots.bots.{{ $key }}" :id="'bot-'.$key" :label="__($t.'.ai_bots.allow')" class="w-32" />
+                        </li>
+                    @endforeach
+                </ul>
+            </x-admin.card>
+
+            <x-admin.card :title="__($t.'.ai_bots.search_title')" :description="__($t.'.ai_bots.search_help')">
+                <ul class="-my-3 divide-y divide-slate-100">
+                    @foreach ($searchEngines as $key => $bot)
+                        <li wire:key="search-bot-{{ $key }}" class="flex flex-wrap items-center gap-3 py-3" data-search-bot="{{ $key }}">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold">{{ $bot->name }}</p>
+                                <p class="text-xs text-slate-500">{{ $bot->vendor }} · <code class="font-mono">User-agent: {{ $bot->robotsToken }}</code></p>
+                            </div>
+                            <x-admin.badge :color="$bot->purpose->color()">{{ $bot->purpose->label() }}</x-admin.badge>
+                            <span class="inline-flex w-32 items-center gap-1.5 text-sm font-medium text-slate-500"><x-admin.icon name="lock" size="size-3.5" />{{ __($t.'.ai_bots.always_allowed') }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-admin.card>
+        @endif
+
+        @if ($tab === 'faq')
+            <section class="rounded-2xl border border-slate-200 bg-white">
+                <livewire:admin.faq.faq-items :key="'faq-general'" />
+            </section>
+        @endif
     </div>
 
-    <x-admin.sticky-save-bar />
+    @if ($hasSave)
+        <x-admin.sticky-save-bar />
+    @endif
 </form>

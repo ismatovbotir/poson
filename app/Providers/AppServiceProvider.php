@@ -6,6 +6,9 @@ use App\Enums\Role;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Analytics\DnsResolver;
@@ -15,6 +18,7 @@ use App\Support\Secrets;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
@@ -48,6 +52,20 @@ class AppServiceProvider extends ServiceProvider
     {
         // Lazy loading, silently discarded attributes and missing attributes throw outside production.
         Model::shouldBeStrict(! $this->app->isProduction());
+
+        // Morph types are stored as short aliases, never class names (renaming a
+        // class can't orphan rows). Enforced: every model that owns a morph row
+        // must be listed, or getMorphClass() throws. Owners today: media
+        // (medialibrary: brand, category, product, setting), roles/permissions
+        // (spatie: user) and faq_items (category, product). Livewire 4 reads
+        // this map directly, so models as component properties are unaffected.
+        Relation::enforceMorphMap([
+            'brand' => Brand::class,
+            'category' => Category::class,
+            'product' => Product::class,
+            'setting' => Setting::class,
+            'user' => User::class,
+        ]);
 
         // Integration settings and secrets (Settings → Integrations) over config: .env > admin > default.
         Secrets::apply();

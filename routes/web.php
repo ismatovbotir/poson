@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\RedirectToLocale;
 use App\Http\Controllers\Site\DownloadProductDocumentController;
+use App\Http\Controllers\Site\LlmsController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Catalog;
@@ -14,6 +15,7 @@ Route::get('/', RedirectToLocale::class)->name('site.root');
 // Crawler files (no locale prefix).
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
+Route::get('/llms.txt', LlmsController::class)->name('llms');
 
 Route::prefix('{locale}')
     ->whereIn('locale', config('app.supported_locales'))

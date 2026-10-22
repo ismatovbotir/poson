@@ -19,6 +19,9 @@
 >
     @push('head')
         <script type="application/ld+json">{!! $breadcrumbsJson !!}</script>
+        @if ($faqJson)
+            <script type="application/ld+json">{!! $faqJson !!}</script>
+        @endif
     @endpush
 
     <x-site.breadcrumbs :items="$breadcrumbs" />
@@ -227,4 +230,8 @@
             </div>
         </section>
     </div>
+
+    @if ($faq !== [])
+        <x-site.faq class="mt-12 md:mt-[72px]" id="category-faq-title" :items="$faq" :title="__('site.faq.title')" />
+    @endif
 </div>

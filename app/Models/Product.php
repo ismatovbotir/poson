@@ -10,6 +10,7 @@ use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Spatie\Image\Enums\Fit;
@@ -99,11 +101,15 @@ class Product extends Model implements HasMedia
      */
     protected static function booted(): void
     {
-        $flush = fn () => DB::afterCommit(fn () => Sitemap::flush());
+        $flush = fn () => DB::afterCommit(function (): void {
+            Sitemap::flush();
+            LlmsTxt::flush();
+        });
 
         static::saved($flush);
         static::deleted($flush);
         static::restored($flush);
+        static::forceDeleted(fn (Product $product) => $product->faqItems()->delete());
     }
 
     /**
@@ -218,6 +224,16 @@ class Product extends Model implements HasMedia
     public function documents(): HasMany
     {
         return $this->hasMany(ProductDocument::class)->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * FAQ of the product page (plan 04 T12), in admin order.
+     *
+     * @return MorphMany<FaqItem, $this>
+     */
+    public function faqItems(): MorphMany
+    {
+        return $this->morphMany(FaqItem::class, 'faqable')->orderBy('sort')->orderBy('id');
     }
 
     /**

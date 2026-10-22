@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\CompanySettings;
+use App\Support\Site\AiBotRules;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -34,6 +35,7 @@ class UpdateCompanySettings
         'hero' => ['hero_stats'],
         'seo' => ['verification'],
         'tracking' => ['tracking'],
+        'ai_bots' => [AiBotRules::SETTING_KEY],
     ];
 
     /**
