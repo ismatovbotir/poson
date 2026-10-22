@@ -13,6 +13,10 @@ use Illuminate\Validation\ValidationException;
 /**
  * Move a lead through the pipeline (LeadStatus::canTransitionTo()).
  *
+ * - handle(): the statuses staff set by hand (LeadStatus::isManual()).
+ *   Converted is refused there: markConverted() sets it and is called only
+ *   by ConvertLeadToCustomer (plan 05b), so a lead is converted only with
+ *   a customer.
  * - Lost needs a reason (LeadLostReason) and, for "other", a note.
  * - Sets status_changed_at; closed_at when it closes (converted / lost),
  *   cleared on reopen; the lost reason / note are cleared when not lost.
@@ -30,6 +34,10 @@ class ChangeLeadStatus
     {
         $note = filled($note) ? trim((string) $note) : null;
 
+        if (! $to->isManual()) {
+            throw ValidationException::withMessages(['status' => __('crm.leads.errors.convert_only')]);
+        }
+
         if ($to === LeadStatus::Lost) {
             if ($reason === null) {
                 throw ValidationException::withMessages(['lost_reason' => __('crm.leads.errors.lost_reason_required')]);
@@ -44,6 +52,24 @@ class ChangeLeadStatus
             throw ValidationException::withMessages(['lost_note' => __('validation.max.string', ['attribute' => __('crm.leads.fields.lost_note'), 'max' => self::NOTE_MAX])]);
         }
 
+        return $this->apply($lead, $to, $actor, $reason, $note);
+    }
+
+    /**
+     * Set "converted". Only ConvertLeadToCustomer calls this, inside its transaction.
+     *
+     * @throws ValidationException
+     */
+    public function markConverted(Lead $lead, User $actor): Lead
+    {
+        return $this->apply($lead, LeadStatus::Converted, $actor);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function apply(Lead $lead, LeadStatus $to, User $actor, ?LeadLostReason $reason = null, ?string $note = null): Lead
+    {
         return DB::transaction(function () use ($lead, $to, $actor, $reason, $note): Lead {
             // Re-read under a row lock: a concurrent change must not be overwritten.
             $from = Lead::query()->whereKey($lead->id)->lockForUpdate()->value('status');

@@ -40,7 +40,7 @@ describe('ChangeLeadStatus', function () {
         $lead = Lead::factory()->create();
 
         $this->travel(1)->hours();
-        app(ChangeLeadStatus::class)->handle($lead, LeadStatus::Converted, $user);
+        app(ChangeLeadStatus::class)->markConverted($lead, $user);
 
         expect($lead->fresh())
             ->status->toBe(LeadStatus::Converted)
@@ -52,6 +52,14 @@ describe('ChangeLeadStatus', function () {
         expect($activity->type)->toBe(ActivityType::StatusChange)
             ->and($activity->user_id)->toBe($user->id)
             ->and($activity->meta)->toBe(['from' => 'new', 'to' => 'converted']);
+    });
+
+    it('refuses converted by hand', function () {
+        $lead = Lead::factory()->create();
+
+        expect(fn () => app(ChangeLeadStatus::class)->handle($lead, LeadStatus::Converted, staffUser()))
+            ->toThrow(ValidationException::class, __('crm.leads.errors.convert_only'))
+            ->and($lead->fresh()->status)->toBe(LeadStatus::New);
     });
 
     it('requires a reason to mark a lead lost', function () {

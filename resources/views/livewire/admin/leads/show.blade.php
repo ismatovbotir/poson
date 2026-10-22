@@ -4,7 +4,7 @@
     $lostReasons = collect(\App\Enums\LeadLostReason::cases())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all();
 @endphp
 
-<div x-data="{ lost: false }" x-on:lead-lost-saved.window="lost = false">
+<div x-data="{ lost: false, convert: $wire.entangle('convertOpen') }" x-on:lead-lost-saved.window="lost = false">
     <x-admin.page-header :title="$lead->company ?: $lead->name" :back-href="route('admin.leads.index')" :back-label="__('crm.leads.title')">
         <x-slot:actions>
             @if ($canEdit)
@@ -19,7 +19,11 @@
         @include('livewire.admin.leads.partials.badges', ['lead' => $lead])
         <x-admin.badge color="outline">{{ $lead->source->label() }}</x-admin.badge>
         @if ($lead->customer)
-            <x-admin.badge color="brand" data-customer><x-admin.icon name="building" size="size-3.5" />{{ __('crm.leads.customer_badge', ['name' => $lead->customer->name]) }}</x-admin.badge>
+            @if ($canViewCustomer)
+                <a href="{{ route('admin.customers.show', $lead->customer) }}" wire:navigate data-customer><x-admin.badge color="brand" class="hover:bg-brand-100"><x-admin.icon name="building" size="size-3.5" />{{ __('crm.leads.customer_badge', ['name' => $lead->customer->name]) }}</x-admin.badge></a>
+            @else
+                <x-admin.badge color="brand" data-customer><x-admin.icon name="building" size="size-3.5" />{{ __('crm.leads.customer_badge', ['name' => $lead->customer->name]) }}</x-admin.badge>
+            @endif
         @endif
         @if (! $canEdit)
             <x-admin.badge color="muted" data-read-only><x-admin.icon name="eye" size="size-3.5" />{{ __('crm.leads.read_only') }}</x-admin.badge>
@@ -46,6 +50,9 @@
                     <x-admin.badge :color="$lead->status->color()" dot class="text-sm">{{ $lead->status->label() }}</x-admin.badge>
                     @if ($canEdit)
                         <span class="text-slate-300" aria-hidden="true">→</span>
+                        @if ($canConvert)
+                            <x-admin.button size="sm" icon="building" wire:click="openConvert" loading="openConvert" data-action="convert">{{ __('crm.customers.convert.action') }}</x-admin.button>
+                        @endif
                         @foreach ($statuses as $status)
                             @if ($status === \App\Enums\LeadStatus::Lost)
                                 <x-admin.button size="sm" variant="secondary" x-on:click="lost = true" data-status-to="lost">{{ __('crm.leads.actions.mark_lost') }}</x-admin.button>
@@ -212,6 +219,54 @@
             @endif
         </aside>
     </div>
+
+    {{-- Convert to customer: pick a match or create a new customer --}}
+    @if ($canConvert)
+        <div x-cloak x-show="convert" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="lead-convert-title" x-on:keydown.escape.window="convert = false">
+            <div x-show="convert" x-transition.opacity class="absolute inset-0 bg-slate-900/50" x-on:click="convert = false"></div>
+            <form wire:submit="convert" x-show="convert" x-transition x-trap.noscroll="convert" class="relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-lg sm:rounded-2xl sm:pb-5" data-convert-modal>
+                <h2 id="lead-convert-title" class="text-base font-semibold">{{ __('crm.customers.convert.title') }}</h2>
+                <p class="mt-1 text-sm text-slate-500">{{ __('crm.customers.convert.body') }}</p>
+
+                <fieldset class="mt-4 space-y-2">
+                    <legend class="text-sm font-semibold">{{ __('crm.customers.convert.matches') }}</legend>
+                    @forelse ($this->customerMatches as $match)
+                        <label wire:key="match-{{ $match->customer->id }}" class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50" data-match="{{ $match->customer->id }}">
+                            <input type="radio" wire:model.live="convertTarget" value="{{ $match->customer->id }}" class="mt-0.5 size-4 accent-brand-600">
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-sm font-semibold">{{ $match->customer->name }}</span>
+                                <span class="block text-xs text-slate-500">{{ __('crm.customers.convert.reason.'.$match->reason) }}@if ($match->customer->inn) · {{ __('crm.customers.fields.inn') }} {{ $match->customer->inn }}@endif · {{ $match->customer->manager?->name ?? __('crm.customers.unassigned') }}</span>
+                            </span>
+                        </label>
+                    @empty
+                        <p class="text-sm text-slate-500">{{ __('crm.customers.convert.no_matches') }}</p>
+                    @endforelse
+
+                    @if ($canCreateCustomer)
+                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/50" data-match="new">
+                            <input type="radio" wire:model.live="convertTarget" value="new" class="mt-0.5 size-4 accent-brand-600">
+                            <span class="text-sm font-semibold">{{ __('crm.customers.convert.create_new') }}</span>
+                        </label>
+                    @endif
+                    <x-admin.field-error name="convertTarget" />
+                </fieldset>
+
+                @if ($convertTarget === 'new')
+                    <div class="mt-4 space-y-4 rounded-xl bg-slate-50 p-4" data-convert-new>
+                        <x-admin.select wire:model.live="convertType" :label="__('crm.customers.fields.type')" required :options="collect(\App\Enums\CustomerType::cases())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all()" />
+                        <x-admin.input wire:model="convertName" :label="$convertType === 'individual' ? __('crm.customers.fields.full_name') : __('crm.customers.fields.name')" required maxlength="255" />
+                        <x-admin.input wire:model="convertInn" :label="__('crm.customers.fields.inn')" inputmode="numeric" maxlength="9" :hint="__('crm.customers.inn_hint')" />
+                        <p class="text-xs text-slate-500">{{ __('crm.customers.convert.new_hint') }}</p>
+                    </div>
+                @endif
+
+                <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button type="button" x-on:click="convert = false" class="h-11 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:h-10">{{ __('admin.common.cancel') }}</button>
+                    <x-admin.button type="submit" loading="convert">{{ __('crm.customers.convert.submit') }}</x-admin.button>
+                </div>
+            </form>
+        </div>
+    @endif
 
     {{-- Lost: reason (and a note for "other") --}}
     @if ($canEdit)

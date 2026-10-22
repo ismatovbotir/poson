@@ -93,6 +93,7 @@ return [
         'assignment' => 'Assignment',
         'notification' => 'Notification',
         'conversion' => 'Conversion',
+        'price_level_change' => 'Price level change',
     ],
 
     'product_badge' => [

@@ -17,6 +17,9 @@
             {{ ! empty($meta['reopened']) ? __('crm.leads.timeline.reopened') : __('crm.leads.timeline.status', ['from' => $statusLabel($meta['from'] ?? null), 'to' => $statusLabel($meta['to'] ?? null)]) }}
             @if (! empty($meta['reason']))<span class="text-slate-500">· {{ \App\Enums\LeadLostReason::tryFrom($meta['reason'])?->label() }}</span>@endif
             @break
+        @case(\App\Enums\ActivityType::Conversion)
+            {{ __(! empty($meta['created']) ? 'crm.customers.timeline.lead_converted_new' : 'crm.customers.timeline.lead_converted', ['name' => $meta['customer_name'] ?? '']) }}
+            @break
         @case(\App\Enums\ActivityType::Assignment)
             @switch($meta['action'] ?? 'assign')
                 @case('take') {{ __('crm.leads.timeline.took') }} @break

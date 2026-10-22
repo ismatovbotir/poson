@@ -18,6 +18,18 @@ enum PriceLevel: string
     }
 
     /**
+     * Badge color (x-admin.badge).
+     */
+    public function color(): string
+    {
+        return match ($this) {
+            self::Retail => 'slate',
+            self::Dealer => 'sky',
+            self::Wholesale => 'violet',
+        };
+    }
+
+    /**
      * products column that holds this level's price (tiyin).
      */
     public function column(): string

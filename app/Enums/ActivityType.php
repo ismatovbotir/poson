@@ -15,6 +15,7 @@ enum ActivityType: string
     case Assignment = 'assignment';
     case Notification = 'notification';
     case Conversion = 'conversion';
+    case PriceLevelChange = 'price_level_change';
 
     public function label(): string
     {
@@ -34,6 +35,7 @@ enum ActivityType: string
             self::Assignment => 'users',
             self::Notification => 'telegram',
             self::Conversion => 'building',
+            self::PriceLevelChange => 'tag',
         };
     }
 
@@ -50,6 +52,7 @@ enum ActivityType: string
             self::Assignment => 'bg-amber-400',
             self::Notification => 'bg-slate-300',
             self::Conversion => 'bg-brand-600',
+            self::PriceLevelChange => 'bg-sky-500',
         };
     }
 

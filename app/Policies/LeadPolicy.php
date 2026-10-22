@@ -81,6 +81,15 @@ class LeadPolicy
     }
 
     /**
+     * Convert an open lead to a customer (link an existing one). Creating a
+     * new customer also needs CustomerPolicy::create.
+     */
+    public function convert(User $user, Lead $lead): bool
+    {
+        return $lead->isOpen() && $this->update($user, $lead) && $user->can('customers.viewAny');
+    }
+
+    /**
      * Whether the user may give a lead this type (create, or change it on edit).
      */
     public function useType(User $user, LeadType $type): bool

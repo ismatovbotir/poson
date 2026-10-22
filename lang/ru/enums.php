@@ -19,9 +19,9 @@ return [
     ],
 
     'price_level' => [
-        'retail' => 'Розничная',
-        'dealer' => 'Дилерская',
-        'wholesale' => 'Оптовая',
+        'retail' => 'Розница',
+        'dealer' => 'Дилер',
+        'wholesale' => 'Опт',
     ],
 
     'product_type' => [
@@ -93,6 +93,7 @@ return [
         'assignment' => 'Назначение',
         'notification' => 'Уведомление',
         'conversion' => 'Конвертация',
+        'price_level_change' => 'Смена уровня цен',
     ],
 
     'product_badge' => [

@@ -62,11 +62,11 @@ it('grants the CRM permissions per role (plan 05 §5)', function (Role $role, ar
     }
 })->with([
     'sales manager' => [Role::SalesManager,
-        ['leads.viewAny', 'leads.view', 'leads.create', 'leads.update', 'leads.sales', 'leads.service-view', 'leads.reassign', 'customers.viewAny', 'customers.view', 'customers.create', 'customers.update'],
+        ['leads.viewAny', 'leads.view', 'leads.create', 'leads.update', 'leads.sales', 'leads.service-view', 'leads.reassign', 'customers.viewAny', 'customers.view', 'customers.create', 'customers.update', 'customers.reassign'],
         ['leads.delete', 'leads.service', 'leads.view-all', 'leads.assign', 'customers.delete', 'customers.update-any', 'customers.price-level']],
     'service engineer' => [Role::ServiceEngineer,
         ['leads.viewAny', 'leads.view', 'leads.create', 'leads.update', 'leads.service', 'customers.viewAny', 'customers.view'],
-        ['leads.delete', 'leads.sales', 'leads.service-view', 'leads.view-all', 'leads.assign', 'leads.reassign', 'customers.create', 'customers.update', 'customers.price-level']],
+        ['leads.delete', 'leads.sales', 'leads.service-view', 'leads.view-all', 'leads.assign', 'leads.reassign', 'customers.create', 'customers.update', 'customers.reassign', 'customers.price-level']],
     'content manager' => [Role::ContentManager,
         [],
         ['leads.viewAny', 'leads.create', 'leads.sales', 'leads.service', 'customers.viewAny']],

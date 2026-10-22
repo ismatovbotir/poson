@@ -93,6 +93,7 @@ return [
         'assignment' => 'Biriktirish',
         'notification' => 'Bildirishnoma',
         'conversion' => 'Mijozga aylantirish',
+        'price_level_change' => 'Narx darajasi oʻzgarishi',
     ],
 
     'product_badge' => [

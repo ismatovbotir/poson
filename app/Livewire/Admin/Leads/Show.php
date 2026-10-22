@@ -2,15 +2,21 @@
 
 namespace App\Livewire\Admin\Leads;
 
+use App\Actions\Customers\ConvertLeadToCustomer;
+use App\Actions\Customers\FindCustomerMatches;
 use App\Actions\Leads\AddLeadActivity;
 use App\Actions\Leads\AssignLead;
 use App\Actions\Leads\ChangeLeadStatus;
 use App\Actions\Leads\DeleteLead;
+use App\Data\Customers\CustomerData;
+use App\Data\Customers\CustomerMatch;
 use App\Enums\ActivityType;
+use App\Enums\CustomerType;
 use App\Enums\LeadLostReason;
 use App\Enums\LeadStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\Activity;
+use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -51,6 +57,22 @@ class Show extends Component
     public string $activityBody = '';
 
     public string $assignTo = '';
+
+    /**
+     * Conversion target: '' (not chosen), 'new', or a customer id.
+     */
+    public string $convertTarget = '';
+
+    /**
+     * The conversion modal is open (entangled with Alpine); matches are only looked up then.
+     */
+    public bool $convertOpen = false;
+
+    public string $convertType = 'company';
+
+    public string $convertName = '';
+
+    public string $convertInn = '';
 
     public function mount(Lead $lead): void
     {
@@ -139,6 +161,106 @@ class Show extends Component
         }
     }
 
+    /**
+     * Prefill the conversion modal: one INN match or a single match is
+     * preselected; several matches make the manager pick; none → new.
+     */
+    public function openConvert(): void
+    {
+        $this->authorize('convert', $this->lead);
+
+        $data = ConvertLeadToCustomer::dataFromLead($this->lead);
+        $this->convertType = $data->type->value;
+        $this->convertName = $data->name;
+        $this->convertInn = (string) $data->inn;
+
+        $this->convertOpen = true;
+        unset($this->customerMatches);
+        $matches = $this->customerMatches;
+        $innMatch = collect($matches)->first(fn (CustomerMatch $match): bool => $match->reason === CustomerMatch::INN);
+
+        $this->convertTarget = match (true) {
+            $innMatch !== null => (string) $innMatch->customer->id,
+            count($matches) === 1 => (string) $matches[0]->customer->id,
+            $matches === [] && $this->user()->can('create', Customer::class) => 'new',
+            default => '',
+        };
+
+        $this->resetValidation();
+        $this->dispatch('lead-convert-open');
+    }
+
+    public function convert(ConvertLeadToCustomer $convertLead): void
+    {
+        $this->authorize('convert', $this->lead);
+
+        $this->validate([
+            'convertTarget' => ['required', 'string', 'max:20'],
+        ], ['convertTarget.required' => __('crm.customers.errors.pick_target')]);
+
+        $customer = null;
+        $newCustomer = null;
+
+        if ($this->convertTarget === 'new') {
+            $this->authorize('create', Customer::class);
+
+            $this->validate([
+                'convertType' => ['required', Rule::enum(CustomerType::class)],
+                'convertName' => ['required', 'string', 'max:255'],
+                'convertInn' => ['nullable', 'digits:9'],
+            ], attributes: [
+                'convertType' => __('crm.customers.fields.type'),
+                'convertName' => __($this->convertType === CustomerType::Individual->value ? 'crm.customers.fields.full_name' : 'crm.customers.fields.name'),
+                'convertInn' => __('crm.customers.fields.inn'),
+            ]);
+
+            $prefill = ConvertLeadToCustomer::dataFromLead($this->lead);
+            $newCustomer = new CustomerData(
+                type: CustomerType::from($this->convertType),
+                name: $this->convertName,
+                inn: $this->convertInn,
+                phone: $prefill->phone,
+                email: $prefill->email,
+                locale: $prefill->locale,
+            );
+        } else {
+            $customer = ctype_digit($this->convertTarget) ? Customer::query()->find((int) $this->convertTarget) : null;
+
+            if (! $customer instanceof Customer) {
+                $this->addError('convertTarget', __('crm.customers.errors.pick_target'));
+
+                return;
+            }
+
+            $this->authorize('view', $customer);
+        }
+
+        $result = $this->runMapped(
+            fn (): Customer => $convertLead->handle($this->lead, $customer, $this->user(), $newCustomer),
+            ['name' => 'convertName', 'inn' => 'convertInn', 'type' => 'convertType', 'status' => 'convertTarget', 'phone' => 'convertTarget', 'manager_id' => 'convertTarget', 'contacts' => 'convertTarget', 'contacts.0.phone' => 'convertTarget', 'contacts.0.name' => 'convertTarget'],
+        );
+
+        $this->refreshLead();
+        $this->convertOpen = false;
+        $this->dispatch('lead-convert-saved');
+        $this->dispatch('toast', title: __('admin.toast.done'), body: __('crm.customers.toast.converted', ['reference' => $this->lead->reference(), 'name' => $result->name]));
+    }
+
+    /**
+     * Customers this lead may belong to (INN first, then phones).
+     *
+     * @return list<CustomerMatch>
+     */
+    #[Computed]
+    public function customerMatches(): array
+    {
+        if (! $this->convertOpen || ! $this->user()->can('convert', $this->lead)) {
+            return [];
+        }
+
+        return app(FindCustomerMatches::class)->handle($this->lead->phone, $this->lead->inn);
+    }
+
     public function addActivity(AddLeadActivity $addActivity): void
     {
         $this->authorize('update', $this->lead);
@@ -214,6 +336,9 @@ class Show extends Component
             'canRelease' => $user->can('release', $this->lead),
             'canAssign' => $user->can('assign', $this->lead),
             'canDelete' => $user->can('delete', $this->lead),
+            'canConvert' => $user->can('convert', $this->lead),
+            'canCreateCustomer' => $user->can('create', Customer::class),
+            'canViewCustomer' => $this->lead->customer !== null && $user->can('view', $this->lead->customer),
             'canViewProducts' => $user->can('products.view'),
             'duplicateOfVisible' => $duplicateOf !== null && $user->can('view', $duplicateOf),
             'laterDuplicates' => $this->lead->duplicates()->visibleTo($user)->latest('id')->limit(10)->get(['id', 'status', 'created_at']),
@@ -258,7 +383,7 @@ class Show extends Component
     {
         $this->lead->refresh();
         $this->assignTo = (string) $this->lead->manager_id;
-        unset($this->activities, $this->candidates);
+        unset($this->activities, $this->candidates, $this->customerMatches);
     }
 
     private function user(): User

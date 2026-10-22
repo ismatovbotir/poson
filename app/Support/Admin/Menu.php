@@ -49,7 +49,7 @@ final class Menu
             new MenuGroup('sales', 'menu.groups.sales', [
                 // Plan 05 5a. Badge: new leads the user can see (badges()).
                 new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', permission: 'leads.viewAny'),
-                new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', roles: $crm),
+                new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', permission: 'customers.viewAny'),
                 new MenuItem('quotes', 'menu.items.quotes', 'file-text', 'admin.quotes.index', roles: $crm),
                 new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', roles: $crm),
                 new MenuItem('payments', 'menu.items.payments', 'card', 'admin.payments.index', roles: $payments),

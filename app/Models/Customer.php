@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CustomerType;
 use App\Enums\PriceLevel;
 use App\Support\Phone;
+use App\Support\Search;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
@@ -70,6 +72,14 @@ class Customer extends Model
     }
 
     /**
+     * @return HasOne<Contact, $this>
+     */
+    public function primaryContact(): HasOne
+    {
+        return $this->hasOne(Contact::class)->where('is_primary', true);
+    }
+
+    /**
      * @return HasMany<Lead, $this>
      */
     public function leads(): HasMany
@@ -86,6 +96,39 @@ class Customer extends Model
     }
 
     /**
+     * Admin search: name contains the term, a 9-digit term equals the INN,
+     * or the customer's or a contact's phone contains its digits (at least 3).
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeSearch(Builder $query, string $term): void
+    {
+        $term = trim($term);
+
+        if ($term === '') {
+            return;
+        }
+
+        $pattern = Search::likePattern($term);
+        $digits = (string) preg_replace('/\D+/', '', $term);
+        $innOnly = (bool) preg_match('/^\d{9}$/', $term);
+
+        $query->where(function (Builder $inner) use ($pattern, $digits, $innOnly): void {
+            $inner->whereRaw("lower(customers.name) like ? escape '!'", [$pattern])
+                ->orWhereRaw("lower(customers.email) like ? escape '!'", [$pattern]);
+
+            if ($innOnly) {
+                $inner->orWhere('customers.inn', $digits);
+            }
+
+            if (strlen($digits) >= 3) {
+                $inner->orWhere('customers.phone', 'like', '%'.$digits.'%')
+                    ->orWhereIn('customers.id', Contact::query()->select('customer_id')->where('phone', 'like', '%'.$digits.'%'));
+            }
+        });
+    }
+
+    /**
      * Customers whose own phone is this number (any input format).
      *
      * @param  Builder<self>  $query
@@ -98,13 +141,13 @@ class Customer extends Model
     }
 
     /**
-     * Customers the user may see (customers.viewAny: every customer, plan 05 §5).
+     * Customers the user may see (customers.viewAny + view: every customer, plan 05 §5).
      *
      * @param  Builder<self>  $query
      */
     public function scopeVisibleTo(Builder $query, User $user): void
     {
-        if (! $user->can('customers.viewAny')) {
+        if (! $user->can('customers.viewAny') || ! $user->can('customers.view')) {
             $query->whereRaw('1 = 0');
         }
     }

@@ -39,14 +39,15 @@ it('hides the badge when there is nothing new', function () {
     expect($html)->not->toContain('data-menu-badge')->not->toContain('data-tab-badge');
 });
 
-it('links the leads and service request items while customers stay soon', function () {
+it('links the leads, service request and customer items', function () {
     $html = $this->actingAs(staffUser(Role::ServiceEngineer))->get('/admin')->assertOk()->getContent();
 
     preg_match('/<li data-menu-item="service-requests">(.*?)<\/li>/s', $html, $service);
     preg_match('/<li data-menu-item="customers">(.*?)<\/li>/s', $html, $customers);
 
     expect($service[1])->toContain('href="'.route('admin.service-requests.index').'"')
-        ->and($customers[1])->toContain('data-soon');
+        ->and($customers[1])->toContain('href="'.route('admin.customers.index').'"')
+        ->and($customers[1])->not->toContain('data-soon');
 });
 
 it('shows the lead cards and the latest leads from what the user may see', function () {

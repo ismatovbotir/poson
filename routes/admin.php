@@ -10,6 +10,7 @@ use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
+use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\Products;
@@ -50,6 +51,12 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/leads/{lead}', Leads\Show::class)->whereNumber('lead')->name('leads.show');
     Route::livewire('/leads/{lead}/edit', Leads\Form::class)->whereNumber('lead')->name('leads.edit');
     Route::get('/service-requests', ServiceRequestsController::class)->name('service-requests.index');
+
+    // CRM: customers (plan 05b). CustomerPolicy in the components; lists use Customer::visibleTo().
+    Route::livewire('/customers', Customers\Index::class)->name('customers.index');
+    Route::livewire('/customers/create', Customers\Form::class)->name('customers.create');
+    Route::livewire('/customers/{customer}', Customers\Show::class)->whereNumber('customer')->name('customers.show');
+    Route::livewire('/customers/{customer}/edit', Customers\Form::class)->whereNumber('customer')->name('customers.edit');
 
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');

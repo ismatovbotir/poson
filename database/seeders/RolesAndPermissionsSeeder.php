@@ -66,6 +66,7 @@ class RolesAndPermissionsSeeder extends Seeder
      *  - leads.assign: assign anyone (Admin). leads.reassign: hand a sales lead
      *    to another sales user (sales manager). Without either: take / release.
      *  - customers.update: own + unassigned customers; customers.update-any: all;
+     *    customers.reassign: hand an editable customer to another sales user;
      *    customers.price-level: Admin only.
      *
      * @return array<string, list<string>>
@@ -88,7 +89,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...$catalogView,
                 'leads.viewAny', 'leads.view', 'leads.create', 'leads.update',
                 'leads.sales', 'leads.service-view', 'leads.reassign',
-                'customers.viewAny', 'customers.view', 'customers.create', 'customers.update',
+                'customers.viewAny', 'customers.view', 'customers.create', 'customers.update', 'customers.reassign',
             ],
 
             Role::ServiceEngineer->value => [
@@ -125,6 +126,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'leads.assign',
             'leads.reassign',
             'customers.update-any',
+            'customers.reassign',
             'customers.price-level',
         ];
     }
