@@ -3,8 +3,11 @@
 namespace App\Actions\Settings;
 
 use App\Models\User;
+use App\Services\Telegram\TelegramClient;
+use App\Services\Telegram\TelegramException;
 use App\Support\Integrations\ConnectionTestResult;
 use App\Support\Secrets;
+use App\Support\Telegram\TelegramLocale;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -19,7 +22,8 @@ use Throwable;
  * effective value (.env or admin), never with what is typed in the form.
  *
  * Targets: telegram (getMe), telegram_chat (a test message to the sales /
- * service / finance chat), anthropic and openai (GET /v1/models), removebg
+ * service / finance chat in the telegram.locale language), both through
+ * TelegramClient, anthropic and openai (GET /v1/models), removebg
  * (GET /v1.0/account, shows the credits). Payme and Click have no test
  * endpoint: the screen shows their webhook URLs instead.
  *
@@ -83,27 +87,29 @@ class TestIntegrationConnection
 
     protected function telegram(): ConnectionTestResult
     {
-        $token = Secrets::get('telegram.bot_token');
+        $client = $this->telegramClient();
 
-        if (! is_string($token) || $token === '') {
+        if (! $client->isConfigured()) {
             return ConnectionTestResult::failure('not_configured');
         }
 
-        return $this->call(fn (): Response => $this->http()->get($this->telegramUrl($token, 'getMe')), function (Response $response): ConnectionTestResult {
-            $username = $response->json('result.username');
+        try {
+            $username = $client->getMe()['username'] ?? null;
+        } catch (TelegramException $exception) {
+            return $this->telegramFailure($exception);
+        }
 
-            return $response->json('ok') === true && is_string($username)
-                ? ConnectionTestResult::success('telegram_ok', ['bot' => '@'.$username])
-                : ConnectionTestResult::failure('unexpected_response');
-        });
+        return is_string($username)
+            ? ConnectionTestResult::success('telegram_ok', ['bot' => '@'.$username])
+            : ConnectionTestResult::failure('unexpected_response');
     }
 
     protected function telegramChat(string $chat): ConnectionTestResult
     {
-        $token = Secrets::get('telegram.bot_token');
+        $client = $this->telegramClient();
         $chatId = Secrets::get('telegram.chats.'.$chat);
 
-        if (! is_string($token) || $token === '') {
+        if (! $client->isConfigured()) {
             return ConnectionTestResult::failure('not_configured');
         }
 
@@ -111,23 +117,42 @@ class TestIntegrationConnection
             return ConnectionTestResult::failure('chat_not_configured');
         }
 
-        // Team language for Telegram messages is Russian (telegram-notifications skill).
-        $text = __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_'.$chat, [], 'ru')], 'ru');
+        // Same language as the lead alerts (Settings → Integrations → Telegram, default uz).
+        $locale = TelegramLocale::current();
+        $text = __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_'.$chat, [], $locale)], $locale);
 
-        return $this->call(
-            fn (): Response => $this->http()->asJson()->post($this->telegramUrl($token, 'sendMessage'), ['chat_id' => $chatId, 'text' => $text]),
-            fn (Response $response): ConnectionTestResult => $response->json('ok') === true
-                ? ConnectionTestResult::success('telegram_message_sent')
-                : ConnectionTestResult::failure('unexpected_response'),
-            function (Response $response): ?ConnectionTestResult {
-                // Telegram: 400 "chat not found", 403 "bot was kicked / blocked".
-                return match ($response->status()) {
-                    400 => ConnectionTestResult::failure('chat_not_found'),
-                    403 => ConnectionTestResult::failure('chat_forbidden'),
-                    default => null,
-                };
-            },
-        );
+        try {
+            $client->sendMessage($chatId, e($text));
+        } catch (TelegramException $exception) {
+            // Telegram: 400 "chat not found", 403 "bot was kicked / blocked".
+            return match ($exception->status) {
+                400 => ConnectionTestResult::failure('chat_not_found'),
+                403 => ConnectionTestResult::failure('chat_forbidden'),
+                default => $this->telegramFailure($exception),
+            };
+        }
+
+        return ConnectionTestResult::success('telegram_message_sent');
+    }
+
+    protected function telegramClient(): TelegramClient
+    {
+        return app(TelegramClient::class)->withTimeout(self::TIMEOUT);
+    }
+
+    protected function telegramFailure(TelegramException $exception): ConnectionTestResult
+    {
+        if ($exception->status === 0) {
+            return $this->failed($exception->timedOut ? 'timeout' : 'connection_failed', $exception, $exception->timedOut ? ['seconds' => self::TIMEOUT] : []);
+        }
+
+        return ConnectionTestResult::failure(match (true) {
+            in_array($exception->status, [401, 404], true) => 'unauthorized',
+            $exception->status === 403 => 'forbidden',
+            $exception->status === 429 => 'rate_limited',
+            $exception->status >= 500 => 'server_error',
+            default => 'unexpected_response',
+        });
     }
 
     protected function anthropic(): ConnectionTestResult
@@ -191,11 +216,6 @@ class TestIntegrationConnection
     protected function http(): PendingRequest
     {
         return Http::timeout(self::TIMEOUT)->connectTimeout(self::TIMEOUT)->acceptJson();
-    }
-
-    protected function telegramUrl(#[\SensitiveParameter] string $token, string $method): string
-    {
-        return 'https://api.telegram.org/bot'.$token.'/'.$method;
     }
 
     /**

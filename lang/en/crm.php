@@ -139,6 +139,12 @@ return [
         ],
 
         'timeline' => [
+            'telegram_sent' => 'Sent to Telegram: :chat',
+            'telegram_failed' => 'Couldn’t send to Telegram: :chat (code :code)',
+            'chat' => [
+                'sales' => 'Sales chat',
+                'service' => 'Service chat',
+            ],
             'created' => 'Lead received · :source',
             'auto_assigned' => 'assigned to the customer’s manager',
             'duplicate_of' => 'possible duplicate of :reference',
@@ -307,6 +313,11 @@ return [
     ],
 
     'dashboard' => [
+        'telegram_failures' => [
+            'title' => 'Telegram alerts failed',
+            'body' => ':count lead alerts in the last 7 days didn’t reach Telegram. Check the integration settings.',
+            'settings' => 'Open integrations',
+        ],
         'leads_label' => 'Leads',
         'recent' => 'Latest leads',
         'all_leads' => 'All leads',

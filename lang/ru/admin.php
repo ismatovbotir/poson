@@ -812,6 +812,8 @@ return [
                 'telegram_chats_sales' => 'Чат отдела продаж',
                 'telegram_chats_service' => 'Чат сервиса',
                 'telegram_chats_finance' => 'Чат бухгалтерии',
+                'telegram_notify_new_leads' => 'Уведомления о новых заявках',
+                'telegram_locale' => 'Язык сообщений в Telegram',
                 'payme_merchant_id' => 'ID мерчанта',
                 'payme_key' => 'Боевой ключ',
                 'payme_test_key' => 'Тестовый ключ',
@@ -837,6 +839,8 @@ return [
                 'telegram_chats_sales' => 'Заявки, КП и заказы. Число вида -1001234567890 или @channel.',
                 'telegram_chats_service' => 'Сервисные заявки. Число вида -1001234567890 или @channel.',
                 'telegram_chats_finance' => 'Оплаты. Число вида -1001234567890 или @channel.',
+                'telegram_notify_new_leads' => 'Каждая новая заявка уходит в чат продаж, сервисные заявки — в сервисный чат.',
+                'telegram_locale' => 'На этом языке пишутся уведомления о заявках и тестовые сообщения.',
                 'payme_merchant_id' => 'Кабинет мерчанта Payme → Касса → ID (24 символа).',
                 'payme_key' => 'Кабинет мерчанта → Касса → Разработчикам → Ключ.',
                 'payme_test_key' => 'Ключ для песочницы test.paycom.uz.',
@@ -876,7 +880,7 @@ return [
             ],
             'test' => [
                 'button' => 'Проверить подключение',
-                'telegram_message' => 'Тестовое сообщение от Poson: чат «:chat» настроен правильно.',
+                'telegram_message' => 'Тестовое сообщение от Poson: «:chat» настроен правильно.',
                 'codes' => [
                     'ok' => 'Подключено.',
                     'telegram_ok' => 'Подключено к боту :bot.',

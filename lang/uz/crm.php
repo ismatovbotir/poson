@@ -139,6 +139,12 @@ return [
         ],
 
         'timeline' => [
+            'telegram_sent' => 'Telegramga yuborildi: :chat',
+            'telegram_failed' => 'Telegramga yuborib boʻlmadi: :chat (kod :code)',
+            'chat' => [
+                'sales' => 'Sotuv chati',
+                'service' => 'Servis chati',
+            ],
             'created' => 'Murojaat keldi · :source',
             'auto_assigned' => 'mijoz menejeriga biriktirildi',
             'duplicate_of' => 'takroriy boʻlishi mumkin: :reference',
@@ -307,6 +313,11 @@ return [
     ],
 
     'dashboard' => [
+        'telegram_failures' => [
+            'title' => 'Telegram xabarnomalari yuborilmadi',
+            'body' => 'Soʻnggi 7 kunda :count ta murojaat haqidagi xabarnoma Telegramga yetib bormadi. Integratsiya sozlamalarini tekshiring.',
+            'settings' => 'Integratsiyalarni ochish',
+        ],
         'leads_label' => 'Murojaatlar',
         'recent' => 'Soʻnggi murojaatlar',
         'all_leads' => 'Barcha murojaatlar',

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Admin;
 
+use App\Enums\ActivityType;
 use App\Enums\LeadStatus;
+use App\Models\Activity;
 use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
@@ -87,6 +89,45 @@ class Dashboard extends Component
         }
 
         return $result;
+    }
+
+    /**
+     * Days of failed Telegram alerts shown in the warning card.
+     */
+    public const TELEGRAM_FAILURE_DAYS = 7;
+
+    /**
+     * Failed Telegram lead alerts of the last TELEGRAM_FAILURE_DAYS days
+     * (Admin only, settings.integrations): the count and the 5 latest leads.
+     *
+     * @return array{count: int, leads: Collection<int, Lead>}|null
+     */
+    #[Computed]
+    public function telegramFailures(): ?array
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        if (! $user->can('settings.integrations')) {
+            return null;
+        }
+
+        $failed = fn () => Activity::query()
+            ->where('subject_type', (new Lead)->getMorphClass())
+            ->where('type', ActivityType::Notification->value)
+            ->where('meta->result', 'failed')
+            ->where('created_at', '>=', now()->subDays(self::TELEGRAM_FAILURE_DAYS));
+
+        $count = $failed()->count();
+
+        if ($count === 0) {
+            return null;
+        }
+
+        $leadIds = $failed()->latest('id')->limit(50)->pluck('subject_id')->unique()->take(self::RECENT_LEADS)->values()->all();
+        $leads = Lead::query()->whereKey($leadIds)->get(['id', 'name', 'company'])->sortBy(fn (Lead $lead): int => array_search($lead->id, $leadIds, true))->values();
+
+        return ['count' => $count, 'leads' => $leads];
     }
 
     /**

@@ -812,6 +812,8 @@ return [
                 'telegram_chats_sales' => 'Sales chat',
                 'telegram_chats_service' => 'Service chat',
                 'telegram_chats_finance' => 'Finance chat',
+                'telegram_notify_new_leads' => 'New lead alerts',
+                'telegram_locale' => 'Language of Telegram messages',
                 'payme_merchant_id' => 'Merchant ID',
                 'payme_key' => 'Live key',
                 'payme_test_key' => 'Test key',
@@ -837,6 +839,8 @@ return [
                 'telegram_chats_sales' => 'Leads, quotes and orders. A number like -1001234567890 or @channel.',
                 'telegram_chats_service' => 'Service requests. A number like -1001234567890 or @channel.',
                 'telegram_chats_finance' => 'Payments. A number like -1001234567890 or @channel.',
+                'telegram_notify_new_leads' => 'Send every new lead to the sales chat, and service requests to the service chat.',
+                'telegram_locale' => 'Lead alerts and test messages are written in this language.',
                 'payme_merchant_id' => 'Payme merchant cabinet → Cashbox → ID (24 characters).',
                 'payme_key' => 'Merchant cabinet → Cashbox → Developers → Key.',
                 'payme_test_key' => 'Key for the sandbox test.paycom.uz.',
@@ -876,7 +880,7 @@ return [
             ],
             'test' => [
                 'button' => 'Test connection',
-                'telegram_message' => 'Test message from Poson: the “:chat” chat is set up correctly.',
+                'telegram_message' => 'Test message from Poson: “:chat” is set up correctly.',
                 'codes' => [
                     'ok' => 'Connected.',
                     'telegram_ok' => 'Connected to the bot :bot.',

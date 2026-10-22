@@ -17,6 +17,12 @@
             {{ ! empty($meta['reopened']) ? __('crm.leads.timeline.reopened') : __('crm.leads.timeline.status', ['from' => $statusLabel($meta['from'] ?? null), 'to' => $statusLabel($meta['to'] ?? null)]) }}
             @if (! empty($meta['reason']))<span class="text-slate-500">· {{ \App\Enums\LeadLostReason::tryFrom($meta['reason'])?->label() }}</span>@endif
             @break
+        @case(\App\Enums\ActivityType::Notification)
+            @php($chatName = __('crm.leads.timeline.chat.'.(($meta['chat'] ?? 'sales') === 'service' ? 'service' : 'sales')))
+            {{ ($meta['result'] ?? null) === 'sent'
+                ? __('crm.leads.timeline.telegram_sent', ['chat' => $chatName])
+                : __('crm.leads.timeline.telegram_failed', ['chat' => $chatName, 'code' => $meta['code'] ?? '—']) }}
+            @break
         @case(\App\Enums\ActivityType::Conversion)
             {{ __(! empty($meta['created']) ? 'crm.customers.timeline.lead_converted_new' : 'crm.customers.timeline.lead_converted', ['name' => $meta['customer_name'] ?? '']) }}
             @break

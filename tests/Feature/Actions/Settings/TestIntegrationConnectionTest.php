@@ -105,6 +105,26 @@ describe('telegram', function () {
             && str_contains($request['text'], 'Poson'));
     });
 
+    it('writes the test message in the Telegram language, Uzbek by default', function (?string $locale, string $expected) {
+        saveFakeSecret('telegram.bot_token', TEST_BOT_TOKEN);
+        Setting::factory()->create(['key' => 'telegram.chats.sales', 'group' => 'integrations', 'value' => '-1001234567890']);
+
+        if ($locale !== null) {
+            Setting::factory()->create(['key' => 'telegram.locale', 'group' => 'integrations', 'value' => $locale]);
+        }
+
+        Secrets::flush();
+        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 1]])]);
+
+        expect(runConnectionTest('telegram_chat', 'sales')->code)->toBe('telegram_message_sent');
+
+        Http::assertSent(fn (Request $request): bool => $request['text'] === e($expected));
+    })->with([
+        'default uz' => [null, fn () => __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_sales', [], 'uz')], 'uz')],
+        'ru' => ['ru', fn () => __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_sales', [], 'ru')], 'ru')],
+        'en' => ['en', fn () => __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_sales', [], 'en')], 'en')],
+    ]);
+
     it('needs a chat ID before sending', function () {
         saveFakeSecret('telegram.bot_token', TEST_BOT_TOKEN);
         Http::fake();

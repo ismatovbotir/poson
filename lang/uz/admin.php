@@ -812,6 +812,8 @@ return [
                 'telegram_chats_sales' => 'Sotuv boʻlimi chati',
                 'telegram_chats_service' => 'Servis chati',
                 'telegram_chats_finance' => 'Buxgalteriya chati',
+                'telegram_notify_new_leads' => 'Yangi murojaatlar haqida bildirishnomalar',
+                'telegram_locale' => 'Telegram xabarlari tili',
                 'payme_merchant_id' => 'Merchant ID',
                 'payme_key' => 'Ishchi kalit',
                 'payme_test_key' => 'Sinov kaliti',
@@ -837,6 +839,8 @@ return [
                 'telegram_chats_sales' => 'Murojaatlar, tijorat takliflari va buyurtmalar. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_service' => 'Servis murojaatlari. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_finance' => 'Toʻlovlar. -1001234567890 kabi raqam yoki @channel.',
+                'telegram_notify_new_leads' => 'Har bir yangi murojaat sotuv chatiga, servis soʻrovlari esa servis chatiga yuboriladi.',
+                'telegram_locale' => 'Murojaat bildirishnomalari va sinov xabarlari shu tilda yoziladi.',
                 'payme_merchant_id' => 'Payme merchant kabineti → Kassa → ID (24 belgi).',
                 'payme_key' => 'Merchant kabineti → Kassa → Dasturchilar uchun → Kalit.',
                 'payme_test_key' => 'test.paycom.uz sinov muhiti uchun kalit.',
@@ -876,7 +880,7 @@ return [
             ],
             'test' => [
                 'button' => 'Ulanishni tekshirish',
-                'telegram_message' => 'Poson sinov xabari: “:chat” chati toʻgʻri sozlangan.',
+                'telegram_message' => 'Poson sinov xabari: “:chat” toʻgʻri sozlangan.',
                 'codes' => [
                     'ok' => 'Ulandi.',
                     'telegram_ok' => ':bot botiga ulandi.',

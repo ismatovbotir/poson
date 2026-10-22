@@ -14,7 +14,11 @@
     @elseif ($field->type === \App\Support\Integrations\IntegrationField::TYPE_SELECT)
         <x-admin.select wire:model.live="{{ $model }}" :label="$field->label()" :hint="$hint" :disabled="$state['locked']">
             @foreach ($field->options as $option)
-                <option value="{{ $option }}">{{ $field->key === 'payme.mode' ? \App\Enums\PaymeMode::from($option)->label() : $option }}</option>
+                <option value="{{ $option }}">{{ match ($field->key) {
+                    'payme.mode' => \App\Enums\PaymeMode::from($option)->label(),
+                    'telegram.locale' => __('admin.locale.'.$option),
+                    default => $option,
+                } }}</option>
             @endforeach
         </x-admin.select>
     @else

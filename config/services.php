@@ -68,6 +68,8 @@ return [
             'service' => env('TELEGRAM_SERVICE_CHAT_ID'),
             'finance' => env('TELEGRAM_FINANCE_CHAT_ID'),
         ],
+        'notify_new_leads' => env('TELEGRAM_NOTIFY_NEW_LEADS'),
+        'locale' => env('TELEGRAM_LOCALE'),
     ],
 
     'payme' => [

@@ -18,6 +18,22 @@
         </div>
     </x-admin.card>
 
+    @if ($this->telegramFailures)
+        <section class="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 sm:flex-row sm:items-start sm:p-5" role="alert" data-telegram-failures>
+            <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-amber-600"><x-admin.icon name="telegram" /></span>
+            <div class="min-w-0 flex-1">
+                <h2 class="text-sm font-semibold">{{ __('crm.dashboard.telegram_failures.title') }}</h2>
+                <p class="mt-1 text-sm">{{ __('crm.dashboard.telegram_failures.body', ['count' => $this->telegramFailures['count']]) }}</p>
+                <p class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+                    @foreach ($this->telegramFailures['leads'] as $failedLead)
+                        <a href="{{ route('admin.leads.show', $failedLead) }}" wire:navigate wire:key="tg-failed-{{ $failedLead->id }}" class="font-mono font-semibold underline hover:no-underline">{{ $failedLead->reference() }}</a>
+                    @endforeach
+                </p>
+            </div>
+            <x-admin.button size="sm" variant="secondary" :href="route('admin.settings.integrations').'#section-telegram'" wire:navigate>{{ __('crm.dashboard.telegram_failures.settings') }}</x-admin.button>
+        </section>
+    @endif
+
     @if ($this->leadCards !== [])
         <section class="mt-4 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-label="{{ __('crm.dashboard.leads_label') }}" data-lead-cards>
             @foreach ($this->leadCards as $card)

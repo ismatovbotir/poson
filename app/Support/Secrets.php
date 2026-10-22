@@ -335,11 +335,13 @@ final class Secrets
         if (IntegrationField::isFilled($env)) {
             $value = $field->cast($env);
 
-            if ($field->type !== IntegrationField::TYPE_SELECT || in_array($value, $field->options, true)) {
+            if ($value !== null && ($field->type !== IntegrationField::TYPE_SELECT || in_array($value, $field->options, true))) {
                 return [IntegrationSource::Env, $value];
             }
 
-            // A select value outside its options counts as not set.
+            // A value that can't be read as the field type (e.g. "maybe" for a
+            // bool) or a select value outside its options counts as not set:
+            // the admin value or the default applies.
             $this->reportInvalidEnv($field);
         }
 
@@ -393,7 +395,7 @@ final class Secrets
 
         $this->invalidEnvReported[$field->key] = true;
 
-        report(new RuntimeException("Integration setting [{$field->key}] has a .env value ({$field->env}) outside its allowed options; it is ignored."));
+        report(new RuntimeException("Integration setting [{$field->key}] has an invalid .env value ({$field->env}); it is ignored."));
     }
 
     private function reportUnreadable(string $key): void

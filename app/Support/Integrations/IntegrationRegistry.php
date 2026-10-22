@@ -148,6 +148,7 @@ final class IntegrationRegistry
         $models = fn (string $kind): array => array_values(array_filter((array) config("ai-assist.models.{$kind}", []), is_string(...)));
         $apiKey = ['string', 'min:20', 'max:300', 'regex:'.self::API_KEY];
         $digits = ['string', 'regex:/^\d{1,12}$/'];
+        $locales = array_values(array_filter((array) config('app.supported_locales', ['uz', 'ru', 'en']), is_string(...)));
 
         // laravel/ai hook (plan 02): once config/ai.php exists, the keys are
         // also written to its provider config.
@@ -171,6 +172,9 @@ final class IntegrationRegistry
             new IntegrationField('telegram.chats.sales', 'telegram', ['services.telegram.chats.sales'], 'TELEGRAM_SALES_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
             new IntegrationField('telegram.chats.service', 'telegram', ['services.telegram.chats.service'], 'TELEGRAM_SERVICE_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
             new IntegrationField('telegram.chats.finance', 'telegram', ['services.telegram.chats.finance'], 'TELEGRAM_FINANCE_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
+            // Plan 05c: new-lead alerts on/off and the language of every Telegram message (decision 2026-10-22: Uzbek).
+            new IntegrationField('telegram.notify_new_leads', 'telegram', ['services.telegram.notify_new_leads'], 'TELEGRAM_NOTIFY_NEW_LEADS', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
+            new IntegrationField('telegram.locale', 'telegram', ['services.telegram.locale'], 'TELEGRAM_LOCALE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($locales)], default: 'uz', options: $locales),
 
             // Payme
             new IntegrationField('payme.merchant_id', 'payme', ['services.payme.merchant_id'], 'PAYME_MERCHANT_ID', rules: ['string', 'regex:'.self::PAYME_MERCHANT_ID], lowercase: true),

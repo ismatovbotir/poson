@@ -139,6 +139,12 @@ return [
         ],
 
         'timeline' => [
+            'telegram_sent' => 'Отправлено в Telegram: :chat',
+            'telegram_failed' => 'Не удалось отправить в Telegram: :chat (код :code)',
+            'chat' => [
+                'sales' => 'Чат продаж',
+                'service' => 'Чат сервиса',
+            ],
             'created' => 'Заявка получена · :source',
             'auto_assigned' => 'назначена менеджеру клиента',
             'duplicate_of' => 'возможный дубль :reference',
@@ -307,6 +313,11 @@ return [
     ],
 
     'dashboard' => [
+        'telegram_failures' => [
+            'title' => 'Уведомления в Telegram не отправлены',
+            'body' => 'За последние 7 дней не доставлено уведомлений о заявках: :count. Проверьте настройки интеграций.',
+            'settings' => 'Открыть интеграции',
+        ],
         'leads_label' => 'Заявки',
         'recent' => 'Последние заявки',
         'all_leads' => 'Все заявки',
