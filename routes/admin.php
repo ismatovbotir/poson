@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Attributes;
@@ -10,6 +11,7 @@ use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,13 @@ Route::post('/logout', LogoutController::class)
 
 Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/', Dashboard::class)->name('dashboard');
+
+    // CRM: Murojaatlar (plan 05 5a). LeadPolicy in the components; lists use Lead::visibleTo().
+    Route::livewire('/leads', Leads\Index::class)->name('leads.index');
+    Route::livewire('/leads/create', Leads\Form::class)->name('leads.create');
+    Route::livewire('/leads/{lead}', Leads\Show::class)->whereNumber('lead')->name('leads.show');
+    Route::livewire('/leads/{lead}/edit', Leads\Form::class)->whereNumber('lead')->name('leads.edit');
+    Route::get('/service-requests', ServiceRequestsController::class)->name('service-requests.index');
 
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');

@@ -16,7 +16,7 @@ final readonly class MenuItem
     /**
      * @param  string  $label  Lang key (menu.items.*)
      * @param  string  $icon  Symbol id from <x-admin.icon-sprite /> without the "i-" prefix
-     * @param  string|null  $permission  Spatie permission checked through the Gate (admins pass via Gate::before)
+     * @param  string|list<string>|null  $permission  Spatie permission checked through the Gate (admins pass via Gate::before); a list = any of them
      * @param  list<Role>|null  $roles  Role allow-list for modules that have no permissions yet
      * @param  list<MenuItem>  $children
      * @param  string|null  $active  Route-name pattern for the active state; defaults to "<route prefix>.*" for index routes
@@ -26,7 +26,7 @@ final readonly class MenuItem
         public string $label,
         public string $icon,
         public ?string $route = null,
-        public ?string $permission = null,
+        public string|array|null $permission = null,
         public ?array $roles = null,
         public array $children = [],
         public ?string $active = null,
@@ -52,7 +52,7 @@ final readonly class MenuItem
 
     public function isVisibleTo(User $user): bool
     {
-        if ($this->permission !== null && ! $user->can($this->permission)) {
+        if ($this->permission !== null && ! $user->canAny((array) $this->permission)) {
             return false;
         }
 

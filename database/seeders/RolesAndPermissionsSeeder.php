@@ -52,11 +52,21 @@ class RolesAndPermissionsSeeder extends Seeder
     }
 
     /**
-     * Role name → permission names (plan 03 §3).
+     * Role name → permission names (plan 03 §3, plan 05 §5).
      *
      * products.manage-services: create/update/delete products of type software
      * and service only (ProductPolicy applies the type rule). products.update
      * etc. cover every product type.
+     *
+     * CRM (plan 05, decisions 2026-10-22), record rules in Lead / LeadPolicy:
+     *  - leads.sales / leads.service: work with sales-type leads / service
+     *    requests (own + unassigned); leads.view-all widens that to every lead
+     *    of the type (supervisor; Admin only for now).
+     *  - leads.service-view: read-only view of all service requests (sales manager).
+     *  - leads.assign: assign anyone (Admin). leads.reassign: hand a sales lead
+     *    to another sales user (sales manager). Without either: take / release.
+     *  - customers.update: own + unassigned customers; customers.update-any: all;
+     *    customers.price-level: Admin only.
      *
      * @return array<string, list<string>>
      */
@@ -74,11 +84,19 @@ class RolesAndPermissionsSeeder extends Seeder
                 'products.manage-services',
             ],
 
-            Role::SalesManager->value => $catalogView,
+            Role::SalesManager->value => [
+                ...$catalogView,
+                'leads.viewAny', 'leads.view', 'leads.create', 'leads.update',
+                'leads.sales', 'leads.service-view', 'leads.reassign',
+                'customers.viewAny', 'customers.view', 'customers.create', 'customers.update',
+            ],
 
             Role::ServiceEngineer->value => [
                 ...$catalogView,
                 'products.manage-services',
+                'leads.viewAny', 'leads.view', 'leads.create', 'leads.update',
+                'leads.service',
+                'customers.viewAny', 'customers.view',
             ],
         ];
     }
@@ -98,6 +116,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.company',
             'settings.integrations',
             'analytics.view',
+            // Plan 05 CRM.
+            ...static::abilities(['leads', 'customers'], self::CRUD),
+            'leads.sales',
+            'leads.service',
+            'leads.service-view',
+            'leads.view-all',
+            'leads.assign',
+            'leads.reassign',
+            'customers.update-any',
+            'customers.price-level',
         ];
     }
 

@@ -2,6 +2,7 @@
 
 return [
     'soon' => 'Tez orada',
+    'badge_new' => ':count ta yangi',
     'soon_hint' => 'Bu boʻlim ishlab chiqilmoqda',
 
     'groups' => [

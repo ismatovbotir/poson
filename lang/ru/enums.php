@@ -61,6 +61,40 @@ return [
         'checkout' => 'Оформление заказа',
     ],
 
+    'lead_status' => [
+        'new' => 'Новая',
+        'in_progress' => 'В работе',
+        'qualified' => 'Квалифицирована',
+        'converted' => 'Конвертирована',
+        'lost' => 'Потеряна',
+    ],
+
+    'lead_lost_reason' => [
+        'no_response' => 'Не отвечает',
+        'not_relevant' => 'Неактуально',
+        'bought_elsewhere' => 'Купил в другом месте',
+        'out_of_stock' => 'Нет в наличии',
+        'budget' => 'Не хватило бюджета',
+        'duplicate' => 'Дубль',
+        'spam' => 'Спам',
+        'other' => 'Другое',
+    ],
+
+    'customer_type' => [
+        'company' => 'Юрлицо',
+        'individual' => 'Физлицо',
+    ],
+
+    'activity_type' => [
+        'created' => 'Создана',
+        'note' => 'Заметка',
+        'call' => 'Звонок',
+        'status_change' => 'Смена статуса',
+        'assignment' => 'Назначение',
+        'notification' => 'Уведомление',
+        'conversion' => 'Конвертация',
+    ],
+
     'product_badge' => [
         'hit' => 'Хит',
         'new' => 'Новинка',

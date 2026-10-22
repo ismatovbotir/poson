@@ -58,7 +58,41 @@ return [
         'callback' => 'Qayta qoʻngʻiroq',
         'quote' => 'Tijorat taklifi soʻrovi',
         'service_request' => 'Servis soʻrovi',
-        'checkout' => 'Buyurtma rasmiylashtirish',
+        'checkout' => 'Buyurtmani rasmiylashtirish',
+    ],
+
+    'lead_status' => [
+        'new' => 'Yangi',
+        'in_progress' => 'Jarayonda',
+        'qualified' => 'Saralangan',
+        'converted' => 'Mijozga aylangan',
+        'lost' => 'Yoʻqotilgan',
+    ],
+
+    'lead_lost_reason' => [
+        'no_response' => 'Javob bermadi',
+        'not_relevant' => 'Dolzarb emas',
+        'bought_elsewhere' => 'Boshqa joydan xarid qildi',
+        'out_of_stock' => 'Mahsulot mavjud emas',
+        'budget' => 'Byudjet yetmadi',
+        'duplicate' => 'Takroriy murojaat',
+        'spam' => 'Spam',
+        'other' => 'Boshqa',
+    ],
+
+    'customer_type' => [
+        'company' => 'Yuridik shaxs',
+        'individual' => 'Jismoniy shaxs',
+    ],
+
+    'activity_type' => [
+        'created' => 'Yaratildi',
+        'note' => 'Izoh',
+        'call' => 'Qoʻngʻiroq',
+        'status_change' => 'Holat oʻzgarishi',
+        'assignment' => 'Biriktirish',
+        'notification' => 'Bildirishnoma',
+        'conversion' => 'Mijozga aylantirish',
     ],
 
     'product_badge' => [

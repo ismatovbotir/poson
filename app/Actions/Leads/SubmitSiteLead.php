@@ -2,36 +2,59 @@
 
 namespace App\Actions\Leads;
 
+use App\Data\Leads\LeadData;
+use App\Data\Leads\LeadItemData;
 use App\Data\Leads\SiteLeadData;
+use App\Enums\LeadType;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
- * Accept a lead from the public site form.
+ * Adapter from the public site form (Site\LeadForm) to CreateLead (plan 05 C2).
  *
- * TODO(CRM increment): persist the lead (leads table, customer match by phone),
- * dispatch LeadCreated and send the Telegram notification to the sales chat.
- * Until then the lead is only logged, without any personal data.
+ * A quote request from a product page carries the product as the lead's
+ * item and is always a quote, for service products too (decision
+ * 2026-10-22: service-product enquiries go to sales as quotes).
+ *
+ * Logs only non-personal data (plan 05 C8): lead id, type, source, locale,
+ * channel and product SKU; never the name, phone, company, message,
+ * page URL or query-string data.
  */
 class SubmitSiteLead
 {
+    public function __construct(protected CreateLead $createLead) {}
+
     /**
-     * @return string Lead reference
+     * @return string Lead reference ("L-152")
      */
     public function handle(SiteLeadData $data): string
     {
-        $reference = 'L-'.Str::upper(Str::random(10));
+        $type = $data->productId !== null ? LeadType::Quote : $data->type;
 
-        // Only the reference, channel and product: no name, phone, company, message or query-string data in logs.
+        $lead = $this->createLead->handle(new LeadData(
+            source: $data->source,
+            type: $type,
+            name: $data->name,
+            phone: $data->phone,
+            locale: $data->locale,
+            company: $data->company,
+            message: $data->message,
+            items: $data->productId !== null ? [new LeadItemData($data->productId)] : [],
+            utm: $data->utm,
+            pageUrl: $data->pageUrl,
+            trafficChannel: $data->trafficChannel,
+            trafficSource: $data->trafficSource,
+            landingPath: $data->landingPath,
+        ));
+
         Log::info('Site lead received', array_filter([
-            'reference' => $reference,
-            'locale' => $data->locale,
-            'source' => $data->source->value,
-            'type' => $data->type->value,
-            'channel' => $data->trafficChannel?->value,
+            'lead_id' => $lead->id,
+            'locale' => $lead->locale,
+            'source' => $lead->source->value,
+            'type' => $lead->type->value,
+            'channel' => $lead->traffic_channel?->value,
             'product_sku' => $data->productSku,
-        ], fn (?string $value): bool => $value !== null));
+        ], fn (int|string|null $value): bool => $value !== null));
 
-        return $reference;
+        return $lead->reference();
     }
 }

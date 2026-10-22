@@ -2,7 +2,9 @@
 
 namespace App\Support\Admin;
 
+use App\Enums\LeadStatus;
 use App\Enums\Role;
+use App\Models\Lead;
 use App\Models\User;
 
 /**
@@ -32,11 +34,9 @@ final class Menu
         $admin = [Role::Admin];
 
         // Matrix: service engineer has service_request leads (own), customers (view),
-        // service quotes (own) and orders (view); the sales manager views payments
-        // and service requests.
+        // service quotes (own) and orders (view); the sales manager views payments.
         $crm = [Role::Admin, Role::SalesManager, Role::ServiceEngineer];
         $payments = [Role::Admin, Role::SalesManager];
-        $serviceRequests = [Role::Admin, Role::ServiceEngineer, Role::SalesManager];
 
         return [
             new MenuGroup('dashboard', 'menu.groups.dashboard', [
@@ -47,7 +47,8 @@ final class Menu
             ], collapsible: false),
 
             new MenuGroup('sales', 'menu.groups.sales', [
-                new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', roles: $crm),
+                // Plan 05 5a. Badge: new leads the user can see (badges()).
+                new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', permission: 'leads.viewAny'),
                 new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', roles: $crm),
                 new MenuItem('quotes', 'menu.items.quotes', 'file-text', 'admin.quotes.index', roles: $crm),
                 new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', roles: $crm),
@@ -63,7 +64,8 @@ final class Menu
             ]),
 
             new MenuGroup('service', 'menu.groups.service', [
-                new MenuItem('service-requests', 'menu.items.service_requests', 'wrench', 'admin.service-requests.index', roles: $serviceRequests),
+                // Redirects to the leads list filtered to service requests (LeadPolicy::viewServiceRequests).
+                new MenuItem('service-requests', 'menu.items.service_requests', 'wrench', 'admin.service-requests.index', permission: ['leads.service', 'leads.service-view'], active: 'admin.service-requests.index'),
                 new MenuItem('repairs', 'menu.items.repairs', 'tool', 'admin.repairs.index', roles: $service),
             ]),
 
@@ -115,6 +117,23 @@ final class Menu
         }
 
         return $groups;
+    }
+
+    /**
+     * Counters next to menu items (item key => count; zero counts left out):
+     * "leads" = new leads the user can see.
+     *
+     * @return array<string, int>
+     */
+    public static function badges(User $user): array
+    {
+        $badges = [];
+
+        if ($user->can('viewAny', Lead::class)) {
+            $badges['leads'] = Lead::query()->visibleTo($user)->where('status', LeadStatus::New->value)->count();
+        }
+
+        return array_filter($badges);
     }
 
     /**

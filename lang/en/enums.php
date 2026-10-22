@@ -61,6 +61,40 @@ return [
         'checkout' => 'Checkout',
     ],
 
+    'lead_status' => [
+        'new' => 'New',
+        'in_progress' => 'In progress',
+        'qualified' => 'Qualified',
+        'converted' => 'Converted',
+        'lost' => 'Lost',
+    ],
+
+    'lead_lost_reason' => [
+        'no_response' => 'No response',
+        'not_relevant' => 'Not relevant',
+        'bought_elsewhere' => 'Bought elsewhere',
+        'out_of_stock' => 'Out of stock',
+        'budget' => 'Over budget',
+        'duplicate' => 'Duplicate',
+        'spam' => 'Spam',
+        'other' => 'Other',
+    ],
+
+    'customer_type' => [
+        'company' => 'Company',
+        'individual' => 'Individual',
+    ],
+
+    'activity_type' => [
+        'created' => 'Created',
+        'note' => 'Note',
+        'call' => 'Call',
+        'status_change' => 'Status change',
+        'assignment' => 'Assignment',
+        'notification' => 'Notification',
+        'conversion' => 'Conversion',
+    ],
+
     'product_badge' => [
         'hit' => 'Bestseller',
         'new' => 'New',

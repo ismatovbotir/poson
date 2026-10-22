@@ -4,7 +4,10 @@ use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\TrafficChannel;
 use App\Livewire\Site\LeadForm;
+use App\Models\Lead;
+use App\Models\Product;
 use App\Support\Site\Navigation;
 use Illuminate\Support\Facades\Log;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -216,24 +219,45 @@ it('rate limits submissions to three per hour per phone number', function () {
     filledLeadForm(['phone' => leadPhone(1)])->call('submit')->assertHasNoErrors()->assertSet('sent', true);
 });
 
-it('logs the lead without the phone or the name', function () {
+it('creates the lead with its product and attribution end to end, logging no personal data', function () {
     Log::spy();
+    app()->setLocale('ru');
+    $product = Product::factory()->create(['sku' => 'ZEB-DS2208', 'name' => ['uz' => 'Skaner', 'ru' => 'Сканер']]);
+    session()->put('attribution', ['channel' => 'search', 'source' => 'google', 'landing' => '/ru/catalog/scanners', 'utm_source' => 'google']);
 
-    filledLeadForm(['name' => 'Aziz Karimov', 'phone' => '+998 90 123 45 67', 'message' => 'Call me on 901234567'])
+    filledLeadForm(['name' => 'Aziz Karimov', 'phone' => '+998 90 123 45 67', 'message' => 'Call me on 901234567'], Livewire::test(LeadForm::class, ['productId' => $product->id]))
         ->call('submit')
         ->assertHasNoErrors()
         ->assertSet('sent', true);
 
+    $lead = Lead::query()->with(['items', 'activities'])->sole();
+
+    expect($lead->type)->toBe(LeadType::Quote)
+        ->and($lead->source)->toBe(LeadSource::Site)
+        ->and($lead->name)->toBe('Aziz Karimov')
+        ->and($lead->phone)->toBe('+998901234567')
+        ->and($lead->company)->toBe('OOO Market')
+        ->and($lead->locale)->toBe('ru')
+        ->and($lead->traffic_channel)->toBe(TrafficChannel::Search)
+        ->and($lead->traffic_source)->toBe('google')
+        ->and($lead->landing_path)->toBe('/ru/catalog/scanners')
+        ->and($lead->utm)->toBe(['utm_source' => 'google'])
+        ->and($lead->page_url)->not->toBeNull()
+        ->and($lead->items->sole()->sku)->toBe('ZEB-DS2208')
+        ->and($lead->items->sole()->product_name)->toBe('Сканер')
+        ->and($lead->activities)->toHaveCount(1);
+
     Log::shouldHaveReceived('info')
         ->once()
-        ->withArgs(function (string $message, array $context): bool {
+        ->withArgs(function (string $message, array $context) use ($lead): bool {
             $logged = $message.' '.json_encode($context, JSON_UNESCAPED_UNICODE);
 
             return ! str_contains($logged, '901234567')
                 && ! str_contains($logged, '+998')
                 && ! str_contains($logged, 'Aziz')
                 && ! str_contains($logged, 'OOO Market')
-                && str_starts_with($context['reference'], 'L-');
+                && ! str_contains($logged, 'http')
+                && $context['lead_id'] === $lead->id;
         });
 });
 

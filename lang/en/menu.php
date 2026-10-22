@@ -2,6 +2,7 @@
 
 return [
     'soon' => 'Soon',
+    'badge_new' => ':count new',
     'soon_hint' => 'This section is in development',
 
     'groups' => [

@@ -14,6 +14,7 @@
     $role = $user->staffRole();
 
     $menu = \App\Support\Admin\Menu::for($user);
+    $badges = \App\Support\Admin\Menu::badges($user);
     $activeGroup = collect($menu)->first(fn (\App\Support\Admin\MenuGroup $group): bool => $group->isActive())?->key;
 
     // Bottom tab bar: Home, Leads, Catalog (first available catalog screen), Orders + Menu.
@@ -90,7 +91,7 @@
                         @if ($group->collapsible) x-cloak x-show="isOpen(@js($group->key))" x-collapse @endif
                     >
                         @foreach ($group->items as $item)
-                            <x-admin.menu-item :item="$item" />
+                            <x-admin.menu-item :item="$item" :badge="$badges[$item->key] ?? null" />
                         @endforeach
                     </ul>
                 </div>
@@ -154,7 +155,8 @@
             @php($tabItem = $tab['item'])
             @if ($tabItem->isAvailable())
                 @php($tabActive = isset($tab['group']) ? $tab['group']->isActive() : $tabItem->isActive())
-                <a href="{{ $tabItem->url() }}" wire:navigate data-tab="{{ $tab['key'] }}" @if ($tabActive) aria-current="page" @endif @class(['flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium', 'text-brand-600' => $tabActive, 'text-slate-500' => ! $tabActive])><x-admin.icon :name="$tab['icon']" size="size-6" /><span class="max-w-full truncate px-0.5">{{ __($tab['label']) }}</span></a>
+                @php($tabBadge = $badges[$tab['key']] ?? null)
+                <a href="{{ $tabItem->url() }}" wire:navigate data-tab="{{ $tab['key'] }}" @if ($tabActive) aria-current="page" @endif @class(['flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium', 'text-brand-600' => $tabActive, 'text-slate-500' => ! $tabActive])><span class="relative"><x-admin.icon :name="$tab['icon']" size="size-6" />@if ($tabBadge)<span class="absolute -right-2.5 -top-1.5 min-w-4 rounded-full bg-danger px-1 text-center text-[10px] font-bold leading-4 text-white ring-2 ring-white" data-tab-badge>{{ $tabBadge > 99 ? '99+' : $tabBadge }}</span>@endif</span><span class="max-w-full truncate px-0.5">{{ __($tab['label']) }}@if ($tabBadge)<span class="sr-only"> ({{ trans_choice('menu.badge_new', $tabBadge, ['count' => $tabBadge]) }})</span>@endif</span></a>
             @else
                 <span aria-disabled="true" title="{{ __('menu.soon_hint') }}" data-tab="{{ $tab['key'] }}" data-soon class="flex min-w-0 flex-1 cursor-default select-none flex-col items-center gap-1 py-2 text-[11px] font-medium text-slate-400">
                     <span class="relative"><x-admin.icon :name="$tab['icon']" size="size-6" /><span class="absolute -right-1 -top-0.5 size-2 rounded-full bg-slate-400 ring-2 ring-white" aria-hidden="true"></span></span>

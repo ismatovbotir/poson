@@ -49,6 +49,39 @@ it('grants the catalog permissions per role (plan 03 §3)', function (Role $role
     'service engineer' => [Role::ServiceEngineer, ['products.viewAny', 'products.view', 'categories.view', 'products.manage-services'], ['products.update', 'products.delete', 'brands.create', 'products.force-delete']],
 ]);
 
+it('grants the CRM permissions per role (plan 05 §5)', function (Role $role, array $allowed, array $denied) {
+    $this->seed(RolesAndPermissionsSeeder::class);
+    $user = User::factory()->withRole($role)->create();
+
+    foreach ($allowed as $permission) {
+        expect($user->can($permission))->toBeTrue("{$role->value} should have {$permission}");
+    }
+
+    foreach ($denied as $permission) {
+        expect($user->can($permission))->toBeFalse("{$role->value} should not have {$permission}");
+    }
+})->with([
+    'sales manager' => [Role::SalesManager,
+        ['leads.viewAny', 'leads.view', 'leads.create', 'leads.update', 'leads.sales', 'leads.service-view', 'leads.reassign', 'customers.viewAny', 'customers.view', 'customers.create', 'customers.update'],
+        ['leads.delete', 'leads.service', 'leads.view-all', 'leads.assign', 'customers.delete', 'customers.update-any', 'customers.price-level']],
+    'service engineer' => [Role::ServiceEngineer,
+        ['leads.viewAny', 'leads.view', 'leads.create', 'leads.update', 'leads.service', 'customers.viewAny', 'customers.view'],
+        ['leads.delete', 'leads.sales', 'leads.service-view', 'leads.view-all', 'leads.assign', 'leads.reassign', 'customers.create', 'customers.update', 'customers.price-level']],
+    'content manager' => [Role::ContentManager,
+        [],
+        ['leads.viewAny', 'leads.create', 'leads.sales', 'leads.service', 'customers.viewAny']],
+]);
+
+it('gives the admin role every permission, the CRM ones included', function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+
+    $admin = SpatieRole::findByName(Role::Admin->value, RolesAndPermissionsSeeder::GUARD);
+
+    expect($admin->permissions->pluck('name')->sort()->values()->all())
+        ->toBe(collect(RolesAndPermissionsSeeder::allPermissions())->sort()->values()->all())
+        ->and(RolesAndPermissionsSeeder::allPermissions())->toContain('leads.reassign', 'leads.assign', 'leads.view-all', 'customers.price-level');
+});
+
 it('lets the admin role do anything through Gate::before', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
     $admin = User::factory()->withRole(Role::Admin)->create();

@@ -2,6 +2,7 @@
 
 return [
     'soon' => 'Скоро',
+    'badge_new' => ':count новая|:count новые|:count новых',
     'soon_hint' => 'Раздел в разработке',
 
     'groups' => [
@@ -17,7 +18,7 @@ return [
 
     'items' => [
         'dashboard' => 'Главная',
-        'leads' => 'Лиды',
+        'leads' => 'Заявки',
         'customers' => 'Клиенты',
         'quotes' => 'Коммерческие предложения',
         'orders' => 'Заказы',
@@ -43,7 +44,7 @@ return [
 
     'tabs' => [
         'home' => 'Главная',
-        'leads' => 'Лиды',
+        'leads' => 'Заявки',
         'catalog' => 'Каталог',
         'orders' => 'Заказы',
         'menu' => 'Меню',

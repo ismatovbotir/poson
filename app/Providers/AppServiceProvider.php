@@ -8,6 +8,8 @@ use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
@@ -57,11 +59,14 @@ class AppServiceProvider extends ServiceProvider
         // class can't orphan rows). Enforced: every model that owns a morph row
         // must be listed, or getMorphClass() throws. Owners today: media
         // (medialibrary: brand, category, product, setting), roles/permissions
-        // (spatie: user) and faq_items (category, product). Livewire 4 reads
+        // (spatie: user), faq_items (category, product) and the CRM activities
+        // timeline (lead, customer). Livewire 4 reads
         // this map directly, so models as component properties are unaffected.
         Relation::enforceMorphMap([
             'brand' => Brand::class,
             'category' => Category::class,
+            'customer' => Customer::class,
+            'lead' => Lead::class,
             'product' => Product::class,
             'setting' => Setting::class,
             'user' => User::class,
