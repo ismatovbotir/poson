@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Forms\Admin\Settings;
 
+use App\Models\Setting;
 use App\Rules\BrandSafeText;
 use App\Support\CompanySettings;
 use App\Support\Settings\SettingsFormat;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Legal tab: requisites for invoices, the public offer and JSON-LD
@@ -44,6 +46,20 @@ class LegalForm extends SettingsTabForm
     /** @var array<string, string> */
     public array $legal_address = ['uz' => '', 'ru' => '', 'en' => ''];
 
+    /**
+     * Stamp and director signature for quote PDFs (PNG, private).
+     *
+     * @var TemporaryUploadedFile|null
+     */
+    public $stamp = null;
+
+    public bool $remove_stamp = false;
+
+    /** @var TemporaryUploadedFile|null */
+    public $signature = null;
+
+    public bool $remove_signature = false;
+
     public function fillFrom(CompanySettings $settings): void
     {
         $legal = (array) $settings->get('legal', []);
@@ -58,6 +74,23 @@ class LegalForm extends SettingsTabForm
         $this->oked = $string('oked');
         $this->director = $string('director');
         $this->legal_address = static::translation($legal['legal_address'] ?? null);
+        $this->stamp = null;
+        $this->remove_stamp = false;
+        $this->signature = null;
+        $this->remove_signature = false;
+    }
+
+    /**
+     * Image changes for UpdateCompanyMedia.
+     *
+     * @return array<string, array{file: TemporaryUploadedFile|null, remove: bool}>
+     */
+    public function mediaChanges(): array
+    {
+        return [
+            Setting::STAMP => ['file' => $this->stamp, 'remove' => $this->remove_stamp],
+            Setting::SIGNATURE => ['file' => $this->signature, 'remove' => $this->remove_signature],
+        ];
     }
 
     /**
@@ -86,6 +119,8 @@ class LegalForm extends SettingsTabForm
             'bank' => ['nullable', 'string', 'max:255', new BrandSafeText],
             'director' => ['nullable', 'string', 'max:255', new BrandSafeText],
             ...static::translationRules('legal_address', 255, required: false),
+            'stamp' => ['nullable', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=1500,max_height=1500'],
+            'signature' => ['nullable', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=100,min_height=40,max_width=1500,max_height=1500'],
         ];
 
         foreach (self::NUMBERS as $field => $pattern) {
@@ -119,6 +154,8 @@ class LegalForm extends SettingsTabForm
             ...static::translationAttributes('legal_address', __('admin.settings.company.fields.legal_address')),
             'bank' => __('admin.settings.company.fields.bank'),
             'director' => __('admin.settings.company.fields.director'),
+            'stamp' => __('admin.settings.company.fields.stamp'),
+            'signature' => __('admin.settings.company.fields.signature'),
         ];
 
         foreach (array_keys(self::NUMBERS) as $field) {

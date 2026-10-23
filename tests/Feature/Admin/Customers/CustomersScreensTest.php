@@ -211,7 +211,9 @@ it('shows requisites, contacts, visible leads, the hidden count and later tabs',
         ->assertSee($mine->reference())
         ->assertSee(trans_choice('crm.customers.hidden_leads', 2, ['count' => 2]))
         ->set('tab', 'quotes')
-        ->assertSeeHtml('data-later="quotes"')
+        ->assertSeeHtml('data-customer-quotes')
+        ->set('tab', 'orders')
+        ->assertSeeHtml('data-later="orders"')
         ->set('tab', 'history')
         ->assertSee(__('crm.customers.no_history'));
 });

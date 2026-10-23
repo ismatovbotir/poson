@@ -30,6 +30,8 @@ class RobotsTxt
         '/*/search',
         // Partner redirects ("Try" buttons, /{locale}/go/{slug}).
         '/*/go/',
+        // Customers' quote links (plan 06).
+        '/q/',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

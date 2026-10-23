@@ -32,7 +32,7 @@
                             'border-transparent text-slate-500 hover:text-slate-700' => $tab !== $key,
                         ])>
                             {{ $label }}
-                            @if (in_array($key, ['quotes', 'orders'], true))
+                            @if ($key === 'orders')
                                 <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{{ __('crm.customers.later') }}</span>
                             @endif
                         </button>
@@ -84,6 +84,8 @@
                                                 {{ __('crm.customers.timeline.manager', ['from' => $meta['from_name'] ?? __('crm.customers.unassigned'), 'to' => $meta['to_name'] ?? __('crm.customers.unassigned')]) }}
                                             @elseif ($activity->type === \App\Enums\ActivityType::PriceLevelChange)
                                                 {{ __('crm.customers.timeline.price_level', ['from' => \App\Enums\PriceLevel::tryFrom((string) ($meta['from'] ?? ''))?->label() ?? '—', 'to' => \App\Enums\PriceLevel::tryFrom((string) ($meta['to'] ?? ''))?->label() ?? '—']) }}
+                                            @elseif ($activity->type === \App\Enums\ActivityType::Quote)
+                                                @include('livewire.admin.quotes.partials.activity', ['activity' => $activity])
                                             @elseif ($activity->type === \App\Enums\ActivityType::Created)
                                                 {{ __('crm.customers.timeline.created') }}
                                             @else
@@ -99,8 +101,34 @@
                             </ol>
                         @endif
                     </x-admin.card>
+                @elseif ($tab === 'quotes')
+                    <x-admin.card :padding="false" data-customer-quotes>
+                        @if ($canCreateQuote)
+                            <x-slot:actions>
+                                <x-admin.button size="sm" icon="plus" :href="route('admin.quotes.create', ['customer' => $customer->id])" wire:navigate>{{ __('crm.quotes.create') }}</x-admin.button>
+                            </x-slot:actions>
+                        @endif
+                        @if ($this->quotes->isEmpty())
+                            <p class="px-4 py-6 text-center text-sm text-slate-500 sm:px-6">{{ __('crm.quotes.none_for_customer') }}</p>
+                        @else
+                            <ul class="divide-y divide-slate-100">
+                                @foreach ($this->quotes as $quote)
+                                    <li wire:key="quote-{{ $quote->id }}">
+                                        <a href="{{ route('admin.quotes.show', $quote) }}" wire:navigate class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 sm:px-6">
+                                            <span class="min-w-0 flex-1">
+                                                <span class="block font-mono text-sm font-semibold">{{ $quote->number }}</span>
+                                                <span class="block text-xs text-slate-500">{{ $when($quote->created_at, 'D MMM YYYY') }} · {{ __('crm.quotes.fields.valid_until') }}: {{ \App\Support\DateFormat::iso($quote->valid_until, 'D MMM YYYY') }}</span>
+                                            </span>
+                                            <span class="text-sm font-semibold tabular-nums">{{ \App\Support\Money::format($quote->total) }}</span>
+                                            @include('livewire.admin.quotes.partials.status', ['quote' => $quote])
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </x-admin.card>
                 @else
-                    <x-admin.empty-state :icon="$tab === 'quotes' ? 'file-text' : 'bag'" :title="__('crm.customers.later_title')" :body="__('crm.customers.later_'.$tab)" data-later="{{ $tab }}" />
+                    <x-admin.empty-state icon="bag" :title="__('crm.customers.later_title')" :body="__('crm.customers.later_'.$tab)" data-later="{{ $tab }}" />
                 @endif
             </div>
         </div>

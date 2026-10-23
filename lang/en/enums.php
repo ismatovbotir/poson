@@ -94,6 +94,15 @@ return [
         'notification' => 'Notification',
         'conversion' => 'Conversion',
         'price_level_change' => 'Price level change',
+        'quote' => 'Quote',
+    ],
+
+    'quote_status' => [
+        'draft' => 'Draft',
+        'sent' => 'Sent',
+        'accepted' => 'Accepted',
+        'rejected' => 'Rejected',
+        'expired' => 'Expired',
     ],
 
     'product_badge' => [

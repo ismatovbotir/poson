@@ -169,6 +169,29 @@
                 @endif
             </x-admin.card>
 
+            {{-- Quotes (plan 06) --}}
+            @if ($canViewQuotes)
+                <x-admin.card :title="__('crm.quotes.title')" data-lead-quotes>
+                    @if ($leadQuotes->isNotEmpty())
+                        <ul class="mb-3 space-y-1.5 text-sm">
+                            @foreach ($leadQuotes as $leadQuote)
+                                <li wire:key="lead-quote-{{ $leadQuote->id }}" class="flex items-center justify-between gap-2">
+                                    <a href="{{ route('admin.quotes.show', $leadQuote) }}" wire:navigate class="font-mono font-semibold text-brand-700 hover:underline">{{ $leadQuote->number }}</a>
+                                    <x-admin.badge :color="$leadQuote->status->color()">{{ $leadQuote->status->label() }}</x-admin.badge>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if ($canCreateQuote)
+                        @if ($canQuoteFromLead)
+                            <x-admin.button size="sm" icon="file-text" :href="route('admin.quotes.create', ['lead' => $lead->id])" wire:navigate data-action="create-quote">{{ __('crm.quotes.create') }}</x-admin.button>
+                        @else
+                            <p class="text-sm text-slate-500" data-convert-first>{{ __('crm.quotes.convert_first') }}</p>
+                        @endif
+                    @endif
+                </x-admin.card>
+            @endif
+
             {{-- Attribution --}}
             <x-admin.card :title="__('crm.leads.sections.attribution')">
                 <dl class="space-y-2 text-sm" data-attribution>

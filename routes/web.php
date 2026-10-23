@@ -4,6 +4,7 @@ use App\Http\Controllers\RedirectToLocale;
 use App\Http\Controllers\Site\DownloadProductDocumentController;
 use App\Http\Controllers\Site\LlmsController;
 use App\Http\Controllers\Site\PartnerRedirectController;
+use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Catalog;
@@ -17,6 +18,10 @@ Route::get('/', RedirectToLocale::class)->name('site.root');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
+
+// Plan 06: the customer's quote link (no login, unguessable ULID, noindex, throttled).
+Route::get('/q/{ulid}', [PublicQuoteController::class, 'show'])->whereUlid('ulid')->middleware('throttle:quote-page')->name('quotes.public');
+Route::get('/q/{ulid}/pdf', [PublicQuoteController::class, 'pdf'])->whereUlid('ulid')->middleware('throttle:quote-pdf')->name('quotes.public.pdf');
 
 Route::prefix('{locale}')
     ->whereIn('locale', config('app.supported_locales'))

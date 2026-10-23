@@ -94,6 +94,15 @@ return [
         'notification' => 'Bildirishnoma',
         'conversion' => 'Mijozga aylantirish',
         'price_level_change' => 'Narx darajasi oʻzgarishi',
+        'quote' => 'Tijorat taklifi',
+    ],
+
+    'quote_status' => [
+        'draft' => 'Qoralama',
+        'sent' => 'Yuborilgan',
+        'accepted' => 'Qabul qilingan',
+        'rejected' => 'Rad etilgan',
+        'expired' => 'Muddati oʻtgan',
     ],
 
     'product_badge' => [

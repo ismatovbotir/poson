@@ -601,7 +601,7 @@ class CompanySettings
             return $this->overrides = Cache::remember(
                 self::CACHE_KEY,
                 now()->addSeconds(self::CACHE_TTL),
-                fn (): array => Setting::query()->where('group', '!=', 'integrations')->whereNotIn('key', array_keys(Setting::MEDIA))->pluck('value', 'key')->all(),
+                fn (): array => Setting::query()->where('group', '!=', 'integrations')->whereNotIn('key', [...array_keys(Setting::MEDIA), ...array_keys(Setting::PRIVATE_MEDIA)])->pluck('value', 'key')->all(),
             );
         } catch (QueryException $e) {
             report($e);

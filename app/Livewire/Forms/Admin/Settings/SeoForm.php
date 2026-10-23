@@ -62,7 +62,7 @@ class SeoForm extends SettingsTabForm
     protected function rules(): array
     {
         $rules = [
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=112,min_height=112,max_width=6000,max_height=6000'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=112,min_height=112,max_width=1500,max_height=1500'],
             'og_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1200,min_height=630,max_width=6000,max_height=6000'],
         ];
 

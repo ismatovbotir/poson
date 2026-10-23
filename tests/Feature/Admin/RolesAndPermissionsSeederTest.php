@@ -72,6 +72,22 @@ it('grants the CRM permissions per role (plan 05 §5)', function (Role $role, ar
         ['leads.viewAny', 'leads.create', 'leads.sales', 'leads.service', 'customers.viewAny']],
 ]);
 
+it('grants quotes to sales managers only (plan 06)', function () {
+    $this->seed(RolesAndPermissionsSeeder::class);
+
+    $sales = User::factory()->withRole(Role::SalesManager)->create();
+    $engineer = User::factory()->withRole(Role::ServiceEngineer)->create();
+    $content = User::factory()->withRole(Role::ContentManager)->create();
+
+    foreach (['quotes.viewAny', 'quotes.view', 'quotes.create', 'quotes.update', 'quotes.delete'] as $permission) {
+        expect($sales->can($permission))->toBeTrue("sales: {$permission}")
+            ->and($engineer->can($permission))->toBeFalse("engineer: {$permission}")
+            ->and($content->can($permission))->toBeFalse("content: {$permission}");
+    }
+
+    expect($sales->can('quotes.view-all'))->toBeFalse();
+});
+
 it('gives the admin role every permission, the CRM ones included', function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 

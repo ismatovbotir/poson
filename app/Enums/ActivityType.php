@@ -16,6 +16,7 @@ enum ActivityType: string
     case Notification = 'notification';
     case Conversion = 'conversion';
     case PriceLevelChange = 'price_level_change';
+    case Quote = 'quote';
 
     public function label(): string
     {
@@ -36,6 +37,7 @@ enum ActivityType: string
             self::Notification => 'telegram',
             self::Conversion => 'building',
             self::PriceLevelChange => 'tag',
+            self::Quote => 'file-text',
         };
     }
 
@@ -53,6 +55,7 @@ enum ActivityType: string
             self::Notification => 'bg-slate-300',
             self::Conversion => 'bg-brand-600',
             self::PriceLevelChange => 'bg-sky-500',
+            self::Quote => 'bg-violet-500',
         };
     }
 

@@ -67,6 +67,9 @@ class RolesAndPermissionsSeeder extends Seeder
      *    to another sales user (sales manager). Without either: take / release.
      *  - customers.update: own + unassigned customers; customers.update-any: all;
      *    customers.reassign: hand an editable customer to another sales user;
+     *  - quotes.*: own quotes and quotes of customers the user manages
+     *    (quotes.view-all: every quote, Admin). The service engineer has no
+     *    quote access (plan 06, safest option).
      *    customers.price-level: Admin only.
      *
      * @return array<string, list<string>>
@@ -90,6 +93,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'leads.viewAny', 'leads.view', 'leads.create', 'leads.update',
                 'leads.sales', 'leads.service-view', 'leads.reassign',
                 'customers.viewAny', 'customers.view', 'customers.create', 'customers.update', 'customers.reassign',
+                ...static::abilities(['quotes'], self::CRUD),
             ],
 
             Role::ServiceEngineer->value => [
@@ -128,6 +132,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'customers.update-any',
             'customers.reassign',
             'customers.price-level',
+            // Plan 06 quotes (quotes.view-all: Admin only).
+            ...static::abilities(['quotes'], self::CRUD),
+            'quotes.view-all',
         ];
     }
 

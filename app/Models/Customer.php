@@ -88,6 +88,14 @@ class Customer extends Model
     }
 
     /**
+     * @return HasMany<Quote, $this>
+     */
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    /**
      * @return MorphMany<Activity, $this>
      */
     public function activities(): MorphMany

@@ -21,6 +21,7 @@ function baseRobotsGroup(): string
         'Disallow: /livewire',
         'Disallow: /*/search',
         'Disallow: /*/go/',
+        'Disallow: /q/',
         'Disallow: /*?*sort=',
         'Disallow: /*?*f[',
         'Disallow: /*?*f%5B',

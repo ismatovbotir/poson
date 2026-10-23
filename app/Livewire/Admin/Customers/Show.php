@@ -7,6 +7,7 @@ use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\Activity;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -79,6 +80,17 @@ class Show extends Component
         return $this->customer->activities()->with('user:id,name')->latest('created_at')->latest('id')->limit(self::HISTORY_SHOWN)->get();
     }
 
+    /**
+     * The customer's quotes the user may see (Quote::visibleTo()).
+     *
+     * @return Collection<int, Quote>
+     */
+    #[Computed]
+    public function quotes(): Collection
+    {
+        return Quote::query()->visibleTo($this->user())->where('customer_id', $this->customer->id)->latest('id')->limit(self::LEADS_SHOWN)->get();
+    }
+
     public function delete(DeleteCustomer $deleteCustomer): void
     {
         $this->authorize('delete', $this->customer);
@@ -99,6 +111,7 @@ class Show extends Component
         return view('livewire.admin.customers.show', [
             'canEdit' => $user->can('update', $this->customer),
             'canDelete' => $user->can('delete', $this->customer),
+            'canCreateQuote' => $user->can('create', [Quote::class, $this->customer]),
         ])->title($this->customer->name);
     }
 

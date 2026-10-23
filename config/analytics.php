@@ -96,6 +96,8 @@ return [
         'livewire*', 'livewire*/*',
         'webhooks/*', 'api/*',
         'up', '_*',
+        // Customers' quote links carry an access token (plan 06).
+        'q/*',
     ],
 
     /*

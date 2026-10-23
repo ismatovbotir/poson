@@ -66,7 +66,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
     ]],
     'service engineer' => [Role::ServiceEngineer, [
         'dashboard' => ['dashboard'],
-        'sales' => ['leads', 'customers', 'quotes', 'orders'],
+        'sales' => ['leads', 'customers', 'orders'],
         'catalog' => $catalogItems,
         'service' => ['service-requests', 'repairs'],
     ]],

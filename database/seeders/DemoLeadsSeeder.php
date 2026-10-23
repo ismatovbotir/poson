@@ -2,11 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Quotes\ChangeQuoteStatus;
+use App\Actions\Quotes\CreateQuote;
+use App\Data\Quotes\QuoteData;
+use App\Data\Quotes\QuoteItemData;
 use App\Enums\ActivityType;
 use App\Enums\LeadLostReason;
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
 use App\Enums\LeadType;
+use App\Enums\QuoteStatus;
 use App\Enums\Role;
 use App\Enums\TrafficChannel;
 use App\Models\Contact;
@@ -16,6 +21,7 @@ use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -23,8 +29,8 @@ use Spatie\Permission\Models\Role as SpatieRole;
 /**
  * Demo Murojaatlar for local / staging only (plan 05 5a), so the CRM screens
  * have data: ~15 leads across types, statuses, sources and managers, a few
- * customers with contacts, items from the demo catalog, a duplicate and a
- * short timeline per lead.
+ * customers with contacts, items from the demo catalog, a duplicate, a
+ * short timeline per lead and three quotes (draft, sent, accepted).
  *
  * Creates three demo staff users (…@poson.test) that can't sign in (random
  * password). Skipped outside local / staging and when leads already exist.
@@ -108,6 +114,33 @@ class DemoLeadsSeeder extends Seeder
 
             $this->timeline($lead, $manager, $at);
         }
+
+        $this->quotes($aziz, $sevara, $mega, $baraka, $pharm, $products);
+    }
+
+    /**
+     * A few demo quotes (plan 06): a draft, a sent one and an accepted one,
+     * through CreateQuote so numbers come from the sequence.
+     *
+     * @param  Collection<int, Product>  $products
+     */
+    private function quotes(User $aziz, User $sevara, Customer $mega, Customer $baraka, Customer $pharm, $products): void
+    {
+        if ($products->isEmpty()) {
+            return;
+        }
+
+        $line = fn (int $index, int $qty): QuoteItemData => new QuoteItemData(productId: $products[$index % $products->count()]->id, qty: $qty);
+        $service = new QuoteItemData(name: 'Oʻrnatish, sozlash va xodimlarni oʻqitish', qty: 1, price: 1_500_000_00);
+
+        app(CreateQuote::class)->handle(new QuoteData(customerId: $mega->id, items: [$line(0, 20), $line(1, 2), $service], notes: 'Yetkazib berish Qoʻqon boʻylab bepul. Kafolat 12 oy.'), $aziz);
+
+        $sent = app(CreateQuote::class)->handle(new QuoteData(customerId: $baraka->id, items: [$line(2, 6), $line(3, 40)]), $sevara);
+        app(ChangeQuoteStatus::class)->markSent($sent, $sevara, 'link');
+
+        $accepted = app(CreateQuote::class)->handle(new QuoteData(customerId: $pharm->id, items: [$line(4, 1), $service]), $aziz);
+        app(ChangeQuoteStatus::class)->markSent($accepted, $aziz, 'pdf');
+        app(ChangeQuoteStatus::class)->handle($accepted, QuoteStatus::Accepted, $aziz);
     }
 
     private function staff(string $email, string $name, Role $role): User

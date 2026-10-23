@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Key/value override for the defaults in config/company.php. "group" is
@@ -62,6 +64,72 @@ class Setting extends Model implements HasMedia
         self::OG_IMAGE => ['collection' => self::OG_IMAGE, 'conversion' => 'og'],
     ];
 
+    public const STAMP = 'stamp';
+
+    public const SIGNATURE = 'signature';
+
+    /**
+     * Private images used only inside quote PDFs (plan 06): PNG only, the
+     * original on the private originals disk, no conversions, no URL ever.
+     * Uploaded on Settings → Company → Legal (Admin).
+     */
+    public const PRIVATE_MEDIA = [
+        self::STAMP => ['collection' => self::STAMP],
+        self::SIGNATURE => ['collection' => self::SIGNATURE],
+    ];
+
+    public const PNG_MIMES = ['image/png'];
+
+    /**
+     * The medialibrary collection of a media key (public or private), or null.
+     */
+    public static function collectionFor(string $key): ?string
+    {
+        return self::MEDIA[$key]['collection'] ?? self::PRIVATE_MEDIA[$key]['collection'] ?? null;
+    }
+
+    /**
+     * The newest stored image of a private media key as a data URI (for
+     * dompdf), read from its (private) disk; null when there is none.
+     */
+    public static function privateImageDataUri(string $key): ?string
+    {
+        return array_key_exists($key, self::PRIVATE_MEDIA) ? static::originalDataUri($key, self::PNG_MIMES) : null;
+    }
+
+    /**
+     * The newest original of a media key (public or private collection) as a
+     * data URI when its type is one of $mimes; null otherwise. Read straight
+     * from the media's disk, so it works for private files too.
+     *
+     * @param  list<string>  $mimes
+     */
+    public static function originalDataUri(string $key, array $mimes): ?string
+    {
+        $collection = static::collectionFor($key);
+
+        if ($collection === null) {
+            return null;
+        }
+
+        $setting = static::query()->where('key', $key)->with('media')->first();
+        $media = $setting?->getMedia($collection)->last();
+
+        if ($media === null || ! in_array($media->mime_type, $mimes, true)) {
+            return null;
+        }
+
+        try {
+            $contents = Storage::disk($media->disk)->get($media->getPathRelativeToRoot());
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        return is_string($contents) && $contents !== '' ? 'data:'.$media->mime_type.';base64,'.base64_encode($contents) : null;
+    }
+
     protected static function booted(): void
     {
         static::saved(fn (Setting $setting) => DB::afterCommit(fn () => $setting->flushCaches()));
@@ -101,6 +169,13 @@ class Setting extends Model implements HasMedia
                 ->acceptsMimeTypes(self::IMAGE_MIMES)
                 ->useDisk(config('media-library.originals_disk', 'local'))
                 ->storeConversionsOnDisk(config('media-library.disk_name', 'public'));
+        }
+
+        // Stamp and signature: originals only, private disk, PNG (transparent background).
+        foreach (self::PRIVATE_MEDIA as $media) {
+            $this->addMediaCollection($media['collection'])
+                ->acceptsMimeTypes(self::PNG_MIMES)
+                ->useDisk(config('media-library.originals_disk', 'local'));
         }
     }
 

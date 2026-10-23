@@ -15,9 +15,11 @@ use App\Enums\CustomerType;
 use App\Enums\LeadLostReason;
 use App\Enums\LeadStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Quotes\Form as QuoteForm;
 use App\Models\Activity;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -337,6 +339,12 @@ class Show extends Component
             'canAssign' => $user->can('assign', $this->lead),
             'canDelete' => $user->can('delete', $this->lead),
             'canConvert' => $user->can('convert', $this->lead),
+            'canViewQuotes' => $user->can('viewAny', Quote::class),
+            'canCreateQuote' => $user->can('create', Quote::class),
+            'canQuoteFromLead' => QuoteForm::canQuoteFromLead($user, $this->lead),
+            'leadQuotes' => $user->can('viewAny', Quote::class)
+                ? Quote::query()->visibleTo($user)->where('lead_id', $this->lead->id)->latest('id')->limit(10)->get(['id', 'number', 'status', 'customer_id', 'manager_id'])
+                : collect(),
             'canCreateCustomer' => $user->can('create', Customer::class),
             'canViewCustomer' => $this->lead->customer !== null && $user->can('view', $this->lead->customer),
             'canViewProducts' => $user->can('products.view'),

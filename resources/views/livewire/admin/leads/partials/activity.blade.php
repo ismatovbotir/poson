@@ -23,6 +23,9 @@
                 ? __('crm.leads.timeline.telegram_sent', ['chat' => $chatName])
                 : __('crm.leads.timeline.telegram_failed', ['chat' => $chatName, 'code' => $meta['code'] ?? '—']) }}
             @break
+        @case(\App\Enums\ActivityType::Quote)
+            @include('livewire.admin.quotes.partials.activity', ['activity' => $activity])
+            @break
         @case(\App\Enums\ActivityType::Conversion)
             {{ __(! empty($meta['created']) ? 'crm.customers.timeline.lead_converted_new' : 'crm.customers.timeline.lead_converted', ['name' => $meta['customer_name'] ?? '']) }}
             @break

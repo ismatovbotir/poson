@@ -157,6 +157,16 @@
                     <x-admin.input wire:model="legal.director" :label="__($t.'.fields.director')" maxlength="255" />
                 </div>
             </x-admin.card>
+
+            {{-- Quote PDFs only (plan 06): private PNG files, never shown on the site. --}}
+            <div class="grid gap-4 sm:grid-cols-2 lg:gap-6" data-legal-images>
+                <x-admin.card :title="__($t.'.fields.stamp')">
+                    <x-admin.image-upload model="legal.stamp" :file="$legal->stamp" :current-url="$legalImages['stamp']" remove-action="removeLegalImage('stamp')" :hint="__($t.'.hints.stamp')" />
+                </x-admin.card>
+                <x-admin.card :title="__($t.'.fields.signature')">
+                    <x-admin.image-upload model="legal.signature" :file="$legal->signature" :current-url="$legalImages['signature']" remove-action="removeLegalImage('signature')" :hint="__($t.'.hints.signature')" />
+                </x-admin.card>
+            </div>
         @endif
 
         @if ($tab === 'social')

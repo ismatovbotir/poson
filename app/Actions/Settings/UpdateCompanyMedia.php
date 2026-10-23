@@ -18,7 +18,9 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollectio
 use Throwable;
 
 /**
- * Replace or remove the company logo and/or default OG image (plan 04 S10).
+ * Replace or remove the company logo and/or default OG image (plan 04 S10),
+ * and the stamp / director signature used in quote PDFs (plan 06: PNG only,
+ * private originals, audited under the Legal area).
  *
  * Call it after the settings transaction has committed. All-or-nothing
  * without a DB transaction (files can't be rolled back):
@@ -45,9 +47,25 @@ class UpdateCompanyMedia
     public const MIN_DIMENSIONS = [
         Setting::LOGO => [112, 112],
         Setting::OG_IMAGE => [1200, 630],
+        Setting::STAMP => [100, 100],
+        Setting::SIGNATURE => [100, 40],
     ];
 
     public const MAX_DIMENSION = 6000;
+
+    /**
+     * Images that end up inside quote PDFs are capped smaller, so dompdf
+     * never has to decode a huge picture (plan 06 review).
+     */
+    public const MAX_PDF_IMAGE_DIMENSION = 1500;
+
+    /**
+     * Media key => max width/height.
+     */
+    public static function maxDimension(string $key): int
+    {
+        return in_array($key, [Setting::LOGO, Setting::STAMP, Setting::SIGNATURE], true) ? self::MAX_PDF_IMAGE_DIMENSION : self::MAX_DIMENSION;
+    }
 
     /**
      * @param  array<string, array{file: UploadedFile|null, remove: bool}>  $changes  media key => change
@@ -69,7 +87,7 @@ class UpdateCompanyMedia
         $previous = [];
 
         foreach (array_keys($changes) as $key) {
-            $settings[$key] = Setting::query()->firstOrCreate(['key' => $key], ['group' => SettingsArea::Seo->group(), 'value' => null]);
+            $settings[$key] = Setting::query()->firstOrCreate(['key' => $key], ['group' => static::area($key)->group(), 'value' => null]);
             $previous[$key] = $this->mediaIds($settings[$key], $key);
         }
 
@@ -101,13 +119,21 @@ class UpdateCompanyMedia
             }
 
             $old->each->delete();
-            SettingsAudit::record(SettingsArea::Seo, $key, $change['file'] !== null ? AuditAction::Uploaded : AuditAction::Removed, $user, $ip);
+            SettingsAudit::record(static::area($key), $key, $change['file'] !== null ? AuditAction::Uploaded : AuditAction::Removed, $user, $ip);
             $changed = true;
         }
 
         CompanySettings::flush();
 
         return $changed;
+    }
+
+    /**
+     * Logo and OG image belong to SEO; stamp and signature to Legal.
+     */
+    public static function area(string $key): SettingsArea
+    {
+        return array_key_exists($key, Setting::PRIVATE_MEDIA) ? SettingsArea::Legal : SettingsArea::Seo;
     }
 
     /**
@@ -126,14 +152,18 @@ class UpdateCompanyMedia
                 continue;
             }
 
-            if (! isset(self::EXTENSIONS[(string) $file->getMimeType()])) {
-                throw ValidationException::withMessages([$key => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
+            $private = array_key_exists($key, Setting::PRIVATE_MEDIA);
+
+            if (! isset(self::EXTENSIONS[(string) $file->getMimeType()]) || ($private && $file->getMimeType() !== 'image/png')) {
+                throw ValidationException::withMessages([$key => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => $private ? 'png' : 'jpg, png, webp'])]);
             }
 
             $size = @getimagesize($file->getRealPath());
             [$minWidth, $minHeight] = self::MIN_DIMENSIONS[$key];
 
-            if ($size === false || $size[0] < $minWidth || $size[1] < $minHeight || $size[0] > self::MAX_DIMENSION || $size[1] > self::MAX_DIMENSION) {
+            $max = static::maxDimension($key);
+
+            if ($size === false || $size[0] < $minWidth || $size[1] < $minHeight || $size[0] > $max || $size[1] > $max) {
                 throw ValidationException::withMessages([$key => __('validation.dimensions', ['attribute' => __('admin.image_upload.image')])]);
             }
         }
@@ -148,7 +178,7 @@ class UpdateCompanyMedia
     private function pending(array $changes): array
     {
         foreach (array_keys($changes) as $key) {
-            if (! array_key_exists($key, Setting::MEDIA)) {
+            if (Setting::collectionFor($key) === null) {
                 throw new InvalidArgumentException("Unknown media setting [{$key}].");
             }
         }
@@ -161,12 +191,12 @@ class UpdateCompanyMedia
      */
     private function mediaIds(Setting $setting, string $key): array
     {
-        return $setting->media()->where('collection_name', Setting::MEDIA[$key]['collection'])->pluck('id')->all();
+        return $setting->media()->where('collection_name', Setting::collectionFor($key))->pluck('id')->all();
     }
 
     private function store(Setting $setting, string $key, UploadedFile $file): void
     {
-        $collection = Setting::MEDIA[$key]['collection'];
+        $collection = (string) Setting::collectionFor($key);
 
         $setting->addMedia($file)
             ->usingName($collection)
@@ -184,7 +214,7 @@ class UpdateCompanyMedia
     {
         foreach ($settings as $key => $setting) {
             $setting->media()
-                ->where('collection_name', Setting::MEDIA[$key]['collection'])
+                ->where('collection_name', Setting::collectionFor($key))
                 ->whereNotIn('id', $previous[$key])
                 ->get()
                 ->each(function ($media): void {

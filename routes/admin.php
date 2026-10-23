@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Analytics;
@@ -14,6 +15,7 @@ use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\Products;
+use App\Livewire\Admin\Quotes;
 use App\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +59,13 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/customers/create', Customers\Form::class)->name('customers.create');
     Route::livewire('/customers/{customer}', Customers\Show::class)->whereNumber('customer')->name('customers.show');
     Route::livewire('/customers/{customer}/edit', Customers\Form::class)->whereNumber('customer')->name('customers.edit');
+
+    // Quotes (plan 06). QuotePolicy in the components; lists use Quote::visibleTo().
+    Route::livewire('/quotes', Quotes\Index::class)->name('quotes.index');
+    Route::livewire('/quotes/create', Quotes\Form::class)->name('quotes.create');
+    Route::livewire('/quotes/{quote}', Quotes\Show::class)->whereNumber('quote')->name('quotes.show');
+    Route::livewire('/quotes/{quote}/edit', Quotes\Form::class)->whereNumber('quote')->name('quotes.edit');
+    Route::get('/quotes/{quote}/pdf', QuotePdfController::class)->whereNumber('quote')->name('quotes.pdf');
 
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');

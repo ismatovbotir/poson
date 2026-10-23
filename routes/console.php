@@ -24,3 +24,12 @@ Schedule::command('analytics:aggregate')->everyFifteenMinutes()->withoutOverlapp
 Schedule::command('analytics:verify-bots')->dailyAt('00:20')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
 Schedule::command('analytics:prune')->dailyAt('01:10')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
 Schedule::command('analytics:refresh-bot-ranges')->weeklyOn(1, '03:30')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Quotes (plan 06), Tashkent time
+|--------------------------------------------------------------------------
+| Sent quotes past valid_until become expired, with a history entry.
+*/
+
+Schedule::command('quotes:expire')->dailyAt('00:40')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();

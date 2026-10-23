@@ -94,6 +94,15 @@ return [
         'notification' => 'Уведомление',
         'conversion' => 'Конвертация',
         'price_level_change' => 'Смена уровня цен',
+        'quote' => 'Коммерческое предложение',
+    ],
+
+    'quote_status' => [
+        'draft' => 'Черновик',
+        'sent' => 'Отправлено',
+        'accepted' => 'Принято',
+        'rejected' => 'Отклонено',
+        'expired' => 'Срок истёк',
     ],
 
     'product_badge' => [

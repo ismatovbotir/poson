@@ -155,6 +155,34 @@ class Company extends Component
         $this->seo->remove_logo = true;
     }
 
+    public function updatedLegalStamp(): void
+    {
+        $this->validateOnly('legal.stamp');
+    }
+
+    public function updatedLegalSignature(): void
+    {
+        $this->validateOnly('legal.signature');
+    }
+
+    /**
+     * Clear a new stamp / signature upload, or mark the saved one for removal.
+     */
+    public function removeLegalImage(string $field): void
+    {
+        if (! in_array($field, [Setting::STAMP, Setting::SIGNATURE], true)) {
+            return;
+        }
+
+        if ($this->legal->{$field} !== null) {
+            $this->legal->{$field} = null;
+
+            return;
+        }
+
+        $this->legal->{'remove_'.$field} = true;
+    }
+
     public function removeOgImage(): void
     {
         if ($this->seo->og_image !== null) {
@@ -183,7 +211,7 @@ class Company extends Component
 
         $user = auth()->user();
         $ip = request()->ip();
-        $mediaChanges = $form instanceof SeoForm ? $form->mediaChanges() : [];
+        $mediaChanges = $form instanceof SeoForm || $form instanceof LegalForm ? $form->mediaChanges() : [];
 
         // Every file is checked before anything is written.
         $this->runFormAction(fn () => $updateMedia->validate($mediaChanges), "{$area->value}.");
@@ -224,6 +252,7 @@ class Company extends Component
             'searchEngines' => AiBotRules::searchEngines(),
             'botPreset' => $this->tab === 'ai_bots' ? $this->aiBots->currentPreset() : null,
             'hasSave' => in_array($this->tab, self::FORM_TABS, true),
+            'legalImages' => $this->legalImages(),
         ])->title(__('admin.settings.company.title'));
     }
 
@@ -238,6 +267,27 @@ class Company extends Component
             'tracking' => $this->tracking,
             'ai_bots' => $this->aiBots,
         };
+    }
+
+    /**
+     * Previews of the saved stamp and signature, as data URIs (the files are
+     * private and have no URL), only on the Legal tab; none when marked for removal.
+     *
+     * @return array<string, string|null>
+     */
+    protected function legalImages(): array
+    {
+        $images = [Setting::STAMP => null, Setting::SIGNATURE => null];
+
+        if ($this->tab !== 'legal') {
+            return $images;
+        }
+
+        foreach (array_keys($images) as $key) {
+            $images[$key] = $this->legal->{'remove_'.$key} ? null : Setting::privateImageDataUri($key);
+        }
+
+        return $images;
     }
 
     protected function canManage(SettingsArea $area): bool

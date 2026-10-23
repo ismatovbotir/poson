@@ -11,19 +11,23 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Product;
+use App\Models\Quote;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
@@ -60,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
         // must be listed, or getMorphClass() throws. Owners today: media
         // (medialibrary: brand, category, product, setting), roles/permissions
         // (spatie: user), faq_items (category, product) and the CRM activities
-        // timeline (lead, customer). Livewire 4 reads
+        // timeline (lead, customer, quote). Livewire 4 reads
         // this map directly, so models as component properties are unaffected.
         Relation::enforceMorphMap([
             'brand' => Brand::class,
@@ -68,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
             'customer' => Customer::class,
             'lead' => Lead::class,
             'product' => Product::class,
+            'quote' => Quote::class,
             'setting' => Setting::class,
             'user' => User::class,
         ]);
@@ -81,6 +86,10 @@ class AppServiceProvider extends ServiceProvider
         // No overlay while config:cache / optimize run (DB secrets must never reach the config cache file).
         Event::listen(fn (CommandStarting $event) => Secrets::suspendForCommand($event->command, starting: true));
         Event::listen(fn (CommandFinished $event) => Secrets::suspendForCommand($event->command, starting: false));
+
+        // Customers' quote links (plan 06): separate per-IP budgets for the page and the PDF.
+        RateLimiter::for('quote-page', fn (Request $request) => Limit::perMinute(60)->by('quote-page:'.$request->ip()));
+        RateLimiter::for('quote-pdf', fn (Request $request) => Limit::perMinute(10)->by('quote-pdf:'.$request->ip()));
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
