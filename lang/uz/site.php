@@ -28,6 +28,7 @@ return [
 
     'header' => [
         'catalog' => 'Katalog',
+        'show_all' => 'Barchasini koʻrish',
         'search_placeholder' => 'Skaner, yorliq printeri, TSD, artikul…',
         'search_button' => 'Qidirish',
         'menu_open' => 'Menyuni ochish',

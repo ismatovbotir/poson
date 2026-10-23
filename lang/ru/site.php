@@ -28,6 +28,7 @@ return [
 
     'header' => [
         'catalog' => 'Каталог',
+        'show_all' => 'Показать все',
         'search_placeholder' => 'Сканер, принтер этикеток, ТСД, артикул…',
         'search_button' => 'Найти',
         'menu_open' => 'Открыть меню',

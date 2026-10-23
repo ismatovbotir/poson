@@ -1,5 +1,5 @@
 {{--
-    Sticky site header: burger (below 900px), logo, catalog button, search
+    Sticky site header: burger (below 900px), logo, catalog menu (x-site.catalog-menu), search
     (/{locale}/search), phone (from 1100px) and the quote CTA, followed by the
     main nav.
     The burger toggles "menuOpen" from the x-data on <body> (see x-site.mobile-menu).
@@ -22,13 +22,7 @@
 
         <x-site.logo />
 
-        <a
-            href="{{ \App\Support\Site\Navigation::catalog() }}"
-            class="ml-auto inline-flex h-11 items-center gap-2.5 rounded-btn bg-brand-600 px-3 font-semibold text-white transition-colors hover:bg-brand-700 md:ml-0 md:h-[46px] md:px-[18px]"
-        >
-            <x-site.icon name="grid" />
-            <span class="sr-only md:not-sr-only">{{ __('site.header.catalog') }}</span>
-        </a>
+        <x-site.catalog-menu />
 
         {{-- Below 900px the search is its own row. The route check keeps the header safe outside localized routes. --}}
         @if (\Illuminate\Support\Facades\Route::has('site.search'))

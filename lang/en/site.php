@@ -28,6 +28,7 @@ return [
 
     'header' => [
         'catalog' => 'Catalog',
+        'show_all' => 'Show all',
         'search_placeholder' => 'Scanner, label printer, mobile computer, SKU…',
         'search_button' => 'Search',
         'menu_open' => 'Open menu',
