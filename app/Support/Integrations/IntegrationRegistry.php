@@ -164,7 +164,7 @@ final class IntegrationRegistry
             new IntegrationField('ai.image_model', 'ai', ['ai-assist.image_model'], 'AI_IMAGE_MODEL', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($models('image'))], default: $models('image')[0] ?? null, options: $models('image')),
             new IntegrationField('ai.daily_text_limit', 'ai', ['ai-assist.limits.daily_text'], 'AI_DAILY_LIMIT_PER_USER', type: IntegrationField::TYPE_INT, rules: ['integer', 'min:0', 'max:10000'], default: 100),
             new IntegrationField('ai.daily_image_limit', 'ai', ['ai-assist.limits.daily_image'], 'AI_DAILY_IMAGE_LIMIT_PER_USER', type: IntegrationField::TYPE_INT, rules: ['integer', 'min:0', 'max:1000'], default: 10),
-            new IntegrationField('ai.monthly_budget_usd', 'ai', ['ai-assist.limits.monthly_budget_usd'], 'AI_MONTHLY_BUDGET_USD', type: IntegrationField::TYPE_INT, rules: ['integer', 'min:0', 'max:100000']),
+            new IntegrationField('ai.monthly_budget_usd', 'ai', ['ai-assist.limits.monthly_budget_usd'], 'AI_MONTHLY_BUDGET_USD', type: IntegrationField::TYPE_INT, rules: ['integer', 'min:1', 'max:100000']),
 
             // Telegram
             new IntegrationField('telegram.bot_token', 'telegram', ['services.telegram.bot_token'], 'TELEGRAM_BOT_TOKEN', secret: true, rules: ['string', 'max:100', 'regex:'.self::TELEGRAM_TOKEN]),

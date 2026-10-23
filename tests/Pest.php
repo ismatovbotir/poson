@@ -1,13 +1,17 @@
 <?php
 
 use App\Enums\Role;
+use App\Models\IntegrationSecret;
+use App\Models\Setting;
 use App\Models\User;
+use App\Services\Ai\TextAssistant;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\FakeTextAssistant;
 use Tests\TestCase;
 
 /*
@@ -146,4 +150,46 @@ function freshSecrets(array $env = []): void
 function confirmAdminPassword(int $secondsAgo = 0): void
 {
     session()->put(PasswordConfirmation::SESSION_KEY, now()->subSeconds($secondsAgo)->unix());
+}
+
+/**
+ * Fake Anthropic key used by the AI assist tests (never a real one).
+ */
+function fakeAnthropicKey(): string
+{
+    return 'sk-ant-test-SECRETVALUE-0000000000000000000000';
+}
+
+/**
+ * Switch the admin AI assist on with a fake key saved in Settings →
+ * Integrations (and optional limits), then re-apply the resolver.
+ *
+ * @param  array<string, mixed>  $settings  integration key => value, e.g. ['ai.monthly_budget_usd' => 5]
+ */
+function enableAiAssist(array $settings = [], bool $withKey = true): void
+{
+    freshSecrets();
+    IntegrationSecret::query()->where('key', 'anthropic.api_key')->delete();
+    Setting::query()->where('group', 'integrations')->where('key', 'like', 'ai.%')->delete();
+
+    if ($withKey) {
+        IntegrationSecret::factory()->withValue('anthropic.api_key', fakeAnthropicKey())->create();
+    }
+
+    foreach (['ai.enabled' => true, ...$settings] as $key => $value) {
+        Setting::factory()->create(['key' => $key, 'group' => 'integrations', 'value' => $value]);
+    }
+
+    Secrets::flush();
+}
+
+/**
+ * Bind a fake TextAssistant and return it.
+ */
+function fakeTextAssistant(?FakeTextAssistant $fake = null): FakeTextAssistant
+{
+    $fake ??= new FakeTextAssistant;
+    app()->instance(TextAssistant::class, $fake);
+
+    return $fake;
 }

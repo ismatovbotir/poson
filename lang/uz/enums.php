@@ -97,6 +97,36 @@ return [
         'quote' => 'Tijorat taklifi',
     ],
 
+    'ai_feature' => [
+        'text_generate' => 'Matn yozish',
+        'text_translate' => 'Tarjima',
+    ],
+
+    'ai_provider' => [
+        'anthropic' => 'Anthropic (Claude)',
+        'openai' => 'OpenAI',
+        'removebg' => 'remove.bg',
+    ],
+
+    'ai_request_status' => [
+        'pending' => 'Navbatda',
+        'running' => 'Bajarilmoqda',
+        'succeeded' => 'Tayyor',
+        'failed' => 'Xato',
+        'rejected' => 'Rad etildi',
+    ],
+
+    'ai_error_code' => [
+        'timeout' => 'Vaqt tugadi',
+        'rate_limited' => 'Soʻrovlar juda koʻp',
+        'provider_error' => 'Xizmat xatosi',
+        'invalid_output' => 'Notoʻgʻri javob',
+        'not_configured' => 'Kalit sozlanmagan',
+        'disabled' => 'Oʻchirilgan',
+        'quota_exceeded' => 'Kunlik limit',
+        'budget_exceeded' => 'Oylik byudjet',
+    ],
+
     'quote_status' => [
         'draft' => 'Qoralama',
         'sent' => 'Yuborilgan',

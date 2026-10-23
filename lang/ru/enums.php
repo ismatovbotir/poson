@@ -97,6 +97,36 @@ return [
         'quote' => 'Коммерческое предложение',
     ],
 
+    'ai_feature' => [
+        'text_generate' => 'Написание текста',
+        'text_translate' => 'Перевод',
+    ],
+
+    'ai_provider' => [
+        'anthropic' => 'Anthropic (Claude)',
+        'openai' => 'OpenAI',
+        'removebg' => 'remove.bg',
+    ],
+
+    'ai_request_status' => [
+        'pending' => 'В очереди',
+        'running' => 'Выполняется',
+        'succeeded' => 'Готово',
+        'failed' => 'Ошибка',
+        'rejected' => 'Отклонён',
+    ],
+
+    'ai_error_code' => [
+        'timeout' => 'Истекло время',
+        'rate_limited' => 'Слишком много запросов',
+        'provider_error' => 'Ошибка сервиса',
+        'invalid_output' => 'Некорректный ответ',
+        'not_configured' => 'Ключ не настроен',
+        'disabled' => 'Выключено',
+        'quota_exceeded' => 'Дневной лимит',
+        'budget_exceeded' => 'Бюджет на месяц',
+    ],
+
     'quote_status' => [
         'draft' => 'Черновик',
         'sent' => 'Отправлено',

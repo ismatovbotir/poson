@@ -31,10 +31,10 @@
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
                             <x-admin.input wire:model.blur="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.name.'.$locale" /></span></x-slot:labelAside>
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="category.name" target="form.name" /></span></x-slot:labelAside>
                             </x-admin.input>
                             <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.catalog.description')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.description.'.$locale" /></span></x-slot:labelAside>
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="category.description" target="form.description" /></span></x-slot:labelAside>
                             </x-admin.rich-text>
                         </x-admin.locale-panel>
                     @endforeach
@@ -186,10 +186,10 @@
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
                             <x-admin.input wire:model="form.meta_title.{{ $locale }}" :label="__('admin.catalog.meta_title')" maxlength="255" :hint="__('admin.catalog.meta_title_hint')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.meta_title.'.$locale" /></span></x-slot:labelAside>
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="category.meta_title" target="form.meta_title" /></span></x-slot:labelAside>
                             </x-admin.input>
                             <x-admin.textarea wire:model="form.meta_description.{{ $locale }}" :label="__('admin.catalog.meta_description')" rows="3" maxlength="500" :hint="__('admin.catalog.meta_description_hint')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.meta_description.'.$locale" /></span></x-slot:labelAside>
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="category.meta_description" target="form.meta_description" /></span></x-slot:labelAside>
                             </x-admin.textarea>
                         </x-admin.locale-panel>
                     @endforeach

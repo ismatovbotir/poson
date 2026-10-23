@@ -7,9 +7,12 @@ use App\Actions\Catalog\SaveCategory;
 use App\Actions\Catalog\SyncCategoryAttributes;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Categories\CategoryForm;
 use App\Models\Attribute;
 use App\Models\Category;
+use App\Support\Ai\AiContext;
+use App\Support\Ai\CategoryAiContext;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Search;
 use App\Support\Slug;
@@ -29,7 +32,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiAssist, WithFileUploads;
 
     public ?Category $category = null;
 
@@ -310,6 +313,24 @@ class Form extends Component
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => $this->category->name, 'type' => 'success']);
             $this->redirectRoute('admin.categories.index', navigate: true);
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function aiTargets(): array
+    {
+        return [
+            'form.name' => 'category.name',
+            'form.description' => 'category.description',
+            'form.meta_title' => 'category.meta_title',
+            'form.meta_description' => 'category.meta_description',
+        ];
+    }
+
+    protected function aiContext(string $fieldKey): AiContext
+    {
+        return CategoryAiContext::fromForm($this->form, $this->category);
     }
 
     public function render(): View

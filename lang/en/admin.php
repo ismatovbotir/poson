@@ -837,7 +837,7 @@ return [
                 'ai_image_model' => 'Generates banners and covers (never product photos).',
                 'ai_daily_text_limit' => 'Per user per day. 0 turns text requests off.',
                 'ai_daily_image_limit' => 'Per user per day. 0 turns image requests off.',
-                'ai_monthly_budget_usd' => 'Whole dollars. AI turns off for the rest of the month when reached. Empty means no cap.',
+                'ai_monthly_budget_usd' => 'Whole dollars, at least 1. AI turns off for the rest of the month when reached. Leave empty for no cap.',
                 'telegram_bot_token' => 'From @BotFather, looks like 123456789:AA….',
                 'telegram_webhook_secret' => 'Telegram sends it with every update so the site can check the request. Generate a new one if it may have leaked.',
                 'telegram_chats_sales' => 'Leads, quotes and orders. A number like -1001234567890 or @channel.',

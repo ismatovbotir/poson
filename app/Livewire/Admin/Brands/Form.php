@@ -6,8 +6,10 @@ use App\Actions\Catalog\DeleteBrand;
 use App\Actions\Catalog\SaveBrand;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
+use App\Support\Ai\AiContext;
 use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +23,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiAssist, WithFileUploads;
 
     public ?Brand $brand = null;
 
@@ -106,6 +108,24 @@ class Form extends Component
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => $this->brand->name, 'type' => 'success']);
             $this->redirectRoute('admin.brands.index', navigate: true);
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function aiTargets(): array
+    {
+        return ['form.description' => 'brand.description'];
+    }
+
+    protected function aiContext(string $fieldKey): AiContext
+    {
+        return AiContext::fromArray([
+            'name' => $this->form->name,
+            'facts' => array_filter(['Website' => $this->form->website]),
+            'subject_type' => $this->brand?->exists ? $this->brand->getMorphClass() : null,
+            'subject_id' => $this->brand?->exists ? $this->brand->id : null,
+        ]);
     }
 
     public function render(): View

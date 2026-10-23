@@ -14,6 +14,8 @@ use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Ai\ClaudeTextAssistant;
+use App\Services\Ai\TextAssistant;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\CompanySettings;
@@ -49,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Crawler verification DNS (tests bind a fake resolver).
         $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
+
+        // Admin AI assist (plan 02): texts on Claude through laravel/ai (tests bind a fake).
+        $this->app->bind(TextAssistant::class, ClaudeTextAssistant::class);
     }
 
     /**

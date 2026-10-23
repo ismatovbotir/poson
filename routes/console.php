@@ -33,3 +33,12 @@ Schedule::command('analytics:refresh-bot-ranges')->weeklyOn(1, '03:30')->timezon
 */
 
 Schedule::command('quotes:expire')->dailyAt('00:40')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Admin AI assist (plan 02)
+|--------------------------------------------------------------------------
+| Prompt and response texts of the request log are cleared after 90 days.
+*/
+
+Schedule::command('ai:prune-requests')->dailyAt('01:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();

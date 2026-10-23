@@ -41,7 +41,7 @@
                         @foreach ($locales as $locale)
                             <x-admin.locale-panel :locale="$locale">
                                 <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.catalog.description')">
-                                    <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.description.'.$locale" /></span></x-slot:labelAside>
+                                    <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="brand.description" target="form.description" /></span></x-slot:labelAside>
                                 </x-admin.rich-text>
                             </x-admin.locale-panel>
                         @endforeach

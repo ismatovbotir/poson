@@ -82,7 +82,7 @@ final class Menu
             ]),
 
             new MenuGroup('ai', 'menu.groups.ai', [
-                new MenuItem('ai-usage', 'menu.items.ai_usage', 'sparkles', 'admin.ai.usage', roles: $admin),
+                new MenuItem('ai-usage', 'menu.items.ai_usage', 'sparkles', 'admin.ai.usage', permission: 'ai-requests.viewAny'),
             ]),
 
             new MenuGroup('settings', 'menu.groups.settings', [

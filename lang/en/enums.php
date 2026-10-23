@@ -97,6 +97,36 @@ return [
         'quote' => 'Quote',
     ],
 
+    'ai_feature' => [
+        'text_generate' => 'Write text',
+        'text_translate' => 'Translate',
+    ],
+
+    'ai_provider' => [
+        'anthropic' => 'Anthropic (Claude)',
+        'openai' => 'OpenAI',
+        'removebg' => 'remove.bg',
+    ],
+
+    'ai_request_status' => [
+        'pending' => 'Queued',
+        'running' => 'Running',
+        'succeeded' => 'Done',
+        'failed' => 'Failed',
+        'rejected' => 'Rejected',
+    ],
+
+    'ai_error_code' => [
+        'timeout' => 'Timed out',
+        'rate_limited' => 'Rate limited',
+        'provider_error' => 'Service error',
+        'invalid_output' => 'Invalid answer',
+        'not_configured' => 'Key not set up',
+        'disabled' => 'Switched off',
+        'quota_exceeded' => 'Daily limit',
+        'budget_exceeded' => 'Monthly budget',
+    ],
+
     'quote_status' => [
         'draft' => 'Draft',
         'sent' => 'Sent',

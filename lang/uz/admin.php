@@ -837,7 +837,7 @@ return [
                 'ai_image_model' => 'Bannerlar va muqovalar yaratadi (hech qachon mahsulot fotosi emas).',
                 'ai_daily_text_limit' => 'Bir foydalanuvchiga kuniga. 0 matn soʻrovlarini oʻchiradi.',
                 'ai_daily_image_limit' => 'Bir foydalanuvchiga kuniga. 0 rasm soʻrovlarini oʻchiradi.',
-                'ai_monthly_budget_usd' => 'Butun dollarlarda. Unga yetganda SI oy oxirigacha oʻchadi. Boʻsh — cheklovsiz.',
+                'ai_monthly_budget_usd' => 'Butun dollarlarda, kamida 1. Unga yetganda SI oy oxirigacha oʻchadi. Cheklovsiz boʻlishi uchun boʻsh qoldiring.',
                 'telegram_bot_token' => '@BotFather beradi, koʻrinishi 123456789:AA….',
                 'telegram_webhook_secret' => 'Telegram uni har bir yangilanish bilan yuboradi, sayt soʻrovni tekshira oladi. Sizib chiqqan boʻlishi mumkin boʻlsa, yangisini yarating.',
                 'telegram_chats_sales' => 'Murojaatlar, tijorat takliflari va buyurtmalar. -1001234567890 kabi raqam yoki @channel.',

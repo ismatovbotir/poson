@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
+use App\Livewire\Admin\Ai;
 use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Attributes;
 use App\Livewire\Admin\Auth\ConfirmPassword;
@@ -66,6 +67,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/quotes/{quote}', Quotes\Show::class)->whereNumber('quote')->name('quotes.show');
     Route::livewire('/quotes/{quote}/edit', Quotes\Form::class)->whereNumber('quote')->name('quotes.edit');
     Route::get('/quotes/{quote}/pdf', QuotePdfController::class)->whereNumber('quote')->name('quotes.pdf');
+
+    // SI yordamchi (plan 02): usage and limits, ai-requests.viewAny (Admin only), authorized in the component.
+    Route::livewire('/ai/usage', Ai\Usage::class)->name('ai.usage');
 
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');

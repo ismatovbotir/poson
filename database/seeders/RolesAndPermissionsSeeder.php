@@ -71,6 +71,8 @@ class RolesAndPermissionsSeeder extends Seeder
      *    (quotes.view-all: every quote, Admin). The service engineer has no
      *    quote access (plan 06, safest option).
      *    customers.price-level: Admin only.
+     *  - ai.use: the AI assistant in content forms (plan 02); ai-requests.viewAny:
+     *    AI usage and limits screen (Admin only).
      *
      * @return array<string, list<string>>
      */
@@ -86,6 +88,7 @@ class RolesAndPermissionsSeeder extends Seeder
             Role::ContentManager->value => [
                 ...static::abilities($catalog, self::CRUD),
                 'products.manage-services',
+                'ai.use',
             ],
 
             Role::SalesManager->value => [
@@ -135,6 +138,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 06 quotes (quotes.view-all: Admin only).
             ...static::abilities(['quotes'], self::CRUD),
             'quotes.view-all',
+            // Plan 02 admin AI assist: ai.use (Admin + Content manager), the usage screen (Admin only).
+            'ai.use',
+            'ai-requests.viewAny',
         ];
     }
 
