@@ -14,6 +14,7 @@ use App\Services\Ai\AiQuota;
 use App\Services\Ai\ClaudeTextAssistant;
 use App\Services\Ai\TextTask;
 use App\Support\Ai\FieldRegistry;
+use App\Support\Ai\PageAiContext;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +22,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Shared steps of GenerateFieldText and TranslateFieldText (plan 02 §1.3):
- * authorize ai.use → AI on and configured → quota (a refused request is
+ * authorize ai.use → known field, never the body of a stored legal page
+ * (PageAiContext::refuses) → AI on and configured → quota (a refused request is
  * logged as "rejected") → ai_requests row "pending" → RunAiRequest on the
  * "ai" queue. The entity is never saved here: the manager applies the
  * result to the form and saves it with the normal validation.
@@ -42,6 +44,10 @@ abstract class QueueTextRequest
 
         if (! FieldRegistry::has($task->fieldKey)) {
             throw ValidationException::withMessages(['field' => __('ai.errors.unknown_field')]);
+        }
+
+        if (PageAiContext::refuses($task->fieldKey, $task->context)) {
+            throw ValidationException::withMessages(['field' => __('ai.errors.legal_body')]);
         }
 
         if (trim($task->hint) === '' || mb_strlen($task->hint) > self::HINT_MAX) {

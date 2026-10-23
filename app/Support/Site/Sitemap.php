@@ -11,13 +11,13 @@ use XMLWriter;
 
 /**
  * /sitemap.xml (plan 03 D16): the home page, the catalog index, visible
- * categories and published products, each in every locale with
+ * categories, active static pages (plan 07) and published products, each in every locale with
  * xhtml:link alternates (plus x-default) and lastmod.
  *
  * Every URL is built on APP_URL (CanonicalHost), never on the request host,
  * so the cached document can't carry a foreign Host header.
  *
- * Cached for config('site.sitemap_cache_minutes'); Product and Category flush
+ * Cached for config('site.sitemap_cache_minutes'); Product, Category and Page flush
  * it after their save or delete commits. Prices never appear here.
  *
  * Limit: one sitemap file holds at most 50 000 URLs (and 50 MB). With three
@@ -67,6 +67,15 @@ class Sitemap
                 $xml,
                 fn (string $locale): string => route('site.catalog.category', ['locale' => $locale, 'category' => $category->slug]),
                 $category->updated_at,
+            );
+        }
+
+        // Active static pages (plan 07), legal ones included.
+        foreach (PageDirectory::active() as $page) {
+            $this->write(
+                $xml,
+                fn (string $locale): string => route('site.page', ['locale' => $locale, 'page' => $page['slug']]),
+                $this->date($page['modified_at'] ?? null),
             );
         }
 

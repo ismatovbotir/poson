@@ -4,6 +4,7 @@ namespace App\Support\Site;
 
 use App\Models\Category;
 use App\Models\FaqItem;
+use App\Models\Page;
 use App\Models\Product;
 use App\Rules\BrandSafeText;
 use App\Support\Catalog\CategoryTree;
@@ -15,7 +16,8 @@ use Illuminate\Support\Collection;
  *  - category listing: the category's own active items, else those of the
  *    nearest ancestor that has any;
  *  - product page: the product's items, else the category chain as above;
- *  - home page: the general FAQ (at most HOME_LIMIT).
+ *  - home page: the general FAQ (at most HOME_LIMIT);
+ *  - static page: the page's own active items (plan 07), never inherited.
  *
  * Items come out in the current locale (falling back to uz) as plain text;
  * empty or brand-unsafe items are left out (defense in depth: the admin
@@ -70,6 +72,16 @@ class FaqContent
         $own = $this->present($items->where('faqable_type', $productType));
 
         return $own !== [] ? ['items' => $own, 'own' => true] : $this->firstNonEmpty($items, $categoryType, $chain, ownerId: null);
+    }
+
+    /**
+     * The page's own active items (FAQPage JSON-LD may be printed for them).
+     *
+     * @return list<array{question: string, answer: string}>
+     */
+    public function forPage(Page $page): array
+    {
+        return $this->present(FaqItem::query()->active()->ownedBy($page)->ordered()->get());
     }
 
     /**

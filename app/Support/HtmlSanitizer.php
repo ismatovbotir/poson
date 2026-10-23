@@ -8,8 +8,12 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 /**
  * Cleans rich text from the admin editor before it is saved (plan 03 D12).
  *
- * Allow-list: p, h2, h3, ul, ol, li, strong, em, br, a (https/mailto only,
- * rel="nofollow" forced) and basic table tags. Everything else is dropped,
+ * Allow-list: p, h2, h3, ul, ol, li, strong, em, br, a (https, mailto and
+ * site-relative "/..." links) and basic table tags. rel="nofollow" is added
+ * to external links only (plan 07 K6): links to the site itself (a "/path"
+ * or https on the APP_URL host or its www twin) and mailto stay followed.
+ * Protocol-relative "//host" links lose their href (they would leave the
+ * site on whatever scheme the page uses). Everything else is dropped,
  * including script, style, event handler attributes and javascript: URLs
  * (formatting tags such as <b> or <span> are unwrapped: their text stays).
  */
@@ -60,7 +64,79 @@ class HtmlSanitizer
             return '';
         }
 
-        return trim(static::sanitizer()->sanitize($html));
+        return trim(static::filterLinks(static::sanitizer()->sanitize($html)));
+    }
+
+    /**
+     * Whether an href is protocol-relative ("//host", also "\\host" or
+     * "/\\host" and with tabs or line breaks in between, which browsers
+     * read the same way).
+     */
+    public static function isProtocolRelative(string $href): bool
+    {
+        $href = html_entity_decode($href, ENT_QUOTES | ENT_HTML5);
+        $href = ltrim(str_replace(["\t", "\n", "\r"], '', $href), "\x00..\x20");
+
+        return (bool) preg_match('#^[/\\\\]{2}#', $href);
+    }
+
+    /**
+     * Whether a (sanitized) href leaves the site: anything but "/path",
+     * mailto: and https links on the APP_URL host or its www twin.
+     */
+    public static function isExternal(string $href): bool
+    {
+        $href = html_entity_decode($href, ENT_QUOTES | ENT_HTML5);
+
+        if (static::isProtocolRelative($href)) {
+            return true;
+        }
+
+        if (str_starts_with($href, '/')) {
+            return false;
+        }
+
+        if (str_starts_with(strtolower($href), 'mailto:')) {
+            return false;
+        }
+
+        $host = strtolower((string) parse_url($href, PHP_URL_HOST));
+
+        return $host === '' || ! in_array($host, static::siteHosts(), true);
+    }
+
+    /**
+     * The APP_URL host and its "www." twin.
+     *
+     * @return list<string>
+     */
+    public static function siteHosts(): array
+    {
+        $host = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+
+        if ($host === '') {
+            return [];
+        }
+
+        return [$host, str_starts_with($host, 'www.') ? substr($host, 4) : 'www.'.$host];
+    }
+
+    /**
+     * Every link of the sanitizer output (it only ever has <a> or
+     * <a href="...">, href being the single allowed attribute): drop a
+     * protocol-relative href, add rel="nofollow" to external links.
+     */
+    private static function filterLinks(string $html): string
+    {
+        return (string) preg_replace_callback(
+            '/<a href="([^"]*)">/',
+            fn (array $match): string => match (true) {
+                static::isProtocolRelative($match[1]) => '<a>',
+                static::isExternal($match[1]) => '<a href="'.$match[1].'" rel="nofollow">',
+                default => $match[0],
+            },
+            $html,
+        );
     }
 
     /**
@@ -81,8 +157,7 @@ class HtmlSanitizer
 
         $config = (new HtmlSanitizerConfig)
             ->allowLinkSchemes(['https', 'mailto'])
-            ->allowRelativeLinks(false)
-            ->forceAttribute('a', 'rel', 'nofollow')
+            ->allowRelativeLinks(true)
             ->withMaxInputLength(100_000);
 
         foreach (self::ALLOWED as $element => $attributes) {

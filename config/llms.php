@@ -30,6 +30,7 @@ return [
         'about' => 'About',
         'services' => 'Services',
         'catalog' => 'Catalog',
+        'pages' => 'Pages',
         'contacts' => 'Contacts',
         'website' => 'Website',
         'email' => 'Email',

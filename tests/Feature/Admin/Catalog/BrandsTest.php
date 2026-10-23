@@ -44,7 +44,7 @@ it('creates a brand with an auto slug, description and logo', function () {
 
     expect($brand->slug)->toBe('honeywell')
         ->and($brand->website)->toBe('https://www.honeywell.com')
-        ->and($brand->getTranslation('description', 'ru'))->toBe('<p>Сканеры <a rel="nofollow">ссылка</a></p>')
+        ->and($brand->getTranslation('description', 'ru'))->toBe('<p>Сканеры <a>ссылка</a></p>')
         ->and($brand->getFirstMedia('logo'))->not->toBeNull()
         ->and($brand->imageAlt('uz'))->toBe('Honeywell logotipi');
 });

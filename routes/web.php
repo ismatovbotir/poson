@@ -9,6 +9,7 @@ use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Home;
+use App\Livewire\Site\Pages;
 use App\Livewire\Site\Search;
 use Illuminate\Support\Facades\Route;
 
@@ -43,4 +44,7 @@ Route::prefix('{locale}')
             ->name('product.partner');
 
         Route::livewire('/search', Search::class)->name('search');
+
+        // Static pages (plan 07 7a): 404 unless active.
+        Route::livewire('/page/{page:slug}', Pages\Show::class)->name('page');
     });

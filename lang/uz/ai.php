@@ -50,6 +50,7 @@ return [
         'quota_exceeded' => 'Kunlik limit tugadi. Ertaga yana foydalanishingiz mumkin.',
         'budget_exceeded' => 'Oylik byudjet tugadi. Administratorga murojaat qiling.',
         'unknown_field' => 'Bu maydon uchun SI yordamchi mavjud emas.',
+        'legal_body' => 'Huquqiy sahifa matnini SI yozmaydi: uni yurist bilan qoʻlda tahrirlang.',
         'hint_invalid' => 'Koʻrsatmani kiriting (:max belgigacha).',
         'source_empty' => 'Tarjima uchun matn boʻsh.',
         'unknown_locale' => 'Nomaʼlum til. Tillardan birini tanlang: uz, ru yoki en.',
@@ -128,6 +129,12 @@ return [
         ],
         'brand' => [
             'description' => '{name} brendi sahifasi uchun qisqa kirish matnini yozing: u qanday uskunalar ishlab chiqaradi va Poson ularni tanlash, sozlash va servis qilishda yordam beradi. Tarix, raqamlar va mukofotlarni oʻylab topmang.',
+        ],
+        'page' => [
+            'title' => 'Poson saytidagi «{name}» sahifasi uchun tushunarli sarlavha yozing. Qisqa, narxlarsiz.',
+            'body' => 'Biznes mijozlar uchun «{name}» sayt sahifasi matnini joriy matn va kontekstdagi faktlar asosida yozing: H2 sarlavhali boʻlimlar, qisqa xatboshilar va roʻyxatlar. Poson servisini taʼkidlang (mutaxassis tanlovi, sozlash, rasmiy kafolat, oʻz servis markazi). Manzil, telefon, narx va muddatlarni oʻylab topmang.',
+            'meta_title' => '«{name}» sayt sahifasi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
+            'meta_description' => '«{name}» sayt sahifasi uchun SEO tavsif yozing: tashrif buyuruvchi unda nimani topadi. Narxlarsiz.',
         ],
         'faq' => [
             'question' => 'Biznes mijozning {name} haqida tez-tez beradigan bitta savolini taklif qiling. Toifa: {category}.',

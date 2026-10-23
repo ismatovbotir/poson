@@ -7,11 +7,13 @@ use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
 use App\Support\Settings\SettingsFormat;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 
 /**
  * schema.org JSON-LD for public pages: Organization and LocalBusiness (home),
- * BreadcrumbList, Product with its Offer, and FAQPage (plan 04 T12; only
+ * BreadcrumbList, Product with its Offer, WebPage / AboutPage / ContactPage
+ * for static pages (plan 07), and FAQPage (plan 04 T12; only
  * where the FAQ is visible on the page). Every block is printed with
  * toScript().
  *
@@ -267,6 +269,40 @@ class StructuredData
             if (! $product->showsStockStatus()) {
                 unset($data['offers']['availability']);
             }
+        }
+
+        return $data;
+    }
+
+    /**
+     * WebPage (or AboutPage / ContactPage) for a static page (plan 07 K5):
+     * name, url, description, language, last change, the cover image and
+     * the Organization as publisher. Empty values are left out.
+     *
+     * @return array<string, mixed>
+     */
+    public function webPage(string $type, string $name, string $url, ?string $description = null, ?CarbonInterface $modified = null, ?string $image = null): array
+    {
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => $type,
+            'name' => $name,
+            'url' => $url,
+            'inLanguage' => app()->getLocale(),
+            'isPartOf' => ['@type' => 'WebSite', 'name' => $this->company->name(), 'url' => $this->homeUrl()],
+            'publisher' => ['@id' => $this->homeUrl().'#organization'],
+        ];
+
+        if (filled($description)) {
+            $data['description'] = $description;
+        }
+
+        if ($modified !== null) {
+            $data['dateModified'] = $modified->toAtomString();
+        }
+
+        if (filled($image)) {
+            $data['primaryImageOfPage'] = ['@type' => 'ImageObject', 'url' => $image];
         }
 
         return $data;

@@ -10,9 +10,11 @@ use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Faq\FaqItemForm;
 use App\Models\Category;
 use App\Models\FaqItem;
+use App\Models\Page;
 use App\Models\Product;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\CategoryAiContext;
+use App\Support\Ai\PageAiContext;
 use App\Support\Ai\ProductAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,8 +24,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * FAQ editor (plan 04 T12), a child component of the category form and the
- * product form (after the first save), and of Settings → Company → FAQ
+ * FAQ editor (plan 04 T12), a child component of the category, product and
+ * page forms (after the first save), and of Settings → Company → FAQ
  * (no owner = the general FAQ). Add, edit, delete and reorder; question and
  * plain-text answer per locale.
  *
@@ -40,6 +42,9 @@ class FaqItems extends Component
     #[Locked]
     public ?Product $product = null;
 
+    #[Locked]
+    public ?Page $page = null;
+
     public FaqItemForm $form;
 
     /**
@@ -47,10 +52,11 @@ class FaqItems extends Component
      */
     public bool $editing = false;
 
-    public function mount(?Category $category = null, ?Product $product = null): void
+    public function mount(?Category $category = null, ?Product $product = null, ?Page $page = null): void
     {
         $this->category = $category?->exists ? $category : null;
         $this->product = $this->category === null && $product?->exists ? $product : null;
+        $this->page = $this->category === null && $this->product === null && $page?->exists ? $page : null;
 
         $this->authorize('viewAny', [FaqItem::class, $this->owner()]);
     }
@@ -147,6 +153,7 @@ class FaqItems extends Component
         $base = match (true) {
             $this->category !== null => CategoryAiContext::fromCategory($this->category),
             $this->product !== null => ProductAiContext::fromProduct($this->product),
+            $this->page !== null => PageAiContext::fromPage($this->page),
             default => AiContext::fromArray(['name' => 'Poson (general company FAQ)']),
         };
 
@@ -166,7 +173,7 @@ class FaqItems extends Component
 
     protected function owner(): ?Model
     {
-        return $this->category ?? $this->product;
+        return $this->category ?? $this->product ?? $this->page;
     }
 
     private function find(int $id): FaqItem

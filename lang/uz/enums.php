@@ -135,6 +135,12 @@ return [
         'expired' => 'Muddati oʻtgan',
     ],
 
+    'page_template' => [
+        'default' => 'Oddiy',
+        'contacts' => 'Kontaktlar',
+        'legal' => 'Yuridik hujjat',
+    ],
+
     'product_badge' => [
         'hit' => 'Xit',
         'new' => 'Yangi',

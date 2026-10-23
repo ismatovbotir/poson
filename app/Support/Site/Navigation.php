@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Route;
  * The main menu lists the visible top-level catalog categories from the
  * cached CategoryTree (flushed when a category is saved), then "Services",
  * which opens the services category (/catalog/services); the home services
- * teaser links to its subcategories. Static pages don't exist yet: until they
- * do, those links point to sections of the localized home page, and each
- * switches over once its named route exists.
+ * teaser links to its subcategories. Static pages (plan 07 K4) are linked
+ * while they are active (PageDirectory); an inactive or missing page falls
+ * back to a section of the localized home page (PAGE_FALLBACK).
  */
 class Navigation
 {
@@ -31,6 +31,15 @@ class Navigation
         'warehouse' => 'setup-integration',
         'marking' => 'setup-integration',
         'repair' => 'repair-maintenance',
+    ];
+
+    /**
+     * Home page fragment used while a static page is inactive (slug => fragment, default "#contacts").
+     *
+     * @var array<string, string>
+     */
+    public const PAGE_FALLBACK = [
+        'about' => '',
     ];
 
     /**
@@ -119,6 +128,7 @@ class Navigation
     public static function customerPages(): array
     {
         $pages = [
+            'about' => 'about',
             'delivery_payment' => 'delivery-payment',
             'warranty_service' => 'warranty-service',
             'b2b' => 'b2b',
@@ -139,6 +149,26 @@ class Navigation
     }
 
     /**
+     * Footer legal links (privacy policy, public offer): only the active
+     * pages, never a fallback anchor (decision 2026-10-23: the offer stays
+     * hidden until the lawyer approves it).
+     *
+     * @return list<array{key: string, label: string, url: string}>
+     */
+    public static function legalPages(): array
+    {
+        $items = [];
+
+        foreach (['privacy' => 'privacy', 'offer' => 'offer'] as $key => $slug) {
+            if (PageDirectory::isActive($slug)) {
+                $items[] = ['key' => $key, 'label' => __("site.footer.{$key}"), 'url' => static::page($slug)];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Catalog index URL (header "Catalog" button, hero CTA).
      */
     public static function catalog(): string
@@ -147,11 +177,18 @@ class Navigation
     }
 
     /**
-     * Static page URL (about, delivery, privacy, ...); the footer contacts block until pages exist.
+     * Static page URL (about, delivery, privacy, ...) while the page is active,
+     * else the home page section of PAGE_FALLBACK (the footer contacts block).
      */
     public static function page(string $slug): string
     {
-        return static::url('site.page', ['slug' => $slug], '#contacts');
+        $locale = app()->getLocale();
+
+        if (PageDirectory::isActive($slug)) {
+            return route('site.page', ['locale' => $locale, 'page' => $slug]);
+        }
+
+        return route('site.home', ['locale' => $locale]).(self::PAGE_FALLBACK[$slug] ?? '#contacts');
     }
 
     /**

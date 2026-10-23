@@ -15,6 +15,7 @@ use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
+use App\Livewire\Admin\Pages;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
 use App\Livewire\Admin\Settings;
@@ -93,6 +94,11 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/products/create', Products\Form::class)->name('products.create');
     Route::livewire('/products/{product}/edit', Products\Form::class)->name('products.edit');
     Route::get('/products/documents/{document}/download', DownloadProductDocumentController::class)->name('products.documents.download');
+
+    // Content (plan 07 7a): static pages. PagePolicy in the components; system pages are never deleted.
+    Route::livewire('/pages', Pages\Index::class)->name('pages.index');
+    Route::livewire('/pages/create', Pages\Form::class)->name('pages.create');
+    Route::livewire('/pages/{page}/edit', Pages\Form::class)->whereNumber('page')->name('pages.edit');
 
     // Settings (plan 04a). Admin only through settings.company; authorized in the component.
     Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');

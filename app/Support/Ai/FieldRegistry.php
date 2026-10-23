@@ -111,7 +111,13 @@ final class FieldRegistry
             // Brands
             new FieldSpec('brand.description', 'long', 1200, $html, 'ai.hints.brand.description', 'admin.catalog.description'),
 
-            // FAQ items (category, product or general FAQ)
+            // Static pages (plan 07). The body of legal pages is never offered (Pages\Form).
+            new FieldSpec('page.title', 'name', 80, $plain, 'ai.hints.page.title', 'admin.pages.fields.title'),
+            new FieldSpec('page.body', 'long', 3000, $html, 'ai.hints.page.body', 'admin.pages.fields.body'),
+            new FieldSpec('page.meta_title', 'seo_title', 60, $plain, 'ai.hints.page.meta_title', 'admin.catalog.meta_title'),
+            new FieldSpec('page.meta_description', 'seo_description', 160, $plain, 'ai.hints.page.meta_description', 'admin.catalog.meta_description'),
+
+            // FAQ items (category, product, page or general FAQ)
             new FieldSpec('faq.question', 'question', 150, $plain, 'ai.hints.faq.question', 'admin.faq.fields.question'),
             new FieldSpec('faq.answer', 'answer', 600, $plain, 'ai.hints.faq.answer', 'admin.faq.fields.answer'),
         ];

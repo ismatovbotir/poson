@@ -3,6 +3,7 @@
 namespace App\Support\Site;
 
 use App\Actions\Settings\UpdateCompanySettings;
+use App\Enums\PageTemplate;
 use App\Rules\BrandSafeText;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
@@ -11,7 +12,8 @@ use Illuminate\Support\Facades\Cache;
 /**
  * /llms.txt (plan 04 §8, T12; llmstxt.org convention): "# Poson", an English
  * "> summary", then About, Services, Catalog (visible top-level categories
- * and the main services category, absolute English URLs) and Contacts, plus
+ * and the main services category, absolute English URLs), Pages (active
+ * static pages except legal ones, plan 07) and Contacts, plus
  * short Russian and Uzbek sections linking to /ru and /uz.
  *
  * Text comes from config/llms.php, contacts from CompanySettings: email,
@@ -20,7 +22,7 @@ use Illuminate\Support\Facades\Cache;
  * client fills them in). Never any price.
  *
  * Built on APP_URL (CanonicalHost) and cached for CACHE_TTL seconds; flushed
- * by Category and Product saves/deletes, category reordering and
+ * by Category, Product and Page saves/deletes, category reordering and
  * CompanySettings::flush().
  */
 class LlmsTxt
@@ -62,6 +64,7 @@ class LlmsTxt
         $blocks[] = $this->section($labels['about'] ?? 'About', $this->bullets($config['about_points']['en'] ?? []));
         $blocks[] = $this->section($labels['services'] ?? 'Services', $this->bullets($config['services_points']['en'] ?? []));
         $blocks[] = $this->section($labels['catalog'] ?? 'Catalog', $this->catalog((string) ($config['services_category'] ?? '')));
+        $blocks[] = $this->section($labels['pages'] ?? 'Pages', $this->pages());
         $blocks[] = $this->section($labels['contacts'] ?? 'Contacts', $this->contacts($labels));
 
         foreach ((array) ($config['locale_sections'] ?? []) as $locale => $section) {
@@ -106,6 +109,33 @@ class LlmsTxt
             }
 
             $lines[] = '- '.$this->link($name, route('site.catalog.category', ['locale' => 'en', 'category' => $node['slug']]));
+        }
+
+        return $lines;
+    }
+
+    /**
+     * Active static pages (PageDirectory) with English titles and URLs;
+     * legal pages (privacy, offer) are left out (plan 07).
+     *
+     * @return list<string>
+     */
+    protected function pages(): array
+    {
+        $lines = [];
+
+        foreach (PageDirectory::active() as $page) {
+            if ($page['template'] === PageTemplate::Legal->value) {
+                continue;
+            }
+
+            $title = PageDirectory::title($page['slug'], 'en');
+
+            if ($title === '' || BrandSafeText::violates($title)) {
+                continue;
+            }
+
+            $lines[] = '- '.$this->link($title, route('site.page', ['locale' => 'en', 'page' => $page['slug']]));
         }
 
         return $lines;

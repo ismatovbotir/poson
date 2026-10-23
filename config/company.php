@@ -52,6 +52,9 @@ return [
     // Map link template; {lat} and {lng} are replaced. No pasted embeds.
     'map_url_template' => 'https://yandex.uz/maps/?pt={lng},{lat}&z=17&l=map',
 
+    // Embedded map of the contacts page (plan 07): loaded only after a "Show map" click.
+    'map_embed_template' => 'https://yandex.uz/map-widget/v1/?ll={lng},{lat}&z=16&pt={lng},{lat},pm2rdm',
+
     'working_hours' => [
         'uz' => 'Du–Sh 9:00–18:00',
         'ru' => 'Пн–Сб 9:00–18:00',

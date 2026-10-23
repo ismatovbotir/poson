@@ -7,8 +7,8 @@ use App\Enums\LeadType;
 use App\Enums\TrafficChannel;
 use App\Livewire\Site\LeadForm;
 use App\Models\Lead;
+use App\Models\Page;
 use App\Models\Product;
-use App\Support\Site\Navigation;
 use Illuminate\Support\Facades\Log;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
@@ -340,9 +340,37 @@ it('renders accessible fields, a honeypot and the loading state', function () {
         ->toContain('tabindex="-1"')
         ->not->toContain('website')
         ->toContain(__('site.lead_form.sending'))
-        ->toContain(__('site.lead_form.consent_privacy'))
-        ->toContain('href="'.e(Navigation::page('privacy')).'"');
+        ->toContain(e(__('site.lead_form.consent_privacy')));
 });
+
+it('links the privacy policy only while its page is active', function (?bool $active) {
+    if ($active !== null) {
+        Page::factory()->system('privacy')->create(['is_active' => $active]);
+    }
+
+    $html = Livewire::test(LeadForm::class)->html();
+    $consent = e(__('site.lead_form.consent_privacy'));
+
+    expect($html)->toContain($consent);
+
+    if ($active) {
+        expect($html)
+            ->toContain('href="'.e(route('site.page', ['locale' => 'uz', 'page' => 'privacy'])).'"')
+            ->toContain('/uz/page/privacy')
+            ->toContain('>'.$consent.'</a>');
+
+        return;
+    }
+
+    expect($html)
+        ->not->toContain('/page/privacy')
+        ->not->toContain('#contacts')
+        ->not->toContain('>'.$consent.'</a>');
+})->with([
+    'active page' => true,
+    'inactive page' => false,
+    'missing page' => null,
+]);
 
 it('moves focus to the success message', function () {
     filledLeadForm()

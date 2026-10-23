@@ -11,7 +11,10 @@
         'phone' => ['type' => 'tel', 'autocomplete' => 'tel', 'required' => true, 'maxlength' => 32],
         'company' => ['type' => 'text', 'autocomplete' => 'organization', 'required' => false, 'maxlength' => 160],
     ];
-    $privacyLink = '<a href="'.e(\App\Support\Site\Navigation::page('privacy')).'" class="font-medium text-brand-600 underline hover:text-brand-700">'.e(__('site.lead_form.consent_privacy')).'</a>';
+    // Linked only while the privacy page is active (no fallback anchor for legal pages).
+    $privacyLink = \App\Support\Site\PageDirectory::isActive('privacy')
+        ? '<a href="'.e(\App\Support\Site\Navigation::page('privacy')).'" class="font-medium text-brand-600 underline hover:text-brand-700">'.e(__('site.lead_form.consent_privacy')).'</a>'
+        : e(__('site.lead_form.consent_privacy'));
 @endphp
 
 <div class="rounded-box-lg bg-white p-5 shadow-card sm:p-7">

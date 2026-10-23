@@ -7,9 +7,10 @@ import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 
 /**
- * Only https and mailto links, like the server-side HtmlSanitizer.
+ * Only https, mailto and site-relative ("/path") links, like the server-side
+ * HtmlSanitizer (which adds rel="nofollow" to external links only).
  */
-const allowedHref = (url) => /^(https:\/\/|mailto:)/i.test(url ?? '');
+const allowedHref = (url) => /^(https:\/\/|mailto:|\/(?!\/))/i.test(url ?? '');
 
 document.addEventListener('alpine:init', () => {
     /**
@@ -41,7 +42,7 @@ document.addEventListener('alpine:init', () => {
                                 autolink: true,
                                 defaultProtocol: 'https',
                                 isAllowedUri: (url) => allowedHref(url),
-                                HTMLAttributes: { rel: 'nofollow', target: null },
+                                HTMLAttributes: { rel: null, target: null },
                             },
                         }),
                     ],

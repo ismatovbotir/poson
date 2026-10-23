@@ -135,6 +135,12 @@ return [
         'expired' => 'Expired',
     ],
 
+    'page_template' => [
+        'default' => 'Standard',
+        'contacts' => 'Contacts',
+        'legal' => 'Legal document',
+    ],
+
     'product_badge' => [
         'hit' => 'Bestseller',
         'new' => 'New',

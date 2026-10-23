@@ -31,6 +31,11 @@ class RolesAndPermissionsSeeder extends Seeder
     public const VIEW = ['viewAny', 'view'];
 
     /**
+     * Content resources (plan 07): Content manager and Admin only.
+     */
+    public const CONTENT = ['pages', 'news', 'banners'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -73,6 +78,7 @@ class RolesAndPermissionsSeeder extends Seeder
      *    customers.price-level: Admin only.
      *  - ai.use: the AI assistant in content forms (plan 02); ai-requests.viewAny:
      *    AI usage and limits screen (Admin only).
+     *  - pages.* / news.* / banners.*: Content manager + Admin (plan 07).
      *
      * @return array<string, list<string>>
      */
@@ -87,6 +93,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
             Role::ContentManager->value => [
                 ...static::abilities($catalog, self::CRUD),
+                ...static::abilities(self::CONTENT, self::CRUD),
                 'products.manage-services',
                 'ai.use',
             ],
@@ -141,6 +148,8 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 02 admin AI assist: ai.use (Admin + Content manager), the usage screen (Admin only).
             'ai.use',
             'ai-requests.viewAny',
+            // Plan 07 content: pages (7a), news (7b), banners (7c).
+            ...static::abilities(self::CONTENT, self::CRUD),
         ];
     }
 

@@ -16,6 +16,7 @@ use App\Services\Ai\AiQuota;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\FieldRegistry;
 use App\Support\Ai\FieldSpec;
+use App\Support\Ai\PageAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
@@ -101,6 +102,15 @@ class Assistant extends Component
             return;
         }
 
+        // The subject is re-resolved here: only a record of the field's kind that the user may view.
+        $context = AiContext::fromArray($context);
+        $context = [...$context->toArray(), ...$this->subjectFor($field, $context->subjectType, $context->subjectId)];
+
+        // Never the body of a stored legal page, whatever the event carries.
+        if (PageAiContext::refuses($field, AiContext::fromArray($context))) {
+            return;
+        }
+
         $locales = config('app.supported_locales');
 
         $this->resetErrorBag();
@@ -108,10 +118,7 @@ class Assistant extends Component
         $this->target = $target;
         $this->fieldKey = $field;
         $this->locale = in_array($locale, $locales, true) ? $locale : $locales[0];
-
-        // The subject is re-resolved here: only a record of the field's kind that the user may view.
-        $context = AiContext::fromArray($context);
-        $this->context = [...$context->toArray(), ...$this->subjectFor($field, $context->subjectType, $context->subjectId)];
+        $this->context = $context;
         $this->current = [];
 
         foreach ($locales as $code) {
@@ -339,7 +346,8 @@ class Assistant extends Component
             'product' => ['product'],
             'category' => ['category'],
             'brand' => ['brand'],
-            'faq' => ['category', 'product'],
+            'page' => ['page'],
+            'faq' => ['category', 'product', 'page'],
             default => [],
         };
 

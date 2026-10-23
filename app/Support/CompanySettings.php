@@ -272,6 +272,24 @@ class CompanySettings
     }
 
     /**
+     * Embeddable Yandex map of the office (config company.map_embed_template),
+     * or '' without coordinates. The contacts page loads it only on click.
+     */
+    public function mapEmbedUrl(): string
+    {
+        $geo = $this->geo();
+
+        if ($geo === null) {
+            return '';
+        }
+
+        return strtr((string) config('company.map_embed_template'), [
+            '{lat}' => static::formatCoordinate($geo['lat']),
+            '{lng}' => static::formatCoordinate($geo['lng']),
+        ]);
+    }
+
+    /**
      * Map link for coordinates (fixed provider template, plan 04 S9), or ''
      * when they are invalid.
      */

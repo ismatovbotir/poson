@@ -135,6 +135,12 @@ return [
         'expired' => 'Срок истёк',
     ],
 
+    'page_template' => [
+        'default' => 'Обычная',
+        'contacts' => 'Контакты',
+        'legal' => 'Юридический документ',
+    ],
+
     'product_badge' => [
         'hit' => 'Хит',
         'new' => 'Новинка',

@@ -1,5 +1,6 @@
 {{--
-    Site footer. "#contacts" is the contacts anchor until a contacts page exists.
+    Site footer. "#contacts" is the anchor inactive static pages fall back to
+    (Navigation::page()); "For customers" starts with "About us".
     Contacts come from Settings → Company: site phones (primary first, labelled),
     email, address with a map link, hours and social icons.
 --}}
@@ -71,11 +72,17 @@
 
         <div class="mt-11 flex flex-wrap justify-between gap-2.5 border-t border-ink-line pt-[22px] text-[13px]">
             <span>{{ __('site.footer.rights', ['year' => now()->year]) }}</span>
-            <span class="flex flex-wrap gap-x-2">
-                <a href="{{ \App\Support\Site\Navigation::page('privacy') }}" class="{{ $linkClass }}">{{ __('site.footer.privacy') }}</a>
-                <span aria-hidden="true">·</span>
-                <a href="{{ \App\Support\Site\Navigation::page('offer') }}" class="{{ $linkClass }}">{{ __('site.footer.offer') }}</a>
-            </span>
+            @php($legalLinks = \App\Support\Site\Navigation::legalPages())
+            @if ($legalLinks !== [])
+                <span class="flex flex-wrap gap-x-2" data-legal-links>
+                    @foreach ($legalLinks as $item)
+                        @if (! $loop->first)
+                            <span aria-hidden="true">·</span>
+                        @endif
+                        <a href="{{ $item['url'] }}" class="{{ $linkClass }}" data-legal-link="{{ $item['key'] }}">{{ $item['label'] }}</a>
+                    @endforeach
+                </span>
+            @endif
         </div>
     </div>
 </footer>

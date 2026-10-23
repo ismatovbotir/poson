@@ -70,9 +70,10 @@ final class Menu
             ]),
 
             new MenuGroup('content', 'menu.groups.content', [
-                new MenuItem('pages', 'menu.items.pages', 'page', 'admin.pages.index', roles: $content),
-                new MenuItem('news', 'menu.items.news', 'news', 'admin.news.index', roles: $content),
-                new MenuItem('banners', 'menu.items.banners', 'image', 'admin.banners.index', roles: $content),
+                // Plan 07: pages.* / news.* / banners.* (Content manager + Admin).
+                new MenuItem('pages', 'menu.items.pages', 'page', 'admin.pages.index', permission: 'pages.viewAny'),
+                new MenuItem('news', 'menu.items.news', 'news', 'admin.news.index', permission: 'news.viewAny'),
+                new MenuItem('banners', 'menu.items.banners', 'image', 'admin.banners.index', permission: 'banners.viewAny'),
             ]),
 
             new MenuGroup('telegram', 'menu.groups.telegram', [

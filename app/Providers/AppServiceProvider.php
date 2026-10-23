@@ -10,6 +10,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Setting;
@@ -67,8 +68,8 @@ class AppServiceProvider extends ServiceProvider
         // Morph types are stored as short aliases, never class names (renaming a
         // class can't orphan rows). Enforced: every model that owns a morph row
         // must be listed, or getMorphClass() throws. Owners today: media
-        // (medialibrary: brand, category, product, setting), roles/permissions
-        // (spatie: user), faq_items (category, product) and the CRM activities
+        // (medialibrary: brand, category, page, product, setting), roles/permissions
+        // (spatie: user), faq_items (category, product, page) and the CRM activities
         // timeline (lead, customer, quote). Livewire 4 reads
         // this map directly, so models as component properties are unaffected.
         Relation::enforceMorphMap([
@@ -76,6 +77,10 @@ class AppServiceProvider extends ServiceProvider
             'category' => Category::class,
             'customer' => Customer::class,
             'lead' => Lead::class,
+            // Plan 07 content. news_post / banner: models arrive in 7b / 7c.
+            'news_post' => 'App\Models\NewsPost',
+            'banner' => 'App\Models\Banner',
+            'page' => Page::class,
             'product' => Product::class,
             'quote' => Quote::class,
             'setting' => Setting::class,

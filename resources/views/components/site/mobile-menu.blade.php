@@ -52,7 +52,7 @@
                     </li>
                 @endforeach
                 <li>
-                    <a href="{{ route('site.home', ['locale' => app()->getLocale()]) }}#contacts" x-on:click="menuOpen = false" class="flex items-center justify-between py-3 font-medium text-ink hover:text-brand-600">
+                    <a href="{{ \App\Support\Site\Navigation::page('contacts') }}" x-on:click="menuOpen = false" class="flex items-center justify-between py-3 font-medium text-ink hover:text-brand-600">
                         {{ __('site.nav.contacts') }}
                         <x-site.icon name="arrow" size="size-4" class="text-ink-3" />
                     </a>

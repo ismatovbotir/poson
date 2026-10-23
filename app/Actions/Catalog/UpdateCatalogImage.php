@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Page;
 use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -13,9 +14,9 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileNameNotAllowed;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollection;
 
 /**
- * Replace, remove or re-label the single image of a category (image) or
- * brand (logo). The alt text {uz, ru, en} is kept in the media custom
- * property "alt"; conversions are queued (plan 03 D10).
+ * Replace, remove or re-label the single image of a category (image), a
+ * brand (logo) or a page (cover). The alt text {uz, ru, en} is kept in the
+ * media custom property "alt"; conversions are queued (plan 03 D10).
  *
  * Call it inside the same transaction as the record's save, so a rejected
  * file rolls the whole save back. The stored file gets a random name with
@@ -33,7 +34,7 @@ class UpdateCatalogImage
      *
      * @throws ValidationException
      */
-    public function handle(Category|Brand $model, ?UploadedFile $file, array $alt, bool $remove = false, string $field = 'image'): void
+    public function handle(Category|Brand|Page $model, ?UploadedFile $file, array $alt, bool $remove = false, string $field = 'image'): void
     {
         $alt = $this->cleanAlt($alt);
 
@@ -65,7 +66,7 @@ class UpdateCatalogImage
      *
      * @throws ValidationException
      */
-    private function store(Category|Brand $model, UploadedFile $file, array $alt, string $field): void
+    private function store(Category|Brand|Page $model, UploadedFile $file, array $alt, string $field): void
     {
         $extension = self::EXTENSIONS[(string) $file->getMimeType()] ?? null;
 

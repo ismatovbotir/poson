@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\SettingsArea;
 use App\Models\Category;
 use App\Models\FaqItem;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
@@ -14,7 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  * FAQ access follows the owner (plan 04 T12), by permission only:
  * category FAQ = the category policy (categories.view / categories.update),
  * product FAQ = the product policy (products.view / products.update, or
- * products.manage-services for software and services), general FAQ =
+ * products.manage-services for software and services), page FAQ = the
+ * page policy (pages.view / pages.update, plan 07), general FAQ =
  * Settings → Company (settings.company, Admin only).
  *
  * Usage: authorize('viewAny', [FaqItem::class, $owner]),
@@ -25,7 +27,7 @@ class FaqItemPolicy
     public function viewAny(User $user, ?Model $owner = null): bool
     {
         return match (true) {
-            $owner instanceof Category, $owner instanceof Product => $user->can('view', $owner),
+            $owner instanceof Category, $owner instanceof Product, $owner instanceof Page => $user->can('view', $owner),
             $owner === null => $this->manageGeneral($user),
             default => false,
         };
@@ -52,7 +54,7 @@ class FaqItemPolicy
     public function manage(User $user, ?Model $owner = null): bool
     {
         return match (true) {
-            $owner instanceof Category, $owner instanceof Product => $user->can('update', $owner),
+            $owner instanceof Category, $owner instanceof Product, $owner instanceof Page => $user->can('update', $owner),
             $owner === null => $this->manageGeneral($user),
             default => false,
         };

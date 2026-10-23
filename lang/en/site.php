@@ -330,6 +330,22 @@ return [
         'hours' => 'Working hours',
     ],
 
+    'pages' => [
+        'updated' => 'Updated: :date',
+        'contacts' => [
+            'title' => 'How to reach us',
+            'map_notice' => 'The map loads from Yandex Maps only when you open it.',
+            'show_map' => 'Show map',
+            'map_title' => 'Poson office on the map',
+            'form_title' => 'Write to us',
+            'form_text' => 'Describe your task: we will call back and help with the selection, setup and service.',
+            'requisites' => 'Company details',
+            'legal_name' => 'Legal name',
+            'inn' => 'Tax ID (INN)',
+            'legal_address' => 'Legal address',
+        ],
+    ],
+
     'faq' => [
         'title' => 'Frequently asked questions',
         'subtitle' => 'Delivery, warranty, setup and service',

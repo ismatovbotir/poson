@@ -27,10 +27,45 @@ it('strips scripts, styles, event handlers and javascript links', function () {
         ->toContain('bad');
 });
 
-it('allows only https and mailto links and adds rel=nofollow', function () {
-    expect(HtmlSanitizer::clean('<a href="https://poson.uz" target="_blank">ok</a>'))->toBe('<a href="https://poson.uz" rel="nofollow">ok</a>')
-        ->and(HtmlSanitizer::clean('<a href="mailto:info@poson.uz">m</a>'))->toContain('href="mailto:')
-        ->and(HtmlSanitizer::clean('<a href="http://poson.uz">http</a>'))->not->toContain('href');
+it('allows only https, mailto and site-relative links', function () {
+    expect(HtmlSanitizer::clean('<a href="mailto:info@poson.uz">m</a>'))->toBe('<a href="mailto:info&#64;poson.uz">m</a>')
+        ->and(HtmlSanitizer::clean('<a href="/uz/page/about">about</a>'))->toBe('<a href="/uz/page/about">about</a>')
+        ->and(HtmlSanitizer::clean('<a href="http://poson.uz">http</a>'))->toBe('<a>http</a>')
+        ->and(HtmlSanitizer::clean('<a href="javascript:alert(1)">js</a>'))->toBe('<a>js</a>');
+});
+
+it('adds rel=nofollow to external links only', function () {
+    config(['app.url' => 'https://poson.uz']);
+
+    expect(HtmlSanitizer::clean('<a href="https://zebra.com/ds2208" target="_blank">ext</a>'))->toBe('<a href="https://zebra.com/ds2208" rel="nofollow">ext</a>')
+        ->and(HtmlSanitizer::clean('<a href="https://poson.uz/ru/catalog" rel="nofollow">own</a>'))->toBe('<a href="https://poson.uz/ru/catalog">own</a>')
+        ->and(HtmlSanitizer::clean('<a href="https://www.poson.uz/uz">www</a>'))->toBe('<a href="https://www.poson.uz/uz">www</a>')
+        ->and(HtmlSanitizer::clean('<a href="https://poson.uz.evil.test/">lookalike</a>'))->toContain('rel="nofollow"')
+        ->and(HtmlSanitizer::clean('<a href="/uz/page/contacts">rel</a>'))->not->toContain('nofollow');
+});
+
+it('drops protocol-relative links, also on the site host', function (string $href) {
+    config(['app.url' => 'https://poson.uz']);
+
+    expect(HtmlSanitizer::clean('<p><a href="'.$href.'">x</a></p>'))->toBe('<p><a>x</a></p>');
+})->with([
+    'double slash' => '//evil.test/x',
+    'own host' => '//poson.uz/uz',
+    'triple slash' => '///evil.test',
+    'backslashes' => '\\\\evil.test',
+    'slash backslash' => '/\\evil.test',
+    'tab inside' => "/\t/evil.test",
+    'leading space' => ' //evil.test',
+    'encoded slashes' => '&#47;&#47;evil.test',
+]);
+
+it('treats protocol-relative hrefs as external', function () {
+    config(['app.url' => 'https://poson.uz']);
+
+    expect(HtmlSanitizer::isProtocolRelative('//poson.uz/uz'))->toBeTrue()
+        ->and(HtmlSanitizer::isExternal('//poson.uz/uz'))->toBeTrue()
+        ->and(HtmlSanitizer::isProtocolRelative('/uz/page/about'))->toBeFalse()
+        ->and(HtmlSanitizer::isProtocolRelative('https://evil.test'))->toBeFalse();
 });
 
 it('keeps the text of unwrapped formatting tags', function () {

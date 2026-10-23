@@ -303,7 +303,7 @@ return [
     ],
 
     'footer' => [
-        'about' => 'Kompaniya haqida',
+        'about' => 'Biz haqimizda',
         'catalog' => 'Katalog',
         'customers' => 'Mijozlarga',
         'contacts' => 'Kontaktlar',
@@ -328,6 +328,22 @@ return [
         'social' => 'Ijtimoiy tarmoqlar',
         'phones' => 'Telefonlar',
         'hours' => 'Ish vaqti',
+    ],
+
+    'pages' => [
+        'updated' => 'Yangilangan: :date',
+        'contacts' => [
+            'title' => 'Biz bilan bogʻlanish',
+            'map_notice' => 'Xarita Yandex Xaritalardan faqat siz ochganingizda yuklanadi.',
+            'show_map' => 'Xaritani koʻrsatish',
+            'map_title' => 'Poson ofisi xaritada',
+            'form_title' => 'Bizga yozing',
+            'form_text' => 'Vazifangizni yozing — sizga qoʻngʻiroq qilib, uskunani tanlash, sozlash va servis boʻyicha yordam beramiz.',
+            'requisites' => 'Rekvizitlar',
+            'legal_name' => 'Yuridik nomi',
+            'inn' => 'STIR',
+            'legal_address' => 'Yuridik manzil',
+        ],
     ],
 
     'faq' => [

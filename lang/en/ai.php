@@ -49,6 +49,7 @@ return [
         'quota_exceeded' => 'Daily limit reached. You can continue tomorrow.',
         'budget_exceeded' => 'Monthly budget used up. Please contact an administrator.',
         'unknown_field' => 'The AI assistant is not available for this field.',
+        'legal_body' => 'AI does not write the text of legal pages: edit it by hand with the lawyer.',
         'hint_invalid' => 'Enter the instructions (up to :max characters).',
         'source_empty' => 'There is no text to translate.',
         'unknown_locale' => 'Unknown language. Choose uz, ru or en.',
@@ -127,6 +128,12 @@ return [
         ],
         'brand' => [
             'description' => 'Write a short introduction to the brand {name} for its catalog page: what kind of equipment it makes, and that Poson helps choose, set up and service it. Do not invent history, figures or awards.',
+        ],
+        'page' => [
+            'title' => 'Write a clear title for the website page “{name}” of Poson. Short, no prices.',
+            'body' => 'Write the text of the website page “{name}” for business customers, based on the current text and facts in the context: clear sections with H2 headings, short paragraphs and lists. Stress Poson’s service (expert selection, setup, official warranty, own service centre). Do not invent addresses, phone numbers, prices or terms.',
+            'meta_title' => 'Write an SEO title for the website page “{name}”, ending with “Poson”. No prices.',
+            'meta_description' => 'Write an SEO meta description for the website page “{name}”: what the visitor finds on it. No prices.',
         ],
         'faq' => [
             'question' => 'Suggest one frequently asked question a business customer may have about {name}. Category: {category}.',
