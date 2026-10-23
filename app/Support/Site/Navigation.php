@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Route;
  * which opens the services category (/catalog/services); the home services
  * teaser links to its subcategories. Static pages (plan 07 K4) are linked
  * while they are active (PageDirectory); an inactive or missing page falls
- * back to a section of the localized home page (PAGE_FALLBACK).
+ * back to a section of the localized home page (PAGE_FALLBACK). The news
+ * list (plan 07 7b) is linked only while the locale has a visible post
+ * (NewsDirectory).
  */
 class Navigation
 {
@@ -121,7 +123,8 @@ class Navigation
     }
 
     /**
-     * Footer "For customers" column and the topbar links.
+     * Footer "For customers" column and the topbar links; ends with News
+     * while the locale has visible news.
      *
      * @return list<array{key: string, label: string, url: string}>
      */
@@ -145,7 +148,30 @@ class Navigation
             ];
         }
 
+        $news = static::news();
+
+        if ($news !== null) {
+            $items[] = ['key' => 'news', ...$news];
+        }
+
         return $items;
+    }
+
+    /**
+     * The news list link while the current locale has a visible post
+     * (footer, topbar, mobile drawer), else null: no link to an empty list.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public static function news(): ?array
+    {
+        $locale = app()->getLocale();
+
+        if (! NewsDirectory::hasVisible($locale)) {
+            return null;
+        }
+
+        return ['label' => __('site.nav.news'), 'url' => route('site.news.index', ['locale' => $locale])];
     }
 
     /**

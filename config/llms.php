@@ -31,6 +31,7 @@ return [
         'services' => 'Services',
         'catalog' => 'Catalog',
         'pages' => 'Pages',
+        'news' => 'News',
         'contacts' => 'Contacts',
         'website' => 'Website',
         'email' => 'Email',

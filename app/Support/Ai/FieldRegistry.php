@@ -117,6 +117,13 @@ final class FieldRegistry
             new FieldSpec('page.meta_title', 'seo_title', 60, $plain, 'ai.hints.page.meta_title', 'admin.catalog.meta_title'),
             new FieldSpec('page.meta_description', 'seo_description', 160, $plain, 'ai.hints.page.meta_description', 'admin.catalog.meta_description'),
 
+            // News posts (plan 07 7b)
+            new FieldSpec('news.title', 'name', 90, $plain, 'ai.hints.news.title', 'admin.news.fields.title'),
+            new FieldSpec('news.excerpt', 'short', 300, $plain, 'ai.hints.news.excerpt', 'admin.news.fields.excerpt'),
+            new FieldSpec('news.body', 'long', 3000, $html, 'ai.hints.news.body', 'admin.news.fields.body'),
+            new FieldSpec('news.meta_title', 'seo_title', 60, $plain, 'ai.hints.news.meta_title', 'admin.catalog.meta_title'),
+            new FieldSpec('news.meta_description', 'seo_description', 160, $plain, 'ai.hints.news.meta_description', 'admin.catalog.meta_description'),
+
             // FAQ items (category, product, page or general FAQ)
             new FieldSpec('faq.question', 'question', 150, $plain, 'ai.hints.faq.question', 'admin.faq.fields.question'),
             new FieldSpec('faq.answer', 'answer', 600, $plain, 'ai.hints.faq.answer', 'admin.faq.fields.answer'),

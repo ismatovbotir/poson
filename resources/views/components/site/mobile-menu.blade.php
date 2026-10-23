@@ -51,6 +51,14 @@
                         </a>
                     </li>
                 @endforeach
+                @if ($newsLink = \App\Support\Site\Navigation::news())
+                    <li>
+                        <a href="{{ $newsLink['url'] }}" x-on:click="menuOpen = false" class="flex items-center justify-between py-3 font-medium text-ink hover:text-brand-600" data-nav-news>
+                            {{ $newsLink['label'] }}
+                            <x-site.icon name="arrow" size="size-4" class="text-ink-3" />
+                        </a>
+                    </li>
+                @endif
                 <li>
                     <a href="{{ \App\Support\Site\Navigation::page('contacts') }}" x-on:click="menuOpen = false" class="flex items-center justify-between py-3 font-medium text-ink hover:text-brand-600">
                         {{ __('site.nav.contacts') }}

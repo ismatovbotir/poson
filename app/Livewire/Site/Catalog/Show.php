@@ -15,6 +15,7 @@ use App\Support\Catalog\ProductCtas;
 use App\Support\Catalog\SoftwareSpecs;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\FaqContent;
+use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
 use Illuminate\Contracts\View\View;
@@ -26,8 +27,8 @@ use Livewire\Component;
  * Product page (plan 03 T18), ported from product.html: gallery, title,
  * SKU, brand, stock, Retail price (or "price on request"), key specs, tabs
  * (description, specs, documents, delivery & warranty), related products,
- * the quote form and a mobile sticky bar. The buy box and the sticky bar
- * buttons come from ProductCtas (shared with the cards and the Mini App);
+ * related news (plan 07 7b), the quote form and a mobile sticky bar. The
+ * buy box and the sticky bar buttons come from ProductCtas (shared with the cards and the Mini App);
  * software shows its details (SoftwareSpecs) as chips and a modules list.
  *
  * 404 unless the product is shown on the site (active, not trashed, in a
@@ -92,6 +93,8 @@ class Show extends Component
             'software' => $product->type === ProductType::Software ? SoftwareSpecs::forProduct($product, $skipped) : [],
             'documents' => $this->documents($product->documents),
             'related' => $this->related(),
+            // Plan 07 7b: one query (none while the locale has no news), media eager-loaded.
+            'news' => NewsCards::latest(NewsCards::LATEST_LIMIT, $product->id),
             'breadcrumbs' => $breadcrumbs,
             'categoryName' => CategoryTree::name($product->category_id),
             'placeholder' => ProductCards::placeholder($product->category_id),

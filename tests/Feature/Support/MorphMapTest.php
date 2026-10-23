@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\FaqItem;
 use App\Models\Lead;
+use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
@@ -51,6 +52,13 @@ it('stores the short alias for page FAQ items and cover media', function () {
         ->and($page->getMorphClass())->toBe('page')
         ->and(Relation::getMorphedModel('news_post'))->toBe('App\\Models\\NewsPost')
         ->and(Relation::getMorphedModel('banner'))->toBe('App\\Models\\Banner');
+});
+
+it('stores the short alias for news cover media', function () {
+    $post = NewsPost::factory()->create();
+
+    expect($post->getMorphClass())->toBe('news_post')
+        ->and(Relation::getMorphedModel('news_post'))->toBe(NewsPost::class);
 });
 
 it('refuses a morph type for a model missing from the map', function () {

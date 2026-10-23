@@ -41,6 +41,7 @@ return [
     ],
 
     'nav' => [
+        'news' => 'News',
         'scanners' => 'Scanners',
         'label_printers' => 'Label printers',
         'mobile_computers' => 'Mobile computers',
@@ -54,6 +55,10 @@ return [
     ],
 
     'home' => [
+        'news' => [
+            'title' => 'Latest news',
+            'all' => 'All news',
+        ],
         'hero' => [
             'eyebrow' => 'Warehouse · Retail · Manufacturing',
             'title_before' => 'Scanners, printers and mobile computers, ',
@@ -246,6 +251,7 @@ return [
     ],
 
     'product' => [
+        'related_news' => 'News about this product',
         'sku' => 'SKU',
         'brand' => 'Brand',
         'model' => 'Model',
@@ -345,6 +351,19 @@ return [
             'inn' => 'Tax ID (INN)',
             'legal_address' => 'Legal address',
         ],
+    ],
+
+    'news' => [
+        'title' => 'News',
+        'subtitle' => 'New equipment, service and company news from Poson',
+        'seo_title' => 'News — Poson',
+        'seo_description' => 'Poson news: new barcode scanners, printers and mobile computers, setup and service updates, company events.',
+        'empty' => 'There is no news in this language yet.',
+        'rss' => 'RSS feed',
+        'rss_title' => 'Poson news',
+        'related_products' => 'Products in this post',
+        'related_categories' => 'Catalog sections',
+        'back' => 'All news',
     ],
 
     'faq' => [

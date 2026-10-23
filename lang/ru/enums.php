@@ -141,6 +141,17 @@ return [
         'legal' => 'Юридический документ',
     ],
 
+    'news_status' => [
+        'draft' => 'Черновик',
+        'published' => 'Опубликована',
+    ],
+
+    'news_state' => [
+        'draft' => 'Черновик',
+        'scheduled' => 'Запланирована',
+        'published' => 'Опубликована',
+    ],
+
     'product_badge' => [
         'hit' => 'Хит',
         'new' => 'Новинка',

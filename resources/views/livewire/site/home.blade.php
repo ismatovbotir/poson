@@ -206,6 +206,25 @@
         </section>
     @endif
 
+    {{-- Latest news (plan 07 7b): hidden while the locale has none --}}
+    @if ($news !== [])
+        <section class="py-12 md:py-[72px]" aria-labelledby="news-title" data-home-news>
+            <div class="site-container">
+                <x-site.section-head
+                    id="news-title"
+                    :title="__('site.home.news.title')"
+                    :link="route('site.news.index')"
+                    :link-label="__('site.home.news.all')"
+                />
+                <div class="grid gap-5 md:grid-cols-3">
+                    @foreach ($news as $card)
+                        <x-site.news-card :card="$card" wire:key="home-news-{{ $card->slug }}" />
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
     {{-- FAQ (general) --}}
     @if ($faq !== [])
         <div class="bg-bg-soft py-12 md:py-[72px]">

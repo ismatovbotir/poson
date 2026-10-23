@@ -4,6 +4,7 @@ namespace App\Support\Site;
 
 use App\Actions\Settings\UpdateCompanySettings;
 use App\Enums\PageTemplate;
+use App\Models\NewsPost;
 use App\Rules\BrandSafeText;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
@@ -13,7 +14,9 @@ use Illuminate\Support\Facades\Cache;
  * /llms.txt (plan 04 §8, T12; llmstxt.org convention): "# Poson", an English
  * "> summary", then About, Services, Catalog (visible top-level categories
  * and the main services category, absolute English URLs), Pages (active
- * static pages except legal ones, plan 07) and Contacts, plus
+ * static pages except legal ones, plan 07), News (the latest visible
+ * posts, plan 07 7b: the English version when translated, else the
+ * default-locale one) and Contacts, plus
  * short Russian and Uzbek sections linking to /ru and /uz.
  *
  * Text comes from config/llms.php, contacts from CompanySettings: email,
@@ -21,15 +24,20 @@ use Illuminate\Support\Facades\Cache;
  * than the config/company.php default (those are placeholders until the
  * client fills them in). Never any price.
  *
- * Built on APP_URL (CanonicalHost) and cached for CACHE_TTL seconds; flushed
- * by Category, Product and Page saves/deletes, category reordering and
- * CompanySettings::flush().
+ * Built on APP_URL (CanonicalHost) and cached for CACHE_TTL seconds (never
+ * past the next scheduled news post); flushed by Category, Product, Page and
+ * NewsPost saves/deletes, category reordering and CompanySettings::flush().
  */
 class LlmsTxt
 {
     public const CACHE_KEY = 'site.llms-txt';
 
     public const CACHE_TTL = 3600;
+
+    /**
+     * Latest news posts listed.
+     */
+    public const NEWS_LIMIT = 10;
 
     public function __construct(protected CompanySettings $company) {}
 
@@ -42,7 +50,7 @@ class LlmsTxt
     {
         return Cache::remember(
             self::CACHE_KEY,
-            now()->addSeconds(self::CACHE_TTL),
+            NewsDirectory::ttl(self::CACHE_TTL),
             fn (): string => CanonicalHost::using(fn (): string => $this->build()),
         );
     }
@@ -65,6 +73,7 @@ class LlmsTxt
         $blocks[] = $this->section($labels['services'] ?? 'Services', $this->bullets($config['services_points']['en'] ?? []));
         $blocks[] = $this->section($labels['catalog'] ?? 'Catalog', $this->catalog((string) ($config['services_category'] ?? '')));
         $blocks[] = $this->section($labels['pages'] ?? 'Pages', $this->pages());
+        $blocks[] = $this->section($labels['news'] ?? 'News', $this->news());
         $blocks[] = $this->section($labels['contacts'] ?? 'Contacts', $this->contacts($labels));
 
         foreach ((array) ($config['locale_sections'] ?? []) as $locale => $section) {
@@ -136,6 +145,44 @@ class LlmsTxt
             }
 
             $lines[] = '- '.$this->link($title, route('site.page', ['locale' => 'en', 'page' => $page['slug']]));
+        }
+
+        return $lines;
+    }
+
+    /**
+     * The latest visible news posts: English title and URL when the post is
+     * translated in English, else those of the default locale; posts in
+     * neither are left out, and so are titles breaking the brand rule.
+     *
+     * @return list<string>
+     */
+    protected function news(): array
+    {
+        $default = config('app.default_locale', 'uz');
+        $lines = [];
+
+        if (! NewsDirectory::hasVisible('en') && ! NewsDirectory::hasVisible($default)) {
+            return [];
+        }
+
+        $posts = NewsPost::query()
+            ->visible()
+            ->where(fn ($query) => $query->translatedIn('en')->orWhere(fn ($query) => $query->translatedIn($default)))
+            ->latestFirst()
+            ->limit(self::NEWS_LIMIT)
+            ->get(['id', 'slug', 'title', 'locales', 'published_at']);
+
+        foreach ($posts as $post) {
+            $locale = $post->isTranslatedIn('en') ? 'en' : $default;
+            $title = (string) $post->getTranslation('title', $locale, false);
+
+            if ($title === '' || BrandSafeText::violates($title)) {
+                continue;
+            }
+
+            $date = $post->published_at?->setTimezone(NewsPost::TIMEZONE)->format('Y-m-d');
+            $lines[] = '- '.$this->link($title, route('site.news.show', ['locale' => $locale, 'newsPost' => $post->slug])).($date ? " ({$date})" : '');
         }
 
         return $lines;

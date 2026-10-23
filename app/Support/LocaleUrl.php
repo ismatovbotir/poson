@@ -18,6 +18,35 @@ class LocaleUrl
     public const CLEAN_QUERY_KEYS = ['page'];
 
     /**
+     * Request attribute holding restrictTo() for the current page.
+     */
+    public const RESTRICTION = 'locale_url.restriction';
+
+    /**
+     * The current page exists only in some locales (a news post in its
+     * translated locales, plan 07 7b): alternates() lists only those, and
+     * switch() to any other locale returns $fallback($locale) instead (e.g.
+     * the news list). Kept on the request, so it never leaks into the next one.
+     *
+     * @param  list<string>  $locales
+     * @param  callable(string): string  $fallback
+     */
+    public static function restrictTo(array $locales, callable $fallback): void
+    {
+        request()->attributes->set(self::RESTRICTION, ['locales' => $locales, 'fallback' => $fallback]);
+    }
+
+    /**
+     * @return array{locales: list<string>, fallback: callable(string): string}|null
+     */
+    protected static function restriction(): ?array
+    {
+        $restriction = request()->attributes->get(self::RESTRICTION);
+
+        return is_array($restriction) ? $restriction : null;
+    }
+
+    /**
      * URL of the current page in another locale, for the language switcher.
      * Route parameters and the full query string are kept.
      *
@@ -26,6 +55,12 @@ class LocaleUrl
      */
     public static function switch(string $locale): string
     {
+        $restriction = static::restriction();
+
+        if ($restriction !== null && ! in_array($locale, $restriction['locales'], true)) {
+            return ($restriction['fallback'])($locale);
+        }
+
         [$url, $query] = static::localizedRouteAndQuery($locale);
 
         return static::withQuery($url, $query);
@@ -48,15 +83,21 @@ class LocaleUrl
     }
 
     /**
-     * Clean URL of the current page for every supported locale (hreflang alternates).
+     * Clean URL of the current page for every supported locale (hreflang
+     * alternates), or only the locales of restrictTo().
      *
      * @return array<string, string>
      */
     public static function alternates(): array
     {
         $urls = [];
+        $restriction = static::restriction();
 
         foreach (config('app.supported_locales') as $locale) {
+            if ($restriction !== null && ! in_array($locale, $restriction['locales'], true)) {
+                continue;
+            }
+
             $urls[$locale] = static::clean($locale);
         }
 

@@ -15,6 +15,7 @@ use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
+use App\Livewire\Admin\News;
 use App\Livewire\Admin\Pages;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
@@ -99,6 +100,11 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/pages', Pages\Index::class)->name('pages.index');
     Route::livewire('/pages/create', Pages\Form::class)->name('pages.create');
     Route::livewire('/pages/{page}/edit', Pages\Form::class)->whereNumber('page')->name('pages.edit');
+
+    // Content (plan 07 7b): news. NewsPostPolicy in the components.
+    Route::livewire('/news', News\Index::class)->name('news.index');
+    Route::livewire('/news/create', News\Form::class)->name('news.create');
+    Route::livewire('/news/{newsPost}/edit', News\Form::class)->whereNumber('newsPost')->name('news.edit');
 
     // Settings (plan 04a). Admin only through settings.company; authorized in the component.
     Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');

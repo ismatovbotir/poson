@@ -32,7 +32,8 @@
     $locale = app()->getLocale();
     $alternates = \App\Support\LocaleUrl::alternates();
     $canonical = $alternates[$locale] ?? \App\Support\LocaleUrl::canonical();
-    $xDefault = $alternates[\App\Support\LocaleUrl::defaultLocale()] ?? $canonical;
+    // Like the sitemap: the default locale, else the first listed one (a page restricted to ru + en).
+    $xDefault = $alternates[\App\Support\LocaleUrl::defaultLocale()] ?? (reset($alternates) ?: $canonical);
     $ogLocales = ['uz' => 'uz_UZ', 'ru' => 'ru_RU', 'en' => 'en_US'];
 @endphp
 

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -235,6 +236,16 @@ class Product extends Model implements HasMedia
     public function faqItems(): MorphMany
     {
         return $this->morphMany(FaqItem::class, 'faqable')->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * News posts about this product (plan 07 7b; the product page lists the visible ones).
+     *
+     * @return BelongsToMany<NewsPost, $this>
+     */
+    public function newsPosts(): BelongsToMany
+    {
+        return $this->belongsToMany(NewsPost::class);
     }
 
     /**

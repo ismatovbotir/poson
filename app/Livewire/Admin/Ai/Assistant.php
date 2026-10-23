@@ -347,6 +347,7 @@ class Assistant extends Component
             'category' => ['category'],
             'brand' => ['brand'],
             'page' => ['page'],
+            'news' => ['news_post'],
             'faq' => ['category', 'product', 'page'],
             default => [],
         };

@@ -263,6 +263,18 @@
         </section>
     @endforeach
 
+    {{-- Related news (plan 07 7b): visible posts in this locale that link the product --}}
+    @if ($news !== [])
+        <section class="mt-10" aria-labelledby="related-news" data-related-news>
+            <x-site.section-head id="related-news" :title="__('site.product.related_news')" />
+            <div class="grid gap-5 md:grid-cols-3">
+                @foreach ($news as $card)
+                    <x-site.news-card :card="$card" wire:key="related-news-{{ $card->slug }}" />
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- FAQ: the product's, else its category's --}}
     @if ($faq !== [])
         <x-site.faq class="mt-12 md:mt-[72px]" id="product-faq-title" :items="$faq" :title="__('site.faq.title')" />

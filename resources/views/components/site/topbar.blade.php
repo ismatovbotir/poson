@@ -10,6 +10,9 @@
             <span>{{ $company->city() }}</span>
             <span class="hidden lg:inline">{{ $company->workingHours() }}</span>
             <a href="{{ \App\Support\Site\Navigation::page('delivery-payment') }}" class="hidden hover:text-white focus-visible:outline-white md:inline">{{ __('site.topbar.delivery_payment') }}</a>
+            @if ($newsLink = \App\Support\Site\Navigation::news())
+                <a href="{{ $newsLink['url'] }}" class="hidden hover:text-white focus-visible:outline-white md:inline" data-nav-news>{{ $newsLink['label'] }}</a>
+            @endif
         </div>
 
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-[22px]">

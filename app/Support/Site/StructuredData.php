@@ -3,6 +3,7 @@
 namespace App\Support\Site;
 
 use App\Enums\StockStatus;
+use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 /**
  * schema.org JSON-LD for public pages: Organization and LocalBusiness (home),
  * BreadcrumbList, Product with its Offer, WebPage / AboutPage / ContactPage
- * for static pages (plan 07), and FAQPage (plan 04 T12; only
+ * for static pages (plan 07), NewsArticle for news posts (plan 07 7b), and FAQPage (plan 04 T12; only
  * where the FAQ is visible on the page). Every block is printed with
  * toScript().
  *
@@ -303,6 +304,54 @@ class StructuredData
 
         if (filled($image)) {
             $data['primaryImageOfPage'] = ['@type' => 'ImageObject', 'url' => $image];
+        }
+
+        return $data;
+    }
+
+    /**
+     * NewsArticle for a news post (plan 07 7b): headline, url, description,
+     * language, publication and content dates, the cover image, and the
+     * Organization as author and publisher (staff names are never published).
+     * Empty values are left out.
+     *
+     * @return array<string, mixed>
+     */
+    public function newsArticle(NewsPost $post, string $headline, string $url, ?string $description = null, ?string $image = null): array
+    {
+        $organization = [
+            '@type' => 'Organization',
+            '@id' => $this->homeUrl().'#organization',
+            'name' => $this->company->name(),
+            'url' => $this->homeUrl(),
+            'logo' => ['@type' => 'ImageObject', 'url' => $this->company->logoUrl() ?: asset('assets/site/logo.svg')],
+        ];
+
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'NewsArticle',
+            'headline' => Str::limit($headline, 110, '…', preserveWords: true),
+            'url' => $url,
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],
+            'inLanguage' => app()->getLocale(),
+            'author' => $organization,
+            'publisher' => $organization,
+        ];
+
+        if (filled($description)) {
+            $data['description'] = $description;
+        }
+
+        if ($post->published_at !== null) {
+            $data['datePublished'] = $post->published_at->toAtomString();
+        }
+
+        if (($modified = $post->contentUpdatedAt()) !== null) {
+            $data['dateModified'] = $modified->toAtomString();
+        }
+
+        if (filled($image)) {
+            $data['image'] = [$image];
         }
 
         return $data;

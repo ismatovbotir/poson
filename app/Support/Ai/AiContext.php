@@ -120,7 +120,7 @@ final readonly class AiContext
             specs: self::clean($data['specs'] ?? '', self::MAX_SPECS, multiline: true),
             question: self::clean($data['question'] ?? ''),
             facts: $facts,
-            subjectType: in_array($type, ['category', 'product', 'brand', 'page'], true) ? $type : null,
+            subjectType: in_array($type, ['category', 'product', 'brand', 'page', 'news_post'], true) ? $type : null,
             subjectId: is_int($id) && $id > 0 ? $id : null,
         );
     }

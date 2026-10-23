@@ -141,6 +141,17 @@ return [
         'legal' => 'Legal document',
     ],
 
+    'news_status' => [
+        'draft' => 'Draft',
+        'published' => 'Published',
+    ],
+
+    'news_state' => [
+        'draft' => 'Draft',
+        'scheduled' => 'Scheduled',
+        'published' => 'Published',
+    ],
+
     'product_badge' => [
         'hit' => 'Bestseller',
         'new' => 'New',

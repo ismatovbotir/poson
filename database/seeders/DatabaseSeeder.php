@@ -9,7 +9,8 @@ use Illuminate\Database\Seeder;
 /**
  * Local / testing seed: roles and permissions, the catalog base data
  * (categories, attributes, brands), the FAQ, demo products on local /
- * staging (and demo leads with customers, DemoLeadsSeeder), plus a non-staff
+ * staging (and demo leads with customers, DemoLeadsSeeder, and demo news,
+ * DemoNewsSeeder), plus a non-staff
  * test user.
  *
  * Production deploys do not run this seeder; they run
@@ -38,7 +39,7 @@ class DatabaseSeeder extends Seeder
 
         // Demo catalog: local and staging only, never production.
         if (app()->environment(['local', 'staging'])) {
-            $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class]);
+            $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class]);
         }
 
         if (app()->environment(['local', 'testing'])) {

@@ -136,6 +136,13 @@ return [
             'meta_title' => '«{name}» sayt sahifasi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
             'meta_description' => '«{name}» sayt sahifasi uchun SEO tavsif yozing: tashrif buyuruvchi unda nimani topadi. Narxlarsiz.',
         ],
+        'news' => [
+            'title' => 'Poson uchun «{name}» haqida tushunarli yangilik sarlavhasini yozing. Qisqa va faktlarga asoslangan, narxlarsiz.',
+            'excerpt' => '«{name}» yangiligi uchun yangiliklar roʻyxatiga bir-ikki gaplik qisqacha mazmun yozing, kontekstdagi matnga asoslaning. Narxlarsiz.',
+            'body' => 'Biznes mijozlar uchun Posonning «{name}» yangiligi matnini joriy matn va kontekstdagi faktlar asosida yozing: qisqa kirish, soʻng H2 sarlavhali boʻlimlar, qisqa xatboshilar va roʻyxatlar. Poson servisini taʼkidlang (mutaxassis tanlovi, sozlash, rasmiy kafolat, oʻz servis markazi). Sana, raqam, narx va iqtiboslarni oʻylab topmang.',
+            'meta_title' => '«{name}» yangiligi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
+            'meta_description' => '«{name}» yangiligi uchun SEO tavsif yozing: oʻquvchi nimani bilib oladi. Narxlarsiz.',
+        ],
         'faq' => [
             'question' => 'Biznes mijozning {name} haqida tez-tez beradigan bitta savolini taklif qiling. Toifa: {category}.',
             'answer' => '«{question}» savoliga aniq javob yozing (mavzu: {name}). Faqat yozuvdagi maʼlumotlardan foydalaning; javob model yoki buyurtmaga bogʻliq boʻlsa, shuni ayting va Poson bilan bogʻlanishni taklif qiling.',

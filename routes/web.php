@@ -3,12 +3,14 @@
 use App\Http\Controllers\RedirectToLocale;
 use App\Http\Controllers\Site\DownloadProductDocumentController;
 use App\Http\Controllers\Site\LlmsController;
+use App\Http\Controllers\Site\NewsFeedController;
 use App\Http\Controllers\Site\PartnerRedirectController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Home;
+use App\Livewire\Site\News;
 use App\Livewire\Site\Pages;
 use App\Livewire\Site\Search;
 use Illuminate\Support\Facades\Route;
@@ -47,4 +49,9 @@ Route::prefix('{locale}')
 
         // Static pages (plan 07 7a): 404 unless active.
         Route::livewire('/page/{page:slug}', Pages\Show::class)->name('page');
+
+        // News (plan 07 7b): only visible posts, only in their translated locales (404 elsewhere).
+        Route::livewire('/news', News\Index::class)->name('news.index');
+        Route::get('/news/rss.xml', NewsFeedController::class)->middleware('throttle:60,1,news-rss')->name('news.rss');
+        Route::livewire('/news/{newsPost:slug}', News\Show::class)->where('newsPost', '[a-z0-9-]+')->name('news.show');
     });

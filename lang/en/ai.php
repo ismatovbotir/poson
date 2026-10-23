@@ -135,6 +135,13 @@ return [
             'meta_title' => 'Write an SEO title for the website page “{name}”, ending with “Poson”. No prices.',
             'meta_description' => 'Write an SEO meta description for the website page “{name}”: what the visitor finds on it. No prices.',
         ],
+        'news' => [
+            'title' => 'Write a clear news headline for Poson about “{name}”. Short and factual, no prices.',
+            'excerpt' => 'Write a one or two sentence summary of the news “{name}” for the news list, based on the text in the context. No prices.',
+            'body' => 'Write the text of the Poson news “{name}” for business customers, based on the current text and the facts in the context: a short lead, then sections with H2 headings, short paragraphs and lists. Stress Poson’s service (expert selection, setup, official warranty, own service centre). Do not invent dates, figures, prices or quotes.',
+            'meta_title' => 'Write an SEO title for the news “{name}”, ending with “Poson”. No prices.',
+            'meta_description' => 'Write an SEO meta description for the news “{name}”: what the reader learns. No prices.',
+        ],
         'faq' => [
             'question' => 'Suggest one frequently asked question a business customer may have about {name}. Category: {category}.',
             'answer' => 'Write a clear answer to the question "{question}" (topic: {name}). Use only facts from the record; if the answer depends on the model or the order, say so and offer to contact Poson.',

@@ -141,6 +141,17 @@ return [
         'legal' => 'Yuridik hujjat',
     ],
 
+    'news_status' => [
+        'draft' => 'Qoralama',
+        'published' => 'Eʼlon qilingan',
+    ],
+
+    'news_state' => [
+        'draft' => 'Qoralama',
+        'scheduled' => 'Rejalashtirilgan',
+        'published' => 'Eʼlon qilingan',
+    ],
+
     'product_badge' => [
         'hit' => 'Xit',
         'new' => 'Yangi',

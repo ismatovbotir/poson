@@ -1,11 +1,12 @@
 {{--
     Public site pager (template .pager), used with $paginator->links('vendor.pagination.site').
     Real links (crawlable, open in a new tab) that Livewire intercepts with wire:click.
+    Scrolls to #catalog-results, or the element of $scrollTarget (links('vendor.pagination.site', ['scrollTarget' => 'news-results'])).
 --}}
 @if ($paginator->hasPages())
     @php
         $linkClass = 'grid h-[42px] min-w-[42px] place-items-center rounded-btn border border-line px-2 font-semibold transition-colors hover:border-brand hover:text-brand-600';
-        $scroll = "document.getElementById('catalog-results')?.scrollIntoView({ behavior: 'smooth' })";
+        $scroll = "document.getElementById('".($scrollTarget ?? 'catalog-results')."')?.scrollIntoView({ behavior: 'smooth' })";
     @endphp
     <nav class="mt-9 flex flex-wrap justify-center gap-1.5" aria-label="{{ __('site.pagination.label') }}">
         @unless ($paginator->onFirstPage())

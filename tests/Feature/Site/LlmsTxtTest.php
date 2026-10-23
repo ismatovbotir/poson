@@ -4,6 +4,7 @@ use App\Actions\Catalog\ReorderCategory;
 use App\Actions\Settings\UpdateCompanySettings;
 use App\Enums\SettingsArea;
 use App\Models\Category;
+use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\CompanySettings;
 use App\Support\Site\LlmsTxt;
@@ -168,8 +169,11 @@ it('builds with a fixed number of queries', function () {
         llmsCategory("category-{$index}", "Category {$index}");
     }
 
+    NewsPost::factory()->count(5)->create();
+
     Cache::flush();
     $queries = countQueries(fn () => app(LlmsTxt::class)->text());
 
-    expect($queries)->toBeLessThanOrEqual(3);
+    // Catalog and pages (3), plus the news directory and the latest news (plan 07 7b).
+    expect($queries)->toBeLessThanOrEqual(5);
 });

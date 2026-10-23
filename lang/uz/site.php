@@ -41,6 +41,7 @@ return [
     ],
 
     'nav' => [
+        'news' => 'Yangiliklar',
         'scanners' => 'Skanerlar',
         'label_printers' => 'Yorliq printerlari',
         'mobile_computers' => 'TSD',
@@ -54,6 +55,10 @@ return [
     ],
 
     'home' => [
+        'news' => [
+            'title' => 'Soʻnggi yangiliklar',
+            'all' => 'Barcha yangiliklar',
+        ],
         'hero' => [
             'eyebrow' => 'Ombor · Chakana savdo · Ishlab chiqarish',
             'title_before' => 'Skanerlar, printerlar va TSD — ',
@@ -246,6 +251,7 @@ return [
     ],
 
     'product' => [
+        'related_news' => 'Mahsulot haqida yangiliklar',
         'sku' => 'Artikul',
         'brand' => 'Brend',
         'model' => 'Model',
@@ -345,6 +351,19 @@ return [
             'inn' => 'STIR',
             'legal_address' => 'Yuridik manzil',
         ],
+    ],
+
+    'news' => [
+        'title' => 'Yangiliklar',
+        'subtitle' => 'Poson kompaniyasining yangi uskunalari, servisi va voqealari',
+        'seo_title' => 'Yangiliklar — Poson',
+        'seo_description' => 'Poson yangiliklari: yangi shtrix-kod skanerlari, printerlar va TSD, sozlash va servis, kompaniya voqealari.',
+        'empty' => 'Bu tilda hozircha yangiliklar yoʻq.',
+        'rss' => 'RSS lentasi',
+        'rss_title' => 'Poson yangiliklari',
+        'related_products' => 'Nashrdagi mahsulotlar',
+        'related_categories' => 'Katalog boʻlimlari',
+        'back' => 'Barcha yangiliklar',
     ],
 
     'faq' => [

@@ -20,6 +20,11 @@ return [
     'per_page' => 24,
 
     /*
+    | News posts per page on the news list (plan 07 7b).
+    */
+    'news_per_page' => 12,
+
+    /*
     | Minutes /sitemap.xml stays cached (flushed on catalog saves).
     */
     'sitemap_cache_minutes' => 60,
