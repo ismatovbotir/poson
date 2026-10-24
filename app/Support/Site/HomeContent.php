@@ -13,7 +13,7 @@ use App\Support\Catalog\ProductCards;
 
 /**
  * Content blocks of the home page, from the catalog: top-level categories
- * with their product counts, featured products and active brands. The home
+ * with their product counts, featured products and listed brands. The home
  * page hides a section while its list is empty.
  */
 class HomeContent
@@ -108,23 +108,23 @@ class HomeContent
     }
 
     /**
-     * Active brands in sort order with their logo conversion (else the name
-     * is shown); each links to the catalog filtered by the brand.
+     * Listed brands (active, with a visible product) in public order with
+     * their logo conversion (else the name is shown); each links to its
+     * brand page.
      *
      * @return list<BrandItem>
      */
     public function brands(): array
     {
         return Brand::query()
-            ->active()
+            ->listed()
             ->with('media')
-            ->orderBy('sort')
-            ->orderBy('name')
+            ->ordered()
             ->get()
             ->map(fn (Brand $brand): BrandItem => new BrandItem(
                 name: $brand->name,
                 slug: $brand->slug,
-                url: route('site.catalog.index', ['locale' => app()->getLocale(), 'brand' => [$brand->slug]]),
+                url: route('site.brands.show', ['locale' => app()->getLocale(), 'brand' => $brand->slug]),
                 logo: $brand->imageUrl('thumb'),
             ))
             ->all();

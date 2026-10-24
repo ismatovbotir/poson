@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Catalog\SaveBrand;
 use App\Enums\Role;
 use App\Livewire\Admin\Brands\Form;
 use App\Livewire\Admin\Brands\Index;
@@ -7,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 it('lists brands with logo thumbnails without lazy loading', function () {
@@ -123,4 +125,24 @@ it('refreshes the search text of its products, trashed ones too, when renamed', 
     expect($product->fresh()->search_text)->toContain('honeywell metrologic')->toContain('ms-9540')
         ->and(Product::withTrashed()->find($trashed->id)->search_text)->toContain('honeywell metrologic')
         ->and($other->fresh()->search_text)->toBe($otherText);
+});
+
+it('rejects low-price wording in the description, in the form and in SaveBrand', function () {
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class)
+        ->set('form.name', 'Zebra')
+        ->set('form.description.ru', '<p>Самые большие скидки</p>')
+        ->set('form.description.en', '<p>Cheapest scanners</p>')
+        ->call('save')
+        ->assertHasErrors(['form.description.ru', 'form.description.en']);
+
+    expect(fn () => app(SaveBrand::class)->handle(null, [
+        'name' => 'Zebra',
+        'slug' => null,
+        'description' => ['uz' => '<p>Eng <strong>arzon</strong> narx</p>', 'ru' => null, 'en' => null],
+        'website' => null,
+        'is_active' => true,
+        'sort' => null,
+    ]))->toThrow(ValidationException::class)
+        ->and(Brand::query()->count())->toBe(0);
 });

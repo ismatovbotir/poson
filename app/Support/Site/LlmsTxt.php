@@ -4,6 +4,7 @@ namespace App\Support\Site;
 
 use App\Actions\Settings\UpdateCompanySettings;
 use App\Enums\PageTemplate;
+use App\Models\Brand;
 use App\Models\NewsPost;
 use App\Rules\BrandSafeText;
 use App\Support\Catalog\CategoryTree;
@@ -13,7 +14,8 @@ use Illuminate\Support\Facades\Cache;
 /**
  * /llms.txt (plan 04 §8, T12; llmstxt.org convention): "# Poson", an English
  * "> summary", then About, Services, Catalog (visible top-level categories
- * and the main services category, absolute English URLs), Pages (active
+ * and the main services category, absolute English URLs), Brands (the
+ * brands list and the listed brands: active, with a visible product), Pages (active
  * static pages except legal ones, plan 07), News (the latest visible
  * posts, plan 07 7b: the English version when translated, else the
  * default-locale one) and Contacts, plus
@@ -25,7 +27,7 @@ use Illuminate\Support\Facades\Cache;
  * client fills them in). Never any price.
  *
  * Built on APP_URL (CanonicalHost) and cached for CACHE_TTL seconds (never
- * past the next scheduled news post); flushed by Category, Product, Page and
+ * past the next scheduled news post); flushed by Category, Product, Brand, Page and
  * NewsPost saves/deletes, category reordering and CompanySettings::flush().
  */
 class LlmsTxt
@@ -72,6 +74,7 @@ class LlmsTxt
         $blocks[] = $this->section($labels['about'] ?? 'About', $this->bullets($config['about_points']['en'] ?? []));
         $blocks[] = $this->section($labels['services'] ?? 'Services', $this->bullets($config['services_points']['en'] ?? []));
         $blocks[] = $this->section($labels['catalog'] ?? 'Catalog', $this->catalog((string) ($config['services_category'] ?? '')));
+        $blocks[] = $this->section($labels['brands'] ?? 'Brands', $this->brands());
         $blocks[] = $this->section($labels['pages'] ?? 'Pages', $this->pages());
         $blocks[] = $this->section($labels['news'] ?? 'News', $this->news());
         $blocks[] = $this->section($labels['contacts'] ?? 'Contacts', $this->contacts($labels));
@@ -118,6 +121,33 @@ class LlmsTxt
             }
 
             $lines[] = '- '.$this->link($name, route('site.catalog.category', ['locale' => 'en', 'category' => $node['slug']]));
+        }
+
+        return $lines;
+    }
+
+    /**
+     * The brands list, then the listed brands in public order (English URLs).
+     *
+     * @return list<string>
+     */
+    protected function brands(): array
+    {
+        $brands = Brand::query()->listed()->ordered()->get(['id', 'name', 'slug']);
+
+        if ($brands->isEmpty()) {
+            return [];
+        }
+
+        $labels = (array) config('llms.labels');
+        $lines = ['- '.$this->link((string) ($labels['all_brands'] ?? 'All brands'), route('site.brands.index', ['locale' => 'en']))];
+
+        foreach ($brands as $brand) {
+            if (BrandSafeText::violates($brand->name)) {
+                continue;
+            }
+
+            $lines[] = '- '.$this->link($brand->name, route('site.brands.show', ['locale' => 'en', 'brand' => $brand->slug]));
         }
 
         return $lines;

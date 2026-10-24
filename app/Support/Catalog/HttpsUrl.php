@@ -69,6 +69,22 @@ class HttpsUrl
     }
 
     /**
+     * Host of a valid link (without port, "www." kept), for display; null
+     * when the link is not valid. Read like isValid(): parse_url() mangles
+     * multibyte (IDN) hosts.
+     */
+    public static function host(?string $value): ?string
+    {
+        if (! static::isValid($value)) {
+            return null;
+        }
+
+        $authority = (string) preg_split('/[\/?#]/', substr((string) $value, strlen('https://')), 2)[0];
+
+        return (string) preg_replace('/:\d+$/', '', $authority);
+    }
+
+    /**
      * A domain name with at least two labels: letters (any script), digits
      * and hyphens; IP addresses and IPv6 literals are not partner links.
      */

@@ -2,17 +2,20 @@
 
 namespace App\Support\Site;
 
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use XMLWriter;
 
 /**
  * /sitemap.xml (plan 03 D16): the home page, the catalog index, visible
- * categories, active static pages (plan 07) and published products, each in every locale with
+ * categories, the brands list and the listed brands (active, with a visible
+ * product; decision 2026-10-24), active static pages (plan 07) and published products, each in every locale with
  * xhtml:link alternates (plus x-default) and lastmod. News (plan 07 7b): the
  * news list in the locales that have visible news, and every visible post
  * only in its translated locales (alternates and x-default among those).
@@ -21,7 +24,7 @@ use XMLWriter;
  * so the cached document can't carry a foreign Host header.
  *
  * Cached for config('site.sitemap_cache_minutes'), never past the next
- * scheduled news post (NewsDirectory::ttl()); Product, Category, Page and
+ * scheduled news post (NewsDirectory::ttl()); Product, Category, Brand, Page and
  * NewsPost flush it after their save or delete commits. Prices never appear here.
  *
  * Limit: one sitemap file holds at most 50 000 URLs (and 50 MB). With three
@@ -74,6 +77,8 @@ class Sitemap
             );
         }
 
+        $this->brands($xml);
+
         // Active static pages (plan 07), legal ones included.
         foreach (PageDirectory::active() as $page) {
             $this->write(
@@ -102,6 +107,39 @@ class Sitemap
         $xml->endDocument();
 
         return $xml->outputMemory();
+    }
+
+    /**
+     * The brands list and every listed brand; a brand's lastmod is the later
+     * of its own change and its newest visible product's (the list: the
+     * latest of those).
+     */
+    private function brands(XMLWriter $xml): void
+    {
+        $brands = Brand::query()
+            ->listed()
+            ->withMax(['products as visible_products_updated_at' => fn (Builder $products) => $products->visible()], 'updated_at')
+            ->ordered()
+            ->get(['id', 'slug', 'updated_at']);
+
+        if ($brands->isEmpty()) {
+            return;
+        }
+
+        $modified = $brands->mapWithKeys(fn (Brand $brand): array => [$brand->id => collect([
+            $brand->updated_at,
+            $this->date($brand->getAttribute('visible_products_updated_at')),
+        ])->filter()->max()]);
+
+        $this->write($xml, fn (string $locale): string => route('site.brands.index', ['locale' => $locale]), $modified->filter()->max());
+
+        foreach ($brands as $brand) {
+            $this->write(
+                $xml,
+                fn (string $locale): string => route('site.brands.show', ['locale' => $locale, 'brand' => $brand->slug]),
+                $modified[$brand->id],
+            );
+        }
     }
 
     /**

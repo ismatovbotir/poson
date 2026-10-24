@@ -4,9 +4,11 @@ namespace App\Actions\Catalog;
 
 use App\Models\Brand;
 use App\Models\Product;
+use App\Rules\BrandSafeText;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\ProductSearchText;
 use App\Support\HtmlSanitizer;
+use App\Support\Site\StructuredData;
 use App\Support\Slug;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +17,8 @@ use Illuminate\Validation\ValidationException;
  * Create or update a brand (fields only; the logo goes through UpdateCatalogImage).
  * The slug comes from the name when left empty; the description is sanitized.
  * Owns its invariants: a name is required and the website must be a valid
- * https link (HttpsUrl).
+ * https link (HttpsUrl), and the description (shown on the public brand
+ * page) carries no low-price / discount wording (BrandSafeText).
  * Renaming refreshes the search_text of the brand's products.
  */
 class SaveBrand
@@ -36,6 +39,20 @@ class SaveBrand
         // For software brands the website is also the "Try" partner / referral link (ProductCtas), kept as entered.
         if ($website !== null && ! HttpsUrl::isValid($website)) {
             throw ValidationException::withMessages(['website' => __('admin.brands.errors.website_https')]);
+        }
+
+        $descriptionErrors = [];
+
+        foreach ($data['description'] as $locale => $html) {
+            $text = StructuredData::plainText((string) $html);
+
+            if ($text !== '' && BrandSafeText::violates($text)) {
+                $descriptionErrors["description.{$locale}"] = __('validation.brand_safe', ['attribute' => __('admin.catalog.description').' ('.strtoupper((string) $locale).')']);
+            }
+        }
+
+        if ($descriptionErrors !== []) {
+            throw ValidationException::withMessages($descriptionErrors);
         }
 
         $brand ??= new Brand;

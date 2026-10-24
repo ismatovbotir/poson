@@ -1,6 +1,7 @@
 {{--
     Site footer. "#contacts" is the anchor inactive static pages fall back to
-    (Navigation::page()); "For customers" starts with "About us".
+    (Navigation::page()); "For customers" starts with "About us". "Catalog" lists
+    the top-level categories (Navigation::footerCatalog(), from CategoryTree), then Brands.
     Contacts come from Settings → Company: site phones (primary first, labelled),
     email, address with a map link, hours and social icons.
 --}}
@@ -27,6 +28,7 @@
                     @foreach (\App\Support\Site\Navigation::footerCatalog() as $item)
                         <li><a href="{{ $item['url'] }}" class="{{ $linkClass }}">{{ $item['label'] }}</a></li>
                     @endforeach
+                    <li><a href="{{ \App\Support\Site\Navigation::brands() }}" class="{{ $linkClass }}" data-footer-brands>{{ __('site.nav.brands') }}</a></li>
                 </ul>
             </nav>
 

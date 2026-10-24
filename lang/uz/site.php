@@ -20,8 +20,6 @@ return [
     ],
 
     'topbar' => [
-        'delivery_payment' => 'Yetkazib berish va toʻlov',
-        'b2b' => 'Korporativ mijozlarga',
         'telegram' => 'Telegram',
         'call_us' => 'Qoʻngʻiroq qiling',
     ],
@@ -42,15 +40,8 @@ return [
 
     'nav' => [
         'news' => 'Yangiliklar',
-        'scanners' => 'Skanerlar',
-        'label_printers' => 'Yorliq printerlari',
-        'mobile_computers' => 'TSD',
-        'labels_ribbons' => 'Yorliqlar va ribbonlar',
-        'rfid' => 'RFID',
-        'pos' => 'POS uskunalari',
-        'software' => 'Dasturiy taʼminot',
+        'brands' => 'Brendlar',
         'services' => 'Xizmatlar',
-        'contacts' => 'Kontaktlar',
         'aria_label' => 'Asosiy menyu',
     ],
 
@@ -350,6 +341,24 @@ return [
             'legal_name' => 'Yuridik nomi',
             'inn' => 'STIR',
             'legal_address' => 'Yuridik manzil',
+        ],
+    ],
+
+    'brands' => [
+        'title' => 'Brendlar',
+        'subtitle' => 'Biz yetkazib beradigan, sozlaydigan va servis koʻrsatadigan uskunalar, sarf materiallari va dasturlar ishlab chiqaruvchilari',
+        'seo_title' => 'Brendlar — Poson',
+        'seo_description' => 'Shtrix-kod skanerlari, yorliq printerlari, TSD, RFID va POS uskunalari brendlari: tanlash, sozlash, kafolat va oʻz servis markazimizda xizmat koʻrsatish.',
+        'products_count' => ':count ta mahsulot',
+        'empty' => 'Hozircha brendlar yoʻq.',
+        'show' => [
+            'seo_title' => ':name — tanlash, sozlash va servis | Poson',
+            'seo_description' => ':name uskunalari Poson kompaniyasida: tanlash, sozlash va integratsiya, kafolat va oʻz servis markazimizda xizmat koʻrsatish.',
+            'products' => 'Mahsulotlar',
+            'categories' => 'Boʻlim boʻyicha filtr',
+            'all_categories' => 'Barchasi',
+            'website' => 'Rasmiy sayt',
+            'empty' => 'Bu brendning mahsulotlari saytda hozircha yoʻq.',
         ],
     ],
 

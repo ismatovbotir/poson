@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms\Admin\Brands;
 
 use App\Models\Brand;
+use App\Rules\BrandSafeText;
 use App\Rules\HttpsLink;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -59,7 +60,7 @@ class BrandForm extends Form
         return [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('brands', 'slug')->ignore($this->component->brand?->id)],
-            'description.*' => ['nullable', 'string', 'max:20000'],
+            'description.*' => ['nullable', 'string', 'max:20000', new BrandSafeText],
             'website' => ['nullable', 'string', new HttpsLink],
             'is_active' => ['boolean'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],

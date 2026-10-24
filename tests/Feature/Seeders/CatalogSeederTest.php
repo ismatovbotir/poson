@@ -33,14 +33,17 @@ it('seeds the catalog idempotently', function () {
         ->and($first[4])->toBe(count(CatalogSeeder::BRANDS));
 });
 
-it('resolves every Navigation category slug to an active top-level category', function () {
+it('resolves every footer catalog category to an active top-level category', function () {
     $this->seed(CatalogSeeder::class);
+    app()->setLocale('en');
 
-    $slugs = collect(Navigation::main())
-        ->reject(fn (array $item): bool => $item['key'] === 'services')
-        ->map(fn (array $item): string => str_replace('_', '-', $item['key']));
+    $slugs = collect(CategoryTree::visibleChildren(null))
+        ->pluck('slug')
+        ->reject(fn (string $slug): bool => $slug === Navigation::SERVICES_SLUG);
 
-    expect($slugs)->toHaveCount(7);
+    expect($slugs)->toHaveCount(7)
+        ->and(collect(Navigation::footerCatalog())->pluck('url')->all())
+        ->toBe($slugs->take(Navigation::FOOTER_CATEGORIES)->map(fn (string $slug): string => url("/en/catalog/{$slug}"))->values()->all());
 
     foreach ($slugs as $slug) {
         $category = Category::query()->where('slug', $slug)->first();

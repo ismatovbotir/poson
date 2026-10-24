@@ -8,6 +8,7 @@ use App\Http\Controllers\Site\PartnerRedirectController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
+use App\Livewire\Site\Brands;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Home;
 use App\Livewire\Site\News;
@@ -44,6 +45,10 @@ Route::prefix('{locale}')
         Route::get('/go/{product:slug}', PartnerRedirectController::class)
             ->middleware('throttle:30,1,partner')
             ->name('product.partner');
+
+        // Brands (decision 2026-10-24): active brands with published products; a hidden or unknown brand is a 404.
+        Route::livewire('/brands', Brands\Index::class)->name('brands.index');
+        Route::livewire('/brands/{brand:slug}', Brands\Show::class)->name('brands.show');
 
         Route::livewire('/search', Search::class)->name('search');
 

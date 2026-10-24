@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 /**
  * schema.org JSON-LD for public pages: Organization and LocalBusiness (home),
  * BreadcrumbList, Product with its Offer, WebPage / AboutPage / ContactPage
- * for static pages (plan 07), NewsArticle for news posts (plan 07 7b), and FAQPage (plan 04 T12; only
+ * for static pages (plan 07), Brand for brand pages, NewsArticle for news posts (plan 07 7b), and FAQPage (plan 04 T12; only
  * where the FAQ is visible on the page). Every block is printed with
  * toScript().
  *
@@ -270,6 +270,37 @@ class StructuredData
             if (! $product->showsStockStatus()) {
                 unset($data['offers']['availability']);
             }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Brand for a brand page: name, url, logo, description and (for the
+     * official website only, never a partner link) sameAs. Empty values are
+     * left out.
+     *
+     * @return array<string, mixed>
+     */
+    public function brand(string $name, string $url, ?string $logo = null, ?string $description = null, ?string $website = null): array
+    {
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Brand',
+            'name' => $name,
+            'url' => $url,
+        ];
+
+        if (filled($logo)) {
+            $data['logo'] = $logo;
+        }
+
+        if (filled($description)) {
+            $data['description'] = $description;
+        }
+
+        if (filled($website)) {
+            $data['sameAs'] = [$website];
         }
 
         return $data;

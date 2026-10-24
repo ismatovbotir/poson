@@ -33,9 +33,9 @@ it('renders the site layout with localized navigation', function (string $locale
         ->assertSee('id="main"', false)
         ->assertSeeText($texts);
 })->with([
-    'uz' => ['uz', ['Skanerlar', 'Yorliq printerlari', 'Xizmatlar', 'Katalog', 'Asosiy mazmunga oʻtish']],
-    'ru' => ['ru', ['Сканеры', 'Принтеры этикеток', 'Услуги', 'Каталог', 'Перейти к содержимому']],
-    'en' => ['en', ['Scanners', 'Label printers', 'Services', 'Catalog', 'Skip to content']],
+    'uz' => ['uz', ['Brendlar', 'Xizmatlar', 'Katalog', 'Asosiy mazmunga oʻtish']],
+    'ru' => ['ru', ['Бренды', 'Услуги', 'Каталог', 'Перейти к содержимому']],
+    'en' => ['en', ['Brands', 'Services', 'Catalog', 'Skip to content']],
 ]);
 
 it('shows company contacts from the settings', function () {

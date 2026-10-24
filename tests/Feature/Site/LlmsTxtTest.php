@@ -174,6 +174,6 @@ it('builds with a fixed number of queries', function () {
     Cache::flush();
     $queries = countQueries(fn () => app(LlmsTxt::class)->text());
 
-    // Catalog and pages (3), plus the news directory and the latest news (plan 07 7b).
-    expect($queries)->toBeLessThanOrEqual(5);
+    // Catalog and pages (3), the listed brands (1), plus the news directory and the latest news (plan 07 7b).
+    expect($queries)->toBeLessThanOrEqual(6);
 });

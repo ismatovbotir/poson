@@ -122,16 +122,21 @@ it('never renders old prices or sale tags on product cards', function (string $l
     expectNoBannedWording($html);
 })->with(['uz', 'ru', 'en']);
 
-it('lists active brands linking to the filtered catalog', function () {
+it('lists the brands with visible products, linking to their brand pages', function () {
+    $category = Category::factory()->create();
     $zebra = Brand::factory()->create(['name' => 'Zebra', 'slug' => 'zebra', 'sort' => 1]);
-    Brand::factory()->inactive()->create(['name' => 'Hiddenbrand']);
+    Product::factory()->inCategory($category)->for($zebra)->create();
+    $hidden = Brand::factory()->inactive()->create(['name' => 'Hiddenbrand']);
+    Product::factory()->inCategory($category)->for($hidden)->create();
+    Brand::factory()->create(['name' => 'Nostockbrand']);
 
     $html = $this->get('/uz')->assertOk()->getContent();
 
     expect($html)->toContain('id="brands-title"')
         ->toContain('Zebra')
-        ->toContain('href="'.e(url('/uz/catalog').'?'.http_build_query(['brand' => [$zebra->slug]])).'"')
-        ->not->toContain('Hiddenbrand');
+        ->toContain('href="'.url('/uz/brands/zebra').'"')
+        ->not->toContain('Hiddenbrand')
+        ->not->toContain('Nostockbrand');
 });
 
 it('hides the empty catalog sections', function () {

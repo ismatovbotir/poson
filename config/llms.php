@@ -30,6 +30,8 @@ return [
         'about' => 'About',
         'services' => 'Services',
         'catalog' => 'Catalog',
+        'brands' => 'Brands',
+        'all_brands' => 'All brands',
         'pages' => 'Pages',
         'news' => 'News',
         'contacts' => 'Contacts',

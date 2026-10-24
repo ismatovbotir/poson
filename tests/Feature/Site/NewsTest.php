@@ -259,7 +259,7 @@ describe('RSS', function () {
 
 describe('home and navigation', function () {
     it('shows the three latest posts on the home page, hidden when there are none', function () {
-        $this->get('/uz')->assertOk()->assertDontSee('data-home-news', false)->assertDontSee('data-nav-news', false);
+        $this->get('/uz')->assertOk()->assertDontSee('data-home-news', false)->assertDontSee('data-nav="news"', false);
 
         foreach (range(1, 4) as $day) {
             NewsPost::factory()->published(now()->subDays($day))->create(['title' => ['uz' => "Xabar {$day}", 'ru' => "Новость {$day}", 'en' => "News {$day}"]]);
@@ -268,7 +268,7 @@ describe('home and navigation', function () {
         $html = $this->get('/uz')->assertOk()->getContent();
 
         expect($html)->toContain('data-home-news')
-            ->toContain('data-nav-news')
+            ->toContain('data-nav="news"')
             ->and(substr_count($html, 'data-news-card='))->toBe(3)
             ->and($html)->toContain('Xabar 1')->toContain('Xabar 3')->not->toContain('Xabar 4');
     });

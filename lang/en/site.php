@@ -20,8 +20,6 @@ return [
     ],
 
     'topbar' => [
-        'delivery_payment' => 'Delivery & payment',
-        'b2b' => 'For business',
         'telegram' => 'Telegram',
         'call_us' => 'Call us',
     ],
@@ -42,15 +40,8 @@ return [
 
     'nav' => [
         'news' => 'News',
-        'scanners' => 'Scanners',
-        'label_printers' => 'Label printers',
-        'mobile_computers' => 'Mobile computers',
-        'labels_ribbons' => 'Labels & ribbons',
-        'rfid' => 'RFID',
-        'pos' => 'POS equipment',
-        'software' => 'Software',
+        'brands' => 'Brands',
         'services' => 'Services',
-        'contacts' => 'Contacts',
         'aria_label' => 'Main menu',
     ],
 
@@ -350,6 +341,24 @@ return [
             'legal_name' => 'Legal name',
             'inn' => 'Tax ID (INN)',
             'legal_address' => 'Legal address',
+        ],
+    ],
+
+    'brands' => [
+        'title' => 'Brands',
+        'subtitle' => 'Makers of the equipment, consumables and software we supply, set up and service',
+        'seo_title' => 'Brands — Poson',
+        'seo_description' => 'Brands of barcode scanners, label printers, mobile computers, RFID and POS equipment: expert selection, setup, warranty and service at our own service center.',
+        'products_count' => ':count product|:count products',
+        'empty' => 'No brands to show yet.',
+        'show' => [
+            'seo_title' => ':name — selection, setup and service | Poson',
+            'seo_description' => ':name at Poson: equipment selection, setup and integration, warranty and service at our own service center.',
+            'products' => 'Products',
+            'categories' => 'Filter by section',
+            'all_categories' => 'All',
+            'website' => 'Official website',
+            'empty' => 'There are no products of this brand on the site yet.',
         ],
     ],
 

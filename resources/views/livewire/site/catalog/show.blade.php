@@ -91,7 +91,7 @@
             <dl class="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[13px] text-ink-2">
                 <div class="flex gap-1"><dt>{{ __('site.product.sku') }}:</dt><dd class="font-medium text-ink" data-sku>{{ $product->sku }}</dd></div>
                 @if ($brand)
-                    <div class="flex gap-1"><dt>{{ __('site.product.brand') }}:</dt><dd class="font-medium text-ink">{{ $brand->name }}</dd></div>
+                    <div class="flex gap-1"><dt>{{ __('site.product.brand') }}:</dt><dd class="font-medium text-ink"><a href="{{ route('site.brands.show', ['brand' => $brand->slug]) }}" class="hover:text-brand-600 hover:underline" data-brand-link>{{ $brand->name }}</a></dd></div>
                 @endif
                 @if ($product->showsStockStatus())
                     <div><dt class="sr-only">{{ __('site.catalog.stock') }}</dt><dd><x-site.stock-badge :status="$product->stock_status" /></dd></div>
@@ -179,7 +179,7 @@
                 <caption class="sr-only">{{ __('site.product.tabs.specs') }}</caption>
                 <tbody>
                     @if ($brand)
-                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.brand') }}</th><td class="py-[13px] font-medium">{{ $brand->name }}</td></tr>
+                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.brand') }}</th><td class="py-[13px] font-medium"><a href="{{ route('site.brands.show', ['brand' => $brand->slug]) }}" class="hover:text-brand-600 hover:underline">{{ $brand->name }}</a></td></tr>
                     @endif
                     @if ($product->model)
                         <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.model') }}</th><td class="py-[13px] font-medium">{{ $product->model }}</td></tr>

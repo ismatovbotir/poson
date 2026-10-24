@@ -8,19 +8,24 @@ use Illuminate\Support\Facades\Route;
 /**
  * Public site menus (header nav, mobile drawer, footer).
  *
- * The main menu lists the visible top-level catalog categories from the
- * cached CategoryTree (flushed when a category is saved), then "Services",
- * which opens the services category (/catalog/services); the home services
- * teaser links to its subcategories. Static pages (plan 07 K4) are linked
- * while they are active (PageDirectory); an inactive or missing page falls
- * back to a section of the localized home page (PAGE_FALLBACK). The news
- * list (plan 07 7b) is linked only while the locale has a visible post
- * (NewsDirectory).
+ * Main nav (decision 2026-10-24): Brands, B2B, Services (accent), Warranty &
+ * service, Delivery & payment, News, About, Contacts. Categories live in the
+ * header Catalog dropdown (CatalogMenu), not here. Page items appear only
+ * while the page is active (PageDirectory, no anchor fallback) and use the
+ * page's fixed short label (pageLabel(), as in the footer); News only while the locale has a
+ * visible post (NewsDirectory). "Services" opens the services category
+ * (/catalog/services) while it is a visible top-level category; the home
+ * services teaser links to its subcategories.
+ *
+ * The footer "Catalog" column lists the visible top-level categories from
+ * the cached CategoryTree (flushed when a category is saved). Footer and
+ * topbar page links fall back to a section of the localized home page while
+ * a page is inactive (PAGE_FALLBACK).
  */
 class Navigation
 {
     /**
-     * Slug of the services category: the right-aligned "Services" item.
+     * Slug of the services category: the accented "Services" item.
      */
     public const SERVICES_SLUG = 'services';
 
@@ -45,81 +50,176 @@ class Navigation
     ];
 
     /**
-     * Menu labels used while the catalog has no visible categories.
+     * Main nav entries in display order: a page slug, or one of the
+     * "@brands", "@services" and "@news" items.
      *
-     * @var array<string, string> slug => lang key under site.nav
+     * @var list<string>
      */
-    protected const FALLBACK = [
-        'scanners' => 'scanners',
-        'label-printers' => 'label_printers',
-        'mobile-computers' => 'mobile_computers',
-        'labels-ribbons' => 'labels_ribbons',
-        'rfid' => 'rfid',
-        'pos' => 'pos',
-        'software' => 'software',
-    ];
+    public const MAIN = ['@brands', 'b2b', '@services', 'warranty-service', 'delivery-payment', '@news', 'about', 'contacts'];
 
     /**
-     * Main menu: catalog categories, then Services (the template's right-aligned slot).
-     * "key" is the category slug.
+     * Footer "Catalog" column: most categories listed.
+     */
+    public const FOOTER_CATEGORIES = 5;
+
+    /**
+     * Request attribute holding main() for the current request.
+     */
+    private const MAIN_MEMO = 'site.nav.main';
+
+    /**
+     * Main nav (desktop bar and mobile drawer). "current" is the
+     * aria-current value: "page" on the item's own URL, "true" inside its
+     * section (a brand page, a news post, a services subcategory), else null.
      *
-     * @return list<array{key: string, label: string, url: string, accent: bool}>
+     * Built once per request and locale (the bar and the drawer share it).
+     * The copy lives on the request, not in once(): tests send several
+     * requests in one process, and a page or news change between them must
+     * show up.
+     *
+     * @return list<array{key: string, label: string, url: string, accent: bool, current: string|null}>
      */
     public static function main(): array
     {
-        $locale = app()->getLocale();
-        $items = [];
-        $services = null;
+        $key = self::MAIN_MEMO.'.'.app()->getLocale();
+        $memo = request()->attributes->get($key);
 
-        foreach (CategoryTree::visibleChildren(null) as $node) {
-            $item = [
-                'key' => $node['slug'],
-                'label' => CategoryTree::name($node['id']),
-                'url' => route('site.catalog.category', ['locale' => $locale, 'category' => $node['slug']]),
-                'accent' => false,
-            ];
-
-            if ($node['slug'] === self::SERVICES_SLUG) {
-                $services = $item['url'];
-            } else {
-                $items[] = $item;
-            }
+        if (is_array($memo)) {
+            return $memo;
         }
 
-        if ($items === []) {
-            foreach (self::FALLBACK as $slug => $key) {
-                $items[] = [
-                    'key' => $slug,
-                    'label' => __("site.nav.{$key}"),
-                    'url' => route('site.catalog.index', ['locale' => $locale]),
-                    'accent' => false,
-                ];
-            }
-        }
-
-        $items[] = [
-            'key' => self::SERVICES_SLUG,
-            'label' => __('site.nav.services'),
-            'url' => $services ?? static::url('site.services.index', [], '#services'),
-            'accent' => true,
-        ];
+        $items = static::buildMain();
+        request()->attributes->set($key, $items);
 
         return $items;
     }
 
     /**
-     * Footer "Catalog" column: the catalog categories of the main menu (at most five).
+     * @return list<array{key: string, label: string, url: string, accent: bool, current: string|null}>
+     */
+    protected static function buildMain(): array
+    {
+        $locale = app()->getLocale();
+        $items = [];
+
+        foreach (self::MAIN as $entry) {
+            $item = match ($entry) {
+                '@brands' => static::item(
+                    'brands',
+                    __('site.nav.brands'),
+                    route('site.brands.index', ['locale' => $locale]),
+                    request()->routeIs('site.brands.show'),
+                ),
+                '@services' => static::servicesItem(),
+                '@news' => ($news = static::news()) !== null
+                    ? static::item('news', $news['label'], $news['url'], request()->routeIs('site.news.show'))
+                    : null,
+                default => static::pageItem($entry),
+            };
+
+            if ($item !== null) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return array{key: string, label: string, url: string, accent: bool, current: string|null}
+     */
+    protected static function item(string $key, string $label, string $url, bool $inSection = false, bool $accent = false): array
+    {
+        $current = match (true) {
+            url()->current() === $url => 'page',
+            $inSection => 'true',
+            default => null,
+        };
+
+        return ['key' => $key, 'label' => $label, 'url' => $url, 'accent' => $accent, 'current' => $current];
+    }
+
+    /**
+     * A static page item while the page is active, with the page's fixed
+     * short label (site.footer.*, the same label in every menu).
+     *
+     * @return array{key: string, label: string, url: string, accent: bool, current: string|null}|null
+     */
+    protected static function pageItem(string $slug): ?array
+    {
+        if (! PageDirectory::isActive($slug)) {
+            return null;
+        }
+
+        return static::item($slug, static::pageLabel($slug), route('site.page', ['locale' => app()->getLocale(), 'page' => $slug]));
+    }
+
+    /**
+     * Fixed short menu label of a static page: "delivery-payment" → site.footer.delivery_payment.
+     */
+    public static function pageLabel(string $slug): string
+    {
+        return __('site.footer.'.str_replace('-', '_', $slug));
+    }
+
+    /**
+     * "Services": the services category while it is a visible top-level
+     * category, else the services route or the home page services section.
+     *
+     * @return array{key: string, label: string, url: string, accent: bool, current: string|null}
+     */
+    protected static function servicesItem(): array
+    {
+        $services = null;
+
+        foreach (CategoryTree::visibleChildren(null) as $node) {
+            if ($node['slug'] === self::SERVICES_SLUG) {
+                $services = $node;
+                break;
+            }
+        }
+
+        if ($services === null) {
+            return static::item(self::SERVICES_SLUG, __('site.nav.services'), static::url('site.services.index', [], '#services'), accent: true);
+        }
+
+        return static::item(
+            self::SERVICES_SLUG,
+            __('site.nav.services'),
+            route('site.catalog.category', ['locale' => app()->getLocale(), 'category' => $services['slug']]),
+            in_array($services['id'], CatalogMenu::currentTrail(), true),
+            accent: true,
+        );
+    }
+
+    /**
+     * Footer "Catalog" column: the visible top-level categories in admin
+     * order (CategoryTree), without the services category, at most FOOTER_CATEGORIES.
      *
      * @return list<array{label: string, url: string}>
      */
     public static function footerCatalog(): array
     {
-        $items = array_filter(static::main(), fn (array $item): bool => ! $item['accent']);
+        $nodes = array_filter(
+            CategoryTree::visibleChildren(null),
+            fn (array $node): bool => $node['slug'] !== self::SERVICES_SLUG,
+        );
 
         return array_values(array_map(
-            fn (array $item): array => ['label' => $item['label'], 'url' => $item['url']],
-            array_slice($items, 0, 5),
+            fn (array $node): array => [
+                'label' => CategoryTree::name($node['id']),
+                'url' => route('site.catalog.category', ['locale' => app()->getLocale(), 'category' => $node['slug']]),
+            ],
+            array_slice($nodes, 0, self::FOOTER_CATEGORIES),
         ));
+    }
+
+    /**
+     * Brands list URL (main nav, footer "Catalog" column).
+     */
+    public static function brands(): string
+    {
+        return route('site.brands.index', ['locale' => app()->getLocale()]);
     }
 
     /**
