@@ -17,7 +17,16 @@ return [
 
     'enabled' => env('AI_ENABLED'),
 
+    // Text provider (plan 10): anthropic | openrouter.
+    'text_provider' => env('AI_TEXT_PROVIDER'),
+
     'text_model' => env('AI_TEXT_MODEL'),
+
+    // OpenRouter model ID ("provider/model", free text with suggestions) and
+    // whether providers that log or train on prompts may be used.
+    'openrouter_model' => env('AI_OPENROUTER_MODEL'),
+
+    'openrouter_allow_data_collection' => env('AI_OPENROUTER_ALLOW_DATA_COLLECTION'),
 
     'vision_model' => env('AI_VISION_MODEL'),
 
@@ -57,11 +66,23 @@ return [
     /*
     | Allow-lists for the model selects in admin (the first entry is the
     | default). Model IDs confirmed against laravel/ai v1.3 (AnthropicProvider
-    | defaults). Text runs on Claude only (ClaudeTextAssistant). Default:
-    | Opus 5.5 (PM decision 2026-10-23).
+    | defaults). Default: Opus 5.5 (PM decision 2026-10-23).
+    |
+    | "openrouter" is only the suggestion list of the OpenRouter model input
+    | (any valid ID may be typed); the first entry is the default. Every ID
+    | was checked against GET https://openrouter.ai/api/v1/models on
+    | 2026-10-24 (plan 10). ":free" models cost nothing but are rate-limited
+    | and may log prompts.
     */
     'models' => [
         'text' => ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
+        'openrouter' => [
+            'nvidia/nemotron-3.5-super-vl:free',
+            'google/gemma-4-31b-it:free',
+            'google/gemini-3.8-flash',
+            'openai/gpt-6-luna',
+            'qwen/qwen3.8-flash',
+        ],
         'vision' => ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
         'image' => ['gpt-image-1'],
     ],
@@ -70,12 +91,17 @@ return [
     | Cost rates in USD per million tokens (= micro-USD per token), used for
     | the request log and the monthly budget (PM decision 2026-10-23).
     | Unknown models use "fallback" (Opus, the most expensive), so the
-    | budget errs on the safe side.
+    | budget errs on the safe side; unknown OpenRouter ":free" models cost 0.
+    | OpenRouter requests store the exact usage.cost when the answer has it.
+    | OpenRouter rates: GET /api/v1/models pricing, 2026-10-24.
     */
     'rates' => [
         'claude-opus-5-5' => ['input' => 4, 'output' => 20],
         'claude-sonnet-5-5' => ['input' => 2, 'output' => 10],
         'claude-haiku-5-5' => ['input' => 0.10, 'output' => 0.50],
+        'google/gemini-3.8-flash' => ['input' => 0.825, 'output' => 4.125],
+        'openai/gpt-6-luna' => ['input' => 0.10, 'output' => 0.50],
+        'qwen/qwen3.8-flash' => ['input' => 0.15, 'output' => 0.47],
         'fallback' => ['input' => 4, 'output' => 20],
     ],
 

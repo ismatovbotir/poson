@@ -7,8 +7,6 @@ use App\Ai\Agents\LocalizedTextAgent;
 use App\Ai\Agents\Translator;
 use App\Enums\AiErrorCode;
 use App\Enums\AiProvider;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\FieldRegistry;
 use App\Support\Secrets;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
@@ -20,41 +18,24 @@ use Throwable;
 
 /**
  * TextAssistant on Claude through laravel/ai (agents FieldWriter and
- * Translator, structured output {uz, ru, en}). The key comes from the
- * Secrets resolver (IntegrationRegistry writes it to
- * ai.providers.anthropic.key); the model from Settings → Integrations.
+ * Translator, structured output {uz, ru, en}); prompts from TextPrompts.
+ * The key comes from the Secrets resolver (IntegrationRegistry writes it to
+ * ai.providers.anthropic.key); the model is the one stored on the request
+ * row (default: Settings → Integrations, see model()).
  *
  * Every failure becomes an AiException with a safe code; the provider's
  * exception (which may contain request details) is dropped, not chained.
  */
 final class ClaudeTextAssistant implements TextAssistant
 {
-    public function generate(TextTask $task): TextResult
+    public function generate(TextTask $task, string $model): TextResult
     {
-        $field = $task->field();
-
-        $prompt = implode("\n\n", [
-            trim($task->hint),
-            $field->outputRules()."\nWrite the text in every language: ".$this->languages().'.',
-            $task->context->toPrompt(),
-        ]);
-
-        return $this->run(new FieldWriter, $prompt, $task);
+        return $this->run(new FieldWriter, TextPrompts::generate($task), $task, $model);
     }
 
-    public function translate(TextTask $task): TextResult
+    public function translate(TextTask $task, string $model): TextResult
     {
-        $field = $task->field();
-        $from = (string) $task->sourceLocale;
-
-        $prompt = implode("\n\n", [
-            trim($task->hint),
-            $field->outputRules()."\nSource language: ".FieldRegistry::languageName($from)." ({$from}). Return the source text unchanged under \"{$from}\" and the translations under the other keys (".$this->languages().').',
-            $task->context->toPrompt(),
-            "<source lang=\"{$from}\">\n".AiContext::neutralize($task->sourceText)."\n</source>",
-        ]);
-
-        return $this->run(new Translator, $prompt, $task);
+        return $this->run(new Translator, TextPrompts::translate($task), $task, $model);
     }
 
     /**
@@ -67,13 +48,11 @@ final class ClaudeTextAssistant implements TextAssistant
         return is_string($model) && $model !== '' ? $model : (string) (config('ai-assist.models.text')[0] ?? 'claude-opus-5-5');
     }
 
-    private function run(LocalizedTextAgent $agent, string $prompt, TextTask $task): TextResult
+    private function run(LocalizedTextAgent $agent, string $prompt, TextTask $task, string $model): TextResult
     {
         if (! Secrets::isConfigured(AiProvider::Anthropic->keyField())) {
             throw AiException::for(AiErrorCode::NotConfigured);
         }
-
-        $model = self::model();
 
         try {
             $response = $agent->prompt($prompt, provider: AiProvider::Anthropic->value, model: $model, timeout: (int) config('ai-assist.timeout', 45));
@@ -89,18 +68,9 @@ final class ClaudeTextAssistant implements TextAssistant
             throw AiException::for(AiErrorCode::InvalidOutput, $inputTokens, $outputTokens, $model);
         }
 
-        $texts = [];
+        $texts = TextPrompts::texts($task, (array) $response->structured);
 
-        foreach (config('app.supported_locales') as $locale) {
-            $value = $response->structured[$locale] ?? null;
-            $texts[$locale] = is_string($value) ? trim($value) : '';
-        }
-
-        if ($task->isTranslation() && $task->sourceLocale !== null) {
-            $texts[$task->sourceLocale] = $task->sourceText;
-        }
-
-        if (in_array('', $texts, true)) {
+        if ($texts === null) {
             throw AiException::for(AiErrorCode::InvalidOutput, $inputTokens, $outputTokens, $model);
         }
 
@@ -132,7 +102,10 @@ final class ClaudeTextAssistant implements TextAssistant
         return $code;
     }
 
-    private static function isTimeout(Throwable $exception): bool
+    /**
+     * A transport exception (or one it wraps) is a timeout.
+     */
+    public static function isTimeout(Throwable $exception): bool
     {
         for ($current = $exception; $current !== null; $current = $current->getPrevious()) {
             if (preg_match('/timed out|cURL error 28|timeout/i', $current->getMessage()) === 1) {
@@ -141,10 +114,5 @@ final class ClaudeTextAssistant implements TextAssistant
         }
 
         return false;
-    }
-
-    private function languages(): string
-    {
-        return implode(', ', config('app.supported_locales'));
     }
 }

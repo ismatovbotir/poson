@@ -2,7 +2,9 @@
 
 namespace App\Support\Integrations;
 
+use App\Enums\AiProvider;
 use App\Enums\PaymeMode;
+use App\Services\Ai\OpenRouterTextAssistant;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
@@ -148,6 +150,7 @@ final class IntegrationRegistry
         $models = fn (string $kind): array => array_values(array_filter((array) config("ai-assist.models.{$kind}", []), is_string(...)));
         $apiKey = ['string', 'min:20', 'max:300', 'regex:'.self::API_KEY];
         $digits = ['string', 'regex:/^\d{1,12}$/'];
+        $textProviders = array_map(fn (AiProvider $provider): string => $provider->value, AiProvider::textProviders());
         $locales = array_values(array_filter((array) config('app.supported_locales', ['uz', 'ru', 'en']), is_string(...)));
 
         // laravel/ai hook (plan 02): once config/ai.php exists, the keys are
@@ -157,9 +160,14 @@ final class IntegrationRegistry
         $fields = [
             // AI
             new IntegrationField('anthropic.api_key', 'ai', ['services.anthropic.key', ...$aiProvider('anthropic')], 'ANTHROPIC_API_KEY', secret: true, rules: $apiKey),
+            // Plan 10: OpenRouter as an alternative text provider.
+            new IntegrationField('openrouter.api_key', 'ai', ['services.openrouter.key'], 'OPENROUTER_API_KEY', secret: true, rules: $apiKey),
             new IntegrationField('openai.api_key', 'ai', ['services.openai.key', ...$aiProvider('openai')], 'OPENAI_API_KEY', secret: true, rules: $apiKey),
             new IntegrationField('ai.enabled', 'ai', ['ai-assist.enabled'], 'AI_ENABLED', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: false),
+            new IntegrationField('ai.text_provider', 'ai', ['ai-assist.text_provider'], 'AI_TEXT_PROVIDER', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($textProviders)], default: AiProvider::Anthropic->value, options: $textProviders),
             new IntegrationField('ai.text_model', 'ai', ['ai-assist.text_model'], 'AI_TEXT_MODEL', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($models('text'))], default: $models('text')[0] ?? null, options: $models('text')),
+            new IntegrationField('ai.openrouter_model', 'ai', ['ai-assist.openrouter_model'], 'AI_OPENROUTER_MODEL', rules: ['string', 'max:80', 'regex:'.OpenRouterTextAssistant::MODEL_PATTERN], default: $models('openrouter')[0] ?? OpenRouterTextAssistant::DEFAULT_MODEL, lowercase: true),
+            new IntegrationField('ai.openrouter_allow_data_collection', 'ai', ['ai-assist.openrouter_allow_data_collection'], 'AI_OPENROUTER_ALLOW_DATA_COLLECTION', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
             new IntegrationField('ai.vision_model', 'ai', ['ai-assist.vision_model'], 'AI_VISION_MODEL', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($models('vision'))], default: $models('vision')[0] ?? null, options: $models('vision')),
             new IntegrationField('ai.image_model', 'ai', ['ai-assist.image_model'], 'AI_IMAGE_MODEL', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($models('image'))], default: $models('image')[0] ?? null, options: $models('image')),
             new IntegrationField('ai.daily_text_limit', 'ai', ['ai-assist.limits.daily_text'], 'AI_DAILY_LIMIT_PER_USER', type: IntegrationField::TYPE_INT, rules: ['integer', 'min:0', 'max:10000'], default: 100),

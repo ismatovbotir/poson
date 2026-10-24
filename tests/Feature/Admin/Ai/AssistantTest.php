@@ -5,6 +5,7 @@ use App\Actions\Ai\ProcessAiRequest;
 use App\Ai\Agents\FieldWriter;
 use App\Enums\AiErrorCode;
 use App\Enums\AiFeature;
+use App\Enums\AiProvider;
 use App\Enums\AiRequestStatus;
 use App\Enums\Role;
 use App\Livewire\Admin\Ai\Assistant;
@@ -21,7 +22,7 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Services\Ai\AiException;
 use App\Services\Ai\ClaudeTextAssistant;
-use App\Services\Ai\TextAssistant;
+use App\Services\Ai\TextAssistants;
 use App\Services\Ai\TextTask;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\FieldRegistry;
@@ -289,8 +290,8 @@ describe('secrets', function () {
         Exceptions::fake();
 
         // Real adapter; the provider error echoes the key.
-        app()->forgetInstance(TextAssistant::class);
-        app()->bind(TextAssistant::class, ClaudeTextAssistant::class);
+        app()->forgetInstance(TextAssistants::binding(AiProvider::Anthropic));
+        app()->bind(TextAssistants::binding(AiProvider::Anthropic), ClaudeTextAssistant::class);
         FieldWriter::fake(fn () => throw new RuntimeException('401 invalid x-api-key: '.fakeAnthropicKey()));
 
         $this->actingAs(staffUser(Role::Admin));

@@ -56,6 +56,11 @@ return [
         'key' => env('OPENAI_API_KEY'),
     ],
 
+    // Plan 10: OpenRouter as an alternative text provider (Settings → Integrations → AI).
+    'openrouter' => [
+        'key' => env('OPENROUTER_API_KEY'),
+    ],
+
     'removebg' => [
         'key' => env('REMOVEBG_API_KEY'),
     ],

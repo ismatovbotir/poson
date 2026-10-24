@@ -1,10 +1,11 @@
 <?php
 
+use App\Enums\AiProvider;
 use App\Enums\Role;
 use App\Models\IntegrationSecret;
 use App\Models\Setting;
 use App\Models\User;
-use App\Services\Ai\TextAssistant;
+use App\Services\Ai\TextAssistants;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
@@ -184,12 +185,39 @@ function enableAiAssist(array $settings = [], bool $withKey = true): void
 }
 
 /**
- * Bind a fake TextAssistant and return it.
+ * Fake OpenRouter key used by the AI assist tests (never a real one).
  */
-function fakeTextAssistant(?FakeTextAssistant $fake = null): FakeTextAssistant
+function fakeOpenRouterKey(): string
+{
+    return 'sk-or-v1-test-SECRETVALUE-00000000000000000000';
+}
+
+/**
+ * Switch the AI assist on with OpenRouter as the text provider and a fake
+ * OpenRouter key (plus optional settings), then re-apply the resolver.
+ *
+ * @param  array<string, mixed>  $settings  integration key => value
+ */
+function enableOpenRouter(array $settings = []): void
+{
+    enableAiAssist(['ai.text_provider' => 'openrouter', ...$settings], withKey: false);
+
+    IntegrationSecret::query()->where('key', 'openrouter.api_key')->delete();
+    IntegrationSecret::factory()->withValue('openrouter.api_key', fakeOpenRouterKey())->create();
+
+    Secrets::flush();
+}
+
+/**
+ * Bind a fake TextAssistant (for every text provider, or only $provider) and return it.
+ */
+function fakeTextAssistant(?FakeTextAssistant $fake = null, ?AiProvider $provider = null): FakeTextAssistant
 {
     $fake ??= new FakeTextAssistant;
-    app()->instance(TextAssistant::class, $fake);
+
+    foreach ($provider !== null ? [$provider] : AiProvider::textProviders() as $textProvider) {
+        app()->instance(TextAssistants::binding($textProvider), $fake);
+    }
 
     return $fake;
 }

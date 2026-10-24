@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\NewsKind;
 use App\Enums\NewsState;
 use App\Enums\NewsStatus;
 use App\Models\Concerns\HasCatalogImage;
@@ -21,7 +22,8 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\Translatable\HasTranslations;
 
 /**
- * News post (plan 07 7b) at /{locale}/news/{slug}: title, excerpt, body
+ * News post (plan 07 7b) at /{locale}/news/{slug}, or a knowledge article
+ * (kind = article, decision 2026-10-24) at /{locale}/articles/{slug}: title, excerpt, body
  * (sanitized HTML) and SEO texts per locale, an optional cover image
  * (medialibrary "cover", HasCatalogImage: private original, WebP
  * conversions, alt per locale), related products and categories.
@@ -40,6 +42,7 @@ use Spatie\Translatable\HasTranslations;
  *
  * @property int $id
  * @property string $slug
+ * @property NewsKind $kind
  * @property NewsStatus $status
  * @property Carbon|null $published_at
  * @property list<string>|null $locales
@@ -48,7 +51,7 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['slug', 'status', 'published_at', 'title', 'excerpt', 'body', 'meta_title', 'meta_description'])]
+#[Fillable(['slug', 'kind', 'status', 'published_at', 'title', 'excerpt', 'body', 'meta_title', 'meta_description'])]
 class NewsPost extends Model implements HasMedia
 {
     /** @use HasFactory<NewsPostFactory> */
@@ -92,6 +95,7 @@ class NewsPost extends Model implements HasMedia
     protected function casts(): array
     {
         return [
+            'kind' => NewsKind::class,
             'status' => NewsStatus::class,
             'published_at' => 'datetime',
             'locales' => 'array',
@@ -126,6 +130,24 @@ class NewsPost extends Model implements HasMedia
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    /**
+     * Posts of one kind (news or article).
+     *
+     * @param  Builder<NewsPost>  $query
+     */
+    public function scopeOfKind(Builder $query, NewsKind $kind): void
+    {
+        $query->where('news_posts.kind', $kind->value);
+    }
+
+    /**
+     * Public URL in the locale (default: the current one), by kind.
+     */
+    public function url(?string $locale = null): string
+    {
+        return $this->kind->url($this->slug, $locale);
     }
 
     /**

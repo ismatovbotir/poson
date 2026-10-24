@@ -27,23 +27,27 @@ class FakeTextAssistant implements TextAssistant
         public ?\Closure $during = null,
     ) {}
 
-    public function generate(TextTask $task): TextResult
+    /** @var list<string> */
+    public array $models = [];
+
+    public function generate(TextTask $task, string $model): TextResult
     {
-        return $this->answer($task);
+        return $this->answer($task, $model);
     }
 
-    public function translate(TextTask $task): TextResult
+    public function translate(TextTask $task, string $model): TextResult
     {
-        $result = $this->answer($task);
+        $result = $this->answer($task, $model);
         $texts = $result->texts;
         $texts[(string) $task->sourceLocale] = $task->sourceText;
 
-        return new TextResult($texts, $result->model, $result->inputTokens, $result->outputTokens);
+        return new TextResult($texts, $result->model, $result->inputTokens, $result->outputTokens, $result->costMicroUsd);
     }
 
-    private function answer(TextTask $task): TextResult
+    private function answer(TextTask $task, string $model): TextResult
     {
         $this->tasks[] = $task;
+        $this->models[] = $model;
 
         if ($this->during !== null) {
             ($this->during)($task);
@@ -53,6 +57,6 @@ class FakeTextAssistant implements TextAssistant
             throw $this->throw;
         }
 
-        return new TextResult($this->texts, 'claude-opus-5-5', $this->inputTokens, $this->outputTokens);
+        return new TextResult($this->texts, $model, $this->inputTokens, $this->outputTokens);
     }
 }

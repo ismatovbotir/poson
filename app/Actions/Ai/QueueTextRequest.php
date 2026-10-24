@@ -3,7 +3,6 @@
 namespace App\Actions\Ai;
 
 use App\Enums\AiErrorCode;
-use App\Enums\AiProvider;
 use App\Enums\AiRequestStatus;
 use App\Jobs\RunAiRequest;
 use App\Models\AiRequest;
@@ -11,7 +10,7 @@ use App\Models\User;
 use App\Services\Ai\AiAssist;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AiQuota;
-use App\Services\Ai\ClaudeTextAssistant;
+use App\Services\Ai\AiTextProvider;
 use App\Services\Ai\TextTask;
 use App\Support\Ai\FieldRegistry;
 use App\Support\Ai\PageAiContext;
@@ -25,8 +24,9 @@ use Illuminate\Validation\ValidationException;
  * authorize ai.use → known field, never the body of a stored legal page
  * (PageAiContext::refuses) → AI on and configured → quota (a refused request is
  * logged as "rejected") → ai_requests row "pending" → RunAiRequest on the
- * "ai" queue. The entity is never saved here: the manager applies the
- * result to the form and saves it with the normal validation.
+ * "ai" queue. The row stores the current text provider and model (plan 10),
+ * which the job then uses. The entity is never saved here: the manager
+ * applies the result to the form and saves it with the normal validation.
  */
 abstract class QueueTextRequest
 {
@@ -56,11 +56,13 @@ abstract class QueueTextRequest
 
         AiAssist::ensureUsable();
 
+        $provider = AiTextProvider::current();
+
         $attributes = [
             'user_id' => $user->id,
             'feature' => $task->feature,
-            'provider' => AiProvider::Anthropic,
-            'model' => ClaudeTextAssistant::model(),
+            'provider' => $provider,
+            'model' => AiTextProvider::model($provider),
             'field_key' => $task->fieldKey,
             'subject_type' => $task->context->subjectType,
             'subject_id' => $task->context->subjectId,

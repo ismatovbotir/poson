@@ -14,7 +14,7 @@
 
     @if (! $enabled || ! $configured)
         <p class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status" data-ai-off>
-            <x-admin.icon name="alert" size="size-5" class="shrink-0" />{{ ! $configured ? __('ai.usage.not_configured') : __('ai.usage.disabled') }}
+            <x-admin.icon name="alert" size="size-5" class="shrink-0" />{{ ! $configured ? __('ai.usage.not_configured', ['provider' => $textProvider->label()]) : __('ai.usage.disabled') }}
         </p>
     @endif
 
@@ -106,6 +106,7 @@
                                 <span class="min-w-0 flex-1 truncate font-medium">{{ $item->user?->name ?? __('ai.usage.deleted_user') }}</span>
                                 <span class="text-slate-600">{{ $item->feature->label() }}</span>
                                 <span class="font-mono text-xs text-slate-500">{{ $item->field_key }}</span>
+                                <span class="text-xs text-slate-500" data-request-provider>{{ $item->provider->label() }} · <span class="font-mono">{{ $item->model ?? __('admin.common.empty_value') }}</span></span>
                                 <x-admin.badge :color="$item->status->color()">{{ $item->status->label() }}</x-admin.badge>
                                 @if ($item->error_code)
                                     <span class="text-xs text-danger">{{ $item->error_code->label() }}</span>
@@ -118,7 +119,8 @@
                             </button>
                             @if ($expanded === $item->id && ($detail = $this->expandedRequest))
                                 <div class="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-4 text-sm sm:px-5" data-request-detail>
-                                    <dl class="grid grid-cols-2 gap-2 text-xs text-slate-600 sm:grid-cols-4">
+                                    <dl class="grid grid-cols-2 gap-2 text-xs text-slate-600 sm:grid-cols-5">
+                                        <div><dt class="font-semibold">{{ __('ai.usage.columns.provider') }}</dt><dd>{{ $detail->provider->label() }}</dd></div>
                                         <div><dt class="font-semibold">{{ __('ai.usage.columns.model') }}</dt><dd class="font-mono">{{ $detail->model ?? __('admin.common.empty_value') }}</dd></div>
                                         <div><dt class="font-semibold">{{ __('ai.usage.columns.tokens') }}</dt><dd class="tabular-nums">{{ $detail->input_tokens }} / {{ $detail->output_tokens }}</dd></div>
                                         <div><dt class="font-semibold">{{ __('ai.usage.columns.duration') }}</dt><dd class="tabular-nums">{{ $detail->duration_ms !== null ? __('ai.usage.seconds', ['value' => number_format($detail->duration_ms / 1000, 1)]) : __('admin.common.empty_value') }}</dd></div>

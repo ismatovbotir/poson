@@ -104,6 +104,7 @@ return [
 
     'ai_provider' => [
         'anthropic' => 'Anthropic (Claude)',
+        'openrouter' => 'OpenRouter',
         'openai' => 'OpenAI',
         'removebg' => 'remove.bg',
     ],
@@ -125,6 +126,11 @@ return [
         'disabled' => 'Oʻchirilgan',
         'quota_exceeded' => 'Kunlik limit',
         'budget_exceeded' => 'Oylik byudjet',
+        'no_credits' => 'Kredit yoʻq',
+        'model_unavailable' => 'Model mavjud emas',
+        'invalid_key' => 'Kalit rad etildi',
+        'refused' => 'Provayder rad etdi',
+        'bad_request' => 'Notoʻgʻri soʻrov',
     ],
 
     'quote_status' => [

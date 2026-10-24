@@ -7,8 +7,9 @@ use App\Enums\AiRequestStatus;
 use App\Models\AiRequest;
 use App\Services\Ai\AiAssist;
 use App\Services\Ai\AiException;
+use App\Services\Ai\AiTextProvider;
 use App\Services\Ai\BrandGuard;
-use App\Services\Ai\TextAssistant;
+use App\Services\Ai\TextAssistants;
 use App\Services\Ai\TextResult;
 use App\Services\Ai\TextTask;
 use App\Support\HtmlSanitizer;
@@ -16,7 +17,9 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Run a pending text request (called by the RunAiRequest job): pending →
+ * Run a pending text request (called by the RunAiRequest job) on the
+ * provider and model stored on its row (plan 10: a provider switch in
+ * Settings never affects requests already queued): pending →
  * running → succeeded (texts cleaned, BrandGuard warnings, tokens, cost,
  * duration) or failed with a safe code (and the billed usage, if any).
  *
@@ -29,8 +32,6 @@ use Throwable;
  */
 class ProcessAiRequest
 {
-    public function __construct(protected TextAssistant $assistant) {}
-
     public function handle(int $requestId, TextTask $task): ?AiRequest
     {
         $request = AiRequest::query()->find($requestId);
@@ -57,7 +58,9 @@ class ProcessAiRequest
         $started = hrtime(true);
 
         try {
-            $result = $task->isTranslation() ? $this->assistant->translate($task) : $this->assistant->generate($task);
+            $model = (string) ($request->model ?: AiTextProvider::model($request->provider));
+            $assistant = TextAssistants::for($request->provider);
+            $result = $task->isTranslation() ? $assistant->translate($task, $model) : $assistant->generate($task, $model);
         } catch (AiException $exception) {
             $this->fail($request, $exception->errorCode, $started, $exception);
 
@@ -109,7 +112,7 @@ class ProcessAiRequest
             $values['duration_ms'] = $this->elapsed($started);
         }
 
-        if ($exception !== null && ($exception->inputTokens > 0 || $exception->outputTokens > 0)) {
+        if ($exception !== null && ($exception->inputTokens > 0 || $exception->outputTokens > 0 || $exception->billedMicroUsd !== null)) {
             $values['input_tokens'] = $exception->inputTokens;
             $values['output_tokens'] = $exception->outputTokens;
             $values['cost_micro_usd'] = $exception->costMicroUsd((string) $request->model);

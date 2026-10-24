@@ -104,6 +104,7 @@ return [
 
     'ai_provider' => [
         'anthropic' => 'Anthropic (Claude)',
+        'openrouter' => 'OpenRouter',
         'openai' => 'OpenAI',
         'removebg' => 'remove.bg',
     ],
@@ -125,6 +126,11 @@ return [
         'disabled' => 'Switched off',
         'quota_exceeded' => 'Daily limit',
         'budget_exceeded' => 'Monthly budget',
+        'no_credits' => 'No credits',
+        'model_unavailable' => 'Model unavailable',
+        'invalid_key' => 'Key rejected',
+        'refused' => 'Refused by provider',
+        'bad_request' => 'Invalid request',
     ],
 
     'quote_status' => [

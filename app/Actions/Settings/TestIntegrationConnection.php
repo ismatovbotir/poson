@@ -2,7 +2,9 @@
 
 namespace App\Actions\Settings;
 
+use App\Enums\AiProvider;
 use App\Models\User;
+use App\Services\Ai\OpenRouterTextAssistant;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Integrations\ConnectionTestResult;
@@ -24,7 +26,9 @@ use Throwable;
  * Targets: telegram (getMe), telegram_chat (a test message to the sales /
  * service / finance chat in the telegram.locale language), both through
  * TelegramClient, anthropic and openai (GET /v1/models), removebg
- * (GET /v1.0/account, shows the credits). Payme and Click have no test
+ * (GET /v1.0/account, shows the credits), openrouter (GET /api/v1/key for
+ * the free-tier status and limit, then GET /api/v1/models/{id}/endpoints for
+ * the chosen model, plan 10). Payme and Click have no test
  * endpoint: the screen shows their webhook URLs instead.
  *
  * Rate limited to MAX_ATTEMPTS per minute per user; TIMEOUT seconds per
@@ -41,7 +45,9 @@ class TestIntegrationConnection
 
     public const TIMEOUT = 5;
 
-    public const TARGETS = ['telegram', 'telegram_chat', 'anthropic', 'openai', 'removebg'];
+    public const TARGETS = ['telegram', 'telegram_chat', 'anthropic', 'openrouter', 'openai', 'removebg'];
+
+    public const OPENROUTER_API = 'https://openrouter.ai/api/v1';
 
     public const CHATS = ['sales', 'service', 'finance'];
 
@@ -71,6 +77,7 @@ class TestIntegrationConnection
             'telegram' => $this->telegram(),
             'telegram_chat' => $this->telegramChat((string) $chat),
             'anthropic' => $this->anthropic(),
+            'openrouter' => $this->openrouter(),
             'openai' => $this->openai(),
             'removebg' => $this->removebg(),
         };
@@ -166,6 +173,62 @@ class TestIntegrationConnection
         return $this->call(
             fn (): Response => $this->http()->withHeaders(['x-api-key' => $key, 'anthropic-version' => self::ANTHROPIC_VERSION])->get('https://api.anthropic.com/v1/models'),
             fn (Response $response): ConnectionTestResult => $this->modelsResult($response),
+        );
+    }
+
+    /**
+     * The key (free tier or paid, credit limit), then whether the chosen
+     * model exists and has endpoints. Details are display-safe: the tier,
+     * the limit in USD and the model ID.
+     */
+    protected function openrouter(): ConnectionTestResult
+    {
+        $key = Secrets::get(AiProvider::OpenRouter->keyField());
+
+        if (! is_string($key) || $key === '') {
+            return ConnectionTestResult::failure('not_configured');
+        }
+
+        $account = null;
+
+        $keyResult = $this->call(
+            fn (): Response => $this->http()->withToken($key)->get(self::OPENROUTER_API.'/key'),
+            function (Response $response) use (&$account): ConnectionTestResult {
+                $data = $response->json('data');
+
+                if (! is_array($data)) {
+                    return ConnectionTestResult::failure('unexpected_response');
+                }
+
+                $account = $data;
+
+                return ConnectionTestResult::success();
+            },
+        );
+
+        if (! $keyResult->ok || $account === null) {
+            return $keyResult;
+        }
+
+        $model = OpenRouterTextAssistant::modelOrNull();
+
+        if ($model === null) {
+            return ConnectionTestResult::failure('openrouter_model_invalid');
+        }
+
+        $t = 'admin.settings.integrations.openrouter.';
+        $details = [
+            'tier' => __($t.(($account['is_free_tier'] ?? false) === true ? 'free_tier' : 'paid_tier')),
+            'limit' => is_numeric($account['limit'] ?? null) ? '$'.number_format((float) $account['limit'], 2, '.', ' ') : __($t.'no_limit'),
+            'model' => $model,
+        ];
+
+        return $this->call(
+            fn (): Response => $this->http()->withToken($key)->get(self::OPENROUTER_API.'/models/'.implode('/', array_map(rawurlencode(...), explode('/', $model))).'/endpoints'),
+            fn (Response $response): ConnectionTestResult => is_array($response->json('data.endpoints')) && $response->json('data.endpoints') !== []
+                ? ConnectionTestResult::success('openrouter_ok', $details)
+                : ConnectionTestResult::failure('openrouter_model_no_endpoints', $details),
+            fn (Response $response): ?ConnectionTestResult => $response->status() === 404 ? ConnectionTestResult::failure('openrouter_model_missing', $details) : null,
         );
     }
 

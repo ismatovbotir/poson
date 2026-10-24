@@ -10,7 +10,8 @@ use RuntimeException;
  * only: provider errors are never copied into it (they may echo keys,
  * headers or prompts). When the provider answered but the answer was
  * unusable, the usage it billed travels along (tokens are stored and
- * costed on the failed row).
+ * costed on the failed row; $billedMicroUsd is the provider's exact cost
+ * when it reported one).
  */
 final class AiException extends RuntimeException
 {
@@ -19,13 +20,14 @@ final class AiException extends RuntimeException
         public readonly int $inputTokens = 0,
         public readonly int $outputTokens = 0,
         public readonly ?string $model = null,
+        public readonly ?int $billedMicroUsd = null,
     ) {
         parent::__construct('AI request failed: '.$errorCode->value);
     }
 
-    public static function for(AiErrorCode $code, int $inputTokens = 0, int $outputTokens = 0, ?string $model = null): self
+    public static function for(AiErrorCode $code, int $inputTokens = 0, int $outputTokens = 0, ?string $model = null, ?int $billedMicroUsd = null): self
     {
-        return new self($code, $inputTokens, $outputTokens, $model);
+        return new self($code, $inputTokens, $outputTokens, $model, $billedMicroUsd);
     }
 
     /**
@@ -33,6 +35,10 @@ final class AiException extends RuntimeException
      */
     public function costMicroUsd(string $fallbackModel): int
     {
+        if ($this->billedMicroUsd !== null) {
+            return max(0, $this->billedMicroUsd);
+        }
+
         return AiCost::microUsd($this->model ?? $fallbackModel, $this->inputTokens, $this->outputTokens);
     }
 }

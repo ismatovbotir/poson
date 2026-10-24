@@ -3,15 +3,14 @@
 namespace App\Services\Ai;
 
 use App\Enums\AiErrorCode;
-use App\Enums\AiProvider;
 use App\Models\AiRequest;
 use App\Models\User;
-use App\Support\Secrets;
 
 /**
  * Whether the admin AI assist can be used (plan 02): switched on in
- * Settings → Integrations (off by default), the Anthropic key set, and
- * the user allowed (ai.use). The AI buttons are hidden otherwise.
+ * Settings → Integrations (off by default), the key of the current text
+ * provider (Anthropic or OpenRouter, plan 10) set, and the user allowed
+ * (ai.use). The AI buttons are hidden otherwise.
  */
 final class AiAssist
 {
@@ -22,7 +21,7 @@ final class AiAssist
 
     public static function isConfigured(): bool
     {
-        return Secrets::isConfigured(AiProvider::Anthropic->keyField());
+        return AiTextProvider::isConfigured();
     }
 
     /**

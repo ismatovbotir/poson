@@ -17,6 +17,16 @@ enum AiErrorCode: string
     case Disabled = 'disabled';
     case QuotaExceeded = 'quota_exceeded';
     case BudgetExceeded = 'budget_exceeded';
+    // OpenRouter (plan 10): the account has no credits left (HTTP 402).
+    case NoCredits = 'no_credits';
+    // OpenRouter (plan 10): the chosen model doesn't exist or has no endpoint now.
+    case ModelUnavailable = 'model_unavailable';
+    // OpenRouter (plan 10): the key was rejected (HTTP 401).
+    case InvalidKey = 'invalid_key';
+    // OpenRouter (plan 10): the provider or its moderation refused the request (HTTP 403).
+    case Refused = 'refused';
+    // OpenRouter (plan 10): the provider rejected the request as invalid (other 4xx); retrying won't help.
+    case BadRequest = 'bad_request';
 
     /**
      * Translated message for the assistant panel.

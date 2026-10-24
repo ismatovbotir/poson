@@ -64,7 +64,7 @@ it('generates uz, ru and en with structured output through laravel/ai', function
     FieldWriter::fake([['uz' => 'Yorliq printeri', 'ru' => 'Принтер этикеток', 'en' => 'Label printer']])->preventStrayPrompts();
     Translator::fake()->preventStrayPrompts();
 
-    $result = app(ClaudeTextAssistant::class)->generate(nameTask());
+    $result = app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5');
 
     expect($result->texts)->toBe(['uz' => 'Yorliq printeri', 'ru' => 'Принтер этикеток', 'en' => 'Label printer'])
         ->and($result->model)->toBe('claude-opus-5-5');
@@ -82,7 +82,7 @@ it('translates and keeps the source text unchanged', function () {
     Translator::fake([['uz' => 'Yorliq printeri', 'ru' => 'изменено', 'en' => 'Label printer']])->preventStrayPrompts();
     FieldWriter::fake()->preventStrayPrompts();
 
-    $result = app(ClaudeTextAssistant::class)->translate(nameTask(AiFeature::TextTranslate, 'ru', 'Принтер этикеток'));
+    $result = app(ClaudeTextAssistant::class)->translate(nameTask(AiFeature::TextTranslate, 'ru', 'Принтер этикеток'), 'claude-opus-5-5');
 
     expect($result->texts['ru'])->toBe('Принтер этикеток')
         ->and($result->texts['en'])->toBe('Label printer');
@@ -102,14 +102,14 @@ it('refuses without a key and never prompts', function () {
     Secrets::flush();
     FieldWriter::fake()->preventStrayPrompts();
 
-    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask())))->toBe(AiErrorCode::NotConfigured);
+    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5')))->toBe(AiErrorCode::NotConfigured);
     FieldWriter::assertNeverPrompted();
 });
 
 it('maps provider failures to safe codes', function (Closure $throw, AiErrorCode $code) {
     FieldWriter::fake(fn () => $throw());
 
-    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask())))->toBe($code);
+    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5')))->toBe($code);
 })->with([
     'timeout' => [fn () => throw ProviderConnectionException::forProvider('anthropic', 0, new ConnectionException('cURL error 28: Operation timed out after 45001 ms')), AiErrorCode::Timeout],
     'connection' => [fn () => throw ProviderConnectionException::forProvider('anthropic', 0, new ConnectionException('cURL error 6: Could not resolve host')), AiErrorCode::ProviderError],
@@ -121,7 +121,7 @@ it('rejects an answer with a missing locale and keeps its billed usage', functio
     Http::fake(['api.anthropic.com/*' => Http::response(anthropicMessage(['uz' => 'Yorliq printeri', 'ru' => '', 'en' => 'Label printer'], 900, 300))]);
 
     try {
-        app(ClaudeTextAssistant::class)->generate(nameTask());
+        app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5');
         test()->fail('Expected an AiException.');
     } catch (AiException $exception) {
         expect($exception->errorCode)->toBe(AiErrorCode::InvalidOutput)
@@ -134,7 +134,7 @@ it('rejects an answer with a missing locale and keeps its billed usage', functio
 it('sends a plain structured-output request to the Messages API', function () {
     Http::fake(['api.anthropic.com/*' => Http::response(anthropicMessage(['uz' => 'Yorliq printeri', 'ru' => 'Принтер этикеток', 'en' => 'Label printer']))]);
 
-    $result = app(ClaudeTextAssistant::class)->generate(nameTask());
+    $result = app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5');
 
     expect($result->texts['ru'])->toBe('Принтер этикеток')
         ->and($result->inputTokens)->toBe(1200)
@@ -167,7 +167,7 @@ it('reports a rejected request by HTTP status and error type only', function () 
     Exceptions::fake();
     Http::fake(['api.anthropic.com/*' => Http::response(['type' => 'error', 'error' => ['type' => 'invalid_request_error', 'message' => 'Bad prompt '.fakeAnthropicKey()]], 400)]);
 
-    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask())))->toBe(AiErrorCode::ProviderError);
+    expect(assistantError(fn () => app(ClaudeTextAssistant::class)->generate(nameTask(), 'claude-opus-5-5')))->toBe(AiErrorCode::ProviderError);
 
     Exceptions::assertReported(fn (RuntimeException $e): bool => $e->getMessage() === 'Anthropic rejected an AI request: HTTP 400, invalid_request_error.');
     Exceptions::assertNotReported(fn (Throwable $e): bool => str_contains($e->getMessage(), 'Bad prompt'));

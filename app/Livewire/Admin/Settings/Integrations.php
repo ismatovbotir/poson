@@ -7,6 +7,7 @@ use App\Actions\Settings\GenerateWebhookSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
 use App\Actions\Settings\TestIntegrationConnection;
+use App\Enums\AiProvider;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymeMode;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
@@ -14,6 +15,9 @@ use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Livewire\Forms\Admin\Settings\IntegrationSettingsForm;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
+use App\Services\Ai\AiCost;
+use App\Services\Ai\AiTextProvider;
+use App\Services\Ai\OpenRouterTextAssistant;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
@@ -253,7 +257,7 @@ class Integrations extends Component
 
     /**
      * Test the saved (effective) value: telegram, telegram_chat + chat,
-     * anthropic, openai, removebg.
+     * anthropic, openrouter, openai, removebg.
      */
     public function test(string $target, TestIntegrationConnection $tester, ?string $chat = null): void
     {
@@ -290,6 +294,7 @@ class Integrations extends Component
             'telegram' => 'telegram_bot_token',
             'telegram_chat' => 'telegram_chats_'.$chat,
             'anthropic' => 'anthropic_api_key',
+            'openrouter' => 'openrouter_api_key',
             'openai' => 'openai_api_key',
             'removebg' => 'removebg_api_key',
             default => $target,
@@ -315,8 +320,17 @@ class Integrations extends Component
             }
         }
 
+        // Plan 10: the AI section shows the fields of the selected text provider (the form value, live).
+        $textProvider = AiProvider::tryFrom((string) data_get($this->form->values, 'ai.text_provider')) ?? AiTextProvider::current();
+        $openRouterModel = (string) data_get($this->form->values, 'ai.openrouter_model');
+
         return view('livewire.admin.settings.integrations', [
             'sections' => $sections,
+            'hiddenFields' => $textProvider === AiProvider::OpenRouter
+                ? ['ai.text_model']
+                : ['openrouter.api_key', 'ai.openrouter_model', 'ai.openrouter_allow_data_collection'],
+            'openRouterSelected' => $textProvider === AiProvider::OpenRouter,
+            'openRouterFree' => AiCost::isFree($openRouterModel !== '' ? $openRouterModel : OpenRouterTextAssistant::modelOrNull()),
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'paymeProd' => Secrets::get('payme.mode') === PaymeMode::Prod->value || data_get($this->form->values, 'payme.mode') === PaymeMode::Prod->value,
             'paymeTestKeyMissing' => (data_get($this->form->values, 'payme.mode') ?: Secrets::get('payme.mode')) === PaymeMode::Test->value && ! Secrets::isConfigured('payme.test_key'),

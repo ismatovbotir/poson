@@ -9,6 +9,7 @@ use App\Models\AiRequest;
 use App\Models\User;
 use App\Services\Ai\AiAssist;
 use App\Services\Ai\AiQuota;
+use App\Services\Ai\AiTextProvider;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -21,7 +22,7 @@ use Livewire\Component;
 /**
  * SI yordamchi → Foydalanish va limitlar (plan 02, A5; Admin only via
  * ai-requests.viewAny). Today and this month (Tashkent time) per user,
- * the monthly budget, and the request log with filters. Prompt and response
+ * the monthly budget, and the request log (with provider and model) with filters. Prompt and response
  * texts are loaded only for the expanded row.
  */
 #[Layout('layouts::admin')]
@@ -151,6 +152,7 @@ class Usage extends Component
             'dailyLimit' => AiQuota::dailyLimit(),
             'enabled' => AiAssist::isEnabled(),
             'configured' => AiAssist::isConfigured(),
+            'textProvider' => AiTextProvider::current(),
             'filtering' => $this->user !== '' || $this->status !== '' || $this->feature !== '',
             'timezone' => AiQuota::timezone(),
         ])->title(__('ai.usage.title'));

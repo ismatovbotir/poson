@@ -89,12 +89,20 @@ final class AiQuota
 
     /**
      * Worst-case cost of one text request: the input estimate plus the
-     * maximum output, at the model's rates (fallback rates for unknown models).
+     * maximum output, at the model's rates (0 for an OpenRouter ":free"
+     * model, fallback rates for other unknown models; AiCost).
      */
     public static function estimateMicroUsd(?string $model): int
     {
+        try {
+            $model ??= AiTextProvider::model();
+        } catch (AiException) {
+            // An invalid configured model: estimate at the fallback rates.
+            $model = '';
+        }
+
         return AiCost::microUsd(
-            (string) ($model ?? ClaudeTextAssistant::model()),
+            $model,
             (int) config('ai-assist.input_tokens_estimate', 6000),
             (int) config('ai-assist.max_output_tokens', 8192),
         );
@@ -102,7 +110,8 @@ final class AiQuota
 
     /**
      * The month's cost (with open requests) plus one more request of $model
-     * would pass the budget. Without $model: the budget is already used up.
+     * reaches the budget (so a used-up budget also blocks free models).
+     * Without $model: the budget is already used up.
      */
     public static function budgetReached(?string $model = null): bool
     {
@@ -114,7 +123,7 @@ final class AiQuota
 
         $cost = self::monthCostMicroUsd();
 
-        return $model === null ? $cost >= $budget : $cost + self::estimateMicroUsd($model) > $budget;
+        return $model === null ? $cost >= $budget : $cost + self::estimateMicroUsd($model) >= $budget;
     }
 
     public static function timezone(): string
