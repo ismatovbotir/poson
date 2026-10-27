@@ -40,6 +40,11 @@ use Illuminate\Validation\ValidationException;
  *   (new and active, or draft → active). Drafts may be incomplete, and an
  *   already active product stays active (it shows as "specs incomplete").
  * - search_text and has_missing_specs are recomputed.
+ * - Price API (plan 09): for a product with price_synced_at set, the
+ *   incoming price fields are replaced by the stored ones, re-read under a
+ *   row lock inside the transaction (the API wins, also against a batch
+ *   that arrived after the form was loaded), and the SKU can't change
+ *   (unlink first).
  *
  * Errors are ValidationExceptions keyed like the form ("sku",
  * "specs.3.number", ...); spec indexes are positions in $specs.
@@ -101,6 +106,13 @@ class SaveProduct
         $product ??= new Product;
         $wasActive = $product->exists && (bool) $product->getOriginal('is_active');
 
+        // The price API owns the prices of a synced product: incoming price fields are ignored.
+        if ($product->exists && $product->getOriginal('price_synced_at') !== null) {
+            foreach (['price', 'price_dealer', 'price_wholesale'] as $field) {
+                $data[$field] = $product->getOriginal($field);
+            }
+        }
+
         $this->checkFields($product, $data);
 
         $sku = mb_strtoupper(trim($data['sku']));
@@ -130,6 +142,10 @@ class SaveProduct
     private function store(Product $product, array $data, string $sku, string $slug, array $rows, array $missing): Product
     {
         return DB::transaction(function () use ($product, $data, $sku, $slug, $rows, $missing): Product {
+            if ($product->exists) {
+                $data = $this->lockedPrices($product, $data);
+            }
+
             $product->storeTranslations('name', $data['name']);
             $product->storeTranslations('short_description', $data['short_description']);
             $product->storeTranslations('description', array_map(HtmlSanitizer::cleanOrNull(...), $data['description']));
@@ -167,6 +183,31 @@ class SaveProduct
     }
 
     /**
+     * Re-read the row under a lock: if the price API owns the prices (also
+     * when a batch arrived after the form was loaded), keep the stored ones.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function lockedPrices(Product $product, array $data): array
+    {
+        $row = DB::table('products')
+            ->where('id', $product->id)
+            ->lockForUpdate()
+            ->first(['price', 'price_dealer', 'price_wholesale', 'price_synced_at']);
+
+        if ($row === null || $row->price_synced_at === null) {
+            return $data;
+        }
+
+        foreach (['price', 'price_dealer', 'price_wholesale'] as $field) {
+            $data[$field] = $row->{$field} !== null ? (int) $row->{$field} : null;
+        }
+
+        return $data;
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      *
      * @throws ValidationException
@@ -181,7 +222,10 @@ class SaveProduct
 
         $sku = mb_strtoupper(trim((string) $data['sku']));
 
-        if ($sku === '') {
+        if ($product->exists && $product->getOriginal('price_synced_at') !== null && $sku !== mb_strtoupper((string) $product->getOriginal('sku'))) {
+            // The price API matches on the SKU: changing it would orphan the product's prices.
+            $errors['sku'] = __('api.product.sku_locked');
+        } elseif ($sku === '') {
             $errors['sku'] = __('validation.required', ['attribute' => __('admin.products.fields.sku')]);
         } elseif (! preg_match(self::SKU_PATTERN, $sku) || mb_strlen($sku) > 64) {
             $errors['sku'] = __('validation.regex', ['attribute' => __('admin.products.fields.sku')]);

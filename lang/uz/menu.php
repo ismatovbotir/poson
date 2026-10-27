@@ -27,7 +27,7 @@ return [
         'attributes' => 'Xususiyatlar',
         'brands' => 'Brendlar',
         'products' => 'Mahsulotlar',
-        'price_import' => 'Narxlarni import qilish',
+        'price_sync' => 'Narxlar sinxronizatsiyasi',
         'service_requests' => 'Servis soʻrovlari',
         'repairs' => 'Taʼmirlash',
         'pages' => 'Sahifalar',
@@ -41,6 +41,7 @@ return [
         'company' => 'Kompaniya',
         'users' => 'Foydalanuvchilar va rollar',
         'integrations' => 'Integratsiyalar',
+        'api_tokens' => 'API tokenlar',
     ],
 
     'tabs' => [

@@ -99,7 +99,7 @@
                 </x-admin.locale-tabs>
 
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                    <x-admin.input wire:model="form.sku" :label="__('admin.products.fields.sku')" required maxlength="64" autocomplete="off" spellcheck="false" class="[&_input]:font-mono" :hint="__('admin.products.sku_hint')" />
+                    <x-admin.input wire:model="form.sku" :label="__('admin.products.fields.sku')" required maxlength="64" autocomplete="off" spellcheck="false" class="[&_input]:font-mono" :hint="$priceSynced ? __('api.product.sku_locked') : __('admin.products.sku_hint')" :disabled="$priceSynced" />
                     <x-admin.input wire:model="form.model" :label="__('admin.products.fields.model')" maxlength="255" autocomplete="off" />
                 </div>
 
@@ -141,10 +141,39 @@
                     </fieldset>
 
                     <div>
+                        @if ($priceSynced)
+                            {{-- Plan 09: the price API owns these prices (SaveProduct ignores them too). --}}
+                            <div class="mb-4 flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3.5 text-sm text-sky-900 sm:flex-row sm:items-center sm:justify-between" role="status" data-price-synced>
+                                <p class="flex gap-2">
+                                    <x-admin.icon name="lock" size="size-4" class="mt-0.5 shrink-0 text-sky-600" />
+                                    <span>
+                                        {{ __('api.product.synced_at', ['date' => \App\Support\DateFormat::iso($product->price_synced_at->copy()->setTimezone(\App\Models\PriceSyncLog::TIMEZONE), 'D MMMM YYYY, HH:mm')]) }}
+                                        @if ($priceSyncLogId)
+                                            · <a href="{{ route('admin.price-sync.show', $priceSyncLogId) }}" wire:navigate class="font-semibold underline hover:text-sky-700" data-price-sync-log-link>{{ __('api.product.open_log') }}</a>
+                                        @endif
+                                        <span class="mt-0.5 block text-xs text-sky-800/80">{{ __('api.product.synced_hint') }}</span>
+                                    </span>
+                                </p>
+                                @if ($canUnlinkPriceSync)
+                                    <x-admin.button
+                                        variant="secondary"
+                                        size="sm"
+                                        icon="link"
+                                        x-on:click="$dispatch('confirm', {
+                                            title: {{ \Illuminate\Support\Js::from(__('api.product.unlink_title')) }},
+                                            body: {{ \Illuminate\Support\Js::from(__('api.product.unlink_body')) }},
+                                            label: {{ \Illuminate\Support\Js::from(__('api.product.unlink')) }},
+                                            component: $wire.$id, method: 'unlinkPriceSync',
+                                        })"
+                                        data-unlink-price-sync
+                                    >{{ __('api.product.unlink') }}</x-admin.button>
+                                @endif
+                            </div>
+                        @endif
                         <div class="grid gap-4 sm:grid-cols-3">
-                            <x-admin.money-input wire:model="form.price" :label="__('enums.price_level.retail')" :hint="__('admin.products.price_hints.retail')" />
-                            <x-admin.money-input wire:model="form.price_dealer" :label="__('enums.price_level.dealer')" :hint="__('admin.products.price_hints.fallback')" />
-                            <x-admin.money-input wire:model="form.price_wholesale" :label="__('enums.price_level.wholesale')" :hint="__('admin.products.price_hints.fallback')" />
+                            <x-admin.money-input wire:model="form.price" :label="__('enums.price_level.retail')" :hint="__('admin.products.price_hints.retail')" :disabled="$priceSynced" />
+                            <x-admin.money-input wire:model="form.price_dealer" :label="__('enums.price_level.dealer')" :hint="__('admin.products.price_hints.fallback')" :disabled="$priceSynced" />
+                            <x-admin.money-input wire:model="form.price_wholesale" :label="__('enums.price_level.wholesale')" :hint="__('admin.products.price_hints.fallback')" :disabled="$priceSynced" />
                         </div>
                         <p class="mt-2 flex items-start gap-1.5 text-xs text-slate-500"><x-admin.icon name="lock" size="size-4" class="shrink-0 text-slate-400" />{{ __('admin.products.price_hints.levels') }}</p>
                         <div x-cloak x-show="! String($wire.form.price ?? '').trim()" class="mt-3 flex gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3.5 text-sm text-sky-900" role="status" data-price-on-request>

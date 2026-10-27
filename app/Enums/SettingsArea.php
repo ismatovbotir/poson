@@ -7,6 +7,8 @@ namespace App\Enums;
  * of Settings → Company, plus Integrations (plan 04b). AiBots holds the
  * per-crawler robots.txt policy (key robots.ai_bots); Faq is the general FAQ
  * tab (faq_items rows, not settings keys) and is used for access only.
+ * ApiTokens (token created / revoked) and PriceSync (a product unlinked
+ * from the price API) are audit-only areas of plan 09.
  */
 enum SettingsArea: string
 {
@@ -19,6 +21,8 @@ enum SettingsArea: string
     case AiBots = 'ai_bots';
     case Faq = 'faq';
     case Integrations = 'integrations';
+    case ApiTokens = 'api_tokens';
+    case PriceSync = 'price_sync';
 
     public function label(): string
     {
@@ -33,7 +37,7 @@ enum SettingsArea: string
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
             self::Seo, self::Tracking, self::AiBots => 'seo',
-            self::Integrations => 'integrations',
+            self::Integrations, self::ApiTokens, self::PriceSync => 'integrations',
         };
     }
 
@@ -42,6 +46,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync], true);
     }
 }

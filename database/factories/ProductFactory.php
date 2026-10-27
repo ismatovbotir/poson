@@ -165,4 +165,14 @@ class ProductFactory extends Factory
             'brand_id' => null,
         ]);
     }
+
+    /**
+     * Prices owned by the price API (plan 09).
+     */
+    public function priceSynced(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'price_synced_at' => now()->subHour(),
+        ]);
+    }
 }

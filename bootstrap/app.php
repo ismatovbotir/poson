@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\EnsureStaff;
+use App\Http\Middleware\LimitJsonBody;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackVisit;
@@ -12,11 +14,14 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        // Plan 09 price API: registered by hand (no install:api, no Sanctum).
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function (): void {
@@ -31,7 +36,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'locale' => SetLocale::class,
             'admin' => EnsureStaff::class,
             'admin.locale' => SetAdminLocale::class,
+            'api.token' => AuthenticateApiToken::class,
         ]);
+
+        // Price API order (plan 09): body size → token → per-token throttle (the
+        // throttle key needs the token; ThrottleRequests is otherwise sorted first).
+        $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: AuthenticateApiToken::class);
+        $middleware->prependToPriorityList(before: AuthenticateApiToken::class, prepend: LimitJsonBody::class);
 
         // Only the admin panel has authentication.
         $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.login'));

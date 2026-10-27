@@ -20,4 +20,15 @@ return [
         'open_in_admin' => 'Открыть в админке',
     ],
 
+    'price_sync' => [
+        'title' => 'Проблемы синхронизации цен, пакет #:id',
+        'token' => 'Токен',
+        'no_token' => 'удалённый токен',
+        'rejected' => 'Пакет отклонён целиком: :error',
+        'counts' => 'Получено :received · обновлено :updated · без изменений :unchanged · неизвестно :unknown · с ошибкой :invalid',
+        'unknown_codes' => 'Неизвестные коды',
+        'more_codes' => 'и ещё :count',
+        'open_log' => 'Открыть пакет',
+    ],
+
 ];

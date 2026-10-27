@@ -27,7 +27,7 @@ return [
         'attributes' => 'Характеристики',
         'brands' => 'Бренды',
         'products' => 'Товары',
-        'price_import' => 'Импорт цен',
+        'price_sync' => 'Синхронизация цен',
         'service_requests' => 'Сервисные заявки',
         'repairs' => 'Ремонт',
         'pages' => 'Страницы',
@@ -41,6 +41,7 @@ return [
         'company' => 'Компания',
         'users' => 'Пользователи и роли',
         'integrations' => 'Интеграции',
+        'api_tokens' => 'API-токены',
     ],
 
     'tabs' => [

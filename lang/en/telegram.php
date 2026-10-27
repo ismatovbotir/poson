@@ -20,4 +20,15 @@ return [
         'open_in_admin' => 'Open in admin',
     ],
 
+    'price_sync' => [
+        'title' => 'Price sync problems, batch #:id',
+        'token' => 'Token',
+        'no_token' => 'deleted token',
+        'rejected' => 'The whole batch was rejected: :error',
+        'counts' => 'Received :received · updated :updated · unchanged :unchanged · unknown :unknown · invalid :invalid',
+        'unknown_codes' => 'Unknown codes',
+        'more_codes' => 'and :count more',
+        'open_log' => 'Open the batch',
+    ],
+
 ];

@@ -12,6 +12,9 @@ enum AuditAction: string
     case Uploaded = 'uploaded';
     case Removed = 'removed';
     case Generated = 'generated';
+    case Created = 'created';
+    case Revoked = 'revoked';
+    case Unlinked = 'unlinked';
 
     public function label(): string
     {

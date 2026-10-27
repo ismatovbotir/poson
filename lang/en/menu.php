@@ -27,7 +27,7 @@ return [
         'attributes' => 'Attributes',
         'brands' => 'Brands',
         'products' => 'Products',
-        'price_import' => 'Price import',
+        'price_sync' => 'Price sync',
         'service_requests' => 'Service requests',
         'repairs' => 'Repairs',
         'pages' => 'Pages',
@@ -41,6 +41,7 @@ return [
         'company' => 'Company',
         'users' => 'Users & roles',
         'integrations' => 'Integrations',
+        'api_tokens' => 'API tokens',
     ],
 
     'tabs' => [

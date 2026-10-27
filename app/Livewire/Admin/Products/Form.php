@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Products;
 use App\Actions\Catalog\CreateAttributeOption;
 use App\Actions\Catalog\DeleteProduct;
 use App\Actions\Catalog\SaveProduct;
+use App\Actions\Catalog\UnlinkProductPriceSync;
 use App\Enums\AttributeType;
 use App\Enums\ProductType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
@@ -12,7 +13,9 @@ use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Products\ProductForm;
 use App\Models\Attribute;
 use App\Models\Brand;
+use App\Models\PriceSyncLog;
 use App\Models\Product;
+use App\Support\Admin\PasswordConfirmation;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\ProductAiContext;
 use App\Support\Catalog\CategoryTree;
@@ -329,6 +332,35 @@ class Form extends Component
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.products.saved', ['name' => $this->product->name]));
     }
 
+    /**
+     * "Unlink from API" (plan 09, Admin only, password re-confirmation):
+     * the prices become editable here again.
+     */
+    public function unlinkPriceSync(UnlinkProductPriceSync $unlink): void
+    {
+        if ($this->product === null) {
+            return;
+        }
+
+        $this->authorize('unlinkPriceSync', $this->product);
+
+        if (! PasswordConfirmation::isRecent()) {
+            $this->redirect(PasswordConfirmation::url(route('admin.products.edit', $this->product)), navigate: false);
+
+            return;
+        }
+
+        $unlinked = $unlink->handle($this->product, auth()->user(), request()->ip());
+
+        $this->product = $this->product->fresh();
+        $this->form->setProduct($this->product, app(ProductAttributeResolver::class)->forProduct($this->product));
+        unset($this->specMeta, $this->extraResults);
+
+        if ($unlinked) {
+            $this->dispatch('toast', title: __('admin.toast.done'), body: __('api.product.unlinked'), type: 'success');
+        }
+    }
+
     public function delete(DeleteProduct $deleteProduct): void
     {
         if ($this->product === null) {
@@ -376,6 +408,10 @@ class Form extends Component
             'canDelete' => $this->product && $user->can('delete', $this->product),
             'canCreateOptions' => $user->can('update', Attribute::class),
             'canCreateAttributes' => $user->can('create', Attribute::class),
+            // Plan 09: the price API owns the prices of a synced product.
+            'priceSynced' => $this->product?->isPriceSynced() ?? false,
+            'priceSyncLogId' => $this->product?->isPriceSynced() && $user->can('viewAny', PriceSyncLog::class) ? $this->product->price_sync_log_id : null,
+            'canUnlinkPriceSync' => $this->product !== null && $user->can('unlinkPriceSync', $this->product),
         ])->title($title);
     }
 

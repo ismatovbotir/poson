@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Schema;
  * - is_active false = draft; soft deletes = trash (D9).
  * - search_text: lowercased sku/model/names/brand for LIKE search (D7);
  *   has_missing_specs: recomputed flag for the admin filter (D8).
+ * - price_synced_at (plan 09): set by the price API; while set, the admin
+ *   form shows the prices read-only and SaveProduct ignores price input;
+ *   price_sync_log_id points at that batch (price_sync_logs is created
+ *   just before this table for the foreign key).
  */
 return new class extends Migration
 {
@@ -38,6 +42,10 @@ return new class extends Migration
             $table->unsignedBigInteger('price')->nullable();
             $table->unsignedBigInteger('price_dealer')->nullable();
             $table->unsignedBigInteger('price_wholesale')->nullable();
+            // Plan 09: last time the price API (1C) set the prices; non-null = the API owns them.
+            $table->timestamp('price_synced_at')->nullable();
+            // The batch that last matched the product (link on the admin form); kept null after pruning.
+            $table->foreignId('price_sync_log_id')->nullable()->constrained()->nullOnDelete();
             $table->string('unit', 20);
             $table->unsignedInteger('min_qty')->default(1);
             $table->string('sale_mode', 20);
@@ -60,6 +68,7 @@ return new class extends Migration
             $table->index(['is_active', 'price']);
             $table->index('type');
             $table->index('has_missing_specs');
+            $table->index('price_synced_at');
         });
     }
 

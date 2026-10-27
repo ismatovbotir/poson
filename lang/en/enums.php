@@ -214,6 +214,8 @@ return [
         'ai_bots' => 'AI bots',
         'faq' => 'FAQ',
         'integrations' => 'Integrations',
+        'api_tokens' => 'API tokens',
+        'price_sync' => 'Price sync',
     ],
 
     'audit_action' => [
@@ -222,6 +224,15 @@ return [
         'uploaded' => 'Uploaded',
         'removed' => 'Removed',
         'generated' => 'Generated',
+        'created' => 'Created',
+        'revoked' => 'Revoked',
+        'unlinked' => 'Unlinked',
+    ],
+
+    'price_sync_status' => [
+        'success' => 'Applied',
+        'partial' => 'Partly applied',
+        'rejected' => 'Rejected',
     ],
 
     'payme_mode' => [

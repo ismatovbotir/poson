@@ -20,4 +20,15 @@ return [
         'open_in_admin' => 'Admin panelda ochish',
     ],
 
+    'price_sync' => [
+        'title' => 'Narxlar sinxronizatsiyasida muammo, paket #:id',
+        'token' => 'Token',
+        'no_token' => 'oʻchirilgan token',
+        'rejected' => 'Paket butunlay rad etildi: :error',
+        'counts' => 'Qabul qilindi :received · yangilandi :updated · oʻzgarmadi :unchanged · nomaʼlum :unknown · xato :invalid',
+        'unknown_codes' => 'Nomaʼlum kodlar',
+        'more_codes' => 'va yana :count ta',
+        'open_log' => 'Paketni ochish',
+    ],
+
 ];

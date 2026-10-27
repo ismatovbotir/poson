@@ -74,6 +74,7 @@ return [
             'finance' => env('TELEGRAM_FINANCE_CHAT_ID'),
         ],
         'notify_new_leads' => env('TELEGRAM_NOTIFY_NEW_LEADS'),
+        'notify_price_sync' => env('TELEGRAM_NOTIFY_PRICE_SYNC'),
         'locale' => env('TELEGRAM_LOCALE'),
     ],
 

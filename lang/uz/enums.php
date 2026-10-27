@@ -214,6 +214,8 @@ return [
         'ai_bots' => 'SI botlar',
         'faq' => 'Koʻp beriladigan savollar',
         'integrations' => 'Integratsiyalar',
+        'api_tokens' => 'API tokenlar',
+        'price_sync' => 'Narxlar sinxronizatsiyasi',
     ],
 
     'audit_action' => [
@@ -222,6 +224,15 @@ return [
         'uploaded' => 'Yuklandi',
         'removed' => 'Oʻchirildi',
         'generated' => 'Yaratildi',
+        'created' => 'Yaratildi',
+        'revoked' => 'Bekor qilindi',
+        'unlinked' => 'Ajratildi',
+    ],
+
+    'price_sync_status' => [
+        'success' => 'Qoʻllandi',
+        'partial' => 'Qisman qoʻllandi',
+        'rejected' => 'Rad etildi',
     ],
 
     'payme_mode' => [

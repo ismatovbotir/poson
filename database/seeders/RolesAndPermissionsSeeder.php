@@ -79,6 +79,8 @@ class RolesAndPermissionsSeeder extends Seeder
      *  - ai.use: the AI assistant in content forms (plan 02); ai-requests.viewAny:
      *    AI usage and limits screen (Admin only).
      *  - pages.* / news.* / banners.*: Content manager + Admin (plan 07).
+     *  - api-tokens.manage / price-sync.view: price API tokens and the sync
+     *    log (plan 09); Admin only, no other role.
      *
      * @return array<string, list<string>>
      */
@@ -150,6 +152,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'ai-requests.viewAny',
             // Plan 07 content: pages (7a), news (7b), banners (7c).
             ...static::abilities(self::CONTENT, self::CRUD),
+            // Plan 09 price API: tokens (Settings → API tokens) and the sync log. Admin only.
+            'api-tokens.manage',
+            'price-sync.view',
         ];
     }
 

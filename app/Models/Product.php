@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -46,6 +47,12 @@ use Spatie\Translatable\HasTranslations;
  * Writes go through App\Actions\Catalog\SaveProduct (search_text and
  * has_missing_specs are maintained there).
  *
+ * Price API (plan 09): App\Actions\Api\SyncPrices writes the three prices
+ * and price_synced_at / price_sync_log_id with query-builder updates (no
+ * model events). While price_synced_at is set the API owns the prices and
+ * the SKU: the admin form shows them read-only and SaveProduct keeps the
+ * stored ones.
+ *
  * @property int $id
  * @property int $category_id
  * @property int|null $brand_id
@@ -56,6 +63,8 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $price
  * @property int|null $price_dealer
  * @property int|null $price_wholesale
+ * @property Carbon|null $price_synced_at
+ * @property int|null $price_sync_log_id
  * @property ProductUnit $unit
  * @property int $min_qty
  * @property SaleMode $sale_mode
@@ -130,6 +139,8 @@ class Product extends Model implements HasMedia
             'price' => 'integer',
             'price_dealer' => 'integer',
             'price_wholesale' => 'integer',
+            'price_synced_at' => 'datetime',
+            'price_sync_log_id' => 'integer',
             'min_qty' => 'integer',
             'warranty_months' => 'integer',
             'is_active' => 'boolean',
@@ -180,6 +191,16 @@ class Product extends Model implements HasMedia
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * The price API batch that last matched this product (plan 09).
+     *
+     * @return BelongsTo<PriceSyncLog, $this>
+     */
+    public function priceSyncLog(): BelongsTo
+    {
+        return $this->belongsTo(PriceSyncLog::class);
     }
 
     /**
@@ -326,6 +347,14 @@ class Product extends Model implements HasMedia
     public function priceFor(PriceLevel $level): ?int
     {
         return $this->getAttribute($level->column()) ?? $this->price;
+    }
+
+    /**
+     * The prices come from the price API (read-only in admin).
+     */
+    public function isPriceSynced(): bool
+    {
+        return $this->price_synced_at !== null;
     }
 
     /**

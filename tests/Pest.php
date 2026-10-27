@@ -12,6 +12,7 @@ use App\Support\Secrets;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Tests\Support\FakeTextAssistant;
 use Tests\TestCase;
 
@@ -220,4 +221,40 @@ function fakeTextAssistant(?FakeTextAssistant $fake = null, ?AiProvider $provide
     }
 
     return $fake;
+}
+
+/**
+ * Fake price API token (plan 09; never a real one): "pos_" + 48 characters.
+ */
+function fakeApiTokenValue(string $seed = 'a1B2'): string
+{
+    return 'pos_'.substr(str_repeat($seed, 48), 0, 48);
+}
+
+/**
+ * POST a raw body to /api/v1/prices.
+ *
+ * @param  array<string, mixed>|string  $body  An array is JSON-encoded
+ * @param  array<string, string>  $server  Extra server variables (e.g. CONTENT_TYPE)
+ */
+function postPrices(array|string $body, ?string $token = null, array $server = []): TestResponse
+{
+    $content = is_string($body) ? $body : json_encode($body, JSON_THROW_ON_ERROR);
+
+    return test()->call('POST', '/api/v1/prices', [], [], [], array_filter([
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_ACCEPT' => 'application/json',
+        'HTTP_AUTHORIZATION' => $token !== null ? 'Bearer '.$token : null,
+        ...$server,
+    ], fn ($value) => $value !== null), $content);
+}
+
+/**
+ * One price item in whole soʻm.
+ *
+ * @return array{code: mixed, retail: mixed, dealer: mixed, wholesale: mixed}
+ */
+function priceItem(mixed $code, mixed $retail = 1000, mixed $dealer = null, mixed $wholesale = null): array
+{
+    return ['code' => $code, 'retail' => $retail, 'dealer' => $dealer, 'wholesale' => $wholesale];
 }

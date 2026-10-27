@@ -50,12 +50,12 @@ it('shows each role its part of the menu', function (Role $role, array $expected
     'admin' => [Role::Admin, [
         'dashboard' => ['dashboard', 'analytics', 'ai-visibility'],
         'sales' => ['leads', 'customers', 'quotes', 'orders', 'payments'],
-        'catalog' => [...$catalogItems, 'price-import'],
+        'catalog' => [...$catalogItems, 'price-sync'],
         'service' => ['service-requests', 'repairs'],
         'content' => ['pages', 'news', 'articles', 'banners'],
         'telegram' => ['telegram-bot', 'telegram-mini-app', 'telegram-chats'],
         'ai' => ['ai-usage'],
-        'settings' => ['company', 'users', 'integrations'],
+        'settings' => ['company', 'users', 'integrations', 'api-tokens'],
     ]],
     'sales manager' => [Role::SalesManager, [
         'dashboard' => ['dashboard'],
@@ -72,7 +72,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
     ]],
     'content manager' => [Role::ContentManager, [
         'dashboard' => ['dashboard'],
-        'catalog' => [...$catalogItems, 'price-import'],
+        'catalog' => $catalogItems,
         'content' => ['pages', 'news', 'articles', 'banners'],
     ]],
 ]);

@@ -60,6 +60,15 @@ class ProductPolicy
     }
 
     /**
+     * "Unlink from API" (plan 09): give the prices back to the admin form.
+     * Admin only: api-tokens.manage is granted to no other role.
+     */
+    public function unlinkPriceSync(User $user, Product $product): bool
+    {
+        return $user->can('api-tokens.manage') && $product->isPriceSynced();
+    }
+
+    /**
      * Whether the user may give a product this type (create, or change the
      * type on edit): a service engineer only software and service.
      */

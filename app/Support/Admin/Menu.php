@@ -30,7 +30,6 @@ final class Menu
         // (as the catalog items already do) and the role list goes away.
         $sales = [Role::Admin, Role::SalesManager];
         $service = [Role::Admin, Role::ServiceEngineer];
-        $content = [Role::Admin, Role::ContentManager];
         $admin = [Role::Admin];
 
         // Matrix: service engineer has service_request leads (own), customers (view),
@@ -60,7 +59,8 @@ final class Menu
                 new MenuItem('attributes', 'menu.items.attributes', 'sliders', 'admin.attributes.index', permission: 'attributes.viewAny'),
                 new MenuItem('brands', 'menu.items.brands', 'tag', 'admin.brands.index', permission: 'brands.viewAny'),
                 new MenuItem('products', 'menu.items.products', 'box', 'admin.products.index', permission: 'products.viewAny'),
-                new MenuItem('price-import', 'menu.items.price_import', 'upload', 'admin.price-import.index', roles: $content),
+                // Plan 09: the price API (1C) batch log.
+                new MenuItem('price-sync', 'menu.items.price_sync', 'upload', 'admin.price-sync.index', permission: 'price-sync.view'),
             ]),
 
             new MenuGroup('service', 'menu.groups.service', [
@@ -92,6 +92,7 @@ final class Menu
                 new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', permission: 'settings.company'),
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', permission: 'settings.integrations'),
+                new MenuItem('api-tokens', 'menu.items.api_tokens', 'shield', 'admin.settings.api-tokens', permission: 'api-tokens.manage'),
             ]),
         ];
     }

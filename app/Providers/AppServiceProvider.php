@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Enums\AiProvider;
 use App\Enums\Role;
+use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
@@ -107,6 +108,14 @@ class AppServiceProvider extends ServiceProvider
         // Customers' quote links (plan 06): separate per-IP budgets for the page and the PDF.
         RateLimiter::for('quote-page', fn (Request $request) => Limit::perMinute(60)->by('quote-page:'.$request->ip()));
         RateLimiter::for('quote-pdf', fn (Request $request) => Limit::perMinute(10)->by('quote-pdf:'.$request->ip()));
+
+        // Price API (plan 09): 30 batches per minute per token (after AuthenticateApiToken).
+        RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(30)
+            ->by('price-api:'.($request->attributes->get(AuthenticateApiToken::ATTRIBUTE)?->id ?? $request->ip()))
+            ->response(fn (Request $request, array $headers) => response()->json([
+                'error' => 'rate_limited',
+                'message' => 'Too many requests for this token. Retry later.',
+            ], 429, $headers)));
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);

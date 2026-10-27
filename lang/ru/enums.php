@@ -214,6 +214,8 @@ return [
         'ai_bots' => 'ИИ-боты',
         'faq' => 'Частые вопросы',
         'integrations' => 'Интеграции',
+        'api_tokens' => 'API-токены',
+        'price_sync' => 'Синхронизация цен',
     ],
 
     'audit_action' => [
@@ -222,6 +224,15 @@ return [
         'uploaded' => 'Загружено',
         'removed' => 'Удалено',
         'generated' => 'Создано',
+        'created' => 'Создано',
+        'revoked' => 'Отозвано',
+        'unlinked' => 'Отвязано',
+    ],
+
+    'price_sync_status' => [
+        'success' => 'Применён',
+        'partial' => 'Применён частично',
+        'rejected' => 'Отклонён',
     ],
 
     'payme_mode' => [

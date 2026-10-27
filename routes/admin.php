@@ -18,6 +18,7 @@ use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\News;
 use App\Livewire\Admin\Pages;
+use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
 use App\Livewire\Admin\Settings;
@@ -97,6 +98,10 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/products/{product}/edit', Products\Form::class)->name('products.edit');
     Route::get('/products/documents/{document}/download', DownloadProductDocumentController::class)->name('products.documents.download');
 
+    // Price API log (plan 09): price-sync.view (Admin only), authorized in the components.
+    Route::livewire('/price-sync', PriceSync\Index::class)->name('price-sync.index');
+    Route::livewire('/price-sync/{priceSyncLog}', PriceSync\Show::class)->whereNumber('priceSyncLog')->name('price-sync.show');
+
     // Content (plan 07 7a): static pages. PagePolicy in the components; system pages are never deleted.
     Route::livewire('/pages', Pages\Index::class)->name('pages.index');
     Route::livewire('/pages/create', Pages\Form::class)->name('pages.create');
@@ -117,5 +122,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // Integrations (plan 04b): settings.integrations (Admin only) + password re-confirmation within 15 minutes.
     Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
+    // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
+    Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
+
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });
