@@ -375,6 +375,12 @@ return [
             'price' => 'Price, UZS',
             'remove' => 'Remove',
             'no_price' => 'No price',
+            // Plan 08: label lines sold in rolls.
+            'roll_type' => 'Roll type',
+            'rolls' => 'Rolls',
+            'price_per_label' => 'Price per label',
+            'per_roll' => 'Per roll',
+            'below_min_rolls' => 'Below the minimum order of :count roll|Below the minimum order of :count rolls',
         ],
         'filters' => [
             'open' => 'Filters',

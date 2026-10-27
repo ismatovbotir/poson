@@ -12,7 +12,9 @@ use App\Models\Lead;
 use App\Models\LeadItem;
 use App\Models\Product;
 use App\Models\Quote;
+use App\Models\RollType;
 use App\Models\User;
+use App\Support\Catalog\RollPricing;
 use App\Support\Money;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
@@ -28,6 +30,11 @@ use Livewire\Component;
  * editable price (whole soʻm, VAT included), free-text lines, a live total
  * with the VAT line, validity and notes. From a lead (?lead=ID) the
  * customer and the lead's items are prefilled; ?customer=ID preselects.
+ *
+ * Label products (plan 08) become roll lines: a roll type picker (new lines;
+ * the first active roll type is preselected), rolls as qty, an editable
+ * per-label price and the derived per-roll price; fewer rolls than the
+ * product's minimum only shows a warning.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
@@ -72,7 +79,7 @@ class Form extends Component
         }
 
         if (isset($lead) && $this->form->lead_id !== '') {
-            $products = Product::query()->whereIn('id', $lead->items->pluck('product_id')->filter()->unique()->values())->get()->keyBy('id');
+            $products = Product::query()->whereIn('id', $lead->items->pluck('product_id')->filter()->unique()->values())->with('rollTypes')->get()->keyBy('id');
 
             foreach ($lead->items as $item) {
                 $this->form->items[] = $this->rowFromLeadItem($item, $item->product_id !== null ? $products->get($item->product_id) : null);
@@ -127,7 +134,58 @@ class Form extends Component
             ->orderByDesc('is_active')
             ->orderBy('sku')
             ->limit(10)
-            ->get(['id', 'sku', 'name', 'unit', 'price', 'price_dealer', 'price_wholesale', 'is_active']);
+            ->get(['id', 'sku', 'name', 'unit', 'pricing_unit', 'price', 'price_dealer', 'price_wholesale', 'is_active']);
+    }
+
+    /**
+     * Active roll types of the label products on new lines (product id => roll types), for the pickers.
+     *
+     * @return array<int, list<array{id: int, label: string}>>
+     */
+    #[Computed]
+    public function rollTypeOptions(): array
+    {
+        $productIds = collect($this->form->items)
+            ->filter(fn (array $item): bool => ($item['id'] ?? null) === null && QuoteForm::isRollRow($item) && ($item['product_id'] ?? null) !== null)
+            ->pluck('product_id')
+            ->unique()
+            ->values();
+
+        if ($productIds->isEmpty()) {
+            return [];
+        }
+
+        return Product::query()
+            ->whereKey($productIds)
+            ->with('activeRollTypes')
+            ->get(['id'])
+            ->mapWithKeys(fn (Product $product): array => [$product->id => $product->activeRollTypes->map(fn (RollType $rollType): array => ['id' => $rollType->id, 'label' => $rollType->label()])->values()->all()])
+            ->all();
+    }
+
+    /**
+     * A new label line's roll type changed: refresh its roll snapshot shown in the form.
+     */
+    public function updated(string $name, mixed $value): void
+    {
+        if (! preg_match('/^form\.items\.(\d+)\.roll_type_id$/', $name, $matches)) {
+            return;
+        }
+
+        $index = (int) $matches[1];
+        $item = $this->form->items[$index] ?? null;
+
+        if ($item === null || ($item['id'] ?? null) !== null || ! QuoteForm::isRollRow($item)) {
+            return;
+        }
+
+        $product = Product::query()->with('activeRollTypes')->find($item['product_id']);
+        $rollType = $product?->activeRollTypes->firstWhere('id', (int) $value);
+
+        if ($rollType instanceof RollType) {
+            $this->form->items[$index]['labels_per_roll'] = $rollType->labels_per_roll;
+            $this->form->items[$index]['core_diameter_mm'] = $rollType->core_diameter_mm;
+        }
     }
 
     public function selectCustomer(int $customerId): void
@@ -157,36 +215,29 @@ class Form extends Component
 
         foreach ($this->form->items as $index => $item) {
             if (($item['id'] ?? null) === null && ($item['product_id'] ?? null) !== null) {
-                $this->form->items[$index]['price'] = Money::tiyinToSums($products->get($item['product_id'])?->priceFor($customer->price_level) ?? 0);
+                $levelPrice = Money::tiyinToSums($products->get($item['product_id'])?->priceFor($customer->price_level) ?? 0);
+                $this->form->items[$index][QuoteForm::isRollRow($item) ? 'price_per_label' : 'price'] = $levelPrice;
             }
         }
     }
 
     public function addProduct(int $productId): void
     {
-        $product = Product::query()->find($productId);
+        $product = Product::query()->with('rollTypes')->find($productId);
 
         if (! $product instanceof Product) {
             return;
         }
 
-        $this->form->items[] = [
-            'id' => null,
-            'product_id' => $product->id,
-            'name' => $product->getTranslation('name', $this->form->locale),
-            'sku' => $product->sku,
-            'unit' => $product->unit->value,
-            'qty' => max(1, $product->min_qty),
-            'price' => Money::tiyinToSums($product->priceFor($this->priceLevel) ?? 0),
-        ];
+        $this->form->items[] = $this->productRow($product, max(1, $product->min_qty));
 
         $this->productSearch = '';
-        unset($this->productResults);
+        unset($this->productResults, $this->rollTypeOptions);
     }
 
     public function addLine(): void
     {
-        $this->form->items[] = ['id' => null, 'product_id' => null, 'name' => '', 'sku' => null, 'unit' => null, 'qty' => 1, 'price' => ''];
+        $this->form->items[] = ['id' => null, 'product_id' => null, 'name' => '', 'sku' => null, 'unit' => null, 'qty' => 1, 'price' => '', ...self::NO_ROLL];
     }
 
     public function removeItem(int $index): void
@@ -236,21 +287,63 @@ class Form extends Component
     }
 
     /**
-     * A form row for a lead item at the customer's level price.
+     * Roll fields of a line that is not a label line.
+     */
+    private const NO_ROLL = ['roll_type_id' => null, 'labels_per_roll' => null, 'core_diameter_mm' => null, 'label_size' => null, 'price_per_label' => '', 'min_qty' => null];
+
+    /**
+     * A new product row at the customer's level price; a label product (plan 08)
+     * becomes a roll line in the wanted roll type when offered, else the first
+     * active one. Needs "rollTypes" loaded.
      *
-     * @return array{id: null, product_id: int|null, name: string, sku: string|null, unit: string|null, qty: int, price: string}
+     * @return array<string, mixed>
+     */
+    private function productRow(Product $product, int $qty, ?int $wantedRollType = null): array
+    {
+        $levelPrice = Money::tiyinToSums($product->priceFor($this->priceLevel) ?? 0);
+        $row = [
+            'id' => null,
+            'product_id' => $product->id,
+            'name' => $product->getTranslation('name', $this->form->locale),
+            'sku' => $product->sku,
+            'unit' => $product->unit->value,
+            'qty' => $qty,
+            'price' => $levelPrice,
+            ...self::NO_ROLL,
+        ];
+
+        if (! $product->isPricedPerLabel()) {
+            return $row;
+        }
+
+        $rollType = $product->rollTypes->firstWhere('id', CreateQuote::rollTypeFor($product, $wantedRollType));
+
+        return [
+            ...$row,
+            'unit' => 'roll',
+            'price' => '',
+            'roll_type_id' => $rollType?->id,
+            // Without an offered roll type the line still shows as a roll line; saving asks for one.
+            'labels_per_roll' => $rollType?->labels_per_roll ?? 0,
+            'core_diameter_mm' => $rollType?->core_diameter_mm,
+            'label_size' => RollPricing::labelSize($product),
+            'price_per_label' => $levelPrice,
+            'min_qty' => $product->min_qty,
+        ];
+    }
+
+    /**
+     * A form row for a lead item at the customer's level price (the lead's roll for label products).
+     *
+     * @return array<string, mixed>
      */
     private function rowFromLeadItem(LeadItem $item, ?Product $product): array
     {
-        return [
-            'id' => null,
-            'product_id' => $product?->id,
-            'name' => $product?->getTranslation('name', $this->form->locale) ?? $item->product_name,
-            'sku' => $product?->sku ?? $item->sku,
-            'unit' => $product?->unit->value,
-            'qty' => $item->qty,
-            'price' => Money::tiyinToSums($product?->priceFor($this->priceLevel) ?? 0),
-        ];
+        if ($product !== null) {
+            return $this->productRow($product, $item->qty, $item->roll_type_id);
+        }
+
+        return ['id' => null, 'product_id' => null, 'name' => $item->product_name, 'sku' => $item->sku, 'unit' => null, 'qty' => $item->qty, 'price' => Money::tiyinToSums(0), ...self::NO_ROLL];
     }
 
     /**

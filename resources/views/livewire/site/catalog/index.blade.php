@@ -33,6 +33,11 @@
         </div>
     </div>
 
+    {{-- Category banner (plan 07 7c): the first live banner of the category, page 1 only --}}
+    @if ($banner)
+        <x-site.banner :slide="$banner" :eager="true" class="mb-6" data-category-banner />
+    @endif
+
     @if ($subcategories !== [])
         <nav class="mb-6" aria-label="{{ __('site.catalog.subcategories') }}">
             <ul class="flex flex-wrap gap-2">

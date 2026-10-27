@@ -15,6 +15,7 @@ use InvalidArgumentException;
  * sprite symbol "placeholder" (p-scanner, p-printer, ...).
  *
  * showStock is false for software (no stock badge).
+ * pricedPerLabel (plan 08): price is per one label ("12 soʻm / label").
  * ctas are the card's buttons from App\Support\Catalog\ProductCtas (compact).
  *
  * Brand rule: there is no old price and no sale badge, by design.
@@ -39,6 +40,7 @@ final readonly class ProductCard
         /** @var list<ProductCta> */
         public array $ctas = [],
         public bool $showStock = true,
+        public bool $pricedPerLabel = false,
     ) {
         if ($price !== null && $price < 0) {
             throw new InvalidArgumentException('Product price must not be negative.');

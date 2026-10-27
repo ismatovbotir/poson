@@ -8,6 +8,7 @@ use App\Enums\QuoteStatus;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\LeadItem;
+use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Sequence;
 use App\Models\User;
@@ -116,13 +117,42 @@ class CreateQuote
 
     /**
      * The lead's products as quote lines (level prices); lines without a product as free text.
+     * A label product (plan 08) keeps the lead's roll type while it is still offered, else
+     * gets the product's first active roll type (SaveQuoteItems rejects it without one).
      *
      * @return list<QuoteItemData>
      */
     public static function itemsFromLead(Lead $lead): array
     {
-        return $lead->items->map(fn (LeadItem $item): QuoteItemData => $item->product_id !== null
-            ? new QuoteItemData(productId: $item->product_id, qty: $item->qty)
-            : new QuoteItemData(name: $item->product_name, qty: $item->qty, price: 0))->values()->all();
+        $products = Product::query()
+            ->whereKey($lead->items->pluck('product_id')->filter()->unique()->values())
+            ->with('rollTypes')
+            ->get()
+            ->keyBy('id');
+
+        return $lead->items->map(function (LeadItem $item) use ($products): QuoteItemData {
+            if ($item->product_id === null) {
+                return new QuoteItemData(name: $item->product_name, qty: $item->qty, price: 0);
+            }
+
+            $product = $products->get($item->product_id);
+
+            return new QuoteItemData(
+                productId: $item->product_id,
+                qty: $item->qty,
+                rollTypeId: $product?->isPricedPerLabel() ? static::rollTypeFor($product, $item->roll_type_id) : null,
+            );
+        })->values()->all();
+    }
+
+    /**
+     * The wanted roll type when the product still offers it, else its first active one (null: none).
+     * Needs "rollTypes" loaded.
+     */
+    public static function rollTypeFor(Product $product, ?int $wanted): ?int
+    {
+        $active = $product->rollTypes->where('is_active', true)->values();
+
+        return ($wanted !== null && $active->contains('id', $wanted) ? $wanted : null) ?? $active->first()?->id;
     }
 }

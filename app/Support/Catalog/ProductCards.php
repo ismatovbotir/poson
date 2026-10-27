@@ -62,6 +62,7 @@ class ProductCards
             imageAlt: $media !== null ? $product->imageAlt($media) : (string) $product->name,
             ctas: ProductCtas::for($product, compact: true),
             showStock: $product->showsStockStatus(),
+            pricedPerLabel: $product->isPricedPerLabel(),
         );
     }
 

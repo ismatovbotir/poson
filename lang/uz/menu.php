@@ -27,6 +27,7 @@ return [
         'attributes' => 'Xususiyatlar',
         'brands' => 'Brendlar',
         'products' => 'Mahsulotlar',
+        'roll_types' => 'Rulon turlari',
         'price_sync' => 'Narxlar sinxronizatsiyasi',
         'service_requests' => 'Servis soʻrovlari',
         'repairs' => 'Taʼmirlash',

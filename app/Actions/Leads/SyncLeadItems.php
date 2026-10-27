@@ -6,6 +6,8 @@ use App\Data\Leads\LeadItemData;
 use App\Models\Lead;
 use App\Models\LeadItem;
 use App\Models\Product;
+use App\Models\RollType;
+use App\Support\Catalog\RollPricing;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -13,6 +15,11 @@ use Illuminate\Validation\ValidationException;
  * UpdateLead transactions). New rows snapshot the product's SKU and its
  * name in the lead's locale; existing rows (itemId) keep their snapshots
  * and only change qty, note and order; rows left out are deleted.
+ *
+ * A new row of a label product with a roll type (plan 08, site quote
+ * requests) snapshots the roll (roll_type_id, labels_per_roll,
+ * core_diameter_mm); the roll type must be attached to the product and
+ * active. Without one (e.g. added in the admin lead form) the row has no roll.
  */
 class SyncLeadItems
 {
@@ -38,7 +45,7 @@ class SyncLeadItems
             $items,
         ))));
 
-        $products = Product::query()->whereKey($productIds)->get(['id', 'sku', 'name'])->keyBy('id');
+        $products = Product::query()->whereKey($productIds)->with('rollTypes')->get(['id', 'sku', 'name', 'pricing_unit'])->keyBy('id');
         $kept = [];
 
         foreach (array_values($items) as $sort => $item) {
@@ -71,9 +78,36 @@ class SyncLeadItems
                 'qty' => $qty,
                 'note' => $note,
                 'sort' => $sort,
+                ...$this->rollSnapshot($product, $item->rollTypeId),
             ])->id;
         }
 
         LeadItem::query()->where('lead_id', $lead->id)->whereNotIn('id', $kept)->delete();
+    }
+
+    /**
+     * Roll columns of a new row: empty without a roll type; the roll type must be offered for the product.
+     *
+     * @return array<string, int|string|null>
+     *
+     * @throws ValidationException
+     */
+    private function rollSnapshot(Product $product, ?int $rollTypeId): array
+    {
+        if ($rollTypeId === null) {
+            return [];
+        }
+
+        $rollType = $product->rollTypes->firstWhere('id', $rollTypeId);
+
+        if (! $product->isPricedPerLabel() || ! $rollType instanceof RollType || ! RollPricing::isAvailable($product, $rollType)) {
+            throw ValidationException::withMessages(['items' => __('catalog.roll.errors.unavailable')]);
+        }
+
+        return [
+            'roll_type_id' => $rollType->id,
+            'labels_per_roll' => $rollType->labels_per_roll,
+            'core_diameter_mm' => $rollType->core_diameter_mm,
+        ];
     }
 }

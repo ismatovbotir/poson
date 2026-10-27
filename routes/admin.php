@@ -11,6 +11,7 @@ use App\Livewire\Admin\Articles;
 use App\Livewire\Admin\Attributes;
 use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
+use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Customers;
@@ -21,6 +22,7 @@ use App\Livewire\Admin\Pages;
 use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
+use App\Livewire\Admin\RollTypes;
 use App\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
 
@@ -92,6 +94,11 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/brands/create', Brands\Form::class)->name('brands.create');
     Route::livewire('/brands/{brand}/edit', Brands\Form::class)->name('brands.edit');
 
+    // Label roll types (plan 08): roll-types.* in the components; products attach them on the product form.
+    Route::livewire('/roll-types', RollTypes\Index::class)->name('roll-types.index');
+    Route::livewire('/roll-types/create', RollTypes\Form::class)->name('roll-types.create');
+    Route::livewire('/roll-types/{rollType}/edit', RollTypes\Form::class)->whereNumber('rollType')->name('roll-types.edit');
+
     // Products (plan 03 3c). Images, documents and relations are child components of the form.
     Route::livewire('/products', Products\Index::class)->name('products.index');
     Route::livewire('/products/create', Products\Form::class)->name('products.create');
@@ -116,6 +123,11 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/articles', Articles\Index::class)->name('articles.index');
     Route::livewire('/articles/create', Articles\Form::class)->name('articles.create');
     Route::livewire('/articles/{newsPost}/edit', Articles\Form::class)->whereNumber('newsPost')->name('articles.edit');
+
+    // Content (plan 07 7c): banners (home slider, category listings). BannerPolicy in the components.
+    Route::livewire('/banners', Banners\Index::class)->name('banners.index');
+    Route::livewire('/banners/create', Banners\Form::class)->name('banners.create');
+    Route::livewire('/banners/{banner}/edit', Banners\Form::class)->whereNumber('banner')->name('banners.edit');
 
     // Settings (plan 04a). Admin only through settings.company; authorized in the component.
     Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');

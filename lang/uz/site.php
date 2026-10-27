@@ -141,6 +141,21 @@ return [
         ],
     ],
 
+    // Plan 08: roll picker of label products (Site\Catalog\RollPicker).
+    'roll_picker' => [
+        'title' => 'Rulon turi',
+        'rolls' => 'Rulonlar soni',
+        'decrease' => 'Kamroq rulon',
+        'increase' => 'Koʻproq rulon',
+        'min_hint' => 'Minimal buyurtma: :count rulon|Minimal buyurtma: :count rulon',
+        'per_roll' => 'Bir rulon',
+        'total' => 'Jami',
+        'on_request' => 'Rulonlar narxini tijorat taklifida yuboramiz.',
+        'none' => 'Mavjud rulonlar haqida tijorat taklifida soʻrang.',
+        'rolls_invalid' => ':min dan :max gacha rulon tanlang.',
+        'unit_label' => 'yorliq',
+    ],
+
     'lead_form' => [
         'product_unavailable' => 'Bu mahsulot endi mavjud emas. Bizga qoʻngʻiroq qiling yoki soʻrovni usiz yuboring — muqobilini taklif qilamiz.',
         'product' => 'Mahsulot',
@@ -165,6 +180,7 @@ return [
             'company' => 'kompaniya',
             'message' => 'xabar',
         ],
+        'roll' => 'Rulon',
     ],
 
     'cta' => [
@@ -388,6 +404,16 @@ return [
         'useful' => 'Foydali maqolalar',
         'all_categories' => 'Barcha mavzular',
         'filter_label' => 'Maqola mavzulari',
+    ],
+
+    'banners' => [
+        'label' => 'Bannerlar',
+        'slide' => ':total tadan :current',
+        'prev' => 'Oldingi banner',
+        'next' => 'Keyingi banner',
+        'go_to' => ':number-bannerni koʻrsatish',
+        'more' => 'Batafsil',
+        'new_tab' => '(yangi oynada ochiladi)',
     ],
 
     'faq' => [

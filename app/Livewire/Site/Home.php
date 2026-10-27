@@ -3,6 +3,7 @@
 namespace App\Livewire\Site;
 
 use App\Support\CompanySettings;
+use App\Support\Site\BannerDirectory;
 use App\Support\Site\FaqContent;
 use App\Support\Site\HomeContent;
 use App\Support\Site\NewsCards;
@@ -11,7 +12,7 @@ use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 /**
- * Home page (/{locale}): hero, categories, popular products, B2B, why us,
+ * Home page (/{locale}): hero, the banner slider (plan 07 7c), categories, popular products, B2B, why us,
  * services, brands, the latest news (plan 07 7b), the general FAQ (with
  * FAQPage JSON-LD) and the lead form. Sections without content are hidden.
  */
@@ -23,6 +24,7 @@ class Home extends Component
 
         return view('livewire.site.home', [
             'heroStats' => $company->heroStats(),
+            'banners' => BannerDirectory::home(),
             'categories' => $content->categories(),
             'products' => $content->popularProducts(),
             'services' => $content->services(),

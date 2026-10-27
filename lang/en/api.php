@@ -50,6 +50,8 @@ return [
             'expired' => 'Expired',
             'revoked' => 'Revoked',
         ],
+        // Plan 08: label SKUs are priced per one label.
+        'label_prices_hint' => 'Labels priced per label (Pricing unit: Per label on the product): 1C sends the price of ONE label in whole UZS at every level; the site multiplies it by the labels per roll.',
     ],
 
     'sync' => [

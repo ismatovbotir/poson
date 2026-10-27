@@ -42,7 +42,7 @@ function tabBarHtml(string $html): string
     return $matches[0] ?? '';
 }
 
-$catalogItems = ['categories', 'attributes', 'brands', 'products'];
+$catalogItems = ['categories', 'attributes', 'brands', 'products', 'roll-types'];
 
 it('shows each role its part of the menu', function (Role $role, array $expected) {
     expect(menuTree($role))->toBe($expected);

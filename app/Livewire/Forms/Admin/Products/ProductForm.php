@@ -4,6 +4,7 @@ namespace App\Livewire\Forms\Admin\Products;
 
 use App\Enums\AttributeType;
 use App\Enums\ProductBadge;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
@@ -26,6 +27,9 @@ use Livewire\Form;
  * never in the view. Spec rows keep one value slot per attribute type
  * (text per locale, number, bool, option, options); SaveProduct picks the
  * slot of the attribute's type.
+ *
+ * Label products (plan 08): the prices are per one label (whole soʻm), the
+ * unit is roll, roll_type_ids are the attached roll types in picker order.
  *
  * @phpstan-type SpecRow array{attribute_id: int, extra: bool, skipped: bool, is_key: bool, text: array<string, string>, number: string, bool: string, option: string, options: list<int>}
  */
@@ -69,6 +73,18 @@ class ProductForm extends Form
     public string $price_dealer = '';
 
     public string $price_wholesale = '';
+
+    /**
+     * 'unit' or 'label' (plan 08; label: consumables only, prices per one label).
+     */
+    public string $pricing_unit = 'unit';
+
+    /**
+     * Roll types of a label product, in picker order (the first is preselected on the site).
+     *
+     * @var list<int>
+     */
+    public array $roll_type_ids = [];
 
     public string $unit = 'piece';
 
@@ -118,6 +134,8 @@ class ProductForm extends Form
         $this->price = Money::tiyinToSums($product->price);
         $this->price_dealer = Money::tiyinToSums($product->price_dealer);
         $this->price_wholesale = Money::tiyinToSums($product->price_wholesale);
+        $this->pricing_unit = $product->pricing_unit->value;
+        $this->roll_type_ids = $product->rollTypes()->pluck('roll_types.id')->map(fn ($id): int => (int) $id)->values()->all();
         $this->unit = $product->unit->value;
         $this->min_qty = (string) $product->min_qty;
         $this->sale_mode = $product->sale_mode->value;
@@ -199,6 +217,9 @@ class ProductForm extends Form
             'price' => $price,
             'price_dealer' => $price,
             'price_wholesale' => $price,
+            'pricing_unit' => ['required', Rule::enum(ProductPricingUnit::class)],
+            'roll_type_ids' => ['array', 'max:50'],
+            'roll_type_ids.*' => ['integer', 'distinct'],
             'unit' => ['required', Rule::enum(ProductUnit::class)],
             'min_qty' => ['required', 'integer', 'min:1', 'max:1000000'],
             'sale_mode' => ['required', Rule::enum(SaleMode::class)],
@@ -236,6 +257,8 @@ class ProductForm extends Form
             'price_dealer' => __('enums.price_level.dealer'),
             'price_wholesale' => __('enums.price_level.wholesale'),
             'unit' => __('admin.products.fields.unit'),
+            'pricing_unit' => __('admin.products.fields.pricing_unit'),
+            'roll_type_ids' => __('admin.products.roll_types.title'),
             'min_qty' => __('admin.products.fields.min_qty'),
             'sale_mode' => __('admin.products.fields.sale_mode'),
             'stock_status' => __('admin.products.fields.stock_status'),
@@ -287,7 +310,9 @@ class ProductForm extends Form
             'price' => $this->priceInTiyin('price'),
             'price_dealer' => $this->priceInTiyin('price_dealer'),
             'price_wholesale' => $this->priceInTiyin('price_wholesale'),
-            'unit' => ProductUnit::from($this->unit),
+            'pricing_unit' => ProductPricingUnit::from($this->pricing_unit),
+            'roll_type_ids' => array_values(array_map('intval', $this->roll_type_ids)),
+            'unit' => $this->pricing_unit === ProductPricingUnit::Label->value ? ProductUnit::Roll : ProductUnit::from($this->unit),
             'min_qty' => (int) $this->min_qty,
             'sale_mode' => SaleMode::from($this->sale_mode),
             'stock_status' => StockStatus::from($this->stock_status),

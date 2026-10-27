@@ -81,6 +81,9 @@
         </div>
     </section>
 
+    {{-- Banner slider below the static hero (plan 07 7c); hidden without live banners --}}
+    <x-site.banner-slider :slides="$banners" />
+
     {{-- Categories --}}
     @if ($categories !== [])
         <section id="categories" class="scroll-mt-28 pt-6 pb-12 md:pb-[72px]" aria-labelledby="categories-title">

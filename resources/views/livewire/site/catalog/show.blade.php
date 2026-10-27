@@ -2,7 +2,8 @@
     Product page, ported from .claude/html-templates/site/product.html.
     Changes vs. the template (brand rule, plan 03): no rating or reviews, no quantity
     price tiers, no "buy in 1 click", no favorites, no old price. The site shows the
-    Retail price only (or "price on request"). The buttons ($ctas) come from
+    Retail price only (or "price on request"; per one label for label products, plan 08,
+    with the roll picker). The buttons ($ctas) come from
     App\Support\Catalog\ProductCtas: "Try" (partner link, new tab) + "Contact us", or
     "Add to cart" + "Request a quote", or one lead-form button (#quote). A documents tab,
     software details ($software) and related products by type are added.
@@ -104,10 +105,15 @@
 
             <div class="my-[22px] rounded-box-lg border border-line bg-white p-6 shadow-card" data-buybox>
                 @if ($product->price !== null)
-                    <p class="text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-4xl" data-price>{{ \App\Support\Money::format($product->price) }}</p>
+                    <p class="text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-4xl" data-price>{{ $pricedPerLabel ? __('catalog.roll.per_label', ['price' => \App\Support\Money::format($product->price)]) : \App\Support\Money::format($product->price) }}</p>
                 @else
                     <p class="text-2xl font-bold text-ink" data-price>{{ __('site.card.price_on_request') }}</p>
                     <p class="mt-1.5 text-sm text-ink-2">{{ __('site.product.price_on_request_note') }}</p>
+                @endif
+
+                {{-- Plan 08: label products pick a roll type and rolls; the lead form below carries the choice. --}}
+                @if ($pricedPerLabel)
+                    <livewire:site.catalog.roll-picker :product-id="$product->id" :key="'roll-picker-'.$product->id" />
                 @endif
 
                 <div class="mt-4 flex flex-col gap-2.5 sm:flex-row" data-ctas>
@@ -307,7 +313,7 @@
     @php($primaryCta = collect($ctas)->firstWhere('primary', true) ?? ($ctas[0] ?? null))
     <div class="fixed inset-x-0 bottom-0 z-30 flex items-center gap-3 border-t border-line bg-white px-4 py-2.5 md:hidden" data-sticky-bar>
         <p @class(['flex-1 leading-tight', 'text-xl font-extrabold tracking-[-0.02em]' => $product->price !== null, 'text-sm font-semibold text-ink-2' => $product->price === null])>
-            {{ $product->price !== null ? \App\Support\Money::format($product->price) : __('site.card.price_on_request') }}
+            {{ $product->price === null ? __('site.card.price_on_request') : ($pricedPerLabel ? __('catalog.roll.per_label', ['price' => \App\Support\Money::format($product->price)]) : \App\Support\Money::format($product->price)) }}
         </p>
         @if ($primaryCta)
             <x-site.product-cta :cta="$primaryCta" size="bar" :href="$primaryCta->pageHref()" />

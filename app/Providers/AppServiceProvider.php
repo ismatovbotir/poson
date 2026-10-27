@@ -8,6 +8,7 @@ use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
@@ -26,6 +27,7 @@ use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
+use App\Support\Site\BannerDirectory;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
@@ -85,9 +87,9 @@ class AppServiceProvider extends ServiceProvider
             'category' => Category::class,
             'customer' => Customer::class,
             'lead' => Lead::class,
-            // Plan 07 content. news_post / banner: models arrive in 7b / 7c.
+            // Plan 07 content: news posts (7b), banners (7c).
             'news_post' => 'App\Models\NewsPost',
-            'banner' => 'App\Models\Banner',
+            'banner' => Banner::class,
             'page' => Page::class,
             'product' => Product::class,
             'quote' => Quote::class,
@@ -127,6 +129,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (ConversionHasBeenCompletedEvent $event): void {
             if ($event->media->model_type === (new Setting)->getMorphClass()) {
                 CompanySettings::flush();
+            }
+
+            // A banner is shown on the site only once its WebP conversions exist (plan 07 7c).
+            if ($event->media->model_type === (new Banner)->getMorphClass()) {
+                BannerDirectory::flush();
             }
         });
     }

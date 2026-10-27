@@ -40,6 +40,11 @@ return [
         'hour' => 'hour',
     ],
 
+    'product_pricing_unit' => [
+        'unit' => 'Per unit',
+        'label' => 'Per label',
+    ],
+
     'relation_type' => [
         'accessory' => 'Accessory',
         'consumable' => 'Consumable',
@@ -161,6 +166,18 @@ return [
         'draft' => 'Draft',
         'scheduled' => 'Scheduled',
         'published' => 'Published',
+    ],
+
+    'banner_placement' => [
+        'home_hero' => 'Home slider',
+        'category' => 'Category',
+    ],
+
+    'banner_state' => [
+        'active' => 'Shown',
+        'scheduled' => 'Scheduled',
+        'expired' => 'Ended',
+        'inactive' => 'Off',
     ],
 
     'product_badge' => [

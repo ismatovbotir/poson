@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Schema;
  *   form shows the prices read-only and SaveProduct ignores price input;
  *   price_sync_log_id points at that batch (price_sync_logs is created
  *   just before this table for the foreign key).
+ * - pricing_unit (plan 08): 'unit' or 'label'. For label products the three
+ *   prices are per one label in whole soʻm, unit is roll and min_qty counts
+ *   rolls; the roll types come from product_roll_type.
  */
 return new class extends Migration
 {
@@ -42,6 +45,8 @@ return new class extends Migration
             $table->unsignedBigInteger('price')->nullable();
             $table->unsignedBigInteger('price_dealer')->nullable();
             $table->unsignedBigInteger('price_wholesale')->nullable();
+            // Plan 08: 'unit' (prices per sales unit) or 'label' (consumable labels: prices per one label, whole soʻm).
+            $table->string('pricing_unit', 20)->default('unit');
             // Plan 09: last time the price API (1C) set the prices; non-null = the API owns them.
             $table->timestamp('price_synced_at')->nullable();
             // The batch that last matched the product (link on the admin form); kept null after pruning.

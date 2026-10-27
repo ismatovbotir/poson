@@ -91,9 +91,10 @@
                                         <span class="block truncate text-sm font-semibold">{{ $item->product_name }}</span>
                                     @endif
                                     @if ($item->sku)<span class="block font-mono text-xs text-slate-500">{{ $item->sku }}</span>@endif
+                                    @if ($item->isRollLine())<span class="mt-0.5 block text-xs text-slate-600" data-roll-line>{{ $item->rollName() }}</span>@endif
                                     @if (filled($item->note))<span class="mt-1 block text-xs text-slate-600">{{ $item->note }}</span>@endif
                                 </div>
-                                <span class="shrink-0 text-sm font-semibold tabular-nums">×{{ $item->qty }}</span>
+                                <span class="shrink-0 text-sm font-semibold tabular-nums">@if ($item->isRollLine()){{ trans_choice('catalog.roll.rolls', $item->qty, ['count' => \App\Support\NumberFormat::format($item->qty)]) }}@else×{{ $item->qty }}@endif</span>
                             </li>
                         @endforeach
                     </ul>

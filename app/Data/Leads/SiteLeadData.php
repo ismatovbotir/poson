@@ -12,6 +12,7 @@ use App\Enums\TrafficChannel;
  * (id and SKU re-read from the database, never taken from the browser).
  * trafficChannel / trafficSource / landingPath are the session's first-touch
  * attribution (plan 04 4c), for the CRM's lead source reports.
+ * A label product (plan 08) also carries the chosen roll type and rolls.
  */
 final readonly class SiteLeadData
 {
@@ -33,5 +34,7 @@ final readonly class SiteLeadData
         public ?TrafficChannel $trafficChannel = null,
         public ?string $trafficSource = null,
         public ?string $landingPath = null,
+        public ?int $rollTypeId = null,
+        public ?int $rolls = null,
     ) {}
 }

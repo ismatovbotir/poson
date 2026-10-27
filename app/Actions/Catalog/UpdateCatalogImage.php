@@ -2,6 +2,7 @@
 
 namespace App\Actions\Catalog;
 
+use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\NewsPost;
@@ -17,7 +18,8 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollectio
 
 /**
  * Replace, remove or re-label the single image of a category (image), a
- * brand (logo), a page or a news post (cover). The alt text {uz, ru, en}
+ * brand (logo), a page or a news post (cover), or one of the two images of
+ * a banner (desktop / mobile: pass the collection). The alt text {uz, ru, en}
  * is kept in the media custom property "alt" and checked against the brand
  * rule; conversions are queued (plan 03 D10).
  *
@@ -37,24 +39,25 @@ class UpdateCatalogImage
      *
      * @throws ValidationException
      */
-    public function handle(Category|Brand|Page|NewsPost $model, ?UploadedFile $file, array $alt, bool $remove = false, string $field = 'image'): void
+    public function handle(Category|Brand|Page|NewsPost|Banner $model, ?UploadedFile $file, array $alt, bool $remove = false, string $field = 'image', ?string $collection = null): void
     {
+        $collection ??= $model->imageCollection();
         $alt = $this->cleanAlt($alt, $field);
 
         if ($file !== null) {
-            $this->store($model, $file, $alt, $field);
+            $this->store($model, $file, $alt, $field, $collection);
 
             return;
         }
 
-        $media = $model->getFirstMedia($model->imageCollection());
+        $media = $model->getFirstMedia($collection);
 
         if ($media === null) {
             return;
         }
 
         if ($remove) {
-            $model->clearMediaCollection($model->imageCollection());
+            $model->clearMediaCollection($collection);
 
             return;
         }
@@ -69,7 +72,7 @@ class UpdateCatalogImage
      *
      * @throws ValidationException
      */
-    private function store(Category|Brand|Page|NewsPost $model, UploadedFile $file, array $alt, string $field): void
+    private function store(Category|Brand|Page|NewsPost|Banner $model, UploadedFile $file, array $alt, string $field, string $collection): void
     {
         $extension = self::EXTENSIONS[(string) $file->getMimeType()] ?? null;
 
@@ -79,10 +82,10 @@ class UpdateCatalogImage
 
         try {
             $model->addMedia($file)
-                ->usingName(Slug::make($model->getAttribute('slug') ?? '') ?: $model->imageCollection())
+                ->usingName(Slug::make($model->getAttribute('slug') ?? '') ?: $collection)
                 ->usingFileName(Str::uuid().'.'.$extension)
                 ->withCustomProperties(['alt' => $alt])
-                ->toMediaCollection($model->imageCollection());
+                ->toMediaCollection($collection);
         } catch (FileNameNotAllowed|FileUnacceptableForCollection|FileIsTooBig $exception) {
             report($exception);
 

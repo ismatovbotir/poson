@@ -211,7 +211,9 @@ class StructuredData
 
     /**
      * Product with brand, images, description and category path; the Offer
-     * (Retail price in UZS, availability, url) only when the price is known.
+     * (Retail price in UZS, availability, url) only when the price is known;
+     * for a label product (plan 08) the price is per one label and the Offer
+     * carries a UnitPriceSpecification for one label.
      * Software has no stock status: its Offer omits availability (no
      * schema.org ItemAvailability value fits a licence).
      * Needs "brand" and "media" loaded.
@@ -266,6 +268,21 @@ class StructuredData
                 'itemCondition' => 'https://schema.org/NewCondition',
                 'url' => $url,
             ];
+
+            // Plan 08: a label product's price is per one label (UN/CEFACT H87 = piece).
+            if ($product->isPricedPerLabel()) {
+                $data['offers']['priceSpecification'] = [
+                    '@type' => 'UnitPriceSpecification',
+                    'price' => static::decimalPrice($product->price),
+                    'priceCurrency' => 'UZS',
+                    'referenceQuantity' => [
+                        '@type' => 'QuantitativeValue',
+                        'value' => 1,
+                        'unitCode' => 'H87',
+                        'unitText' => __('site.roll_picker.unit_label'),
+                    ],
+                ];
+            }
 
             if (! $product->showsStockStatus()) {
                 unset($data['offers']['availability']);

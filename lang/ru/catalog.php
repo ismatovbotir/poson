@@ -30,6 +30,23 @@ return [
         'inch' => ':count дюйм|:count дюйма|:count дюймов',
     ],
 
+    // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
+    'roll' => [
+        'name' => ':labels/рулон, втулка :core мм',
+        'labels' => ':count этикетка|:count этикетки|:count этикеток',
+        'size' => ':size мм',
+        'rolls' => ':count рулон|:count рулона|:count рулонов',
+        'per_label' => ':price / этикетка',
+        'errors' => [
+            'not_label_product' => 'Цена этого товара указана не за этикетку.',
+            'unavailable' => 'Этот тип рулона недоступен для товара.',
+            'required' => 'Выберите тип рулона.',
+            'rolls' => 'Неверное количество рулонов.',
+            'whole_som' => 'Цена за этикетку должна быть в целых сумах.',
+            'too_high' => 'Слишком большая цена.',
+        ],
+    ],
+
     'document_link' => 'Ссылка',
 
 ];

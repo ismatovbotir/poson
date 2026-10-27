@@ -7,6 +7,7 @@ use App\Models\Attribute;
 use App\Models\AttributeOption;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Slug;
 use Illuminate\Database\Seeder;
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\DB;
 /**
  * Catalog base data (plan 03 T9): the category tree from data/categories.php,
  * the attribute library with options and category assignments from
- * data/attributes.php, and a starter list of brands.
+ * data/attributes.php, a starter list of brands and the label roll types
+ * from data/roll_types.php (plan 08).
  *
  * Idempotent: categories match by slug, attributes by code, options by
- * their uz value, brands by slug (a brand's website is only set on create). Pivot sort follows the attribute order.
+ * their uz value, brands by slug (a brand's website is only set on create),
+ * roll types by their labels / core pair (only created). Pivot sort follows the attribute order.
  */
 class CatalogSeeder extends Seeder
 {
@@ -57,6 +60,7 @@ class CatalogSeeder extends Seeder
             $categories = $this->seedCategories(require database_path('seeders/data/categories.php'));
             $this->seedAttributes(require database_path('seeders/data/attributes.php'), $categories);
             $this->seedBrands();
+            $this->seedRollTypes(require database_path('seeders/data/roll_types.php'));
         });
 
         // Model events may be muted (WithoutModelEvents in DatabaseSeeder).
@@ -137,6 +141,19 @@ class CatalogSeeder extends Seeder
             $option->storeTranslations('value', $value);
             $option->sort = $index + 1;
             $option->save();
+        }
+    }
+
+    /**
+     * @param  list<array{core: string, labels: int}>  $rows
+     */
+    private function seedRollTypes(array $rows): void
+    {
+        foreach (array_values($rows) as $index => $row) {
+            RollType::query()->firstOrCreate(
+                ['labels_per_roll' => $row['labels'], 'core_diameter_mm' => number_format((float) $row['core'], 1, '.', '')],
+                ['is_active' => true, 'sort' => $index + 1],
+            );
         }
     }
 

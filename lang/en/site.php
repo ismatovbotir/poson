@@ -141,6 +141,21 @@ return [
         ],
     ],
 
+    // Plan 08: roll picker of label products (Site\Catalog\RollPicker).
+    'roll_picker' => [
+        'title' => 'Roll type',
+        'rolls' => 'Number of rolls',
+        'decrease' => 'Fewer rolls',
+        'increase' => 'More rolls',
+        'min_hint' => 'Minimum :count roll|Minimum :count rolls',
+        'per_roll' => 'Per roll',
+        'total' => 'Total',
+        'on_request' => 'The price of the rolls is given in a quote.',
+        'none' => 'Ask us about the available rolls in a quote.',
+        'rolls_invalid' => 'Choose from :min to :max rolls.',
+        'unit_label' => 'label',
+    ],
+
     'lead_form' => [
         'product_unavailable' => 'This product is no longer available. Call us or send a request without it, and we will suggest an alternative.',
         'product' => 'Product',
@@ -165,6 +180,7 @@ return [
             'company' => 'company',
             'message' => 'message',
         ],
+        'roll' => 'Roll',
     ],
 
     'cta' => [
@@ -388,6 +404,16 @@ return [
         'useful' => 'Useful articles',
         'all_categories' => 'All topics',
         'filter_label' => 'Article topics',
+    ],
+
+    'banners' => [
+        'label' => 'Banners',
+        'slide' => ':current of :total',
+        'prev' => 'Previous banner',
+        'next' => 'Next banner',
+        'go_to' => 'Show banner :number',
+        'more' => 'Learn more',
+        'new_tab' => '(opens in a new tab)',
     ],
 
     'faq' => [

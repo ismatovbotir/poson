@@ -62,7 +62,9 @@
                 @if ($form->items !== [])
                     <ul class="divide-y divide-slate-100 rounded-xl border border-slate-200" data-quote-items>
                         @foreach ($form->items as $index => $item)
-                            @php($lineTotal = (\App\Support\Money::sumsToTiyin((string) ($item['price'] ?? '')) ?? 0) * max(0, (int) ($item['qty'] ?? 0)))
+                            @php($isRoll = \App\Livewire\Forms\Admin\Quotes\QuoteForm::isRollRow($item))
+                            @php($unitPrice = \App\Livewire\Forms\Admin\Quotes\QuoteForm::rowUnitPrice($item))
+                            @php($lineTotal = $unitPrice * max(0, (int) ($item['qty'] ?? 0)))
                             <li wire:key="qitem-{{ $item['id'] ?? 'n'.$index.'-'.($item['product_id'] ?? 'x') }}" class="grid gap-3 p-3 sm:grid-cols-[1fr_auto] sm:items-start">
                                 <div class="min-w-0">
                                     @if (($item['product_id'] ?? null) !== null || ($item['id'] ?? null) !== null && filled($item['sku'] ?? null))
@@ -71,22 +73,57 @@
                                     @else
                                         <x-admin.input wire:model="form.items.{{ $index }}.name" :label="__('crm.quotes.items.name')" maxlength="255" :placeholder="__('crm.quotes.items.free_placeholder')" />
                                     @endif
+                                    @if ($isRoll)
+                                        {{-- Plan 08: a label line sold in rolls. --}}
+                                        @if (($item['id'] ?? null) === null && ($item['product_id'] ?? null) !== null)
+                                            <label class="mt-2 block text-xs text-slate-500" data-roll-type-select>
+                                                {{ __('crm.quotes.items.roll_type') }}
+                                                <select wire:model.live="form.items.{{ $index }}.roll_type_id" class="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15">
+                                                    @if (blank($item['roll_type_id'] ?? null))<option value="">{{ __('admin.common.choose') }}</option>@endif
+                                                    @foreach ($this->rollTypeOptions[(int) $item['product_id']] ?? [] as $option)
+                                                        <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </label>
+                                            @if (filled($item['label_size'] ?? null))<p class="mt-1 text-xs text-slate-500">{{ __('catalog.roll.size', ['size' => $item['label_size']]) }}</p>@endif
+                                        @else
+                                            <p class="mt-1 text-xs text-slate-600" data-roll-line>{{ \App\Support\Catalog\RollPricing::describe($item['label_size'] ?? null, (int) $item['labels_per_roll'], $item['core_diameter_mm'] ?? null) }}</p>
+                                        @endif
+                                        @if (($item['min_qty'] ?? null) && (int) ($item['qty'] ?? 0) < (int) $item['min_qty'])
+                                            <p class="mt-1 flex items-center gap-1 text-xs text-amber-700" role="status" data-below-min>
+                                                <x-admin.icon name="alert" size="size-3.5" />{{ trans_choice('crm.quotes.items.below_min_rolls', (int) $item['min_qty'], ['count' => $item['min_qty']]) }}
+                                            </p>
+                                        @endif
+                                    @endif
                                 </div>
                                 <div class="flex flex-wrap items-end gap-2">
                                     <label class="block text-xs text-slate-500">
-                                        {{ __('crm.quotes.items.qty') }}
+                                        {{ $isRoll ? __('crm.quotes.items.rolls') : __('crm.quotes.items.qty') }}
                                         <input wire:model.live.debounce.400ms="form.items.{{ $index }}.qty" type="number" min="1" inputmode="numeric" class="mt-1 h-9 w-20 rounded-lg border border-slate-200 px-2 text-sm tabular-nums outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15">
                                     </label>
-                                    <label class="block text-xs text-slate-500">
-                                        {{ __('crm.quotes.items.price') }}
-                                        <input wire:model.live.debounce.400ms="form.items.{{ $index }}.price" type="text" inputmode="numeric" class="mt-1 h-9 w-36 rounded-lg border border-slate-200 px-2 text-right text-sm tabular-nums outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15">
-                                    </label>
+                                    @if ($isRoll)
+                                        <label class="block text-xs text-slate-500">
+                                            {{ __('crm.quotes.items.price_per_label') }}
+                                            <input wire:model.live.debounce.400ms="form.items.{{ $index }}.price_per_label" type="text" inputmode="numeric" class="mt-1 h-9 w-28 rounded-lg border border-slate-200 px-2 text-right text-sm tabular-nums outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15" data-price-per-label>
+                                        </label>
+                                        <span class="block text-xs text-slate-500">
+                                            {{ __('crm.quotes.items.per_roll') }}
+                                            <span class="mt-1 flex h-9 items-center justify-end text-sm tabular-nums text-slate-700" data-roll-price>{{ $money($unitPrice) }}</span>
+                                        </span>
+                                    @else
+                                        <label class="block text-xs text-slate-500">
+                                            {{ __('crm.quotes.items.price') }}
+                                            <input wire:model.live.debounce.400ms="form.items.{{ $index }}.price" type="text" inputmode="numeric" class="mt-1 h-9 w-36 rounded-lg border border-slate-200 px-2 text-right text-sm tabular-nums outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15">
+                                        </label>
+                                    @endif
                                     <span class="flex h-9 min-w-28 items-center justify-end text-sm font-semibold tabular-nums" data-line-total>{{ $money($lineTotal) }}</span>
                                     <button type="button" wire:click="removeItem({{ $index }})" class="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger" aria-label="{{ __('crm.quotes.items.remove') }}"><x-admin.icon name="trash" size="size-4" /></button>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <x-admin.field-error :name="'form.items.'.$index.'.qty'" />
                                     <x-admin.field-error :name="'form.items.'.$index.'.price'" />
+                                    <x-admin.field-error :name="'form.items.'.$index.'.price_per_label'" />
+                                    <x-admin.field-error :name="'form.items.'.$index.'.roll_type_id'" />
                                     <x-admin.field-error :name="'form.items.'.$index.'.name'" />
                                 </div>
                             </li>
@@ -106,7 +143,7 @@
                                 @php($levelPrice = $product->priceFor($this->priceLevel))
                                 <button type="button" wire:key="qpick-{{ $product->id }}" wire:click="addProduct({{ $product->id }})" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50">
                                     <span class="min-w-0 flex-1"><span class="block truncate font-medium">{{ $product->name }}</span><span class="block font-mono text-xs text-slate-500">{{ $product->sku }}</span></span>
-                                    <span class="shrink-0 text-right text-xs tabular-nums" data-level-price="{{ $levelPrice }}">{{ $levelPrice !== null ? $money($levelPrice) : __('crm.quotes.items.no_price') }}<span class="block text-slate-400">{{ $this->priceLevel->label() }}</span></span>
+                                    <span class="shrink-0 text-right text-xs tabular-nums" data-level-price="{{ $levelPrice }}">{{ $levelPrice === null ? __('crm.quotes.items.no_price') : ($product->isPricedPerLabel() ? __('catalog.roll.per_label', ['price' => $money($levelPrice)]) : $money($levelPrice)) }}<span class="block text-slate-400">{{ $this->priceLevel->label() }}</span></span>
                                 </button>
                             @empty
                                 <p class="px-3 py-3 text-sm text-slate-500">{{ __('crm.leads.items.no_results') }}</p>

@@ -50,6 +50,8 @@ return [
             'expired' => 'Muddati tugagan',
             'revoked' => 'Bekor qilingan',
         ],
+        // Plan 08: label SKUs are priced per one label.
+        'label_prices_hint' => 'Yorliq boʻyicha narxlangan yorliqlar (mahsulotda “Narx birligi: Yorliq boʻyicha”): 1C har bir darajada BITTA yorliq narxini butun soʻmda yuboradi; sayt uni rulondagi yorliqlar soniga koʻpaytiradi.',
     ],
 
     'sync' => [

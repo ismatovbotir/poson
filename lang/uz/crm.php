@@ -375,6 +375,12 @@ return [
             'price' => 'Narx, soʻm',
             'remove' => 'Olib tashlash',
             'no_price' => 'Narx yoʻq',
+            // Plan 08: label lines sold in rolls.
+            'roll_type' => 'Rulon turi',
+            'rolls' => 'Rulonlar',
+            'price_per_label' => 'Yorliq narxi',
+            'per_roll' => 'Rulon narxi',
+            'below_min_rolls' => 'Minimal buyurtmadan kam (:count rulon)|Minimal buyurtmadan kam (:count rulon)',
         ],
         'filters' => [
             'open' => 'Filtrlar',

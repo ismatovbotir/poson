@@ -2,8 +2,10 @@
 
 namespace App\Actions\Catalog;
 
+use App\Actions\Quotes\SaveQuoteItems;
 use App\Enums\AttributeType;
 use App\Enums\ProductBadge;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
@@ -13,6 +15,7 @@ use App\Models\Brand;
 use App\Models\Product;
 use App\Models\ProductAttributeSkip;
 use App\Models\ProductAttributeValue;
+use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductSearchText;
@@ -45,6 +48,15 @@ use Illuminate\Validation\ValidationException;
  *   row lock inside the transaction (the API wins, also against a batch
  *   that arrived after the form was loaded), and the SKU can't change
  *   (unlink first).
+ * - Label rolls (plan 08): pricing_unit = label only for consumables; the
+ *   unit is then forced to roll (min_qty counts rolls) and every non-null
+ *   price level is per one label in whole soʻm (tiyin % 100 = 0). roll_type_ids
+ *   (ordered) are synced to product_roll_type with sort 1, 2, ... (also for a
+ *   price-synced product); an active label product needs at least one active
+ *   roll type (min_qty at most SaveQuoteItems::MAX_QTY rolls). A unit-priced
+ *   product keeps no roll types. The pricing unit of a price-synced product
+ *   is locked like its prices (re-read under the row lock). Without the
+ *   roll_type_ids key an existing product's roll types stay as they are.
  *
  * Errors are ValidationExceptions keyed like the form ("sku",
  * "specs.3.number", ...); spec indexes are positions in $specs.
@@ -79,6 +91,8 @@ class SaveProduct
      *     price: int|null,
      *     price_dealer: int|null,
      *     price_wholesale: int|null,
+     *     pricing_unit?: ProductPricingUnit,
+     *     roll_type_ids?: list<int>|null,
      *     unit: ProductUnit,
      *     min_qty: int,
      *     sale_mode: SaleMode,
@@ -106,14 +120,19 @@ class SaveProduct
         $product ??= new Product;
         $wasActive = $product->exists && (bool) $product->getOriginal('is_active');
 
-        // The price API owns the prices of a synced product: incoming price fields are ignored.
+        // The price API owns the prices of a synced product: incoming price fields are ignored,
+        // and so is the pricing unit (it says what those prices are per).
         if ($product->exists && $product->getOriginal('price_synced_at') !== null) {
-            foreach (['price', 'price_dealer', 'price_wholesale'] as $field) {
+            foreach (['price', 'price_dealer', 'price_wholesale', 'pricing_unit'] as $field) {
                 $data[$field] = $product->getOriginal($field);
             }
         }
 
+        $data['pricing_unit'] ??= $product->exists ? $product->pricing_unit : ProductPricingUnit::Unit;
+        $data = $this->applyPricingUnit($data);
+
         $this->checkFields($product, $data);
+        $rollTypeIds = $this->rollTypeIds($product, $data);
 
         $sku = mb_strtoupper(trim($data['sku']));
         $slug = $this->slug($product, $data);
@@ -124,7 +143,7 @@ class SaveProduct
         }
 
         try {
-            return $this->store($product, $data, $sku, $slug, $rows, $missing);
+            return $this->store($product, $data, $sku, $slug, $rows, $missing, $rollTypeIds);
         } catch (UniqueConstraintViolationException $exception) {
             // A concurrent save took the SKU or slug between the check and the insert.
             $field = str_contains(mb_strtolower($exception->getMessage()), 'sku') ? 'sku' : 'slug';
@@ -138,12 +157,22 @@ class SaveProduct
      * @param  array<string, mixed>  $data
      * @param  list<array{row: ResolvedAttribute, skipped: bool, is_key: bool, values: list<array<string, mixed>>}>  $rows
      * @param  list<ResolvedAttribute>  $missing
+     * @param  list<int>|null  $rollTypeIds  null = leave the pivot as it is
      */
-    private function store(Product $product, array $data, string $sku, string $slug, array $rows, array $missing): Product
+    private function store(Product $product, array $data, string $sku, string $slug, array $rows, array $missing, ?array $rollTypeIds): Product
     {
-        return DB::transaction(function () use ($product, $data, $sku, $slug, $rows, $missing): Product {
+        return DB::transaction(function () use ($product, $data, $sku, $slug, $rows, $missing, $rollTypeIds): Product {
             if ($product->exists) {
+                $pricingUnit = $data['pricing_unit'];
                 $data = $this->lockedPrices($product, $data);
+
+                // A price batch arrived after the form was loaded and the pricing unit changed in the
+                // form: the stored unit wins, so the unit, the label checks and the roll types follow it.
+                if ($data['pricing_unit'] !== $pricingUnit) {
+                    $data = $this->applyPricingUnit($data);
+                    $this->checkFields($product, $data);
+                    $rollTypeIds = $this->rollTypeIds($product, $data);
+                }
             }
 
             $product->storeTranslations('name', $data['name']);
@@ -162,6 +191,7 @@ class SaveProduct
                 'price' => $data['price'],
                 'price_dealer' => $data['price_dealer'],
                 'price_wholesale' => $data['price_wholesale'],
+                'pricing_unit' => $data['pricing_unit'],
                 'unit' => $data['unit'],
                 'min_qty' => $data['min_qty'],
                 'sale_mode' => $data['price'] === null ? SaleMode::Quote : $data['sale_mode'],
@@ -178,13 +208,19 @@ class SaveProduct
 
             $this->storeSpecs($product, $rows);
 
+            if ($rollTypeIds !== null) {
+                $product->rollTypes()->sync(collect($rollTypeIds)->values()->mapWithKeys(fn (int $id, int $index): array => [$id => ['sort' => $index + 1]])->all());
+                $product->unsetRelation('rollTypes');
+            }
+
             return $product;
         });
     }
 
     /**
      * Re-read the row under a lock: if the price API owns the prices (also
-     * when a batch arrived after the form was loaded), keep the stored ones.
+     * when a batch arrived after the form was loaded), keep the stored ones
+     * and the stored pricing unit.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -194,7 +230,7 @@ class SaveProduct
         $row = DB::table('products')
             ->where('id', $product->id)
             ->lockForUpdate()
-            ->first(['price', 'price_dealer', 'price_wholesale', 'price_synced_at']);
+            ->first(['price', 'price_dealer', 'price_wholesale', 'pricing_unit', 'price_synced_at']);
 
         if ($row === null || $row->price_synced_at === null) {
             return $data;
@@ -202,6 +238,23 @@ class SaveProduct
 
         foreach (['price', 'price_dealer', 'price_wholesale'] as $field) {
             $data[$field] = $row->{$field} !== null ? (int) $row->{$field} : null;
+        }
+
+        $data['pricing_unit'] = ProductPricingUnit::from((string) $row->pricing_unit);
+
+        return $data;
+    }
+
+    /**
+     * Label pricing sells in rolls: the unit is forced to roll.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyPricingUnit(array $data): array
+    {
+        if ($data['pricing_unit'] === ProductPricingUnit::Label) {
+            $data['unit'] = ProductUnit::Roll;
         }
 
         return $data;
@@ -249,6 +302,23 @@ class SaveProduct
             }
         }
 
+        if ($data['pricing_unit'] === ProductPricingUnit::Label) {
+            if ($data['type'] !== ProductType::Consumable) {
+                $errors['pricing_unit'] = __('admin.products.errors.label_requires_consumable');
+            }
+
+            foreach (['price', 'price_dealer', 'price_wholesale'] as $field) {
+                if (! isset($errors[$field]) && $data[$field] !== null && $data[$field] % 100 !== 0) {
+                    $errors[$field] = __('admin.products.errors.label_whole_som');
+                }
+            }
+        }
+
+        // A label product's minimum is in rolls and must fit a quote line.
+        if ($data['pricing_unit'] === ProductPricingUnit::Label && $data['min_qty'] > SaveQuoteItems::MAX_QTY) {
+            $errors['min_qty'] = __('validation.max.numeric', ['attribute' => __('admin.products.fields.min_qty'), 'max' => SaveQuoteItems::MAX_QTY]);
+        }
+
         if ($data['min_qty'] < 1) {
             $errors['min_qty'] = __('validation.min.numeric', ['attribute' => __('admin.products.fields.min_qty'), 'min' => 1]);
         }
@@ -260,6 +330,48 @@ class SaveProduct
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    /**
+     * The roll types to sync (ordered, unique), or null to leave them: a label
+     * product gets the given ones (all must exist; when active at least one
+     * of them must be active), a unit-priced product none. Without the
+     * roll_type_ids key an existing label product keeps its roll types (an
+     * active one must already have an active roll type).
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<int>|null
+     *
+     * @throws ValidationException
+     */
+    private function rollTypeIds(Product $product, array $data): ?array
+    {
+        if ($data['pricing_unit'] !== ProductPricingUnit::Label) {
+            return [];
+        }
+
+        $given = $data['roll_type_ids'] ?? null;
+
+        if ($given === null && $product->exists) {
+            if ($data['is_active'] && ! $product->activeRollTypes()->exists()) {
+                throw ValidationException::withMessages(['roll_type_ids' => __('admin.products.errors.label_needs_roll_types')]);
+            }
+
+            return null;
+        }
+
+        $ids = array_values(array_unique(array_map('intval', (array) ($given ?? []))));
+        $known = RollType::query()->whereKey($ids)->pluck('is_active', 'id');
+
+        if (count($ids) !== $known->count()) {
+            throw ValidationException::withMessages(['roll_type_ids' => __('admin.products.errors.roll_type_invalid')]);
+        }
+
+        if ($data['is_active'] && ! $known->contains(true)) {
+            throw ValidationException::withMessages(['roll_type_ids' => __('admin.products.errors.label_needs_roll_types')]);
+        }
+
+        return $ids;
     }
 
     /**

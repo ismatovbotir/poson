@@ -86,7 +86,8 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public static function permissionMap(): array
     {
-        $catalog = ['categories', 'attributes', 'brands', 'products'];
+        // roll-types (plan 08): label roll types, same matrix as the rest of the catalog.
+        $catalog = ['categories', 'attributes', 'brands', 'products', 'roll-types'];
 
         $catalogView = static::abilities($catalog, self::VIEW);
 
@@ -126,7 +127,7 @@ class RolesAndPermissionsSeeder extends Seeder
     public static function allPermissions(): array
     {
         return [
-            ...static::abilities(['categories', 'attributes', 'brands', 'products'], self::CRUD),
+            ...static::abilities(['categories', 'attributes', 'brands', 'products', 'roll-types'], self::CRUD),
             'products.manage-services',
             'products.force-delete',
             // Plan 04: admin-only (not granted to any other role in permissionMap()).

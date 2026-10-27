@@ -105,6 +105,8 @@ class Show extends Component
             // Sanitized on save already; again on output as defense in depth.
             'description' => HtmlSanitizer::clean((string) $product->description),
             'ctas' => ProductCtas::for($product),
+            // Plan 08: the price is per one label and the page shows the roll picker.
+            'pricedPerLabel' => $product->isPricedPerLabel(),
             'faq' => $faq['items'],
             'jsonLd' => array_values(array_filter([
                 StructuredData::toScript($structuredData->product($product, $url)),

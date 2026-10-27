@@ -36,6 +36,9 @@
                 <p class="rounded-btn bg-bg-soft px-4 py-3 text-sm" data-lead-product>
                     <span class="text-ink-2">{{ __('site.lead_form.product') }}:</span>
                     <span class="font-semibold">{{ $productLabel }}</span>
+                    @if ($rollSummary)
+                        <span class="mt-1 block text-ink-2" data-lead-roll>{{ __('site.lead_form.roll') }}: <span class="font-medium text-ink">{{ $rollSummary }}</span></span>
+                    @endif
                 </p>
             @endif
 

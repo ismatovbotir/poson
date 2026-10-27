@@ -7,6 +7,7 @@ use App\Actions\Catalog\DeleteProduct;
 use App\Actions\Catalog\SaveProduct;
 use App\Actions\Catalog\UnlinkProductPriceSync;
 use App\Enums\AttributeType;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\WithAiAssist;
@@ -15,6 +16,7 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\PriceSyncLog;
 use App\Models\Product;
+use App\Models\RollType;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\ProductAiContext;
@@ -34,7 +36,9 @@ use Livewire\Component;
 /**
  * Create / edit a product (plan 03 T13): Main (uz/ru/en), Price & ordering,
  * Specs (from the category chain, skip / restore, extras, key specs), SEO
- * and Publish. Images, documents and relations are child components shown
+ * and Publish. Price & sale also holds the pricing unit and, for label
+ * products (plan 08), the roll types in picker order (editable even while
+ * the price API owns the prices). Images, documents and relations are child components shown
  * once the product exists.
  *
  * A service engineer (products.manage-services) may only pick the software
@@ -119,6 +123,62 @@ class Form extends Component
     public function brandOptions(): array
     {
         return Brand::query()->orderBy('name')->pluck('name', 'id')->all();
+    }
+
+    /**
+     * Every roll type (inactive ones too, marked), for the label product picker.
+     *
+     * @return Collection<int, RollType>
+     */
+    #[Computed]
+    public function rollTypeOptions(): Collection
+    {
+        return RollType::query()->ordered()->get();
+    }
+
+    /**
+     * Label pricing (plan 08) is sold in rolls: the unit follows.
+     */
+    public function updatedFormPricingUnit(): void
+    {
+        if ($this->form->pricing_unit === ProductPricingUnit::Label->value) {
+            $this->form->unit = 'roll';
+        }
+    }
+
+    /**
+     * Add a roll type at the end of the picker order, or remove it.
+     */
+    public function toggleRollType(int $rollTypeId): void
+    {
+        $ids = array_map('intval', $this->form->roll_type_ids);
+
+        if (in_array($rollTypeId, $ids, true)) {
+            $this->form->roll_type_ids = array_values(array_diff($ids, [$rollTypeId]));
+
+            return;
+        }
+
+        if ($this->rollTypeOptions->contains('id', $rollTypeId)) {
+            $this->form->roll_type_ids = [...$ids, $rollTypeId];
+        }
+    }
+
+    /**
+     * Move an attached roll type up (-1) or down (+1) in the picker order.
+     */
+    public function moveRollType(int $rollTypeId, int $direction): void
+    {
+        $ids = array_values(array_map('intval', $this->form->roll_type_ids));
+        $index = array_search($rollTypeId, $ids, true);
+        $target = $index === false ? null : $index + ($direction < 0 ? -1 : 1);
+
+        if ($target === null || ! isset($ids[$target])) {
+            return;
+        }
+
+        [$ids[$index], $ids[$target]] = [$ids[$target], $ids[$index]];
+        $this->form->roll_type_ids = $ids;
     }
 
     /**
@@ -408,6 +468,7 @@ class Form extends Component
             'canDelete' => $this->product && $user->can('delete', $this->product),
             'canCreateOptions' => $user->can('update', Attribute::class),
             'canCreateAttributes' => $user->can('create', Attribute::class),
+            'canViewRollTypes' => $user->can('viewAny', RollType::class),
             // Plan 09: the price API owns the prices of a synced product.
             'priceSynced' => $this->product?->isPriceSynced() ?? false,
             'priceSyncLogId' => $this->product?->isPriceSynced() && $user->can('viewAny', PriceSyncLog::class) ? $this->product->price_sync_log_id : null,

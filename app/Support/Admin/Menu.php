@@ -59,6 +59,8 @@ final class Menu
                 new MenuItem('attributes', 'menu.items.attributes', 'sliders', 'admin.attributes.index', permission: 'attributes.viewAny'),
                 new MenuItem('brands', 'menu.items.brands', 'tag', 'admin.brands.index', permission: 'brands.viewAny'),
                 new MenuItem('products', 'menu.items.products', 'box', 'admin.products.index', permission: 'products.viewAny'),
+                // Plan 08: label roll types (labels per roll + core).
+                new MenuItem('roll-types', 'menu.items.roll_types', 'list', 'admin.roll-types.index', permission: 'roll-types.viewAny'),
                 // Plan 09: the price API (1C) batch log.
                 new MenuItem('price-sync', 'menu.items.price_sync', 'upload', 'admin.price-sync.index', permission: 'price-sync.view'),
             ]),

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PriceLevel;
 use App\Enums\ProductBadge;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
@@ -53,6 +54,12 @@ use Spatie\Translatable\HasTranslations;
  * the SKU: the admin form shows them read-only and SaveProduct keeps the
  * stored ones.
  *
+ * Label rolls (plan 08): pricing_unit = label (consumables only) means the
+ * three prices are per ONE label in whole soʻm, unit is roll and min_qty
+ * counts rolls. The product is sold in its attached, active roll types
+ * (rollTypes(), pivot sort = picker order); App\Support\Catalog\RollPricing
+ * turns the per-label price into roll lines.
+ *
  * @property int $id
  * @property int $category_id
  * @property int|null $brand_id
@@ -65,6 +72,7 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $price_wholesale
  * @property Carbon|null $price_synced_at
  * @property int|null $price_sync_log_id
+ * @property ProductPricingUnit $pricing_unit
  * @property ProductUnit $unit
  * @property int $min_qty
  * @property SaleMode $sale_mode
@@ -80,7 +88,7 @@ use Spatie\Translatable\HasTranslations;
 #[Fillable([
     'category_id', 'brand_id', 'type', 'sku', 'model', 'slug',
     'name', 'short_description', 'description', 'meta_title', 'meta_description',
-    'price', 'price_dealer', 'price_wholesale', 'unit', 'min_qty', 'sale_mode', 'stock_status',
+    'price', 'price_dealer', 'price_wholesale', 'pricing_unit', 'unit', 'min_qty', 'sale_mode', 'stock_status',
     'warranty_months', 'badge', 'is_active', 'is_featured', 'has_missing_specs', 'search_text', 'sort',
 ])]
 class Product extends Model implements HasMedia
@@ -133,6 +141,7 @@ class Product extends Model implements HasMedia
         return [
             'type' => ProductType::class,
             'unit' => ProductUnit::class,
+            'pricing_unit' => ProductPricingUnit::class,
             'sale_mode' => SaleMode::class,
             'stock_status' => StockStatus::class,
             'badge' => ProductBadge::class,
@@ -277,6 +286,39 @@ class Product extends Model implements HasMedia
     public function relations(): HasMany
     {
         return $this->hasMany(ProductRelation::class)->orderBy('type')->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * Roll types the product is sold in (plan 08; label products), in picker
+     * order. Inactive ones are included: filter with activeRollTypes() or
+     * RollType::is_active for anything customer-facing.
+     *
+     * @return BelongsToMany<RollType, $this>
+     */
+    public function rollTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(RollType::class)
+            ->withPivot('sort')
+            ->orderByPivot('sort')
+            ->orderBy('roll_types.id');
+    }
+
+    /**
+     * The roll types offered now: attached and active, in picker order.
+     *
+     * @return BelongsToMany<RollType, $this>
+     */
+    public function activeRollTypes(): BelongsToMany
+    {
+        return $this->rollTypes()->where('roll_types.is_active', true);
+    }
+
+    /**
+     * Prices are per one label and the product is sold in rolls (plan 08).
+     */
+    public function isPricedPerLabel(): bool
+    {
+        return $this->pricing_unit === ProductPricingUnit::Label;
     }
 
     /**

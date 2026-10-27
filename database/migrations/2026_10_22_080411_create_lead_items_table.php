@@ -23,6 +23,10 @@ return new class extends Migration
             $table->string('sku')->nullable();
             $table->string('product_name');
             $table->unsignedInteger('qty')->default(1);
+            // Plan 08: the roll a label product was asked in (qty = rolls); snapshots, null otherwise.
+            $table->foreignId('roll_type_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedInteger('labels_per_roll')->nullable();
+            $table->decimal('core_diameter_mm', 4, 1)->nullable();
             $table->string('note', 500)->nullable();
             $table->unsignedSmallInteger('sort')->default(0);
             $table->timestamps();

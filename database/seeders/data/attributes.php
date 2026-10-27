@@ -449,9 +449,8 @@ return [
             $same('40'),
             $same('76'),
         ],
+        // Plan 08: label categories use roll types instead (the attribute stays in the library).
         'categories' => [
-            'thermal-labels' => $assign(true, true),
-            'thermal-transfer-labels' => $assign(true, true),
             'ribbons' => $assign(true, true),
         ],
     ],
@@ -463,9 +462,8 @@ return [
         'is_filterable' => false,
         'sort' => 430,
         'options' => [],
+        // Plan 08: label categories use roll types instead (the attribute stays in the library).
         'categories' => [
-            'thermal-labels' => $assign(false, false),
-            'thermal-transfer-labels' => $assign(false, false),
             'rfid-tags' => $assign(false, false),
         ],
     ],

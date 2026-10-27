@@ -40,6 +40,11 @@ return [
         'hour' => 'час',
     ],
 
+    'product_pricing_unit' => [
+        'unit' => 'За единицу',
+        'label' => 'За этикетку',
+    ],
+
     'relation_type' => [
         'accessory' => 'Аксессуар',
         'consumable' => 'Расходный материал',
@@ -161,6 +166,18 @@ return [
         'draft' => 'Черновик',
         'scheduled' => 'Запланирована',
         'published' => 'Опубликована',
+    ],
+
+    'banner_placement' => [
+        'home_hero' => 'Слайдер на главной',
+        'category' => 'Категория',
+    ],
+
+    'banner_state' => [
+        'active' => 'Показывается',
+        'scheduled' => 'Запланирован',
+        'expired' => 'Завершён',
+        'inactive' => 'Выключен',
     ],
 
     'product_badge' => [

@@ -40,7 +40,8 @@
 
         <div class="mt-auto flex flex-col gap-3 pt-3">
             @if ($product->price !== null)
-                <p class="text-[17px] leading-[1.1] font-extrabold tracking-[-0.02em] sm:text-xl" data-price>{{ \App\Support\Money::format($product->price) }}</p>
+                {{-- Plan 08: label products show the price of one label ("12 soʻm / label"). --}}
+                <p class="text-[17px] leading-[1.1] font-extrabold tracking-[-0.02em] sm:text-xl" data-price>{{ $product->pricedPerLabel ? __('catalog.roll.per_label', ['price' => \App\Support\Money::format($product->price)]) : \App\Support\Money::format($product->price) }}</p>
             @else
                 <p class="text-[15px] font-semibold text-ink-2" data-price>{{ __('site.card.price_on_request') }}</p>
             @endif

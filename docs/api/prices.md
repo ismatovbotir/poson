@@ -56,6 +56,12 @@ Rules:
 - Sending the same prices again is safe. The item reports `unchanged`.
 - Once 1C has sent a product's prices, that product's prices and its SKU are **read-only in the site admin**. An admin can "Unlink from API" for one product, and the next request that includes its code links it again.
 
+### Labels priced per label
+
+Some label SKUs are sold in rolls but priced **per one label** (in the site admin the product has *Price per: label*). For these SKUs send the price of **one label** at every level, in whole soʻm, with the same rules as above. For example `{ "code": "LBL-DT-58X40-ECO", "retail": 32, "dealer": 28, "wholesale": 30 }` means 32 soʻm per label.
+
+The site works out the roll price itself: price per label × labels per roll of the roll type the customer picks (for example 32 × 1000 = 32 000 soʻm for a roll of 1000 labels). **Do not** send roll prices for these SKUs. Ask the site admin which SKUs are priced per label.
+
 ## Response
 
 ### 200: batch processed

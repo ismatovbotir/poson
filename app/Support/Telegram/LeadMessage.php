@@ -61,7 +61,10 @@ final readonly class LeadMessage
 
         $items = $lead->items->take(self::MAX_ITEMS)->map(fn (LeadItem $item): string => e($item->product_name)
             .($item->sku ? ' ('.e($item->sku).')' : '')
-            .' ×'.$item->qty);
+            // Plan 08: a roll line says which roll and how many rolls.
+            .($item->isRollLine()
+                ? ', '.e($item->rollName()).' × '.e(trans_choice('catalog.roll.rolls', $item->qty, ['count' => $item->qty]))
+                : ' ×'.$item->qty));
 
         if ($items->isNotEmpty()) {
             $more = $lead->items->count() - $items->count();

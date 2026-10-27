@@ -100,10 +100,10 @@
             @foreach ($quote->items as $index => $item)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->name }}@if ($item->sku)<br><span class="muted">{{ $item->sku }}</span>@endif</td>
+                    <td>{{ $item->name }}@if ($item->isRollLine())<br><span data-roll-line>{{ $item->rollDescription($locale, withRolls: false) }}</span>@endif @if ($item->sku)<br><span class="muted">{{ $item->sku }}</span>@endif</td>
                     <td class="num">{{ \App\Support\NumberFormat::format($item->qty, $locale) }}</td>
                     <td>{{ $item->unit?->label() }}</td>
-                    <td class="num">{{ $money($item->price) }}</td>
+                    <td class="num">{{ $money($item->price) }}@if ($item->isRollLine() && $item->price_per_label !== null)<br><span class="muted" data-price-per-label>({{ __('catalog.roll.per_label', ['price' => $money($item->price_per_label)], $locale) }})</span>@endif</td>
                     <td class="num">{{ $money($item->total) }}</td>
                 </tr>
             @endforeach

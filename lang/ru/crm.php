@@ -375,6 +375,12 @@ return [
             'price' => 'Цена, сум',
             'remove' => 'Убрать',
             'no_price' => 'Нет цены',
+            // Plan 08: label lines sold in rolls.
+            'roll_type' => 'Тип рулона',
+            'rolls' => 'Рулоны',
+            'price_per_label' => 'Цена за этикетку',
+            'per_roll' => 'За рулон',
+            'below_min_rolls' => 'Меньше минимального заказа (:count рулон)|Меньше минимального заказа (:count рулона)|Меньше минимального заказа (:count рулонов)',
         ],
         'filters' => [
             'open' => 'Фильтры',

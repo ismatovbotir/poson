@@ -27,6 +27,7 @@ return [
         'attributes' => 'Характеристики',
         'brands' => 'Бренды',
         'products' => 'Товары',
+        'roll_types' => 'Типы рулонов',
         'price_sync' => 'Синхронизация цен',
         'service_requests' => 'Сервисные заявки',
         'repairs' => 'Ремонт',

@@ -27,6 +27,7 @@ return [
         'attributes' => 'Attributes',
         'brands' => 'Brands',
         'products' => 'Products',
+        'roll_types' => 'Roll types',
         'price_sync' => 'Price sync',
         'service_requests' => 'Service requests',
         'repairs' => 'Repairs',

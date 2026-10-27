@@ -30,6 +30,23 @@ return [
         'inch' => ':count dyuym',
     ],
 
+    // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
+    'roll' => [
+        'name' => ':labels/rulon, gilza :core mm',
+        'labels' => ':count yorliq|:count yorliq',
+        'size' => ':size mm',
+        'rolls' => ':count rulon|:count rulon',
+        'per_label' => ':price / yorliq',
+        'errors' => [
+            'not_label_product' => 'Bu mahsulot yorliq boʻyicha narxlanmagan.',
+            'unavailable' => 'Bu rulon turi ushbu mahsulot uchun mavjud emas.',
+            'required' => 'Rulon turini tanlang.',
+            'rolls' => 'Rulonlar soni notoʻgʻri.',
+            'whole_som' => 'Bitta yorliq narxi butun soʻmda boʻlishi kerak.',
+            'too_high' => 'Narx juda katta.',
+        ],
+    ],
+
     'document_link' => 'Havola',
 
 ];

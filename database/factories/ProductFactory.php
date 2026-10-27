@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ProductBadge;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
@@ -10,6 +11,7 @@ use App\Enums\StockStatus;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\RollType;
 use App\Support\Catalog\ProductSearchText;
 use App\Support\Slug;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -47,6 +49,7 @@ class ProductFactory extends Factory
             'price' => $sums * 100,
             'price_dealer' => (int) round($sums * 0.95) * 100,
             'price_wholesale' => (int) round($sums * 0.9) * 100,
+            'pricing_unit' => ProductPricingUnit::Unit,
             'unit' => ProductUnit::Piece,
             'min_qty' => 1,
             'sale_mode' => SaleMode::Both,
@@ -89,6 +92,40 @@ class ProductFactory extends Factory
             'sale_mode' => SaleMode::Cart,
             'warranty_months' => null,
         ]);
+    }
+
+    /**
+     * Labels priced per one label (plan 08): 12 / 11 / 10 soʻm per label,
+     * sold in rolls (min 2). Attach roll types with withRollTypes().
+     */
+    public function perLabel(int $retailSums = 12): static
+    {
+        return $this->consumable()->state(fn (array $attributes) => [
+            'pricing_unit' => ProductPricingUnit::Label,
+            'price' => $retailSums * 100,
+            'price_dealer' => max(1, $retailSums - 1) * 100,
+            'price_wholesale' => max(1, $retailSums - 2) * 100,
+            'min_qty' => 2,
+        ]);
+    }
+
+    /**
+     * Attach roll types in the given order (pivot sort 1, 2, ...); new active ones by default.
+     *
+     * @param  list<RollType>|null  $rollTypes
+     */
+    public function withRollTypes(?array $rollTypes = null): static
+    {
+        return $this->afterCreating(function (Product $product) use ($rollTypes): void {
+            $rollTypes ??= [
+                RollType::factory()->size(500, '40.0')->create(),
+                RollType::factory()->size(1000, '40.0')->create(),
+            ];
+
+            foreach (array_values($rollTypes) as $index => $rollType) {
+                $product->rollTypes()->attach($rollType->id, ['sort' => $index + 1]);
+            }
+        });
     }
 
     public function service(): static

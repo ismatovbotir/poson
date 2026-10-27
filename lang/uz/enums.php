@@ -40,6 +40,11 @@ return [
         'hour' => 'soat',
     ],
 
+    'product_pricing_unit' => [
+        'unit' => 'Birlik boʻyicha',
+        'label' => 'Yorliq boʻyicha',
+    ],
+
     'relation_type' => [
         'accessory' => 'Aksessuar',
         'consumable' => 'Sarf material',
@@ -161,6 +166,18 @@ return [
         'draft' => 'Qoralama',
         'scheduled' => 'Rejalashtirilgan',
         'published' => 'Eʼlon qilingan',
+    ],
+
+    'banner_placement' => [
+        'home_hero' => 'Bosh sahifa slayderi',
+        'category' => 'Kategoriya',
+    ],
+
+    'banner_state' => [
+        'active' => 'Koʻrsatilmoqda',
+        'scheduled' => 'Rejalashtirilgan',
+        'expired' => 'Tugagan',
+        'inactive' => 'Oʻchirilgan',
     ],
 
     'product_badge' => [

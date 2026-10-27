@@ -63,9 +63,10 @@
                                 @else
                                     <p class="text-sm font-semibold">{{ $item->name }}</p>
                                 @endif
+                                @if ($item->isRollLine())<p class="text-xs text-slate-600" data-roll-line>{{ $item->rollDescription(withRolls: false) }}</p>@endif
                                 @if ($item->sku)<p class="font-mono text-xs text-slate-500">{{ $item->sku }}</p>@endif
                             </div>
-                            <p class="text-sm tabular-nums text-slate-600">{{ \App\Support\NumberFormat::format($item->qty) }} {{ $item->unit?->label() }} × {{ $money($item->price) }}</p>
+                            <p class="text-sm tabular-nums text-slate-600">{{ \App\Support\NumberFormat::format($item->qty) }} {{ $item->unit?->label() }} × {{ $money($item->price) }}@if ($item->isRollLine() && $item->price_per_label !== null)<span class="block text-right text-xs text-slate-400">{{ __('catalog.roll.per_label', ['price' => $money($item->price_per_label)]) }}</span>@endif</p>
                             <p class="w-36 text-right text-sm font-semibold tabular-nums">{{ $money($item->total) }}</p>
                         </li>
                     @endforeach

@@ -6,13 +6,18 @@ use App\Actions\Analytics\RecordConversion;
 use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadType;
+use App\Livewire\Site\Catalog\RollPicker;
 use App\Models\Product;
+use App\Models\RollType;
 use App\Rules\UzPhone;
 use App\Support\Analytics\Attribution;
+use App\Support\Catalog\RollPricing;
+use App\Support\NumberFormat;
 use App\Support\Phone;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
@@ -28,6 +33,14 @@ use Livewire\Component;
  * The session's first-touch attribution (channel, source, UTM tags, landing;
  * see App\Support\Analytics\Attribution) goes with the lead, and a valid
  * lead is recorded as a conversion (RecordConversion) for the analytics.
+ *
+ * Label products (plan 08): the request carries the roll type and rolls
+ * chosen in the page's RollPicker ("roll-selected"; defaults: the first
+ * active roll type and min_qty rolls). On submit the roll type must still be
+ * offered and the rolls must be min_qty..RollPicker::MAX_ROLLS, otherwise
+ * the request is rejected with a form error (checked after the rate
+ * limits). A label product without any active roll type is asked for
+ * without a roll.
  */
 class LeadForm extends Component
 {
@@ -91,6 +104,19 @@ class LeadForm extends Component
     public ?string $pageUrl = null;
 
     /**
+     * Roll type of a label product (plan 08); set by the RollPicker, checked on submit.
+     */
+    public ?int $rollTypeId = null;
+
+    /**
+     * Rolls of a label product (plan 08); set by the RollPicker, checked on submit.
+     */
+    public ?int $rolls = null;
+
+    #[Locked]
+    public bool $sellsRolls = false;
+
+    /**
      * UTM tags of the session's first touch.
      *
      * @var array<string, string>
@@ -118,6 +144,12 @@ class LeadForm extends Component
 
         $this->productId = $product?->id;
         $this->productLabel = $product !== null ? $product->name.' ('.$product->sku.')' : null;
+
+        if ($product?->isPricedPerLabel()) {
+            $this->sellsRolls = true;
+            $this->rollTypeId = $product->activeRollTypes()->value('roll_types.id');
+            $this->rolls = max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
+        }
         $this->locale = app()->getLocale();
         $this->pageUrl = url()->current();
         $this->attribution = $this->captureAttribution();
@@ -151,6 +183,18 @@ class LeadForm extends Component
         ];
     }
 
+    /**
+     * The page's RollPicker changed the roll (validated again on submit).
+     */
+    #[On('roll-selected')]
+    public function selectRoll(int $productId, int $rollTypeId, int $rolls): void
+    {
+        if ($this->sellsRolls && $productId === $this->productId) {
+            $this->rollTypeId = $rollTypeId;
+            $this->rolls = $rolls;
+        }
+    }
+
     public function submit(SubmitSiteLead $submitSiteLead, RecordConversion $recordConversion): void
     {
         $validated = $this->validate();
@@ -173,6 +217,16 @@ class LeadForm extends Component
             return;
         }
 
+        // Plan 08: a label product is asked for in an offered roll type and min_qty..MAX_ROLLS rolls;
+        // without any offered roll type (all hidden since) the request goes without a roll.
+        $sendsRoll = $product !== null && $product->isPricedPerLabel() && $product->activeRollTypes()->exists();
+
+        if ($sendsRoll && ($error = $this->rollError($product)) !== null) {
+            $this->addError('form', $error);
+
+            return;
+        }
+
         // Bots get the same success screen, but nothing is submitted.
         if (! $this->looksLikeBot()) {
             $submitSiteLead->handle(new SiteLeadData(
@@ -189,6 +243,8 @@ class LeadForm extends Component
                 trafficChannel: Attribution::channel($this->attribution),
                 trafficSource: $this->attribution['source'] ?? null,
                 landingPath: $this->attribution['landing'] ?? null,
+                rollTypeId: $sendsRoll ? $this->rollTypeId : null,
+                rolls: $sendsRoll ? $this->rolls : null,
             ));
 
             $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale, $product?->id);
@@ -200,7 +256,33 @@ class LeadForm extends Component
 
     public function render(): View
     {
-        return view('livewire.site.lead-form');
+        $rollType = $this->sellsRolls && $this->rollTypeId !== null ? RollType::query()->active()->find($this->rollTypeId) : null;
+
+        return view('livewire.site.lead-form', [
+            'rollSummary' => $rollType !== null && $this->rolls !== null
+                ? RollPricing::describe(null, $rollType->labels_per_roll, $rollType->core_diameter_mm, $this->rolls)
+                : null,
+        ]);
+    }
+
+    /**
+     * Why the chosen roll can't be requested, or null when it can.
+     */
+    protected function rollError(Product $product): ?string
+    {
+        $rollType = $this->rollTypeId !== null ? RollType::query()->find($this->rollTypeId) : null;
+
+        if (! $rollType instanceof RollType || ! RollPricing::isAvailable($product, $rollType)) {
+            return __('catalog.roll.errors.required');
+        }
+
+        $min = max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
+
+        if ($this->rolls === null || $this->rolls < $min || $this->rolls > RollPicker::MAX_ROLLS) {
+            return __('site.roll_picker.rolls_invalid', ['min' => NumberFormat::format($min), 'max' => NumberFormat::format(RollPicker::MAX_ROLLS)]);
+        }
+
+        return null;
     }
 
     /**
@@ -224,7 +306,7 @@ class LeadForm extends Component
      */
     protected function publishedProduct(int $productId): ?Product
     {
-        $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'name', 'category_id', 'is_active']);
+        $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'name', 'category_id', 'is_active', 'pricing_unit', 'min_qty']);
 
         return $product instanceof Product ? $product : null;
     }

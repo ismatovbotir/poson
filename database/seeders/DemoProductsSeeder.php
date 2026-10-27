@@ -6,6 +6,7 @@ use App\Actions\Catalog\AddProductRelation;
 use App\Actions\Catalog\SaveProduct;
 use App\Enums\AttributeType;
 use App\Enums\ProductBadge;
+use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\RelationType;
@@ -17,6 +18,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductRelation;
+use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
@@ -36,6 +38,11 @@ use Illuminate\Validation\ValidationException;
  * or values are logged and skipped, never fatal. At most
  * Product::MAX_KEY_SPECS key specs are kept. Relations are linked once all
  * products exist. Idempotent by SKU (an existing product is updated). No images.
+ *
+ * Label products priced per label (plan 08): 'pricing_unit' => 'label' with
+ * prices per one label in soʻm, and 'roll_types' as labels / core pairs
+ * matched to the roll types CatalogSeeder seeds (unknown pairs are warned
+ * about and skipped).
  */
 class DemoProductsSeeder extends Seeder
 {
@@ -58,6 +65,7 @@ class DemoProductsSeeder extends Seeder
         $categories = Category::query()->pluck('id', 'slug');
         $brands = Brand::query()->pluck('id', 'name');
         $attributes = Attribute::query()->with('options')->get()->keyBy('code');
+        $rollTypes = RollType::query()->get()->keyBy(fn (RollType $rollType): string => $rollType->labels_per_roll.'@'.$rollType->core_diameter_mm);
 
         foreach ($rows as $row) {
             $categoryId = $categories[$row['category']] ?? null;
@@ -86,6 +94,8 @@ class DemoProductsSeeder extends Seeder
                 'price' => $this->tiyin($row['price'] ?? null),
                 'price_dealer' => $this->tiyin($row['price_dealer'] ?? null),
                 'price_wholesale' => $this->tiyin($row['price_wholesale'] ?? null),
+                'pricing_unit' => ProductPricingUnit::from($row['pricing_unit'] ?? 'unit'),
+                'roll_type_ids' => $this->rollTypeIds($row['sku'], $row['roll_types'] ?? [], $rollTypes),
                 'unit' => ProductUnit::from($row['unit']),
                 'min_qty' => (int) $row['min_qty'],
                 'sale_mode' => SaleMode::from($row['sale_mode']),
@@ -221,6 +231,30 @@ class DemoProductsSeeder extends Seeder
                 }
             }
         }
+    }
+
+    /**
+     * @param  list<array{core: string, labels: int}>  $pairs
+     * @param  Collection<string, RollType>  $rollTypes  keyed "labels@core" ("1000@40.0")
+     * @return list<int>
+     */
+    private function rollTypeIds(string $sku, array $pairs, Collection $rollTypes): array
+    {
+        $ids = [];
+
+        foreach ($pairs as $pair) {
+            $rollType = $rollTypes->get($pair['labels'].'@'.number_format((float) $pair['core'], 1, '.', ''));
+
+            if ($rollType === null) {
+                $this->warn($sku, "no roll type {$pair['labels']} labels / {$pair['core']} mm");
+
+                continue;
+            }
+
+            $ids[] = $rollType->id;
+        }
+
+        return $ids;
     }
 
     private function tiyin(?int $sums): ?int

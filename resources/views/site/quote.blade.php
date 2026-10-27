@@ -78,10 +78,10 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($quote->items as $item)
                             <tr>
-                                <td class="py-3 pr-3"><span class="font-medium">{{ $item->name }}</span>@if ($item->sku)<span class="block font-mono text-xs text-slate-500">{{ $item->sku }}</span>@endif</td>
+                                <td class="py-3 pr-3"><span class="font-medium">{{ $item->name }}</span>@if ($item->isRollLine())<span class="block text-sm text-slate-600" data-roll-line>{{ $item->rollDescription($locale, withRolls: false) }}</span>@endif @if ($item->sku)<span class="block font-mono text-xs text-slate-500">{{ $item->sku }}</span>@endif</td>
                                 <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ \App\Support\NumberFormat::format($item->qty, $locale) }}</td>
                                 <td class="whitespace-nowrap px-3 py-3">{{ $item->unit?->label() }}</td>
-                                <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ $money($item->price) }}</td>
+                                <td class="whitespace-nowrap px-3 py-3 text-right tabular-nums">{{ $money($item->price) }}@if ($item->isRollLine() && $item->price_per_label !== null)<span class="block text-xs text-slate-500">({{ __('catalog.roll.per_label', ['price' => $money($item->price_per_label)], $locale) }})</span>@endif</td>
                                 <td class="whitespace-nowrap py-3 pl-3 text-right font-semibold tabular-nums">{{ $money($item->total) }}</td>
                             </tr>
                         @endforeach

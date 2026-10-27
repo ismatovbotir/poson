@@ -140,6 +140,26 @@
                         <x-admin.field-error name="form.sale_mode" />
                     </fieldset>
 
+                    {{-- Plan 08: label consumables are priced per one label and sold in rolls. --}}
+                    <fieldset @if ($form->type !== 'consumable' && $form->pricing_unit !== 'label') x-cloak @endif x-show="$wire.form.type === 'consumable' || $wire.form.pricing_unit === 'label'" data-pricing-unit>
+                        <legend class="text-sm font-semibold">{{ __('admin.products.fields.pricing_unit') }}</legend>
+                        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                            @foreach (\App\Enums\ProductPricingUnit::cases() as $pricingUnit)
+                                <label class="relative flex cursor-pointer gap-3 rounded-xl border border-slate-200 p-3.5 hover:border-slate-300 has-checked:border-brand-600 has-checked:bg-brand-50/60 has-checked:ring-1 has-checked:ring-brand-600">
+                                    <input type="radio" wire:model.live="form.pricing_unit" value="{{ $pricingUnit->value }}" class="mt-0.5 size-4 accent-brand-600" @disabled($priceSynced)>
+                                    <span>
+                                        <span class="block text-sm font-semibold">{{ $pricingUnit->label() }}</span>
+                                        <span class="block text-xs text-slate-500">{{ __('admin.products.pricing_unit_hints.'.$pricingUnit->value) }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @if ($priceSynced)
+                            <p class="mt-2 flex items-start gap-1.5 text-xs text-slate-500" data-pricing-unit-locked><x-admin.icon name="lock" size="size-4" class="shrink-0 text-slate-400" />{{ __('admin.products.pricing_unit_locked') }}</p>
+                        @endif
+                        <x-admin.field-error name="form.pricing_unit" />
+                    </fieldset>
+
                     <div>
                         @if ($priceSynced)
                             {{-- Plan 09: the price API owns these prices (SaveProduct ignores them too). --}}
@@ -176,15 +196,29 @@
                             <x-admin.money-input wire:model="form.price_wholesale" :label="__('enums.price_level.wholesale')" :hint="__('admin.products.price_hints.fallback')" :disabled="$priceSynced" />
                         </div>
                         <p class="mt-2 flex items-start gap-1.5 text-xs text-slate-500"><x-admin.icon name="lock" size="size-4" class="shrink-0 text-slate-400" />{{ __('admin.products.price_hints.levels') }}</p>
+                        @if ($form->pricing_unit === 'label')
+                            <div class="mt-3 flex gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3.5 text-sm text-sky-900" role="status" data-per-label-notice>
+                                <x-admin.icon name="info" class="mt-0.5 shrink-0 text-sky-600" />
+                                <p>{{ __('admin.products.per_label_notice') }}</p>
+                            </div>
+                        @endif
                         <div x-cloak x-show="! String($wire.form.price ?? '').trim()" class="mt-3 flex gap-3 rounded-xl border border-sky-200 bg-sky-50 p-3.5 text-sm text-sky-900" role="status" data-price-on-request>
                             <x-admin.icon name="info" class="mt-0.5 shrink-0 text-sky-600" />
                             <p><b class="font-semibold">{{ __('admin.products.price_on_request') }}.</b> {{ __('admin.products.price_on_request_notice') }}</p>
                         </div>
                     </div>
 
+                    @if ($form->pricing_unit === 'label')
+                        @include('livewire.admin.products.partials.roll-types')
+                    @endif
+
                     <div class="grid gap-4 sm:grid-cols-3">
-                        <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="collect(\App\Enums\ProductUnit::cases())->mapWithKeys(fn ($unit) => [$unit->value => $unit->label()])->all()" required />
-                        <x-admin.input wire:model="form.min_qty" type="number" min="1" inputmode="numeric" :label="__('admin.products.fields.min_qty')" :hint="__('admin.products.min_qty_hint')" required />
+                        @if ($form->pricing_unit === 'label')
+                            <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="['roll' => \App\Enums\ProductUnit::Roll->label()]" :hint="__('admin.products.unit_roll_hint')" required disabled />
+                        @else
+                            <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="collect(\App\Enums\ProductUnit::cases())->mapWithKeys(fn ($unit) => [$unit->value => $unit->label()])->all()" required />
+                        @endif
+                        <x-admin.input wire:model="form.min_qty" type="number" min="1" inputmode="numeric" :label="__('admin.products.fields.min_qty')" :hint="$form->pricing_unit === 'label' ? __('admin.products.min_qty_rolls_hint') : __('admin.products.min_qty_hint')" required />
                         <x-admin.input wire:model="form.warranty_months" type="number" min="0" max="600" inputmode="numeric" :label="__('admin.products.fields.warranty_months')" :hint="__('admin.products.warranty_hint')" />
                     </div>
 

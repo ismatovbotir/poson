@@ -33,6 +33,7 @@
             <code class="break-all rounded-md bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700" data-endpoint>{{ $endpoint }}</code>
         </p>
         <p class="mt-2 text-xs text-slate-500">{{ __($t.'.endpoint_auth') }}</p>
+        <p class="mt-2 flex items-start gap-1.5 text-xs text-slate-500" data-label-prices-hint><x-admin.icon name="info" size="size-4" class="shrink-0 text-slate-400" />{{ __($t.'.label_prices_hint') }}</p>
     </x-admin.card>
 
     {{-- Show once --}}

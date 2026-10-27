@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Support\Catalog\CatalogQuery;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductCards;
+use App\Support\Site\BannerDirectory;
 use App\Support\Site\FaqContent;
 use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
@@ -28,6 +29,9 @@ use Livewire\WithPagination;
  * A hidden category (inactive itself or under an inactive parent) is a 404.
  * Canonical and hreflang use the clean URL (page only); more than one filter
  * value or a sort gives noindex,follow.
+ *
+ * A category's first live banner (plan 07 7c, K13) shows under the heading
+ * on page 1 only.
  */
 class Index extends Component
 {
@@ -231,6 +235,7 @@ class Index extends Component
             'subcategories' => $this->subcategories(),
             'breadcrumbs' => $breadcrumbs,
             'heading' => $this->category !== null ? (string) $this->category->name : __('site.catalog.title'),
+            'banner' => $this->category !== null && $products->currentPage() === 1 ? BannerDirectory::forCategory($this->category->id) : null,
             'sorts' => CatalogQuery::SORTS,
             'breadcrumbsJson' => StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $currentUrl)),
             'faq' => $faq['items'],
