@@ -184,3 +184,57 @@ it('translates every menu label in all locales', function (string $locale) {
         }
     }
 })->with(['uz', 'ru', 'en']);
+
+/**
+ * aria-expanded of each collapsible group header as [group key => "true"|"false"].
+ *
+ * @return array<string, string>
+ */
+function menuGroupStates(string $html): array
+{
+    preg_match_all('/<button\s[^>]*?aria-expanded="(true|false)"[^>]*?aria-controls="menu-group-([\w-]+)"/s', $html, $matches, PREG_SET_ORDER);
+
+    return collect($matches)->mapWithKeys(fn (array $match): array => [$match[2] => $match[1]])->all();
+}
+
+/**
+ * The opening <ul> tag of a sidebar group.
+ */
+function menuGroupListTag(string $html, string $group): string
+{
+    preg_match('/<ul\s[^>]*id="menu-group-'.preg_quote($group, '/').'"[^>]*>/s', $html, $matches);
+
+    return $matches[0] ?? '';
+}
+
+it('expands only the group of the current page', function (string $route, ?string $openGroup) {
+    $html = $this->actingAs(staffUser(Role::Admin))->get(route($route))->assertOk()->getContent();
+
+    $states = menuGroupStates($html);
+
+    expect($states)
+        ->toHaveKeys(['sales', 'catalog', 'content', 'settings'])
+        ->not->toHaveKey('dashboard');
+
+    foreach ($states as $group => $expanded) {
+        $isOpen = $group === $openGroup;
+
+        expect($expanded)->toBe($isOpen ? 'true' : 'false', "Group [{$group}] aria-expanded");
+
+        $isOpen
+            ? expect(menuGroupListTag($html, $group))->not->toContain('display: none')
+            : expect(menuGroupListTag($html, $group))->toContain('style="display: none;"');
+    }
+
+    // Single items (no collapsible group) are still rendered and never hidden.
+    expect($html)->toContain('data-menu-item="dashboard"');
+    expect(menuGroupListTag($html, 'dashboard'))
+        ->not->toBe('')
+        ->not->toContain('display: none')
+        ->not->toContain('x-show');
+})->with([
+    'dashboard: all collapsed' => ['admin.dashboard', null],
+    'categories: catalog open' => ['admin.categories.index', 'catalog'],
+    'leads: sales open' => ['admin.leads.index', 'sales'],
+    'pages: content open' => ['admin.pages.index', 'content'],
+]);

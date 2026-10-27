@@ -70,25 +70,28 @@
         </div>
 
         <nav class="scrollbar-none flex-1 overflow-y-auto px-3 pb-4 pt-2" x-data="adminMenu(@js($activeGroup))">
+            {{-- Accordion: groups start collapsed except the current page's group (decided on the server, so no flash); opening one closes the others. --}}
             @foreach ($menu as $group)
+                @php($groupOpen = ! $group->collapsible || $group->key === $activeGroup)
                 <div class="mt-4 first:mt-0" data-menu-group="{{ $group->key }}">
                     @if ($group->collapsible)
                         <button
                             type="button"
                             x-on:click="toggle(@js($group->key))"
-                            aria-expanded="true"
+                            aria-expanded="{{ $groupOpen ? 'true' : 'false' }}"
                             x-bind:aria-expanded="isOpen(@js($group->key)).toString()"
                             aria-controls="menu-group-{{ $group->key }}"
                             class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300 focus-visible:outline-2 focus-visible:outline-brand-400"
                         >
                             <span class="flex-1 truncate">{{ __($group->label) }}</span>
-                            <x-admin.icon name="chevron-down" size="size-3.5" class="shrink-0 transition-transform duration-150" x-bind:class="isOpen(@js($group->key)) ? '' : '-rotate-90'" />
+                            <x-admin.icon name="chevron-down" size="size-3.5" @class(['shrink-0 transition-transform duration-150', '-rotate-90' => ! $groupOpen]) x-bind:class="{ '-rotate-90': ! isOpen(@js($group->key)) }" />
                         </button>
                     @endif
                     <ul
                         id="menu-group-{{ $group->key }}"
                         class="space-y-0.5"
-                        @if ($group->collapsible) x-cloak x-show="isOpen(@js($group->key))" x-collapse @endif
+                        @if ($group->collapsible) x-show="isOpen(@js($group->key))" x-collapse @endif
+                        @unless ($groupOpen) style="display: none;" @endunless
                     >
                         @foreach ($group->items as $item)
                             <x-admin.menu-item :item="$item" :badge="$badges[$item->key] ?? null" />

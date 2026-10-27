@@ -113,42 +113,32 @@ document.addEventListener('alpine:init', () => {
 });
 
 document.addEventListener('alpine:init', () => {
-    const MENU_STORAGE_KEY = 'poson.admin.menu.open';
-
     /**
-     * Collapsible admin menu groups (layouts/admin.blade.php).
-     * x-data="adminMenu('catalog')": the open state per group is kept in
-     * localStorage (private mode / blocked storage just falls back to "open"),
-     * and the group of the current page always opens.
+     * Admin menu accordion (layouts/admin.blade.php).
+     * x-data="adminMenu('catalog')": only the current page's group starts open
+     * (the server renders the same state, so there's no flash); opening a group
+     * closes the others, clicking the open one closes it. Not persisted: every
+     * page load (including wire:navigate, which re-renders the sidebar) starts
+     * from the new page's group.
      */
     window.Alpine.data('adminMenu', (activeGroup = null) => ({
-        open: {},
+        open: activeGroup,
 
         init() {
             try {
-                const stored = JSON.parse(window.localStorage.getItem(MENU_STORAGE_KEY) ?? '{}');
-                this.open = stored && typeof stored === 'object' ? stored : {};
+                // Drop the per-group state the previous version kept.
+                window.localStorage.removeItem('poson.admin.menu.open');
             } catch (error) {
-                this.open = {};
-            }
-
-            if (activeGroup) {
-                this.open[activeGroup] = true;
+                // Storage unavailable: nothing to clean up.
             }
         },
 
         isOpen(group) {
-            return this.open[group] ?? true;
+            return this.open === group;
         },
 
         toggle(group) {
-            this.open[group] = !this.isOpen(group);
-
-            try {
-                window.localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(this.open));
-            } catch (error) {
-                // Storage unavailable: the state just isn't remembered.
-            }
+            this.open = this.open === group ? null : group;
         },
     }));
 });
