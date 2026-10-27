@@ -68,6 +68,15 @@ class NewsPost extends Model implements HasMedia
     public const BODY_MAX = 60000;
 
     /**
+     * New posts are news until the caller says otherwise (as the column default).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'kind' => 'news',
+    ];
+
+    /**
      * @var list<string>
      */
     public array $translatable = ['title', 'excerpt', 'body', 'meta_title', 'meta_description'];

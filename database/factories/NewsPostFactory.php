@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Models\NewsPost;
 use App\Support\Slug;
@@ -9,7 +10,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * A published news post (yesterday), translated in uz, ru and en.
- * draft() / published() / scheduled() / untranslated('ru', 'en') adjust it.
+ * draft() / published() / scheduled() / untranslated('ru', 'en') adjust it;
+ * article() makes it a knowledge article (kind = article).
  *
  * @extends Factory<NewsPost>
  */
@@ -26,6 +28,7 @@ class NewsPostFactory extends Factory
 
         return [
             'slug' => Slug::make($title).'-'.fake()->unique()->numberBetween(1, 999_999),
+            'kind' => NewsKind::News,
             'status' => NewsStatus::Published,
             'published_at' => now()->subDay(),
             'title' => ['uz' => ucfirst($title), 'ru' => 'RU '.$title, 'en' => 'EN '.$title],
@@ -36,6 +39,11 @@ class NewsPostFactory extends Factory
             'author_id' => null,
             'content_updated_at' => null,
         ];
+    }
+
+    public function article(): static
+    {
+        return $this->state(fn (array $attributes) => ['kind' => NewsKind::Article]);
     }
 
     public function draft(): static

@@ -73,6 +73,8 @@ final class Menu
                 // Plan 07: pages.* / news.* / banners.* (Content manager + Admin).
                 new MenuItem('pages', 'menu.items.pages', 'page', 'admin.pages.index', permission: 'pages.viewAny'),
                 new MenuItem('news', 'menu.items.news', 'news', 'admin.news.index', permission: 'news.viewAny'),
+                // Knowledge articles (decision 2026-10-24): news_posts with kind = article, same news.* permissions.
+                new MenuItem('articles', 'menu.items.articles', 'book', 'admin.articles.index', permission: 'news.viewAny'),
                 new MenuItem('banners', 'menu.items.banners', 'image', 'admin.banners.index', permission: 'banners.viewAny'),
             ]),
 

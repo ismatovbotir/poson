@@ -40,6 +40,7 @@ return [
 
     'nav' => [
         'news' => 'Yangiliklar',
+        'articles' => 'Maqolalar',
         'brands' => 'Brendlar',
         'services' => 'Xizmatlar',
         'aria_label' => 'Asosiy menyu',
@@ -373,6 +374,20 @@ return [
         'related_products' => 'Nashrdagi mahsulotlar',
         'related_categories' => 'Katalog boʻlimlari',
         'back' => 'Barcha yangiliklar',
+    ],
+
+    'articles' => [
+        'title' => 'Maqolalar',
+        'subtitle' => 'Tanlash boʻyicha qoʻllanmalar va yoʻriqnomalar: skanerlar, printerlar, TSD va yorliqlar',
+        'seo_title' => 'Maqolalar va qoʻllanmalar — Poson',
+        'seo_description' => 'Poson qoʻllanmalari: shtrix-kod skaneri, yorliq printeri yoki TSDni qanday tanlash, yorliq va ribbonlarni tanlash hamda biznesingiz uchun uskunani sozlash.',
+        'empty' => 'Bu tilda hozircha maqolalar yoʻq.',
+        'related_products' => 'Maqoladagi mahsulotlar',
+        'related_categories' => 'Katalog boʻlimlari',
+        'back' => 'Barcha maqolalar',
+        'useful' => 'Foydali maqolalar',
+        'all_categories' => 'Barcha mavzular',
+        'filter_label' => 'Maqola mavzulari',
     ],
 
     'faq' => [

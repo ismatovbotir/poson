@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\News;
 
 use App\Actions\News\DeleteNewsPost;
+use App\Enums\NewsKind;
 use App\Enums\NewsState;
 use App\Enums\NewsStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
@@ -19,6 +20,8 @@ use Livewire\Component;
  * News list (plan 07 7b): title, URL, state (draft / scheduled / published),
  * translated locales and publication date (Tashkent time); search by title
  * or slug, state filter, whitelisted sort, delete with confirmation.
+ * Lists only posts of kind(); App\Livewire\Admin\Articles\Index is the
+ * articles screen (same view, same news.* permissions).
  */
 #[Layout('layouts::admin')]
 class Index extends Component
@@ -48,6 +51,14 @@ class Index extends Component
     #[Url(except: 'newest')]
     public string $sort = 'newest';
 
+    /**
+     * The kind this screen lists (fixed by the screen).
+     */
+    protected function kind(): NewsKind
+    {
+        return NewsKind::News;
+    }
+
     public function mount(): void
     {
         $this->authorize('viewAny', NewsPost::class);
@@ -68,7 +79,7 @@ class Index extends Component
 
     public function delete(int $id, DeleteNewsPost $deletePost): void
     {
-        $post = NewsPost::query()->findOrFail($id);
+        $post = NewsPost::query()->ofKind($this->kind())->findOrFail($id);
         $this->authorize('delete', $post);
 
         if ($this->runToastAction(fn () => $deletePost->handle($post))) {
@@ -82,6 +93,7 @@ class Index extends Component
         [$column, $direction] = self::SORTS[$this->sort] ?? self::SORTS['newest'];
 
         $posts = NewsPost::query()
+            ->ofKind($this->kind())
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->whereRaw("lower(slug) like ? escape '!'", [Search::likePattern($search)])
                 ->orWhere(fn ($titles) => Search::orWhereTranslatable($titles, 'title', $search))))
@@ -97,8 +109,9 @@ class Index extends Component
             ->paginate(self::PER_PAGE);
 
         return view('livewire.admin.news.index', [
+            'kind' => $this->kind(),
             'items' => $posts,
             'filtering' => $search !== '' || $this->status !== '',
-        ])->title(__('admin.news.title'));
+        ])->title($this->kind()->adminText('title'));
     }
 }

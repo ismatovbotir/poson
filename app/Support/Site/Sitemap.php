@@ -2,6 +2,7 @@
 
 namespace App\Support\Site;
 
+use App\Enums\NewsKind;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\NewsPost;
@@ -19,6 +20,8 @@ use XMLWriter;
  * xhtml:link alternates (plus x-default) and lastmod. News (plan 07 7b): the
  * news list in the locales that have visible news, and every visible post
  * only in its translated locales (alternates and x-default among those).
+ * Knowledge articles (decision 2026-10-24) the same way: the articles list
+ * and every visible article.
  *
  * Every URL is built on APP_URL (CanonicalHost), never on the request host,
  * so the cached document can't carry a foreign Host header.
@@ -88,7 +91,9 @@ class Sitemap
             );
         }
 
-        $this->news($xml);
+        foreach (NewsKind::cases() as $kind) {
+            $this->news($xml, $kind);
+        }
 
         Product::query()
             ->visible()
@@ -143,12 +148,13 @@ class Sitemap
     }
 
     /**
-     * The news list (locales with visible news, lastmod = the newest post in that locale)
-     * and every visible post in its translated locales only.
+     * The list of the kind (locales with visible posts of the kind, lastmod =
+     * the newest post in that locale) and every visible post of the kind in
+     * its translated locales only.
      */
-    private function news(XMLWriter $xml): void
+    private function news(XMLWriter $xml, NewsKind $kind): void
     {
-        $listLocales = array_values(array_filter(config('app.supported_locales'), fn (string $locale): bool => NewsDirectory::hasVisible($locale)));
+        $listLocales = array_values(array_filter(config('app.supported_locales'), fn (string $locale): bool => NewsDirectory::hasVisible($locale, $kind)));
 
         if ($listLocales === []) {
             return;
@@ -157,27 +163,28 @@ class Sitemap
         $newest = [];
 
         foreach ($listLocales as $locale) {
-            $newest[$locale] = $this->date(NewsPost::query()->visibleIn($locale)->max('published_at'));
+            $newest[$locale] = $this->date(NewsPost::query()->ofKind($kind)->visibleIn($locale)->max('published_at'));
         }
 
         $this->write(
             $xml,
-            fn (string $locale): string => route('site.news.index', ['locale' => $locale]),
+            fn (string $locale): string => $kind->listUrl($locale),
             fn (string $locale): ?CarbonInterface => $newest[$locale] ?? null,
             $listLocales,
         );
 
         NewsPost::query()
+            ->ofKind($kind)
             ->visible()
             ->select(['id', 'slug', 'locales', 'published_at', 'content_updated_at', 'updated_at'])
-            ->chunkById(500, function ($posts) use ($xml): void {
+            ->chunkById(500, function ($posts) use ($xml, $kind): void {
                 foreach ($posts as $post) {
                     $locales = array_values(array_intersect(config('app.supported_locales'), (array) $post->locales));
 
                     if ($locales !== []) {
                         $this->write(
                             $xml,
-                            fn (string $locale): string => route('site.news.show', ['locale' => $locale, 'newsPost' => $post->slug]),
+                            fn (string $locale): string => $kind->url($post->slug, $locale),
                             $post->contentUpdatedAt(),
                             $locales,
                         );

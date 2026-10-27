@@ -2,6 +2,7 @@
 
 namespace App\Support\Ai;
 
+use App\Enums\NewsKind;
 use App\Livewire\Forms\Admin\News\NewsPostForm;
 use App\Models\Category;
 use App\Models\NewsPost;
@@ -23,12 +24,13 @@ final class NewsAiContext
      */
     public const MAX_RELATED = 10;
 
-    public static function fromForm(NewsPostForm $form, ?NewsPost $post = null): AiContext
+    public static function fromForm(NewsPostForm $form, ?NewsPost $post = null, NewsKind $kind = NewsKind::News): AiContext
     {
         $stored = $post?->exists ? NewsPost::query()->find($post->id) : null;
+        $kind = $stored?->kind ?? $kind;
 
         $facts = ProductAiContext::localized('Title', $form->title);
-        $facts['News post'] = 'news/'.($stored?->slug ?? $form->slug);
+        $facts[$kind === NewsKind::Article ? 'Article' : 'News post'] = $kind->segment().'/'.($stored?->slug ?? $form->slug);
         $facts += ProductAiContext::localized('Excerpt', $form->excerpt);
 
         $products = self::productNames($form->product_ids);
@@ -47,7 +49,7 @@ final class NewsAiContext
 
         return AiContext::fromArray([
             'name' => ProductAiContext::first($form->title),
-            'category' => 'News of Poson',
+            'category' => $kind === NewsKind::Article ? 'Poson knowledge article (buying guide or how-to)' : 'News of Poson',
             'facts' => $facts,
             'subject_type' => $stored !== null ? $stored->getMorphClass() : null,
             'subject_id' => $stored?->id,

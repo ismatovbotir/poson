@@ -147,6 +147,11 @@ return [
         'legal' => 'Yuridik hujjat',
     ],
 
+    'news_kind' => [
+        'news' => 'Yangilik',
+        'article' => 'Maqola',
+    ],
+
     'news_status' => [
         'draft' => 'Qoralama',
         'published' => 'Eʼlon qilingan',

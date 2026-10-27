@@ -32,6 +32,7 @@ return [
         'repairs' => 'Repairs',
         'pages' => 'Pages',
         'news' => 'News',
+        'articles' => 'Articles',
         'banners' => 'Banners',
         'telegram_bot' => 'Bot',
         'telegram_mini_app' => 'Mini App',

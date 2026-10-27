@@ -2,12 +2,14 @@
 
 namespace App\Support\Site;
 
+use App\Enums\NewsKind;
 use App\Models\NewsPost;
 use XMLWriter;
 
 /**
  * RSS 2.0 feed of one locale (plan 07 7b, decision 2026-10-23: a feed per
- * locale) at /{locale}/news/rss.xml: the latest LIMIT posts visible in that
+ * locale) at /{locale}/news/rss.xml: the latest LIMIT news posts (never
+ * articles, decision 2026-10-24) visible in that
  * locale with title, link, guid, pubDate (RFC 822) and description (the
  * excerpt or the start of the body, plain text; no HTML). Built on APP_URL
  * (CanonicalHost), like the sitemap, never on the request host. Not cached:
@@ -25,6 +27,7 @@ class NewsFeed
     public function build(string $locale): string
     {
         $posts = NewsPost::query()
+            ->ofKind(NewsKind::News)
             ->visibleIn($locale)
             ->latestFirst()
             ->limit(self::LIMIT)

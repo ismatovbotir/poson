@@ -147,6 +147,11 @@ return [
         'legal' => 'Legal document',
     ],
 
+    'news_kind' => [
+        'news' => 'News',
+        'article' => 'Article',
+    ],
+
     'news_status' => [
         'draft' => 'Draft',
         'published' => 'Published',

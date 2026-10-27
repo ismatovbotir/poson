@@ -341,7 +341,8 @@ class StructuredData
     }
 
     /**
-     * NewsArticle for a news post (plan 07 7b): headline, url, description,
+     * NewsArticle for a news post (plan 07 7b), Article for a knowledge
+     * article (NewsKind::schemaType()): headline, url, description,
      * language, publication and content dates, the cover image, and the
      * Organization as author and publisher (staff names are never published).
      * Empty values are left out.
@@ -360,7 +361,7 @@ class StructuredData
 
         $data = [
             '@context' => 'https://schema.org',
-            '@type' => 'NewsArticle',
+            '@type' => $post->kind->schemaType(),
             'headline' => Str::limit($headline, 110, '…', preserveWords: true),
             'url' => $url,
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $url],

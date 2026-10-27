@@ -2,14 +2,17 @@
 
 namespace App\Livewire\Site\Catalog;
 
+use App\Data\Site\NewsCard;
 use App\Models\Category;
 use App\Support\Catalog\CatalogQuery;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductCards;
 use App\Support\Site\FaqContent;
+use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -231,6 +234,7 @@ class Index extends Component
             'sorts' => CatalogQuery::SORTS,
             'breadcrumbsJson' => StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $currentUrl)),
             'faq' => $faq['items'],
+            'articles' => $this->articles,
             'faqJson' => $faqMarkup ? StructuredData::toScript($structuredData->faqPage($faq['items'])) : null,
         ])
             ->title($this->seoTitle())
@@ -238,6 +242,20 @@ class Index extends Component
                 'description' => $this->seoDescription(),
                 'robots' => $query->robots(),
             ]);
+    }
+
+    /**
+     * "Useful articles": up to 3 visible articles linked to this category,
+     * its ancestors or its descendants (two queries: posts and media; none
+     * while the locale has no articles). Computed once per page and kept for
+     * the filter, sort and pager updates of the same page (10 minutes).
+     *
+     * @return list<NewsCard>
+     */
+    #[Computed(persist: true, seconds: 600)]
+    public function articles(): array
+    {
+        return $this->category !== null ? NewsCards::articlesFor($this->category->id) : [];
     }
 
     /**

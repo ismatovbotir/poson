@@ -2,6 +2,7 @@
 
 namespace App\Support\Site;
 
+use App\Enums\NewsKind;
 use App\Support\Catalog\CategoryTree;
 use Illuminate\Support\Facades\Route;
 
@@ -9,11 +10,11 @@ use Illuminate\Support\Facades\Route;
  * Public site menus (header nav, mobile drawer, footer).
  *
  * Main nav (decision 2026-10-24): Brands, B2B, Services (accent), Warranty &
- * service, Delivery & payment, News, About, Contacts. Categories live in the
+ * service, Delivery & payment, News, Articles, About, Contacts. Categories live in the
  * header Catalog dropdown (CatalogMenu), not here. Page items appear only
  * while the page is active (PageDirectory, no anchor fallback) and use the
- * page's fixed short label (pageLabel(), as in the footer); News only while the locale has a
- * visible post (NewsDirectory). "Services" opens the services category
+ * page's fixed short label (pageLabel(), as in the footer); News and Articles only while the
+ * locale has a visible post of that kind (NewsDirectory). "Services" opens the services category
  * (/catalog/services) while it is a visible top-level category; the home
  * services teaser links to its subcategories.
  *
@@ -51,11 +52,11 @@ class Navigation
 
     /**
      * Main nav entries in display order: a page slug, or one of the
-     * "@brands", "@services" and "@news" items.
+     * "@brands", "@services", "@news" and "@articles" items.
      *
      * @var list<string>
      */
-    public const MAIN = ['@brands', 'b2b', '@services', 'warranty-service', 'delivery-payment', '@news', 'about', 'contacts'];
+    public const MAIN = ['@brands', 'b2b', '@services', 'warranty-service', 'delivery-payment', '@news', '@articles', 'about', 'contacts'];
 
     /**
      * Footer "Catalog" column: most categories listed.
@@ -113,6 +114,9 @@ class Navigation
                 '@services' => static::servicesItem(),
                 '@news' => ($news = static::news()) !== null
                     ? static::item('news', $news['label'], $news['url'], request()->routeIs('site.news.show'))
+                    : null,
+                '@articles' => ($articles = static::articles()) !== null
+                    ? static::item('articles', $articles['label'], $articles['url'], request()->routeIs('site.articles.show'))
                     : null,
                 default => static::pageItem($entry),
             };
@@ -223,8 +227,8 @@ class Navigation
     }
 
     /**
-     * Footer "For customers" column and the topbar links; ends with News
-     * while the locale has visible news.
+     * Footer "For customers" column; ends with News and Articles while the
+     * locale has visible posts of that kind.
      *
      * @return list<array{key: string, label: string, url: string}>
      */
@@ -254,6 +258,12 @@ class Navigation
             $items[] = ['key' => 'news', ...$news];
         }
 
+        $articles = static::articles();
+
+        if ($articles !== null) {
+            $items[] = ['key' => 'articles', ...$articles];
+        }
+
         return $items;
     }
 
@@ -272,6 +282,23 @@ class Navigation
         }
 
         return ['label' => __('site.nav.news'), 'url' => route('site.news.index', ['locale' => $locale])];
+    }
+
+    /**
+     * The articles list link while the current locale has a visible article
+     * (main nav, mobile drawer, footer), else null.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public static function articles(): ?array
+    {
+        $locale = app()->getLocale();
+
+        if (! NewsDirectory::hasVisible($locale, NewsKind::Article)) {
+            return null;
+        }
+
+        return ['label' => __('site.nav.articles'), 'url' => NewsKind::Article->listUrl($locale)];
     }
 
     /**

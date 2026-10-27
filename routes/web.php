@@ -8,6 +8,7 @@ use App\Http\Controllers\Site\PartnerRedirectController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
+use App\Livewire\Site\Articles;
 use App\Livewire\Site\Brands;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Home;
@@ -59,4 +60,8 @@ Route::prefix('{locale}')
         Route::livewire('/news', News\Index::class)->name('news.index');
         Route::get('/news/rss.xml', NewsFeedController::class)->middleware('throttle:60,1,news-rss')->name('news.rss');
         Route::livewire('/news/{newsPost:slug}', News\Show::class)->where('newsPost', '[a-z0-9-]+')->name('news.show');
+
+        // Knowledge articles (decision 2026-10-24): news_posts with kind = article, same rules, no RSS.
+        Route::livewire('/articles', Articles\Index::class)->name('articles.index');
+        Route::livewire('/articles/{newsPost:slug}', Articles\Show::class)->where('newsPost', '[a-z0-9-]+')->name('articles.show');
     });

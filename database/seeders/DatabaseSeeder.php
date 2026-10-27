@@ -16,7 +16,8 @@ use Illuminate\Database\Seeder;
  * Production deploys do not run this seeder; they run
  * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
  * (and `--class=FaqSeeder` once the categories exist, `--class=PagesSeeder`
- * at launch; both are idempotent)
+ * and `--class=ArticlesSeeder` (draft articles, after the categories) at
+ * launch; all idempotent)
  * and create staff with `php artisan admin:create-user`.
  */
 class DatabaseSeeder extends Seeder
@@ -35,6 +36,9 @@ class DatabaseSeeder extends Seeder
             FaqSeeder::class,
             // Starter static pages and their FAQ (plan 07), every environment; never overwrites.
             PagesSeeder::class,
+            // Knowledge articles as drafts for review (decision 2026-10-24), every environment; needs the
+            // categories (after CatalogSeeder); never overwrites or re-creates a deleted article.
+            ArticlesSeeder::class,
         ]);
 
         // Demo catalog: local and staging only, never production.

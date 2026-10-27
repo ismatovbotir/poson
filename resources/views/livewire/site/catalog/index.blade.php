@@ -231,6 +231,18 @@
         </section>
     </div>
 
+    {{-- Useful articles (decision 2026-10-24): articles linked to this category, its ancestors or its descendants --}}
+    @if ($articles !== [])
+        <section class="mt-12 md:mt-[72px]" aria-labelledby="category-articles-title" data-category-articles>
+            <x-site.section-head id="category-articles-title" :title="__('site.articles.useful')" :link="route('site.articles.index')" :link-label="__('site.articles.back')" />
+            <div class="grid gap-5 md:grid-cols-3">
+                @foreach ($articles as $card)
+                    <x-site.news-card :card="$card" wire:key="category-article-{{ $card->slug }}" />
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     @if ($faq !== [])
         <x-site.faq class="mt-12 md:mt-[72px]" id="category-faq-title" :items="$faq" :title="__('site.faq.title')" />
     @endif

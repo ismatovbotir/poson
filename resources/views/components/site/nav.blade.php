@@ -1,6 +1,6 @@
 {{--
     Main nav (900px and up), Navigation::main(): Brands, B2B, Services (accent),
-    Warranty & service, Delivery & payment, News, About, Contacts; categories are in
+    Warranty & service, Delivery & payment, News, Articles, About, Contacts; categories are in
     the header Catalog dropdown. Below 900px the same items live in x-site.mobile-menu.
     When the row overflows (long ru labels at 900–1100px) it scrolls horizontally
     and the right edge fades until the end is reached.

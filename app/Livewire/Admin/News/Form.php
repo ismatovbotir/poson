@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\News;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Actions\News\DeleteNewsPost;
 use App\Actions\News\SaveNewsPost;
+use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\WithAiAssist;
@@ -35,6 +36,9 @@ use Livewire\WithFileUploads;
  *
  * SI assist on title, excerpt, body and SEO; the subject and the related
  * names are resolved server-side (NewsAiContext).
+ *
+ * The kind is fixed by the screen (kind()): App\Livewire\Admin\Articles\Form
+ * creates and edits articles; a post of the other kind is a 404 here.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
@@ -55,10 +59,19 @@ class Form extends Component
 
     public string $categorySearch = '';
 
+    /**
+     * The kind this screen creates and edits.
+     */
+    protected function kind(): NewsKind
+    {
+        return NewsKind::News;
+    }
+
     public function mount(?NewsPost $newsPost = null): void
     {
         if ($newsPost?->exists) {
             $this->authorize('view', $newsPost);
+            abort_unless($newsPost->kind === $this->kind(), 404);
             $this->newsPost = $newsPost;
             $this->form->setPost($newsPost);
 
@@ -225,15 +238,15 @@ class Form extends Component
 
         // All or nothing: a rejected cover rolls the post save back.
         $post = $this->runFormAction(fn (): NewsPost => DB::transaction(function () use ($savePost, $updateImage): NewsPost {
-            $post = $savePost->handle($this->newsPost, $this->form->postData(), auth()->user());
+            $post = $savePost->handle($this->newsPost, [...$this->form->postData(), 'kind' => $this->kind()->value], auth()->user());
             $updateImage->handle($post, $this->form->image, $this->form->image_alt, $this->form->remove_image);
 
             return $post;
         }));
 
         if ($creating) {
-            session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.news.created', ['name' => (string) $post->title]), 'type' => 'success']);
-            $this->redirectRoute('admin.news.edit', $post, navigate: true);
+            session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => $this->kind()->adminText('created', ['name' => (string) $post->title]), 'type' => 'success']);
+            $this->redirectRoute($this->kind()->adminRoute('edit'), $post, navigate: true);
 
             return;
         }
@@ -242,7 +255,7 @@ class Form extends Component
         $this->form->setPost($this->newsPost);
         unset($this->selectedProducts, $this->selectedCategories);
 
-        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.news.saved', ['name' => (string) $post->title]));
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: $this->kind()->adminText('saved', ['name' => (string) $post->title]));
     }
 
     public function delete(DeleteNewsPost $deletePost): void
@@ -255,7 +268,7 @@ class Form extends Component
 
         if ($this->runToastAction(fn () => $deletePost->handle($this->newsPost))) {
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => (string) $this->newsPost->title, 'type' => 'success']);
-            $this->redirectRoute('admin.news.index', navigate: true);
+            $this->redirectRoute($this->kind()->adminRoute('index'), navigate: true);
         }
     }
 
@@ -275,19 +288,21 @@ class Form extends Component
 
     protected function aiContext(string $fieldKey): AiContext
     {
-        return NewsAiContext::fromForm($this->form, $this->newsPost);
+        return NewsAiContext::fromForm($this->form, $this->newsPost, $this->kind());
     }
 
     public function render(): View
     {
-        $title = $this->newsPost ? (string) $this->newsPost->title : __('admin.news.new');
+        $kind = $this->kind();
+        $title = $this->newsPost ? (string) $this->newsPost->title : $kind->adminText('new');
         $post = $this->newsPost;
         $publicLocale = $post !== null && $post->isVisible() ? ($post->isTranslatedIn('uz') ? 'uz' : ((array) $post->locales)[0] ?? null) : null;
 
         return view('livewire.admin.news.form', [
+            'kind' => $kind,
             'title' => $title,
             'statuses' => collect(NewsStatus::cases())->mapWithKeys(fn (NewsStatus $status) => [$status->value => $status->label()])->all(),
-            'publicUrl' => $publicLocale !== null ? route('site.news.show', ['locale' => $publicLocale, 'newsPost' => $post->slug]) : null,
+            'publicUrl' => $publicLocale !== null ? $post->url($publicLocale) : null,
             'currentImageUrl' => $this->form->remove_image ? null : $post?->imageUrl(),
             'imageProcessing' => ! $this->form->remove_image && $this->form->image === null && (bool) $post?->imageProcessing(),
             'canSave' => $post ? auth()->user()->can('update', $post) : true,

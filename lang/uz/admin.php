@@ -664,6 +664,27 @@ return [
         ],
     ],
 
+    // Knowledge articles (news_posts kind = article): only the texts that differ from admin.news.*.
+    'articles' => [
+        'title' => 'Maqolalar',
+        'new' => 'Yangi maqola',
+        'create' => 'Yangi maqola',
+        'created' => '“:name” maqolasi yaratildi',
+        'saved' => '“:name” maqolasi saqlandi',
+        'search_placeholder' => 'Sarlavha yoki manzil boʻyicha qidirish',
+        'empty_title' => 'Hozircha maqolalar yoʻq',
+        'empty_body' => 'Tanlash boʻyicha qoʻllanmalar va yoʻriqnomalar yozing: skanerni qanday tanlash, yorliq printerini sozlash, mos yorliqlarni tanlash.',
+        'content_help' => 'Maqola faqat sarlavha va matn ikkalasi toʻldirilgan tillarda koʻrsatiladi.',
+        'excerpt_hint' => 'Maqolalar roʻyxati va havola koʻrinishi uchun bir-ikki gap. Boʻsh qolsa — matn boshi olinadi.',
+        'slug_change_warning' => 'Maqola allaqachon eʼlon qilingan: yangi manzil unga olib boruvchi eski havolalarni buzadi (qidiruv, yuborilgan havolalar).',
+        'related_help' => 'Maqola ostida koʻrsatiladi; bogʻlangan toifalar va ularning mahsulotlari uni “Foydali maqolalar” blokida koʻrsatadi.',
+        'cover_help' => 'Ixtiyoriy. Maqolalar roʻyxatida, maqola tepasida va havola koʻrinishida chiqadi. JPG, PNG yoki WebP.',
+        'delete_title' => 'Maqola oʻchirilsinmi?',
+        'delete_body' => '“:name” muqova rasmi bilan birga oʻchiriladi.',
+        'delete_help' => 'Maqola saytdan va sayt xaritasidan yoʻqoladi.',
+        'view_on_site' => 'Saytda ochish',
+    ],
+
     'rich_text' => [
         'toolbar' => 'Formatlash',
         'bold' => 'Qalin',

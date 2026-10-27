@@ -3,6 +3,7 @@
 namespace App\Support\Site;
 
 use App\Actions\Settings\UpdateCompanySettings;
+use App\Enums\NewsKind;
 use App\Enums\PageTemplate;
 use App\Models\Brand;
 use App\Models\NewsPost;
@@ -18,7 +19,8 @@ use Illuminate\Support\Facades\Cache;
  * brands list and the listed brands: active, with a visible product), Pages (active
  * static pages except legal ones, plan 07), News (the latest visible
  * posts, plan 07 7b: the English version when translated, else the
- * default-locale one) and Contacts, plus
+ * default-locale one), Articles (visible knowledge articles, decision
+ * 2026-10-24, same locale rule) and Contacts, plus
  * short Russian and Uzbek sections linking to /ru and /uz.
  *
  * Text comes from config/llms.php, contacts from CompanySettings: email,
@@ -40,6 +42,11 @@ class LlmsTxt
      * Latest news posts listed.
      */
     public const NEWS_LIMIT = 10;
+
+    /**
+     * Latest articles listed (evergreen guides: a longer list).
+     */
+    public const ARTICLES_LIMIT = 50;
 
     public function __construct(protected CompanySettings $company) {}
 
@@ -76,7 +83,8 @@ class LlmsTxt
         $blocks[] = $this->section($labels['catalog'] ?? 'Catalog', $this->catalog((string) ($config['services_category'] ?? '')));
         $blocks[] = $this->section($labels['brands'] ?? 'Brands', $this->brands());
         $blocks[] = $this->section($labels['pages'] ?? 'Pages', $this->pages());
-        $blocks[] = $this->section($labels['news'] ?? 'News', $this->news());
+        $blocks[] = $this->section($labels['news'] ?? 'News', $this->news(NewsKind::News, self::NEWS_LIMIT, withDate: true));
+        $blocks[] = $this->section($labels['articles'] ?? 'Articles', $this->news(NewsKind::Article, self::ARTICLES_LIMIT, withDate: false));
         $blocks[] = $this->section($labels['contacts'] ?? 'Contacts', $this->contacts($labels));
 
         foreach ((array) ($config['locale_sections'] ?? []) as $locale => $section) {
@@ -181,26 +189,28 @@ class LlmsTxt
     }
 
     /**
-     * The latest visible news posts: English title and URL when the post is
-     * translated in English, else those of the default locale; posts in
-     * neither are left out, and so are titles breaking the brand rule.
+     * The latest visible posts of the kind: English title and URL when the
+     * post is translated in English, else those of the default locale; posts
+     * in neither are left out, and so are titles breaking the brand rule.
+     * News lines end with the publication date.
      *
      * @return list<string>
      */
-    protected function news(): array
+    protected function news(NewsKind $kind, int $limit, bool $withDate): array
     {
         $default = config('app.default_locale', 'uz');
         $lines = [];
 
-        if (! NewsDirectory::hasVisible('en') && ! NewsDirectory::hasVisible($default)) {
+        if (! NewsDirectory::hasVisible('en', $kind) && ! NewsDirectory::hasVisible($default, $kind)) {
             return [];
         }
 
         $posts = NewsPost::query()
+            ->ofKind($kind)
             ->visible()
             ->where(fn ($query) => $query->translatedIn('en')->orWhere(fn ($query) => $query->translatedIn($default)))
             ->latestFirst()
-            ->limit(self::NEWS_LIMIT)
+            ->limit($limit)
             ->get(['id', 'slug', 'title', 'locales', 'published_at']);
 
         foreach ($posts as $post) {
@@ -211,8 +221,8 @@ class LlmsTxt
                 continue;
             }
 
-            $date = $post->published_at?->setTimezone(NewsPost::TIMEZONE)->format('Y-m-d');
-            $lines[] = '- '.$this->link($title, route('site.news.show', ['locale' => $locale, 'newsPost' => $post->slug])).($date ? " ({$date})" : '');
+            $date = $withDate ? $post->published_at?->setTimezone(NewsPost::TIMEZONE)->format('Y-m-d') : null;
+            $lines[] = '- '.$this->link($title, $kind->url($post->slug, $locale)).($date ? " ({$date})" : '');
         }
 
         return $lines;

@@ -32,6 +32,7 @@ return [
         'repairs' => 'Ремонт',
         'pages' => 'Страницы',
         'news' => 'Новости',
+        'articles' => 'Статьи',
         'banners' => 'Баннеры',
         'telegram_bot' => 'Бот',
         'telegram_mini_app' => 'Mini App',

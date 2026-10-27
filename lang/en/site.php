@@ -40,6 +40,7 @@ return [
 
     'nav' => [
         'news' => 'News',
+        'articles' => 'Articles',
         'brands' => 'Brands',
         'services' => 'Services',
         'aria_label' => 'Main menu',
@@ -373,6 +374,20 @@ return [
         'related_products' => 'Products in this post',
         'related_categories' => 'Catalog sections',
         'back' => 'All news',
+    ],
+
+    'articles' => [
+        'title' => 'Articles',
+        'subtitle' => 'Buying guides and how-tos for scanners, printers, mobile computers and labels',
+        'seo_title' => 'Articles and guides — Poson',
+        'seo_description' => 'Poson guides: how to choose a barcode scanner, label printer or mobile computer, pick labels and ribbons, and set up equipment for your business.',
+        'empty' => 'There are no articles in this language yet.',
+        'related_products' => 'Products in this article',
+        'related_categories' => 'Catalog sections',
+        'back' => 'All articles',
+        'useful' => 'Useful articles',
+        'all_categories' => 'All topics',
+        'filter_label' => 'Article topics',
     ],
 
     'faq' => [

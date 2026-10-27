@@ -4,14 +4,14 @@
 @endphp
 
 <form wire:submit="save" novalidate>
-    <x-admin.page-header :title="$title" :back-href="route('admin.news.index')" :back-label="__('admin.news.title')">
+    <x-admin.page-header :title="$title" :back-href="route($kind->adminRoute('index'))" :back-label="$kind->adminText('title')">
         @if ($newsPost)
-            <x-slot:breadcrumbs>/news/{{ $newsPost->slug }}</x-slot:breadcrumbs>
+            <x-slot:breadcrumbs>/{{ $kind->segment() }}/{{ $newsPost->slug }}</x-slot:breadcrumbs>
         @endif
         @if ($canSave)
             <x-slot:actions>
                 <div class="hidden gap-2 lg:flex">
-                    <x-admin.button variant="secondary" :href="route('admin.news.index')" wire:navigate>{{ __('admin.common.cancel') }}</x-admin.button>
+                    <x-admin.button variant="secondary" :href="route($kind->adminRoute('index'))" wire:navigate>{{ __('admin.common.cancel') }}</x-admin.button>
                     <x-admin.button type="submit" icon="check" loading="save">{{ __('admin.common.save') }}</x-admin.button>
                 </div>
             </x-slot:actions>
@@ -22,14 +22,14 @@
         <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
 
             {{-- Content --}}
-            <x-admin.card :title="__('admin.news.content')" :description="__('admin.news.content_help')">
+            <x-admin.card :title="__('admin.news.content')" :description="$kind->adminText('content_help')">
                 <x-admin.locale-tabs :error-keys="['form.title', 'form.excerpt', 'form.body']" :label="__('admin.form.content_language')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
                             <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.news.fields.title')" :required="$locale === 'uz'" maxlength="255">
                                 <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="news.title" target="form.title" /></span></x-slot:labelAside>
                             </x-admin.input>
-                            <x-admin.textarea wire:model="form.excerpt.{{ $locale }}" :label="__('admin.news.fields.excerpt')" rows="3" maxlength="500" :hint="__('admin.news.excerpt_hint')">
+                            <x-admin.textarea wire:model="form.excerpt.{{ $locale }}" :label="__('admin.news.fields.excerpt')" rows="3" maxlength="500" :hint="$kind->adminText('excerpt_hint')">
                                 <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="news.excerpt" target="form.excerpt" /></span></x-slot:labelAside>
                             </x-admin.textarea>
                             <x-admin.rich-text wire:model="form.body.{{ $locale }}" :label="__('admin.news.fields.body')">
@@ -46,13 +46,13 @@
                         'border-slate-200 focus-within:border-brand-500 focus-within:ring-brand-500/15' => ! $errors->has('form.slug'),
                         'border-red-300 focus-within:border-danger focus-within:ring-red-500/15' => $errors->has('form.slug'),
                     ])>
-                        <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/news/</span>
+                        <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/{{ $kind->segment() }}/</span>
                         <input id="f-form-slug" wire:model="form.slug" placeholder="{{ $form->autoSlug() ?: __('admin.catalog.slug_auto') }}" autocomplete="off" spellcheck="false" aria-describedby="f-form-slug-hint" class="min-w-0 flex-1 px-3 font-mono text-base outline-none sm:text-sm">
                     </div>
                     <p id="f-form-slug-hint" class="mt-1 text-xs text-slate-500">{{ __('admin.news.slug_hint') }}</p>
                     @if ($newsPost?->isVisible())
                         <p class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700" role="note" data-slug-warning>
-                            <x-admin.icon name="alert" size="size-3.5" class="mt-px shrink-0" />{{ __('admin.news.slug_change_warning') }}
+                            <x-admin.icon name="alert" size="size-3.5" class="mt-px shrink-0" />{{ $kind->adminText('slug_change_warning') }}
                         </p>
                     @endif
                     <x-admin.field-error name="form.slug" />
@@ -60,7 +60,7 @@
             </x-admin.card>
 
             {{-- Related products and categories --}}
-            <x-admin.card :title="__('admin.news.related')" :description="__('admin.news.related_help')">
+            <x-admin.card :title="__('admin.news.related')" :description="$kind->adminText('related_help')">
                 <div class="grid gap-6 md:grid-cols-2" x-on:keydown.enter="if ($event.target.tagName === 'INPUT' && $event.target.type === 'search') $event.preventDefault()">
                     <div data-news-products>
                         <h3 class="text-sm font-semibold">{{ __('admin.news.fields.products') }}</h3>
@@ -173,25 +173,25 @@
                     <p class="text-xs text-slate-500">{{ __('admin.news.locales_hint') }}</p>
                     @if ($publicUrl)
                         <a href="{{ $publicUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline" data-public-url>
-                            <x-admin.icon name="external" size="size-4" />{{ __('admin.news.view_on_site') }}
+                            <x-admin.icon name="external" size="size-4" />{{ $kind->adminText('view_on_site') }}
                         </a>
                     @endif
                 </div>
             </x-admin.card>
 
-            <x-admin.card :title="__('admin.news.fields.cover')" :description="__('admin.news.cover_help')">
+            <x-admin.card :title="__('admin.news.fields.cover')" :description="$kind->adminText('cover_help')">
                 <x-admin.image-upload model="form.image" :file="$form->image" :current-url="$currentImageUrl" :processing="$imageProcessing" remove-action="removeImage" alt-model="form.image_alt" />
             </x-admin.card>
 
             @if ($canDelete)
                 <section class="rounded-2xl border border-red-200 bg-white p-4 sm:p-5">
                     <h2 class="text-sm font-semibold text-danger">{{ __('admin.catalog.danger_zone') }}</h2>
-                    <p class="mt-1 text-xs text-slate-500">{{ __('admin.news.delete_help') }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ $kind->adminText('delete_help') }}</p>
                     <button
                         type="button"
                         x-on:click="$dispatch('confirm', {
-                            title: @js(__('admin.news.delete_title')),
-                            body: @js(__('admin.news.delete_body', ['name' => (string) $newsPost->title])),
+                            title: @js($kind->adminText('delete_title')),
+                            body: @js($kind->adminText('delete_body', ['name' => (string) $newsPost->title])),
                             label: @js(__('admin.common.delete')),
                             component: $wire.$id, method: 'delete',
                         })"
@@ -204,6 +204,6 @@
     </div>
 
     @if ($canSave)
-        <x-admin.sticky-save-bar :cancel-href="route('admin.news.index')" />
+        <x-admin.sticky-save-bar :cancel-href="route($kind->adminRoute('index'))" />
     @endif
 </form>

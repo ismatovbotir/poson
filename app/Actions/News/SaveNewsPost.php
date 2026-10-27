@@ -2,6 +2,7 @@
 
 namespace App\Actions\News;
 
+use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Models\Category;
 use App\Models\NewsPost;
@@ -30,7 +31,9 @@ use Illuminate\Validation\ValidationException;
  * becomes a slug validation error.
  *
  * content_updated_at is set on create and whenever the title, excerpt or
- * body actually change. The author is set once, on create.
+ * body actually change. The author and the kind (news or article, default
+ * news; decision 2026-10-24) are set once, on create: the slug stays unique
+ * across both kinds.
  */
 class SaveNewsPost
 {
@@ -54,6 +57,7 @@ class SaveNewsPost
      *     meta_title: array<string, string|null>,
      *     meta_description: array<string, string|null>,
      *     slug: string|null,
+     *     kind?: string,
      *     status: string,
      *     published_at: CarbonInterface|null,
      *     product_ids: list<int>,
@@ -85,6 +89,10 @@ class SaveNewsPost
             $post->storeTranslations('meta_description', $data['meta_description'] ?? []);
 
             $publishedAt = $data['published_at'] ?? null;
+
+            if (! $post->exists) {
+                $post->kind = NewsKind::tryFrom((string) ($data['kind'] ?? '')) ?? NewsKind::News;
+            }
 
             if ($status === NewsStatus::Published && $publishedAt === null) {
                 $publishedAt = now();
@@ -191,7 +199,7 @@ class SaveNewsPost
             return $given;
         }
 
-        return Slug::uniqueFor(NewsPost::class, Slug::make($data['title']['uz'] ?? '') ?: 'news', $ignoreId);
+        return Slug::uniqueFor(NewsPost::class, Slug::make($data['title']['uz'] ?? '') ?: $post->kind->value, $ignoreId);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Ai;
 use App\Livewire\Admin\Analytics;
+use App\Livewire\Admin\Articles;
 use App\Livewire\Admin\Attributes;
 use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
@@ -105,6 +106,11 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/news', News\Index::class)->name('news.index');
     Route::livewire('/news/create', News\Form::class)->name('news.create');
     Route::livewire('/news/{newsPost}/edit', News\Form::class)->whereNumber('newsPost')->name('news.edit');
+
+    // Knowledge articles (decision 2026-10-24): the news screens for kind = article, same news.* permissions.
+    Route::livewire('/articles', Articles\Index::class)->name('articles.index');
+    Route::livewire('/articles/create', Articles\Form::class)->name('articles.create');
+    Route::livewire('/articles/{newsPost}/edit', Articles\Form::class)->whereNumber('newsPost')->name('articles.edit');
 
     // Settings (plan 04a). Admin only through settings.company; authorized in the component.
     Route::livewire('/settings/company', Settings\Company::class)->name('settings.company');

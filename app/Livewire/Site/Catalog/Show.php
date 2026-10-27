@@ -27,7 +27,8 @@ use Livewire\Component;
  * Product page (plan 03 T18), ported from product.html: gallery, title,
  * SKU, brand, stock, Retail price (or "price on request"), key specs, tabs
  * (description, specs, documents, delivery & warranty), related products,
- * related news (plan 07 7b), the quote form and a mobile sticky bar. The
+ * related news (plan 07 7b), useful articles from its category tree
+ * (decision 2026-10-24), the quote form and a mobile sticky bar. The
  * buy box and the sticky bar buttons come from ProductCtas (shared with the cards and the Mini App);
  * software shows its details (SoftwareSpecs) as chips and a modules list.
  *
@@ -95,6 +96,8 @@ class Show extends Component
             'related' => $this->related(),
             // Plan 07 7b: one query (none while the locale has no news), media eager-loaded.
             'news' => NewsCards::latest(NewsCards::LATEST_LIMIT, $product->id),
+            // Up to 3 articles linked to the product's category, its ancestors (top-level included) or descendants; two queries (posts, media).
+            'articles' => NewsCards::articlesFor($product->category_id),
             'breadcrumbs' => $breadcrumbs,
             'categoryName' => CategoryTree::name($product->category_id),
             'placeholder' => ProductCards::placeholder($product->category_id),

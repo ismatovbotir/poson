@@ -32,6 +32,7 @@ return [
         'repairs' => 'Taʼmirlash',
         'pages' => 'Sahifalar',
         'news' => 'Yangiliklar',
+        'articles' => 'Maqolalar',
         'banners' => 'Bannerlar',
         'telegram_bot' => 'Bot',
         'telegram_mini_app' => 'Mini App',

@@ -5,11 +5,11 @@
 @endphp
 
 <div>
-    <x-admin.page-header :title="__('admin.news.title')">
-        <x-slot:breadcrumbs>{{ __('menu.groups.content') }} <span class="text-slate-300">/</span> {{ __('admin.news.title') }}</x-slot:breadcrumbs>
+    <x-admin.page-header :title="$kind->adminText('title')">
+        <x-slot:breadcrumbs>{{ __('menu.groups.content') }} <span class="text-slate-300">/</span> {{ $kind->adminText('title') }}</x-slot:breadcrumbs>
         @if ($canCreate)
             <x-slot:actions>
-                <x-admin.button :href="route('admin.news.create')" wire:navigate icon="plus">{{ __('admin.news.create') }}</x-admin.button>
+                <x-admin.button :href="route($kind->adminRoute('create'))" wire:navigate icon="plus">{{ $kind->adminText('create') }}</x-admin.button>
             </x-slot:actions>
         @endif
     </x-admin.page-header>
@@ -18,7 +18,7 @@
         <label class="relative min-w-0 flex-1 basis-full sm:basis-auto">
             <span class="sr-only">{{ __('admin.common.search') }}</span>
             <x-admin.icon name="search" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input wire:model.live.debounce.300ms="search" type="search" placeholder="{{ __('admin.news.search_placeholder') }}" class="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-base outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm lg:h-10">
+            <input wire:model.live.debounce.300ms="search" type="search" placeholder="{{ $kind->adminText('search_placeholder') }}" class="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-base outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm lg:h-10">
         </label>
         <label class="relative flex-1 sm:flex-none">
             <span class="sr-only">{{ __('admin.catalog.status') }}</span>
@@ -51,15 +51,15 @@
                     <x-admin.button variant="secondary" wire:click="clearFilters">{{ __('admin.catalog.clear_filters') }}</x-admin.button>
                 </x-admin.empty-state>
             @else
-                <x-admin.empty-state icon="news" :title="__('admin.news.empty_title')" :body="__('admin.news.empty_body')">
+                <x-admin.empty-state icon="news" :title="$kind->adminText('empty_title')" :body="$kind->adminText('empty_body')">
                     @if ($canCreate)
-                        <x-admin.button :href="route('admin.news.create')" wire:navigate icon="plus">{{ __('admin.news.create') }}</x-admin.button>
+                        <x-admin.button :href="route($kind->adminRoute('create'))" wire:navigate icon="plus">{{ $kind->adminText('create') }}</x-admin.button>
                     @endif
                 </x-admin.empty-state>
             @endif
         @else
             <x-admin.table>
-                <x-slot:caption>{{ __('admin.news.title') }}</x-slot:caption>
+                <x-slot:caption>{{ $kind->adminText('title') }}</x-slot:caption>
                 <x-slot:head>
                     <th class="py-3 pl-5 pr-4">{{ __('admin.news.columns.post') }}</th>
                     <th class="px-4 py-3">{{ __('admin.news.fields.published_at') }}</th>
@@ -69,9 +69,9 @@
                 @foreach ($items as $post)
                     <tr wire:key="news-row-{{ $post->id }}" class="hover:bg-slate-50/70" data-news-row="{{ $post->slug }}">
                         <td class="py-3 pl-5 pr-4">
-                            <a href="{{ route('admin.news.edit', $post) }}" wire:navigate class="block min-w-0">
+                            <a href="{{ route($kind->adminRoute('edit'), $post) }}" wire:navigate class="block min-w-0">
                                 <span class="block font-semibold text-slate-900 hover:text-brand-700">{{ $post->title }}</span>
-                                <span class="block font-mono text-xs text-slate-500">/news/{{ $post->slug }}</span>
+                                <span class="block font-mono text-xs text-slate-500">/{{ $kind->segment() }}/{{ $post->slug }}</span>
                             </a>
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap tabular-nums text-slate-600">{{ $post->localPublishedAt()?->format('d.m.Y H:i') ?? '—' }}</td>
@@ -84,7 +84,7 @@
             <x-admin.mobile-list>
                 @foreach ($items as $post)
                     <article wire:key="news-card-{{ $post->id }}" class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5">
-                        <a href="{{ route('admin.news.edit', $post) }}" wire:navigate class="min-w-0 flex-1">
+                        <a href="{{ route($kind->adminRoute('edit'), $post) }}" wire:navigate class="min-w-0 flex-1">
                             <span class="block truncate text-sm font-semibold">{{ $post->title }}</span>
                             <span class="block truncate text-xs text-slate-500">{{ $post->localPublishedAt()?->format('d.m.Y H:i') ?? '—' }}</span>
                             <span class="mt-1 flex flex-wrap gap-1.5">@include('livewire.admin.news.partials.state', ['post' => $post])</span>

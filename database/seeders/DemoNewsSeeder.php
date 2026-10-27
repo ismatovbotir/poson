@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Models\Category;
 use App\Models\NewsPost;
@@ -14,13 +15,14 @@ use Illuminate\Database\Seeder;
  * home section, RSS and the admin screens have data: two published posts
  * (one in uz and ru only) and one scheduled for next week, linked to the
  * first demo products and categories. Skipped outside local / staging and
- * when news already exist. No cover images (upload them in admin).
+ * when news posts (kind news; seeded articles don't count) already exist.
+ * No cover images (upload them in admin).
  */
 class DemoNewsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment(['local', 'staging']) || NewsPost::query()->exists()) {
+        if (! app()->environment(['local', 'staging']) || NewsPost::query()->ofKind(NewsKind::News)->exists()) {
             return;
         }
 

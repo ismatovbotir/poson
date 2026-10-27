@@ -34,6 +34,7 @@ return [
         'all_brands' => 'All brands',
         'pages' => 'Pages',
         'news' => 'News',
+        'articles' => 'Articles',
         'contacts' => 'Contacts',
         'website' => 'Website',
         'email' => 'Email',

@@ -5,7 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * News (plan 07 7b) at /{locale}/news/{slug}. Title, excerpt, body (sanitized
+ * News (plan 07 7b) at /{locale}/news/{slug}, and knowledge articles at
+ * /{locale}/articles/{slug} (kind = article, decision 2026-10-24; one shared
+ * slug space). Title, excerpt, body (sanitized
  * HTML) and SEO texts per locale; one shared Latin slug. A post is public when
  * status = published and published_at <= now (a future date = scheduled, no
  * cron; stored in UTC as a DATETIME, which has no 2038 limit). "locales" lists the locales with both title and body filled in
@@ -24,6 +26,7 @@ return new class extends Migration
         Schema::create('news_posts', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique();
+            $table->string('kind', 20)->default('news');
             $table->string('status', 20)->default('draft');
             $table->dateTime('published_at')->nullable();
             $table->json('title');
@@ -37,6 +40,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'published_at']);
+            $table->index(['kind', 'status', 'published_at']);
         });
     }
 

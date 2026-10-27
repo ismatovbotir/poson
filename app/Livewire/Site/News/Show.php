@@ -3,6 +3,7 @@
 namespace App\Livewire\Site\News;
 
 use App\Data\Site\ProductCard;
+use App\Enums\NewsKind;
 use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
@@ -25,15 +26,23 @@ use Livewire\Component;
  * (LocaleUrl::restrictTo; the language switcher sends other locales to
  * their news list), OG image from the cover, NewsArticle + BreadcrumbList
  * JSON-LD.
+ *
+ * App\Livewire\Site\Articles\Show is the article page (kind = article,
+ * Article JSON-LD). A post of the other kind is a 404 on this route.
  */
 class Show extends Component
 {
     #[Locked]
     public NewsPost $newsPost;
 
+    protected function kind(): NewsKind
+    {
+        return NewsKind::News;
+    }
+
     public function mount(NewsPost $newsPost): void
     {
-        abort_unless($newsPost->isVisibleIn(app()->getLocale()), 404);
+        abort_unless($newsPost->kind === $this->kind() && $newsPost->isVisibleIn(app()->getLocale()), 404);
 
         $this->newsPost = $newsPost;
     }
@@ -42,12 +51,13 @@ class Show extends Component
     {
         $post = $this->newsPost->loadMissing('media');
         $locale = app()->getLocale();
+        $kind = $this->kind();
         $title = (string) $post->getTranslation('title', $locale, false);
-        $url = route('site.news.show', ['newsPost' => $post->slug]);
+        $url = $post->url();
         $cover = $post->imageUrl('large');
         $breadcrumbs = [
             ['label' => __('site.breadcrumbs.home'), 'url' => route('site.home')],
-            ['label' => __('site.news.title'), 'url' => route('site.news.index')],
+            ['label' => $kind->siteText('title'), 'url' => $kind->listUrl()],
             ['label' => $title, 'url' => null],
         ];
         $description = SeoText::description(
@@ -58,10 +68,11 @@ class Show extends Component
 
         LocaleUrl::restrictTo(
             array_values(array_intersect(config('app.supported_locales'), (array) $post->locales)),
-            fn (string $other): string => route('site.news.index', ['locale' => $other]),
+            fn (string $other): string => $kind->listUrl($other),
         );
 
         return view('livewire.site.news.show', [
+            'kind' => $kind,
             'title' => $title,
             'excerpt' => trim((string) $post->getTranslation('excerpt', $locale, false)),
             // Sanitized on save already; again on output as defense in depth.
@@ -73,7 +84,7 @@ class Show extends Component
             'products' => $this->products(),
             'categories' => $this->categories(),
             'breadcrumbs' => $breadcrumbs,
-            'rssUrl' => route('site.news.rss'),
+            'rssUrl' => $kind === NewsKind::News ? route('site.news.rss') : null,
             'jsonLd' => [
                 StructuredData::toScript($structuredData->newsArticle($post, $title, $url, $description, $cover)),
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),

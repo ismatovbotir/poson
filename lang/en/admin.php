@@ -664,6 +664,27 @@ return [
         ],
     ],
 
+    // Knowledge articles (news_posts kind = article): only the texts that differ from admin.news.*.
+    'articles' => [
+        'title' => 'Articles',
+        'new' => 'New article',
+        'create' => 'New article',
+        'created' => 'Article “:name” created',
+        'saved' => 'Article “:name” saved',
+        'search_placeholder' => 'Search by title or address',
+        'empty_title' => 'No articles yet',
+        'empty_body' => 'Write buying guides and how-tos: choosing a scanner, setting up a label printer, picking the right labels.',
+        'content_help' => 'The article is shown only in the languages where both the title and the text are filled in.',
+        'excerpt_hint' => 'One or two sentences for the articles list and link previews. Left empty: the start of the text.',
+        'slug_change_warning' => 'This article is already published: a new address breaks old links to it (search results, shared links).',
+        'related_help' => 'Listed under the article; the linked categories and their products show it in “Useful articles”.',
+        'cover_help' => 'Optional. Shown in the articles list, at the top of the article and in link previews. JPG, PNG or WebP.',
+        'delete_title' => 'Delete the article?',
+        'delete_body' => '“:name” is deleted together with its cover image.',
+        'delete_help' => 'The article disappears from the site and the sitemap.',
+        'view_on_site' => 'Open on the site',
+    ],
+
     'rich_text' => [
         'toolbar' => 'Formatting',
         'bold' => 'Bold',

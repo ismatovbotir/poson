@@ -102,6 +102,103 @@ return [
                     'en' => 'We provide consultations, technical support and correspondence in Uzbek, Russian and English. The website is available in the same three languages. Choose the language that suits you when you send a request.',
                 ],
             ],
+            [
+                'question' => [
+                    'uz' => 'Buyurtmani qanday berish mumkin?',
+                    'ru' => 'Как оформить заказ?',
+                    'en' => 'How do I place an order?',
+                ],
+                'answer' => [
+                    'uz' => 'Sarf materiallari va ayrim uskunalarni saytdagi savatcha orqali buyurtma qilish mumkin. Uskuna, loyiha va xizmatlar uchun tijorat taklifi soʻrovini yuboring: menejer tafsilotlarni aniqlab, taklif tayyorlaydi. Qaysi yoʻl mosligini bilmasangiz, shunchaki murojaat qoldiring, sizga yoʻl koʻrsatamiz.',
+                    'ru' => 'Расходные материалы и часть оборудования можно заказать через корзину на сайте. Для оборудования, проектов и услуг отправьте запрос коммерческого предложения: менеджер уточнит детали и подготовит предложение. Если не уверены, какой вариант подходит, просто оставьте заявку, и мы подскажем.',
+                    'en' => 'Consumables and some equipment can be ordered through the cart on the website. For equipment, projects and services, send a quote request: a manager clarifies the details and prepares an offer. If you are not sure which option fits, just send an enquiry and we will guide you.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Qanday toʻlov usullari mavjud?',
+                    'ru' => 'Какие способы оплаты доступны?',
+                    'en' => 'Which payment methods do you accept?',
+                ],
+                'answer' => [
+                    'uz' => 'Hisob-varaq asosida bank oʻtkazmasi, naqd pul, Payme va Click, terminal orqali bank kartasi hamda UzQR orqali toʻlash mumkin. Kompaniyalar uchun hisob-varaq rekvizitlaringiz asosida tayyorlanadi. Buyurtmangiz uchun qulay usulni menejer bilan aniqlashtiring.',
+                    'ru' => 'Можно оплатить безналичным переводом по счёту, наличными, через Payme и Click, банковской картой через терминал или по UzQR. Для компаний счёт выставляется на ваши реквизиты. Удобный способ для вашего заказа уточните у менеджера.',
+                    'en' => 'You can pay by bank transfer against an invoice, in cash, with Payme or Click, by bank card at a card terminal or with UzQR. Companies receive an invoice made out to their details. Check the most convenient method for your order with a manager.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Kafolat boʻyicha qanday murojaat qilinadi?',
+                    'ru' => 'Как обратиться по гарантии?',
+                    'en' => 'How do I make a warranty claim?',
+                ],
+                'answer' => [
+                    'uz' => 'Saytdagi shakl yoki telefon orqali murojaat qiling va qurilma modeli, seriya raqami hamda nosozlikni qisqacha yozing. Kafolat taloni va xarid hujjatini tayyorlab qoʻying. Servis markazimiz diagnostika oʻtkazadi va holat kafolatga kirsa, taʼmirlashni ishlab chiqaruvchi shartlari asosida bajaradi.',
+                    'ru' => 'Свяжитесь с нами через форму на сайте или по телефону, укажите модель, серийный номер и кратко опишите неисправность. Подготовьте гарантийный талон и документ о покупке. Наш сервисный центр проведёт диагностику и, если случай гарантийный, выполнит ремонт на условиях производителя.',
+                    'en' => 'Contact us through the website form or by phone with the device model, serial number and a short description of the fault. Have the warranty card and proof of purchase ready. Our service centre runs diagnostics and, if the case is covered, carries out the repair under the terms of the manufacturer.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Masofadan yordam bera olasizmi?',
+                    'ru' => 'Помогаете ли вы удалённо?',
+                    'en' => 'Do you provide remote support?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, sozlash va dasturlar bilan bogʻliq koʻp masalalarni masofadan hal qilamiz. Muammoni joyida tekshirish kerak boʻlsa, muhandisimiz ish joyingizga chiqadi. Yordam oʻzbek, rus va ingliz tillarida koʻrsatiladi.',
+                    'ru' => 'Да, многие вопросы настройки и работы программ мы решаем удалённо. Если проблему нужно проверить на месте, инженер выезжает к вам. Поддержка доступна на узбекском, русском и английском языках.',
+                    'en' => 'Yes, many setup and software issues are solved remotely. If a problem needs to be checked on site, an engineer comes to you. Support is available in Uzbek, Russian and English.',
+                ],
+            ],
+            [
+                'confirm' => true,
+                'question' => [
+                    'uz' => 'Kompaniyalar uchun QQS bilan yopuvchi hujjatlar berasizmi?',
+                    'ru' => 'Предоставляете ли вы закрывающие документы с НДС?',
+                    'en' => 'Do you provide VAT invoices and closing documents for companies?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, kompaniyalar uchun hisob-varaq va yopuvchi hujjatlar rekvizitlaringiz asosida rasmiylashtiriladi. Tijorat takliflarida narxlar 12% QQS bilan koʻrsatiladi. Hujjatlar roʻyxati va ularni yuborish usulini menejer bilan kelishib oling.',
+                    'ru' => 'Да, счёт и закрывающие документы для компаний оформляются по вашим реквизитам. В коммерческих предложениях цены указываются с НДС 12%. Перечень документов и способ их передачи согласуйте с менеджером.',
+                    'en' => 'Yes, invoices and closing documents for companies are issued to your company details. Prices in our quotes include 12% VAT. Agree the list of documents and how they are delivered with your manager.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Xodimlarni oʻqitish xizmatga kiradimi?',
+                    'ru' => 'Входит ли обучение сотрудников в услуги?',
+                    'en' => 'Is staff training included?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, uskuna yoki dasturni sozlash xizmatini buyurtma qilsangiz, xodimlarni oʻqitish unga kiradi. Muhandislarimiz kassirlar, omborchilar yoki operatorlarga kundalik ishni qurilmaning oʻzida koʻrsatib beradi. Keyinchalik savollar paydo boʻlsa, masofadan yordam beramiz.',
+                    'ru' => 'Да, если вы заказываете настройку оборудования или программы, обучение сотрудников входит в неё. Инженеры показывают кассирам, кладовщикам или операторам повседневную работу прямо на устройстве. Если позже появятся вопросы, поможем удалённо.',
+                    'en' => 'Yes, when you order setup of equipment or software, staff training is included. Our engineers show cashiers, storekeepers or operators the daily routine on the device itself. If questions come up later, we help remotely.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Xariddan oldin uskuna tanlash boʻyicha maslahat bera olasizmi?',
+                    'ru' => 'Можно ли получить консультацию по выбору до покупки?',
+                    'en' => 'Can you advise on equipment before I buy?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, mutaxassislarimiz vazifangizga mos uskuna va sarf materiallarini tanlashga yordam beradi. Biznes turi, ish joylari soni, kunlik hajm va ishlatadigan dasturingiz, masalan 1C konfiguratsiyasi haqida ayting. Shu asosda mos variantlarni tijorat taklifida koʻrsatamiz.',
+                    'ru' => 'Да, наши специалисты помогут подобрать оборудование и расходные материалы под вашу задачу. Расскажите о формате бизнеса, количестве рабочих мест, дневном объёме и программе, которую вы используете, например о конфигурации 1С. На этой основе мы предложим варианты в коммерческом предложении.',
+                    'en' => 'Yes, our specialists help you choose equipment and consumables for your task. Tell us about your business type, number of workstations, daily volume and the software you use, for example your 1C configuration. Based on this, we propose suitable options in a quote.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Uskuna yoki dastur narxiga sozlash kiradimi?',
+                    'ru' => 'Входит ли настройка в стоимость оборудования или программы?',
+                    'en' => 'Is setup included in the price of equipment or software?',
+                ],
+                'answer' => [
+                    'uz' => 'Yoʻq, sozlash ixtiyoriy alohida xizmat: uskunani sozlashsiz ham xarid qilishingiz mumkin. Sozlash kerak boʻlsa, ish tarkibi va narxi tijorat taklifida alohida koʻrsatiladi. Sozlash buyurtma qilinganda xodimlarni oʻqitish ham unga kiradi.',
+                    'ru' => 'Нет, настройка — отдельная дополнительная услуга: оборудование можно купить и без неё. Если настройка нужна, состав работ и стоимость указываются в коммерческом предложении отдельно. При заказе настройки обучение сотрудников входит в неё.',
+                    'en' => 'No, setup is a separate optional service, and you can buy equipment without it. If you need setup, the scope and price are listed separately in the quote. When you order setup, staff training is included.',
+                ],
+            ],
         ],
     ],
 
@@ -156,6 +253,30 @@ return [
                     'uz' => 'IP himoya darajasi va tushishga chidamlilik (metrda) koʻrsatkichlariga eʼtibor bering. IP rating qancha yuqori boʻlsa, qurilma chang va namlikdan shuncha yaxshi himoyalangan. Chang, sovuq yoki tez-tez tushirib yuboriladigan sharoit uchun mustahkamlangan modelni tanlashga yordam beramiz.',
                     'ru' => 'Обратите внимание на степень защиты IP и устойчивость к падениям в метрах. Чем выше IP, тем лучше устройство защищено от пыли и влаги. Для пыльных, холодных помещений и работы с частыми падениями поможем подобрать защищённую модель.',
                     'en' => 'Look at the IP rating and the drop specification in metres. The higher the IP rating, the better the device is protected against dust and moisture. For dusty or cold areas, or where scanners get dropped often, we help you choose a rugged model.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Skaner telefon ekranidagi kodni oʻqiy oladimi?',
+                    'ru' => 'Читает ли сканер коды с экрана телефона?',
+                    'en' => 'Can a scanner read codes from a phone screen?',
+                ],
+                'answer' => [
+                    'uz' => '2D imidjerli skanerlar telefon va planshet ekranidagi QR hamda shtrix-kodlarni oʻqiydi. Lazerli skanerlar ekrandan oʻqiy olmaydi, chunki ekran lazer nurini qogʻozdek qaytarmaydi. Xaridorlardan elektron kupon yoki QR kod qabul qilsangiz, 2D modelni tanlang.',
+                    'ru' => 'Сканеры с 2D-имиджером читают QR и штрих-коды с экранов телефонов и планшетов. Лазерные сканеры с экрана не читают, потому что экран отражает луч лазера иначе, чем бумага. Если вы принимаете от покупателей электронные купоны или QR-коды, выбирайте 2D-модель.',
+                    'en' => 'Scanners with a 2D imager read QR codes and barcodes from phone and tablet screens. Laser scanners cannot read from screens, because a screen does not reflect the laser beam the way paper does. If customers show you e-coupons or QR codes, choose a 2D model.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Kassa uchun qoʻl skaneri yaxshimi yoki statsionar skanermi?',
+                    'ru' => 'Для кассы лучше ручной или стационарный сканер?',
+                    'en' => 'Handheld or presentation scanner for the checkout?',
+                ],
+                'answer' => [
+                    'uz' => 'Statsionar skaner peshtaxtada turadi va kassir tovarni uning oldidan oʻtkazadi, bu gavjum kassalarda ishni tezlashtiradi. Qoʻl skaneri yirik va ogʻir tovarlar uchun qulayroq. Koʻpgina qoʻl skanerlari stendga qoʻyilganda avtomatik oʻqish rejimiga oʻtadi, shuning uchun ikkala usulni birlashtirish mumkin.',
+                    'ru' => 'Стационарный сканер стоит на прилавке, и кассир просто проносит товар перед ним, это ускоряет работу загруженных касс. Ручной сканер удобнее для крупного и тяжёлого товара. Многие ручные сканеры на подставке переходят в режим автоматического считывания, поэтому оба способа можно совместить.',
+                    'en' => 'A presentation scanner sits on the counter and the cashier simply passes items in front of it, which speeds up busy checkouts. A handheld scanner is handier for large and heavy items. Many handheld scanners switch to automatic reading when placed in a stand, so you can combine both.',
                 ],
             ],
         ],
@@ -214,6 +335,30 @@ return [
                     'en' => 'Yes. Poson engineers install and calibrate the printer and connect it to 1C. Label template design is a separate paid service: the price is on request and stated in the quote.',
                 ],
             ],
+            [
+                'question' => [
+                    'uz' => 'Yorliq printeri qanday interfeyslar orqali ulanadi?',
+                    'ru' => 'Через какие интерфейсы подключается принтер этикеток?',
+                    'en' => 'Which interfaces do label printers use?',
+                ],
+                'answer' => [
+                    'uz' => 'Deyarli barcha modellarda USB bor, koʻpchiligida Ethernet, ayrimlarida esa Wi-Fi, Bluetooth yoki ketma-ket port (RS232) ham mavjud. Tarmoq interfeysi bir printerdan bir nechta ish joyi foydalanishi kerak boʻlganda qulay. Printer qanday ishlatilishini ayting, mos interfeysli modelni tanlaymiz.',
+                    'ru' => 'USB есть почти у всех моделей, у многих также Ethernet, у некоторых Wi-Fi, Bluetooth или последовательный порт (RS232). Сетевой интерфейс удобен, когда одним принтером пользуются несколько рабочих мест. Расскажите, как будет работать принтер, и мы подберём модель с нужным интерфейсом.',
+                    'en' => 'Almost every model has USB, many also have Ethernet, and some offer Wi-Fi, Bluetooth or a serial (RS232) port. A network interface is convenient when several workstations share one printer. Tell us how the printer will be used and we will pick a model with the right interface.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Chop etish kallagini qanchalik tez-tez tozalash kerak?',
+                    'ru' => 'Как часто чистить печатающую головку?',
+                    'en' => 'How often should the printhead be cleaned?',
+                ],
+                'answer' => [
+                    'uz' => 'Ishlab chiqaruvchilar odatda termotransfer rejimida har bir ribbon almashtirilganda, termo rejimida esa har bir yangi yorliq ruloni oʻrnatilganda tozalashni tavsiya qiladi. Buning uchun izopropil spirti va maxsus qalam yoki tuksiz salfetka ishlatiladi. Tozalash yordam bermasa, servis markazimizda diagnostika oʻtkazamiz.',
+                    'ru' => 'Обычно производители рекомендуют чистить головку при каждой замене риббона в термотрансферном режиме и при каждом новом рулоне этикеток в режиме прямой термопечати. Для этого используют изопропиловый спирт и чистящий карандаш или безворсовую салфетку. Если чистка не помогает, проведём диагностику в нашем сервисном центре.',
+                    'en' => 'Manufacturers usually recommend cleaning at every ribbon change in thermal transfer mode and with every new roll of labels in direct thermal mode. Use isopropyl alcohol with a cleaning pen or a lint-free wipe. If cleaning does not help, our service centre can run diagnostics.',
+                ],
+            ],
         ],
     ],
 
@@ -268,6 +413,30 @@ return [
                     'uz' => 'Ha, Poson muhandislari ish joyingizga chiqadi. Ular terminallarni Wi-Fi tarmogʻingizga ulaydi, ilovani oʻrnatadi, 1C bilan almashinuvni sozlaydi va xodimlarni joyida oʻqitadi. Tashrif sanasi va ish tarkibi tijorat taklifida kelishiladi.',
                     'ru' => 'Да, инженеры Poson выезжают к вам. Они подключат терминалы к вашей сети Wi-Fi, установят приложение, настроят обмен с 1С и обучат сотрудников на месте. Дату выезда и состав работ согласуем в коммерческом предложении.',
                     'en' => 'Yes, Poson engineers come to your site. They connect the devices to your Wi-Fi network, install the app, set up data exchange with 1C and train your staff on the spot. The visit date and scope are agreed in the quote.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'TSD akkumulyatori butun smenaga yetadimi?',
+                    'ru' => 'Хватит ли аккумулятора ТСД на всю смену?',
+                    'en' => 'Will the battery last a full shift?',
+                ],
+                'answer' => [
+                    'uz' => 'Bu akkumulyator sigʻimi (mAh), skanerlash intensivligi, ekran yorqinligi va haroratga bogʻliq. Koʻp smenali ish uchun olinadigan akkumulyatorli, yaxshisi qurilmani oʻchirmasdan almashtirish (hot-swap) imkoniyati bor modellarni tanlang. Zaxira akkumulyatorlar va zaryadlash stansiyalarini oldindan rejalashtirishga yordam beramiz.',
+                    'ru' => 'Это зависит от ёмкости аккумулятора (мАч), интенсивности сканирования, яркости экрана и температуры. Для многосменной работы выбирайте модели со съёмным аккумулятором, лучше с горячей заменой без выключения устройства. Поможем заранее рассчитать запасные аккумуляторы и зарядные станции.',
+                    'en' => 'It depends on battery capacity (mAh), scanning intensity, screen brightness and temperature. For multi-shift work, choose models with a removable battery, ideally with hot-swap so the device stays on during the change. We help you plan spare batteries and charging cradles in advance.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'TSD orqali joyida yorliq chop etsa boʻladimi?',
+                    'ru' => 'Можно ли печатать этикетки прямо с ТСД?',
+                    'en' => 'Can I print labels directly from a mobile computer?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, buning uchun TSD mobil yorliq printeriga Bluetooth yoki Wi-Fi orqali ulanadi. Bu javon yorliqlarini almashtirish, omborda qayta belgilash va yetkazib berishda qulay. Poson printer va TSDni bir-biriga ulab, ilovangizdan chop etishni sozlaydi.',
+                    'ru' => 'Да, для этого ТСД подключается к мобильному принтеру этикеток по Bluetooth или Wi-Fi. Это удобно при замене ценников, перемаркировке на складе и при доставке. Poson свяжет принтер с ТСД и настроит печать из вашего приложения.',
+                    'en' => 'Yes, the mobile computer connects to a mobile label printer over Bluetooth or Wi-Fi. This is handy for replacing shelf labels, relabelling in the warehouse and on delivery routes. Poson pairs the printer with the mobile computer and sets up printing from your app.',
                 ],
             ],
         ],
@@ -326,6 +495,30 @@ return [
                     'en' => 'Yes, labels in non-catalogue sizes are made to order with a minimum batch. In your quote request, give the size, material, core and number of labels per roll. We confirm the minimum batch and lead time in the quote.',
                 ],
             ],
+            [
+                'question' => [
+                    'uz' => 'Termoyorliqlarni qanday saqlash kerak?',
+                    'ru' => 'Как хранить термоэтикетки?',
+                    'en' => 'How should direct thermal labels be stored?',
+                ],
+                'answer' => [
+                    'uz' => 'Termoyorliqlar issiqlik, quyosh nuri, namlik, yogʻ va ayrim kimyoviy moddalar taʼsirida qorayadi yoki xiralashadi. Rulonlarni qadoqda, quruq, xona haroratidagi va toʻgʻridan-toʻgʻri yorugʻlik tushmaydigan joyda saqlang. Uzoq saqlanadigan yoki ogʻir sharoitda ishlatiladigan yorliqlar uchun Top qatlamli termoyorliq yoki termotransfer yorliqni tanlang.',
+                    'ru' => 'Термоэтикетки темнеют или выцветают под действием тепла, солнечного света, влаги, жиров и некоторых химических веществ. Храните рулоны в упаковке, в сухом месте при комнатной температуре и без прямого света. Для долгого хранения или жёстких условий выбирайте термоэтикетки с защитным слоем Top или термотрансферные этикетки.',
+                    'en' => 'Direct thermal labels darken or fade when exposed to heat, sunlight, moisture, grease and certain chemicals. Store rolls in their packaging in a dry place at room temperature, away from direct light. For long storage or harsh conditions, choose top-coated thermal labels or thermal transfer labels.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Qaysi chek lentasi printerimga mos keladi?',
+                    'ru' => 'Какая чековая лента подойдёт к моему принтеру?',
+                    'en' => 'Which receipt paper fits my printer?',
+                ],
+                'answer' => [
+                    'uz' => 'Uchta koʻrsatkichni tekshiring: kenglik (odatda 58 yoki 80 mm), printer sigʻdira oladigan rulonning eng katta tashqi diametri va gilza diametri. Ular printer qoʻllanmasida koʻrsatilgan. Printer modelini ayting, mos rulonni tanlab, muntazam yetkazib berishni tashkil qilamiz.',
+                    'ru' => 'Проверьте три параметра: ширину (обычно 58 или 80 мм), наибольший внешний диаметр рулона, который вмещает принтер, и диаметр втулки. Они указаны в руководстве к принтеру. Назовите модель принтера, и мы подберём рулон и организуем регулярные поставки.',
+                    'en' => 'Check three parameters: width (usually 58 or 80 mm), the largest roll outer diameter the printer can hold, and the core diameter. They are listed in the printer manual. Tell us your printer model and we will pick the right roll and arrange regular deliveries.',
+                ],
+            ],
         ],
     ],
 
@@ -380,6 +573,30 @@ return [
                     'uz' => 'Pilot loyihadan boshlash maʼqul: bitta ombor zonasi yoki doʻkonda metkalar, oʻquvchilar va antennalar sinab koʻriladi. Natijalarga qarab uskuna soni, joylashuvi va sozlamalari aniqlanadi. Shundan soʻng Poson uskunani oʻrnatadi, antennalarni sozlaydi va RFID maʼlumotlarini 1C ga uzatishni yoʻlga qoʻyadi.',
                     'ru' => 'Лучше начать с пилотного проекта: в одной зоне склада или в одном магазине проверяются метки, считыватели и антенны. По результатам определяются количество, расстановка и настройки оборудования. Затем Poson монтирует оборудование, настраивает антенны и налаживает передачу RFID-данных в 1С.',
                     'en' => 'Start with a pilot: tags, readers and antennas are tested in one warehouse zone or one store. The results define how much equipment you need, where it goes and how it is configured. Poson then installs the hardware, tunes the antennas and sets up the flow of RFID data into 1C.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'RFID maʼlumotlarini 1C ga uzatish mumkinmi?',
+                    'ru' => 'Можно ли передавать данные RFID в 1С?',
+                    'en' => 'Can RFID data be sent to 1C?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, Poson RFID oʻquvchilardan olingan maʼlumotlarni 1C ga ulaydi. Masalan, inventarizatsiya natijalari yoki tovar harakati hisob tizimingizga tushadi. Ish tarkibi 1C konfiguratsiyangiz va jarayonlaringizga bogʻliq, uni tijorat taklifida koʻrsatamiz.',
+                    'ru' => 'Да, Poson подключает данные с RFID-считывателей к 1С. Например, результаты инвентаризации или движение товара попадают в вашу учётную систему. Состав работ зависит от конфигурации 1С и ваших процессов, его указываем в коммерческом предложении.',
+                    'en' => 'Yes, Poson connects data from RFID readers to 1C. For example, stocktaking results or item movements go into your accounting system. The scope depends on your 1C configuration and processes and is set out in the quote.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'RFID yorliqlarni oʻzimiz chop etib, kodlay olamizmi?',
+                    'ru' => 'Можно ли самим печатать и кодировать RFID-этикетки?',
+                    'en' => 'Can we print and encode RFID labels ourselves?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, buning uchun RFID printer kerak: u yorliqqa matn va shtrix-kod chop etadi hamda bir vaqtning oʻzida ichidagi metkani kodlaydi. Yorliq va inleylar printer modeliga mos boʻlishi kerak. Poson printer va yorliqlarni tanlashga yordam beradi hamda kodlash shablonlarini tayyorlaydi.',
+                    'ru' => 'Да, для этого нужен RFID-принтер: он печатает на этикетке текст и штрих-код и одновременно кодирует метку внутри неё. Этикетки и инлеи должны подходить к модели принтера. Poson поможет подобрать принтер и этикетки и подготовит шаблоны кодирования.',
+                    'en' => 'Yes, you need an RFID printer: it prints text and a barcode on the label and encodes the tag inside it in the same pass. The labels and inlays must suit the printer model. Poson helps choose the printer and labels and prepares the encoding templates.',
                 ],
             ],
         ],
@@ -438,6 +655,31 @@ return [
                     'en' => 'Yes, we put together the POS terminal, scanner, receipt printer, cash drawer and customer display as one set. Our engineers install the equipment, set up a POS program from our catalogue and train your cashiers. Warranty service is handled by our own service centre.',
                 ],
             ],
+            [
+                'question' => [
+                    'uz' => 'Pul yashigi qanday ulanadi?',
+                    'ru' => 'Как подключается денежный ящик?',
+                    'en' => 'How is a cash drawer connected?',
+                ],
+                'answer' => [
+                    'uz' => 'Koʻpincha pul yashigi chek printeriga maxsus kabel (RJ11 yoki RJ12) orqali ulanadi va chek chop etilganda avtomatik ochiladi. Ayrim POS terminallarda yashik uchun alohida port boʻladi. Poson toʻplamni jamlashda yashik, printer va kassa dasturi bir-biriga mosligini tekshiradi.',
+                    'ru' => 'Чаще всего денежный ящик подключается к чековому принтеру специальным кабелем (RJ11 или RJ12) и открывается автоматически при печати чека. У некоторых POS-терминалов есть отдельный порт для ящика. При комплектации Poson проверяет совместимость ящика, принтера и кассовой программы.',
+                    'en' => 'In most setups, the cash drawer connects to the receipt printer with a special cable (RJ11 or RJ12) and opens automatically when a receipt is printed. Some POS terminals have a dedicated drawer port. When putting the kit together, Poson checks that the drawer, printer and POS software work together.',
+                ],
+            ],
+            [
+                'confirm' => true,
+                'question' => [
+                    'uz' => 'Kassa uchun onlayn-NKM yoki virtual kassa kerakmi?',
+                    'ru' => 'Нужна ли для кассы онлайн-ККМ или виртуальная касса?',
+                    'en' => 'Do I need an online cash register or a virtual cash register?',
+                ],
+                'answer' => [
+                    'uz' => 'Oʻzbekistonda xaridorga chek davlat reyestriga kiritilgan onlayn nazorat-kassa mashinasi yoki virtual kassa orqali, fiskal modul bilan beriladi. Talablar vaqti-vaqti bilan oʻzgaradi, shuning uchun amaldagi qoidalarni buxgalteringiz va dastur ishlab chiqaruvchisi bilan aniqlang. Poson tanlangan kassa dasturi bilan ishlaydigan uskunani tanlashga yordam beradi.',
+                    'ru' => 'В Узбекистане чек покупателю выдаётся через онлайн-ККМ или виртуальную кассу, включённые в государственный реестр и работающие с фискальным модулем. Требования время от времени меняются, поэтому актуальные правила уточните у бухгалтера и разработчика программы. Poson поможет подобрать оборудование, совместимое с выбранной кассовой программой.',
+                    'en' => 'In Uzbekistan, the customer receipt is issued through an online cash register or a virtual cash register that is included in the state register and works with a fiscal module. Requirements change from time to time, so check the current rules with your accountant and the software vendor. Poson helps you choose equipment that works with your chosen POS software.',
+                ],
+            ],
         ],
     ],
 
@@ -494,6 +736,30 @@ return [
                     'en' => 'It depends on your business type: a shop, a store chain, a café or a warehouse. The number of outlets, the size of your range and the equipment you use also matter. Describe your task and Poson will help you pick a suitable program from its catalogue.',
                 ],
             ],
+            [
+                'question' => [
+                    'uz' => 'Qaysi dasturlarni taklif qilasiz?',
+                    'ru' => 'Какие программы вы предлагаете?',
+                    'en' => 'Which programs do you offer?',
+                ],
+                'answer' => [
+                    'uz' => 'Katalogimizda Oʻzbekistonda ishlatiladigan dasturlar bor: chakana savdo uchun Billz platformasi hamda Ox, Hippo va Pospoint kassa tizimlari, kafe va restoranlar uchun AliPos, Rahmat virtual kassasi va tovar hamda savdo hisobi uchun MoySklad. Imkoniyatlar, platformalar va litsenziya shartlari har bir mahsulot sahifasida koʻrsatiladi. Biznesingizga qaysi biri mosligini tanlashga yordam beramiz.',
+                    'ru' => 'В нашем каталоге программы, которые используются в Узбекистане: платформа Billz и кассовые системы Ox, Hippo и Pospoint для розницы, AliPos для кафе и ресторанов, виртуальная касса Rahmat и МойСклад для товарного и торгового учёта. Возможности, платформы и условия лицензии указаны на странице каждого товара. Поможем выбрать подходящую для вашего бизнеса.',
+                    'en' => 'Our catalogue includes programs used in Uzbekistan: the Billz platform and the Ox, Hippo and Pospoint POS systems for retail, AliPos for cafés and restaurants, the Rahmat virtual cash register and MoySklad for inventory and trade. Features, platforms and licence terms are listed on each product page. We help you choose the one that fits your business.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Dastur uskunam bilan mos ishlashini tekshirasizmi?',
+                    'ru' => 'Проверяете ли вы совместимость программы с оборудованием?',
+                    'en' => 'Do you check that the software works with my equipment?',
+                ],
+                'answer' => [
+                    'uz' => 'Ha, dastur tanlashda skaner, chek va yorliq printerlari, tarozi va boshqa qurilmalaringiz u bilan ishlay olishini tekshiramiz. Biror qurilma mos kelmasa, dastur qoʻllab-quvvatlaydigan uskunani taklif qilamiz. Dastur va uskunani sozlash alohida xizmat sifatida bajariladi.',
+                    'ru' => 'Да, при выборе программы проверяем, смогут ли с ней работать ваши сканеры, чековые и этикеточные принтеры, весы и другие устройства. Если что-то не подходит, предложим оборудование, которое поддерживает программа. Настройка программы и оборудования выполняется как отдельная услуга.',
+                    'en' => 'Yes, when choosing software we check that your scanners, receipt and label printers, scales and other devices can work with it. If something does not fit, we suggest equipment the program supports. Setup of the software and equipment is provided as a separate service.',
+                ],
+            ],
         ],
     ],
 
@@ -548,6 +814,30 @@ return [
                     'uz' => 'Ha, uskunalar parki uchun texnik xizmat koʻrsatish shartnomasini tuzamiz. Xizmat tarkibi, javob berish muddati va tashriflar soni har bir mijoz bilan alohida kelishiladi. Kelishilgan shartlar tijorat taklifida koʻrsatiladi.',
                     'ru' => 'Да, заключаем договоры на обслуживание парка оборудования. Состав услуг, время реагирования и количество выездов согласуем с каждым клиентом индивидуально. Согласованные условия указываем в коммерческом предложении.',
                     'en' => 'Yes, we sign maintenance contracts for equipment fleets. The scope, response time and number of visits are agreed individually with each customer. The agreed terms are set out in the quote.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Taʼmirlash vaqtida vaqtinchalik qurilma berasizmi?',
+                    'ru' => 'Предоставляете ли вы подменное устройство на время ремонта?',
+                    'en' => 'Do you provide a replacement device during repair?',
+                ],
+                'answer' => [
+                    'uz' => 'Yoʻq, taʼmirlash davrida almashtiruvchi qurilma berilmaydi. Shuning uchun muhim ish joylari uchun zaxira skaner yoki printer saqlashni tavsiya qilamiz. Taʼmirlash muddatini diagnostikadan soʻng siz bilan yozma ravishda kelishamiz.',
+                    'ru' => 'Нет, подменные устройства на время ремонта мы не предоставляем. Поэтому для критичных рабочих мест рекомендуем держать резервный сканер или принтер. Срок ремонта письменно согласуем с вами после диагностики.',
+                    'en' => 'No, we do not provide replacement devices during repair. For critical workstations we therefore recommend keeping a spare scanner or printer. The repair timeline is agreed with you in writing after diagnostics.',
+                ],
+            ],
+            [
+                'question' => [
+                    'uz' => 'Profilaktik xizmatga nimalar kiradi?',
+                    'ru' => 'Что входит в профилактическое обслуживание?',
+                    'en' => 'What does preventive maintenance include?',
+                ],
+                'answer' => [
+                    'uz' => 'Profilaktika odatda qurilmalarni tozalash, printer kallagi va rezina val kabi eskiruvchi qismlarni tekshirish hamda sozlash va kalibrlashni oʻz ichiga oladi. Bu kutilmagan nosozliklar ehtimolini kamaytiradi. Aniq ish tarkibi va tashriflar jadvali servis shartnomasida kelishiladi.',
+                    'ru' => 'Профилактика обычно включает чистку устройств, проверку изнашиваемых деталей, например печатающей головки и прижимного вала, а также настройку и калибровку. Это снижает риск внезапных поломок. Точный состав работ и график выездов согласуются в сервисном договоре.',
+                    'en' => 'Preventive maintenance usually covers cleaning the devices, checking wear parts such as the printhead and platen roller, and adjustment and calibration. This reduces the risk of unexpected breakdowns. The exact scope and visit schedule are agreed in the service contract.',
                 ],
             ],
         ],

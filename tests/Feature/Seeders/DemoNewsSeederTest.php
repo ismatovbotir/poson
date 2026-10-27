@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\NewsKind;
 use App\Models\NewsPost;
 use App\Models\Product;
 use Database\Seeders\DatabaseSeeder;
@@ -38,6 +39,7 @@ it('sets the translated locales when run from DatabaseSeeder without model event
 
     $this->seed(DatabaseSeeder::class);
 
-    expect(NewsPost::query()->count())->toBe(3)
+    // DatabaseSeeder also seeds the knowledge articles (drafts, kind article): count news only.
+    expect(NewsPost::query()->ofKind(NewsKind::News)->count())->toBe(3)
         ->and(NewsPost::query()->visibleIn('ru')->count())->toBe(2);
 });
