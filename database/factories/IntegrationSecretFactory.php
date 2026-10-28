@@ -23,7 +23,7 @@ class IntegrationSecretFactory extends Factory
         $value = 'fake-'.Str::random(32);
 
         return [
-            'key' => 'anthropic.api_key',
+            'key' => 'payme.key',
             'value' => $value,
             'hint' => IntegrationSecret::hintFor($value),
             'updated_by' => null,

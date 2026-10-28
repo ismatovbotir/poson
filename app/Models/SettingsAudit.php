@@ -6,6 +6,7 @@ use App\Enums\AuditAction;
 use App\Enums\SettingsArea;
 use Database\Factories\SettingsAuditFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,11 +15,13 @@ use Illuminate\Support\Carbon;
 /**
  * One settings change (plan 04 S6): who, when, area, key, action and IP.
  * Never stores the old or new value, so it is safe for secrets too.
- * Append-only: there is no updated_at.
+ * Append-only: there is no updated_at. The area is read with tryFrom():
+ * a legacy area value no longer in SettingsArea (e.g. "ai_prompts") reads
+ * as null instead of throwing.
  *
  * @property int $id
  * @property int|null $user_id
- * @property SettingsArea $area
+ * @property SettingsArea|null $area
  * @property string $key
  * @property AuditAction $action
  * @property string|null $ip
@@ -40,10 +43,23 @@ class SettingsAudit extends Model
     protected function casts(): array
     {
         return [
-            'area' => SettingsArea::class,
             'action' => AuditAction::class,
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Tolerant enum cast: unknown (legacy) values read as null; writes
+     * accept a SettingsArea only.
+     *
+     * @return Attribute<SettingsArea|null, SettingsArea>
+     */
+    protected function area(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value): ?SettingsArea => $value === null ? null : SettingsArea::tryFrom($value),
+            set: fn (SettingsArea $value): string => $value->value,
+        );
     }
 
     /**

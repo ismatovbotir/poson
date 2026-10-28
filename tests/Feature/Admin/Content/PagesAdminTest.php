@@ -1,18 +1,14 @@
 <?php
 
-use App\Actions\Ai\GenerateFieldText;
 use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\SavePage;
 use App\Enums\PageTemplate;
 use App\Enums\Role;
-use App\Livewire\Admin\Ai\Assistant;
 use App\Livewire\Admin\Faq\FaqItems;
 use App\Livewire\Admin\Pages\Form;
 use App\Livewire\Admin\Pages\Index;
-use App\Models\AiRequest;
 use App\Models\FaqItem;
 use App\Models\Page;
-use App\Support\Ai\AiContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -423,97 +419,22 @@ describe('page FAQ', function () {
     });
 });
 
-describe('SI assist', function () {
-    beforeEach(function () {
-        enableAiAssist();
-        fakeTextAssistant();
-    });
-
-    it('offers SI on every page field except the body of legal pages', function () {
-        $default = Page::factory()->create();
-        $legal = Page::factory()->system('privacy')->create();
+describe('legal body hint', function () {
+    it('shows the lawyer hint on legal pages only', function () {
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => Page::factory()->create()])
+            ->assertDontSee(__('admin.pages.legal_body_hint'));
 
         Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class, ['page' => $default])
-            ->assertDontSeeHtml('data-ai-button="page.title"')
-            ->assertSeeHtml('data-ai-button="page.body"')
-            ->assertSeeHtml('data-ai-button="page.meta_description"');
-
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class, ['page' => $legal])
-            ->assertSeeHtml('data-ai-button="page.meta_title"')
-            ->assertDontSeeHtml('data-ai-button="page.body"')
-            ->assertSee(__('admin.pages.legal_body_hint'))
-            ->call('openAi', 'form.body', 'uz')
-            ->assertNotDispatched('ai-open')
-            ->call('openAi', 'form.meta_title', 'uz')
-            ->assertDispatched('ai-open', field: 'page.meta_title');
+            ->test(Form::class, ['page' => Page::factory()->system('privacy')->create()])
+            ->assertSee(__('admin.pages.legal_body_hint'));
     });
 
-    it('keeps the body refused for a stored legal page whose form template was switched', function () {
-        $legal = Page::factory()->legal()->create();
-
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class, ['page' => $legal])
-            ->set('form.template', 'default')
-            ->assertDontSeeHtml('data-ai-button="page.body"')
-            ->call('openAi', 'form.body', 'uz')
-            ->assertNotDispatched('ai-open')
-            ->dispatch('ai-apply', owner: 'x', target: 'form.body', field: 'page.body', values: ['uz' => '<p>SI</p>'])
-            ->assertSet('form.body.uz', $legal->getTranslation('body', 'uz'));
-    });
-
-    it('builds the page context from the stored record, never from the form state', function () {
-        $legal = Page::factory()->legal()->create(['slug' => 'terms']);
-
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class, ['page' => $legal])
-            ->set('form.slug', 'other')
-            ->set('form.template', 'default')
-            ->call('openAi', 'form.meta_title', 'uz')
-            ->assertDispatched('ai-open', fn (string $name, array $params): bool => $params['field'] === 'page.meta_title'
-                && $params['context']['subject_type'] === 'page'
-                && $params['context']['subject_id'] === $legal->id
-                && $params['context']['facts']['Page'] === 'page/terms (legal template)');
-    });
-
-    it('refuses the body of a stored legal page in the assistant and the AI action', function () {
-        $user = staffUser(Role::ContentManager);
-        $legal = Page::factory()->legal()->create();
-        $default = Page::factory()->create();
-        $forged = ['name' => 'X', 'subject_type' => 'page', 'subject_id' => $legal->id];
-
-        // A forged ai-open event for the legal body never opens the panel.
-        Livewire::actingAs($user)
-            ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.body', 'page.body', 'uz', $forged, [])
-            ->assertSet('open', false)
-            ->assertSet('fieldKey', '');
-
-        // The action refuses it whatever the caller.
-        expect(fn () => app(GenerateFieldText::class)->handle($user, 'page.body', 'Write it.', AiContext::fromArray($forged)))
-            ->toThrow(ValidationException::class, __('ai.errors.legal_body'));
-        expect(AiRequest::query()->count())->toBe(0);
-
-        // Meta title of the legal page and the body of a default page still work, with the page as subject.
-        Livewire::actingAs($user)
-            ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.meta_title', 'page.meta_title', 'uz', $forged, [])
-            ->assertSet('open', true)
-            ->assertSet('context.subject_id', $legal->id);
-
-        $request = app(GenerateFieldText::class)->handle($user, 'page.body', 'Write it.', AiContext::fromArray(['name' => 'Y', 'subject_type' => 'page', 'subject_id' => $default->id]));
-
-        expect($request->field_key)->toBe('page.body')
-            ->and($request->subject_type)->toBe('page')
-            ->and($request->subject_id)->toBe($default->id);
-    });
-
-    it('hides the body button when a custom page switches to the legal template', function () {
+    it('shows the hint when a custom page switches to the legal template', function () {
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Form::class)
-            ->assertSeeHtml('data-ai-button="page.body"')
+            ->assertDontSee(__('admin.pages.legal_body_hint'))
             ->set('form.template', 'legal')
-            ->assertDontSeeHtml('data-ai-button="page.body"');
+            ->assertSee(__('admin.pages.legal_body_hint'));
     });
 });

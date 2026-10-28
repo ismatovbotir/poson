@@ -25,9 +25,7 @@
                     <x-admin.locale-tabs :error-keys="['form.description']" :label="__('admin.form.content_language')">
                         @foreach ($locales as $locale)
                             <x-admin.locale-panel :locale="$locale">
-                                <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.catalog.description')">
-                                    <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="brand.description" target="form.description" /></span></x-slot:labelAside>
-                                </x-admin.rich-text>
+                                <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.catalog.description')" />
                             </x-admin.locale-panel>
                         @endforeach
                     </x-admin.locale-tabs>
@@ -43,7 +41,6 @@
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
                                         <span class="text-xs font-medium tabular-nums text-slate-400" x-text="(($wire.form.meta_title[@js($locale)] ?? '').length) + '/{{ \App\Models\Brand::META_TITLE_MAX }}'"></span>
-                                        <x-admin.ai-button field="brand.meta_title" target="form.meta_title" />
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.input>
@@ -51,7 +48,6 @@
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
                                         <span class="text-xs font-medium tabular-nums text-slate-400" x-text="(($wire.form.meta_description[@js($locale)] ?? '').length) + '/{{ \App\Models\Brand::META_DESCRIPTION_MAX }}'"></span>
-                                        <x-admin.ai-button field="brand.meta_description" target="form.meta_description" />
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.textarea>

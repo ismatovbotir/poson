@@ -86,13 +86,10 @@
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
                                         <span class="text-xs font-medium tabular-nums text-slate-400" x-text="(($wire.form.short_description[@js($locale)] ?? '').length) + '/500'"></span>
-                                        <x-admin.ai-button field="product.short_description" target="form.short_description" />
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.textarea>
-                            <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.products.fields.description')" :hint="__('admin.products.hints.description')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="product.description" target="form.description" /></span></x-slot:labelAside>
-                            </x-admin.rich-text>
+                            <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.products.fields.description')" :hint="__('admin.products.hints.description')" />
                         </x-admin.locale-panel>
                     @endforeach
                 </x-admin.locale-tabs>
@@ -259,7 +256,6 @@
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
                                         <span class="text-xs font-medium tabular-nums" x-bind:class="(($wire.form.meta_title[@js($locale)] ?? '').length > 60) ? 'text-danger' : 'text-slate-400'" x-text="(($wire.form.meta_title[@js($locale)] ?? '').length) + '/60'"></span>
-                                        <x-admin.ai-button field="product.meta_title" target="form.meta_title" />
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.input>
@@ -267,7 +263,6 @@
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
                                         <span class="text-xs font-medium tabular-nums" x-bind:class="(($wire.form.meta_description[@js($locale)] ?? '').length > 160) ? 'text-danger' : 'text-slate-400'" x-text="(($wire.form.meta_description[@js($locale)] ?? '').length) + '/160'"></span>
-                                        <x-admin.ai-button field="product.meta_description" target="form.meta_description" />
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.textarea>

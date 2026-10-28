@@ -6,16 +6,11 @@ use App\Actions\Faq\DeleteFaqItem;
 use App\Actions\Faq\MoveFaqItem;
 use App\Actions\Faq\SaveFaqItem;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
-use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Faq\FaqItemForm;
 use App\Models\Category;
 use App\Models\FaqItem;
 use App\Models\Page;
 use App\Models\Product;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\CategoryAiContext;
-use App\Support\Ai\PageAiContext;
-use App\Support\Ai\ProductAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -34,7 +29,7 @@ use Livewire\Component;
  */
 class FaqItems extends Component
 {
-    use HandlesActionErrors, WithAiAssist;
+    use HandlesActionErrors;
 
     #[Locked]
     public ?Category $category = null;
@@ -134,33 +129,6 @@ class FaqItems extends Component
         unset($this->items);
 
         $this->dispatch('toast', title: __('admin.toast.deleted'), body: __('admin.faq.deleted'));
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function aiTargets(): array
-    {
-        return $this->editing ? ['form.answer' => 'faq.answer'] : [];
-    }
-
-    /**
-     * The owner's context (saved category / product, or the company for the
-     * general FAQ) plus the question being answered.
-     */
-    protected function aiContext(string $fieldKey): AiContext
-    {
-        $base = match (true) {
-            $this->category !== null => CategoryAiContext::fromCategory($this->category),
-            $this->product !== null => ProductAiContext::fromProduct($this->product),
-            $this->page !== null => PageAiContext::fromPage($this->page),
-            default => AiContext::fromArray(['name' => 'Poson (general company FAQ)']),
-        };
-
-        return AiContext::fromArray([
-            ...$base->toArray(),
-            'question' => ProductAiContext::first($this->form->question),
-        ]);
     }
 
     public function render(): View

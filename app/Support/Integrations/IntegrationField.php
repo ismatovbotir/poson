@@ -6,12 +6,12 @@ namespace App\Support\Integrations;
  * One editable integration value (plan 04 S3), declared in IntegrationRegistry.
  *
  * - key: registry key, also the integration_secrets / settings key ("telegram.bot_token")
- * - group: Settings → Integrations section (ai, telegram, payme, click, removebg)
+ * - group: Settings → Integrations section (telegram, payme, click)
  * - configPaths: config() paths the effective value is written to; the first
  *   one is also where the .env value is read from
  * - env: the .env name (for the "locked by .env" hint and .env.example)
  * - secret: stored encrypted in integration_secrets, write-only in admin
- * - type: string · bool · int · select (cast of .env and stored values)
+ * - type: string · bool · select (cast of .env and stored values)
  * - rules: validation rules for a new value (without "nullable"/"required")
  * - default: used when neither .env nor admin has a value
  * - options: allowed values of a select
@@ -23,8 +23,6 @@ final readonly class IntegrationField
     public const TYPE_STRING = 'string';
 
     public const TYPE_BOOL = 'bool';
-
-    public const TYPE_INT = 'int';
 
     public const TYPE_SELECT = 'select';
 
@@ -88,7 +86,6 @@ final readonly class IntegrationField
 
         return match ($this->type) {
             self::TYPE_BOOL => is_bool($value) ? $value : filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE),
-            self::TYPE_INT => is_int($value) ? $value : (is_string($value) && preg_match('/^-?\d{1,12}$/', trim($value)) === 1 ? (int) trim($value) : null),
             default => is_scalar($value) ? trim((string) $value) : null,
         };
     }

@@ -128,17 +128,16 @@ describe('SaveIntegrationSettings', function () {
         expect(app(SaveIntegrationSettings::class)->handle(['telegram.chats.sales' => '-1001234567890'], null, null))->toBe([]);
     });
 
-    it('casts numbers and booleans and deletes a cleared value', function () {
-        app(SaveIntegrationSettings::class)->handle(['ai.enabled' => true, 'ai.daily_text_limit' => '50', 'ai.monthly_budget_usd' => '25'], null, null);
+    it('casts booleans and deletes a cleared value', function () {
+        app(SaveIntegrationSettings::class)->handle(['telegram.notify_new_leads' => false, 'telegram.locale' => 'ru'], null, null);
 
-        expect(config('ai-assist.enabled'))->toBeTrue()
-            ->and(config('ai-assist.limits.daily_text'))->toBe(50)
-            ->and(config('ai-assist.limits.monthly_budget_usd'))->toBe(25);
+        expect(config('services.telegram.notify_new_leads'))->toBeFalse()
+            ->and(config('services.telegram.locale'))->toBe('ru');
 
-        app(SaveIntegrationSettings::class)->handle(['ai.daily_text_limit' => ''], null, null);
+        app(SaveIntegrationSettings::class)->handle(['telegram.locale' => ''], null, null);
 
-        expect(Setting::query()->where('key', 'ai.daily_text_limit')->exists())->toBeFalse()
-            ->and(config('ai-assist.limits.daily_text'))->toBe(100)
+        expect(Setting::query()->where('key', 'telegram.locale')->exists())->toBeFalse()
+            ->and(config('services.telegram.locale'))->toBe('uz')
             ->and(SettingsAudit::query()->latest('id')->first()->action)->toBe(AuditAction::Cleared);
     });
 
@@ -153,8 +152,7 @@ describe('SaveIntegrationSettings', function () {
         expect(Setting::query()->count())->toBe(0);
     })->with([
         'chat id' => ['telegram.chats.sales', 'not a chat'],
-        'model outside the allow-list' => ['ai.text_model', 'some-other-model'],
-        'negative limit' => ['ai.daily_image_limit', '-1'],
+        'locale outside the allow-list' => ['telegram.locale', 'de'],
         'payme mode' => ['payme.mode', 'live'],
         'click id' => ['click.service_id', 'abc'],
     ]);

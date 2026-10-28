@@ -4,12 +4,10 @@ use App\Actions\News\SaveNewsPost;
 use App\Enums\NewsState;
 use App\Enums\NewsStatus;
 use App\Enums\Role;
-use App\Livewire\Admin\Ai\Assistant;
 use App\Livewire\Admin\News\Form;
 use App\Livewire\Admin\News\Index;
 use App\Models\Category;
 use App\Models\NewsPost;
-use App\Models\Page;
 use App\Models\Product;
 use App\Support\Admin\Menu;
 use App\Support\Admin\MenuGroup;
@@ -519,66 +517,5 @@ describe('review follow-ups', function () {
         $component->call('delete', $post->id)->assertForbidden();
 
         expect($post->fresh())->not->toBeNull();
-    });
-});
-
-describe('SI assist', function () {
-    beforeEach(function () {
-        enableAiAssist();
-        fakeTextAssistant();
-    });
-
-    it('offers SI on excerpt, body and SEO, not on the title', function () {
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class)
-            ->assertDontSeeHtml('data-ai-button="news.title"')
-            ->assertSeeHtml('data-ai-button="news.excerpt"')
-            ->assertSeeHtml('data-ai-button="news.body"')
-            ->assertSeeHtml('data-ai-button="news.meta_title"')
-            ->assertSeeHtml('data-ai-button="news.meta_description"');
-    });
-
-    it('builds the context server-side: stored subject and slug, related names from the database', function () {
-        $post = NewsPost::factory()->create(['slug' => 'stored-slug']);
-        $product = Product::factory()->create(['sku' => 'HW-1', 'name' => ['uz' => 'Skaner', 'en' => 'Scanner X']]);
-
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class, ['newsPost' => $post])
-            ->set('form.slug', 'forged')
-            ->set('form.product_ids', [$product->id])
-            ->call('openAi', 'form.body', 'ru')
-            ->assertDispatched('ai-open', fn (string $name, array $params): bool => $params['field'] === 'news.body'
-                && $params['context']['subject_type'] === 'news_post'
-                && $params['context']['subject_id'] === $post->id
-                && $params['context']['facts']['News post'] === 'news/stored-slug'
-                && $params['context']['facts']['Related products'] === 'Scanner X (HW-1)');
-    });
-
-    it('keeps a news subject only for a news field and a user who may view it', function () {
-        $post = NewsPost::factory()->create();
-        $page = Page::factory()->create();
-
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.excerpt', 'news.excerpt', 'uz', ['name' => 'X', 'subject_type' => 'news_post', 'subject_id' => $post->id], [])
-            ->assertSet('open', true)
-            ->assertSet('context.subject_type', 'news_post')
-            ->assertSet('context.subject_id', $post->id);
-
-        // A forged subject of another kind is dropped.
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.excerpt', 'news.excerpt', 'uz', ['name' => 'X', 'subject_type' => 'page', 'subject_id' => $page->id], [])
-            ->assertSet('context.subject_type', null)
-            ->assertSet('context.subject_id', null);
-    });
-
-    it('applies AI text only to whitelisted news targets', function () {
-        Livewire::actingAs(staffUser(Role::ContentManager))
-            ->test(Form::class)
-            ->call('openAi', 'form.slug', 'uz')
-            ->assertNotDispatched('ai-open')
-            ->call('openAi', 'form.excerpt', 'uz')
-            ->assertDispatched('ai-open', field: 'news.excerpt');
     });
 });

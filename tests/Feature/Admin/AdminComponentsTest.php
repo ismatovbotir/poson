@@ -12,10 +12,6 @@ function renderWithErrors(string $template, array $errors = []): string
     return Blade::render($template);
 }
 
-it('renders nothing for the ai-button stub', function () {
-    expect(trim(Blade::render('<x-admin.ai-button field="form.name" />')))->toBe('');
-});
-
 it('marks locale tabs with errors and opens the first one', function () {
     $html = renderWithErrors(<<<'BLADE'
         <x-admin.locale-tabs :error-keys="['form.name']">

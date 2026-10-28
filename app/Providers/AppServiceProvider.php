@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Enums\AiProvider;
 use App\Enums\Role;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureStaff;
@@ -18,11 +17,6 @@ use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Setting;
 use App\Models\User;
-use App\Services\Ai\AiTextProvider;
-use App\Services\Ai\ClaudeTextAssistant;
-use App\Services\Ai\OpenRouterTextAssistant;
-use App\Services\Ai\TextAssistant;
-use App\Services\Ai\TextAssistants;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\CompanySettings;
@@ -59,12 +53,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Crawler verification DNS (tests bind a fake resolver).
         $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
-
-        // Admin AI assist (plan 02, plan 10): texts on Claude through laravel/ai or
-        // on OpenRouter, one binding per provider (tests bind fakes under the same keys).
-        $this->app->bind(TextAssistants::binding(AiProvider::Anthropic), ClaudeTextAssistant::class);
-        $this->app->bind(TextAssistants::binding(AiProvider::OpenRouter), OpenRouterTextAssistant::class);
-        $this->app->bind(TextAssistant::class, fn (): TextAssistant => TextAssistants::for(AiTextProvider::current()));
     }
 
     /**

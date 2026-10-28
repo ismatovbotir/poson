@@ -102,43 +102,6 @@ return [
         'quote' => 'Коммерческое предложение',
     ],
 
-    'ai_feature' => [
-        'text_generate' => 'Написание текста',
-        'text_translate' => 'Перевод',
-    ],
-
-    'ai_provider' => [
-        'anthropic' => 'Anthropic (Claude)',
-        'openrouter' => 'OpenRouter',
-        'openai' => 'OpenAI',
-        'removebg' => 'remove.bg',
-    ],
-
-    'ai_request_status' => [
-        'pending' => 'В очереди',
-        'running' => 'Выполняется',
-        'succeeded' => 'Готово',
-        'failed' => 'Ошибка',
-        'rejected' => 'Отклонён',
-    ],
-
-    'ai_error_code' => [
-        'timeout' => 'Истекло время',
-        'rate_limited' => 'Слишком много запросов',
-        'provider_error' => 'Ошибка сервиса',
-        'invalid_output' => 'Некорректный ответ',
-        'not_configured' => 'Ключ не настроен',
-        'disabled' => 'Выключено',
-        'quota_exceeded' => 'Дневной лимит',
-        'budget_exceeded' => 'Бюджет на месяц',
-        'no_credits' => 'Нет кредитов',
-        'model_unavailable' => 'Модель недоступна',
-        'invalid_key' => 'Ключ отклонён',
-        'refused' => 'Отказ провайдера',
-        'bad_request' => 'Некорректный запрос',
-        'field_retired' => 'Поле отключено',
-    ],
-
     'quote_status' => [
         'draft' => 'Черновик',
         'sent' => 'Отправлено',
@@ -234,7 +197,6 @@ return [
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
         'price_sync' => 'Синхронизация цен',
-        'ai_prompts' => 'Промпты ИИ',
     ],
 
     'audit_action' => [

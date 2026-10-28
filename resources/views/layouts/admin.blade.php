@@ -170,11 +170,6 @@
         <button type="button" x-on:click="nav = true" aria-controls="admin-sidebar" x-bind:aria-expanded="nav.toString()" data-tab="menu" class="flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium text-slate-500"><x-admin.icon name="menu" size="size-6" /><span class="max-w-full truncate px-0.5">{{ __('menu.tabs.menu') }}</span></button>
     </nav>
 
-    {{-- SI yordamchi (plan 02): only when AI is on, configured and the user has ai.use. --}}
-    @if (\App\Services\Ai\AiAssist::availableFor($user))
-        <livewire:admin.ai.assistant />
-    @endif
-
     <x-admin.toast-stack />
     <x-admin.confirm />
 

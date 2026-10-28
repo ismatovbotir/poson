@@ -11,7 +11,7 @@
     lists, links (https/mailto). Bind with wire:model="form.description.uz";
     the value is HTML, cleaned on save by App\Support\HtmlSanitizer.
     The editor is wire:ignore'd and entangled with the property. Slot "labelAside"
-    sits next to the label (e.g. <x-admin.ai-button>).
+    sits next to the label (e.g. a character counter).
 --}}
 @php
     $model = $attributes->wire('model')->value();

@@ -102,43 +102,6 @@ return [
         'quote' => 'Quote',
     ],
 
-    'ai_feature' => [
-        'text_generate' => 'Write text',
-        'text_translate' => 'Translate',
-    ],
-
-    'ai_provider' => [
-        'anthropic' => 'Anthropic (Claude)',
-        'openrouter' => 'OpenRouter',
-        'openai' => 'OpenAI',
-        'removebg' => 'remove.bg',
-    ],
-
-    'ai_request_status' => [
-        'pending' => 'Queued',
-        'running' => 'Running',
-        'succeeded' => 'Done',
-        'failed' => 'Failed',
-        'rejected' => 'Rejected',
-    ],
-
-    'ai_error_code' => [
-        'timeout' => 'Timed out',
-        'rate_limited' => 'Rate limited',
-        'provider_error' => 'Service error',
-        'invalid_output' => 'Invalid answer',
-        'not_configured' => 'Key not set up',
-        'disabled' => 'Switched off',
-        'quota_exceeded' => 'Daily limit',
-        'budget_exceeded' => 'Monthly budget',
-        'no_credits' => 'No credits',
-        'model_unavailable' => 'Model unavailable',
-        'invalid_key' => 'Key rejected',
-        'refused' => 'Refused by provider',
-        'bad_request' => 'Invalid request',
-        'field_retired' => 'Field retired',
-    ],
-
     'quote_status' => [
         'draft' => 'Draft',
         'sent' => 'Sent',
@@ -234,7 +197,6 @@ return [
         'integrations' => 'Integrations',
         'api_tokens' => 'API tokens',
         'price_sync' => 'Price sync',
-        'ai_prompts' => 'AI prompts',
     ],
 
     'audit_action' => [

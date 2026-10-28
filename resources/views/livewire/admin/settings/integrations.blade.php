@@ -1,8 +1,8 @@
 @php
     $t = 'admin.settings.integrations';
     // Connection test per secret (Payme / Click have none: webhook URLs instead).
-    $tests = ['anthropic.api_key' => 'anthropic', 'openrouter.api_key' => 'openrouter', 'openai.api_key' => 'openai', 'removebg.api_key' => 'removebg', 'telegram.bot_token' => 'telegram'];
-    $icons = ['ai' => 'sparkles', 'telegram' => 'telegram', 'payme' => 'card', 'click' => 'card', 'removebg' => 'image'];
+    $tests = ['telegram.bot_token' => 'telegram'];
+    $icons = ['telegram' => 'telegram', 'payme' => 'card', 'click' => 'card'];
 @endphp
 
 {{-- Settings → Integrations (plan 04b T7). Secrets are write-only: only their status is rendered. --}}
@@ -34,8 +34,6 @@
 
         @foreach ($sections as $group => $fields)
             @php
-                // Plan 10: only the selected text provider's fields are shown.
-                $fields = array_diff_key($fields, array_flip($hiddenFields));
                 $secrets = array_filter($fields, fn (array $state): bool => $state['field']->secret);
                 $settings = array_filter($fields, fn (array $state): bool => ! $state['field']->secret);
                 $editable = array_filter($settings, fn (array $state): bool => ! $state['locked']);
@@ -55,26 +53,6 @@
                                 @include('livewire.admin.settings.integrations.setting', ['field' => $state['field'], 'state' => $state])
                             @endforeach
                         </div>
-
-                        @if ($group === 'ai' && $openRouterSelected)
-                            @if ($openRouterFree)
-                                <div class="mt-4 flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900" role="note" data-openrouter-free-warning>
-                                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />
-                                    <div>
-                                        <p class="font-semibold">{{ __($t.'.openrouter.free_warning_title') }}</p>
-                                        <ul class="mt-1 list-disc space-y-0.5 pl-4">
-                                            <li>{{ __($t.'.openrouter.free_warning_logging') }}</li>
-                                            <li>{{ __($t.'.openrouter.free_warning_limits') }}</li>
-                                            <li>{{ __($t.'.openrouter.warning_quality') }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            @else
-                                <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-openrouter-warning>
-                                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.openrouter.warning') }} {{ __($t.'.openrouter.warning_quality') }}
-                                </p>
-                            @endif
-                        @endif
 
                         @if ($group === 'payme' && $paymeTestKeyMissing)
                             <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-payme-test-key-warning>
@@ -160,7 +138,7 @@
                     <tr wire:key="audit-{{ $audit->id }}" data-audit-row>
                         <td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ $audit->created_at->format('d.m.Y H:i') }}</td>
                         <td class="px-4 py-3">{{ $audit->user?->name ?? __('admin.common.empty_value') }}</td>
-                        <td class="px-4 py-3">{{ $audit->area->label() }}</td>
+                        <td class="px-4 py-3">{{ $audit->area?->label() ?? $audit->getRawOriginal('area') }}</td>
                         <td class="px-4 py-3 font-mono text-xs">{{ $audit->key }}</td>
                         <td class="px-4 py-3"><x-admin.badge :color="$audit->action === \App\Enums\AuditAction::Cleared ? 'amber' : 'slate'">{{ $audit->action->label() }}</x-admin.badge></td>
                         <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ $audit->ip ?? __('admin.common.empty_value') }}</td>
@@ -175,7 +153,7 @@
                             <span class="font-mono text-xs">{{ $audit->key }}</span>
                             <x-admin.badge :color="$audit->action === \App\Enums\AuditAction::Cleared ? 'amber' : 'slate'">{{ $audit->action->label() }}</x-admin.badge>
                         </div>
-                        <p class="mt-1 text-xs text-slate-500">{{ $audit->area->label() }} · {{ $audit->user?->name ?? __('admin.common.empty_value') }} · {{ $audit->created_at->format('d.m.Y H:i') }} · {{ $audit->ip ?? __('admin.common.empty_value') }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ $audit->area?->label() ?? $audit->getRawOriginal('area') }} · {{ $audit->user?->name ?? __('admin.common.empty_value') }} · {{ $audit->created_at->format('d.m.Y H:i') }} · {{ $audit->ip ?? __('admin.common.empty_value') }}</p>
                     </article>
                 @endforeach
             </x-admin.mobile-list>

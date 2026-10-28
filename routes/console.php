@@ -37,15 +37,6 @@ Schedule::command('quotes:expire')->dailyAt('00:40')->timezone('Asia/Tashkent')-
 
 /*
 |--------------------------------------------------------------------------
-| Admin AI assist (plan 02)
-|--------------------------------------------------------------------------
-| Prompt and response texts of the request log are cleared after 90 days.
-*/
-
-Schedule::command('ai:prune-requests')->dailyAt('01:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
-
-/*
-|--------------------------------------------------------------------------
 | Price API (plan 09)
 |--------------------------------------------------------------------------
 | Sync log rows older than PriceSyncLog::KEEP_DAYS (180) days are deleted.

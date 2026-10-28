@@ -16,41 +16,17 @@
             @foreach ($field->options as $option)
                 <option value="{{ $option }}">{{ match ($field->key) {
                     'payme.mode' => \App\Enums\PaymeMode::from($option)->label(),
-                    'ai.text_provider' => \App\Enums\AiProvider::from($option)->label(),
                     'telegram.locale' => __('admin.locale.'.$option),
                     default => $option,
                 } }}</option>
             @endforeach
         </x-admin.select>
-    @elseif ($field->key === 'ai.openrouter_model')
-        {{-- Plan 10: any valid OpenRouter ID, with the checked suggestions. Synced on blur (free-model warning). --}}
-        <x-admin.input
-            wire:model.live.blur="{{ $model }}"
-            :label="$field->label()"
-            :hint="$hint"
-            :disabled="$state['locked']"
-            list="openrouter-models"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            maxlength="80"
-        >
-            @if ($state['locked'])
-                <x-slot:labelAside><x-admin.badge color="violet" class="ml-1"><x-admin.icon name="lock" size="size-3" />{{ __($t.'.status.locked') }}</x-admin.badge></x-slot:labelAside>
-            @endif
-        </x-admin.input>
-        <datalist id="openrouter-models">
-            @foreach ((array) config('ai-assist.models.openrouter', []) as $suggestion)
-                <option value="{{ $suggestion }}"></option>
-            @endforeach
-        </datalist>
     @else
         <x-admin.input
             wire:model="{{ $model }}"
             :label="$field->label()"
             :hint="$hint"
             :disabled="$state['locked']"
-            :inputmode="$field->type === \App\Support\Integrations\IntegrationField::TYPE_INT ? 'numeric' : null"
             autocomplete="off"
             spellcheck="false"
             maxlength="64"

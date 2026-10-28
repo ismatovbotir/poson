@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 
-const FAKE_ANTHROPIC_KEY = 'sk-ant-fake-0000000000000000000000000000wxyz';
+const FAKE_PAYME_KEY = 'fake-payme-key-00000000000000000000000wxyz';
 
 beforeEach(fn () => freshSecrets());
 
@@ -21,38 +21,37 @@ describe('precedence', function () {
         expect(Secrets::source('payme.mode'))->toBe(IntegrationSource::Default)
             ->and(Secrets::get('payme.mode'))->toBe('test')
             ->and(config('services.payme.mode'))->toBe('test')
-            ->and(config('ai-assist.limits.daily_text'))->toBe(100)
-            ->and(config('ai-assist.limits.daily_image'))->toBe(10)
-            ->and(config('ai-assist.enabled'))->toBeFalse()
-            ->and(Secrets::source('anthropic.api_key'))->toBe(IntegrationSource::None)
-            ->and(Secrets::isConfigured('anthropic.api_key'))->toBeFalse()
-            ->and(config('services.anthropic.key'))->toBeNull();
+            ->and(config('services.telegram.locale'))->toBe('uz')
+            ->and(config('services.telegram.notify_new_leads'))->toBeTrue()
+            ->and(Secrets::source('payme.key'))->toBe(IntegrationSource::None)
+            ->and(Secrets::isConfigured('payme.key'))->toBeFalse()
+            ->and(config('services.payme.key'))->toBeNull();
     });
 
     it('prefers the admin value over the default', function () {
-        IntegrationSecret::factory()->withValue('anthropic.api_key', FAKE_ANTHROPIC_KEY)->create();
+        IntegrationSecret::factory()->withValue('payme.key', FAKE_PAYME_KEY)->create();
         Setting::factory()->create(['key' => 'payme.mode', 'group' => 'integrations', 'value' => 'prod']);
-        Setting::factory()->create(['key' => 'ai.daily_text_limit', 'group' => 'integrations', 'value' => 40]);
+        Setting::factory()->create(['key' => 'telegram.locale', 'group' => 'integrations', 'value' => 'ru']);
         Secrets::flush();
 
-        expect(Secrets::source('anthropic.api_key'))->toBe(IntegrationSource::Db)
-            ->and(Secrets::get('anthropic.api_key'))->toBe(FAKE_ANTHROPIC_KEY)
-            ->and(config('services.anthropic.key'))->toBe(FAKE_ANTHROPIC_KEY)
-            ->and(Secrets::isConfigured('anthropic.api_key'))->toBeTrue()
+        expect(Secrets::source('payme.key'))->toBe(IntegrationSource::Db)
+            ->and(Secrets::get('payme.key'))->toBe(FAKE_PAYME_KEY)
+            ->and(config('services.payme.key'))->toBe(FAKE_PAYME_KEY)
+            ->and(Secrets::isConfigured('payme.key'))->toBeTrue()
             ->and(config('services.payme.mode'))->toBe('prod')
-            ->and(config('ai-assist.limits.daily_text'))->toBe(40);
+            ->and(config('services.telegram.locale'))->toBe('ru');
     });
 
     it('prefers a non-empty .env value over the admin value', function () {
-        IntegrationSecret::factory()->withValue('anthropic.api_key', FAKE_ANTHROPIC_KEY)->create();
+        IntegrationSecret::factory()->withValue('payme.key', FAKE_PAYME_KEY)->create();
         Setting::factory()->create(['key' => 'payme.mode', 'group' => 'integrations', 'value' => 'prod']);
 
-        freshSecrets(['services.anthropic.key' => 'env-anthropic-key-000000000000', 'services.payme.mode' => 'test']);
+        freshSecrets(['services.payme.key' => 'env-payme-key-000000000000', 'services.payme.mode' => 'test']);
 
-        expect(Secrets::source('anthropic.api_key'))->toBe(IntegrationSource::Env)
-            ->and(Secrets::get('anthropic.api_key'))->toBe('env-anthropic-key-000000000000')
-            ->and(config('services.anthropic.key'))->toBe('env-anthropic-key-000000000000')
-            ->and(Secrets::hint('anthropic.api_key'))->toBeNull()
+        expect(Secrets::source('payme.key'))->toBe(IntegrationSource::Env)
+            ->and(Secrets::get('payme.key'))->toBe('env-payme-key-000000000000')
+            ->and(config('services.payme.key'))->toBe('env-payme-key-000000000000')
+            ->and(Secrets::hint('payme.key'))->toBeNull()
             ->and(Secrets::source('payme.mode'))->toBe(IntegrationSource::Env)
             ->and(config('services.payme.mode'))->toBe('test');
     });
@@ -67,20 +66,20 @@ describe('precedence', function () {
     });
 
     it('keeps an explicit false from .env', function () {
-        Setting::factory()->create(['key' => 'ai.enabled', 'group' => 'integrations', 'value' => true]);
+        Setting::factory()->create(['key' => 'telegram.notify_new_leads', 'group' => 'integrations', 'value' => true]);
 
-        freshSecrets(['ai-assist.enabled' => false]);
+        freshSecrets(['services.telegram.notify_new_leads' => false]);
 
-        expect(Secrets::source('ai.enabled'))->toBe(IntegrationSource::Env)
-            ->and(config('ai-assist.enabled'))->toBeFalse();
+        expect(Secrets::source('telegram.notify_new_leads'))->toBe(IntegrationSource::Env)
+            ->and(config('services.telegram.notify_new_leads'))->toBeFalse();
     });
 
     it('ignores a stored non-secret value that no longer passes its rules', function () {
-        Setting::factory()->create(['key' => 'ai.text_model', 'group' => 'integrations', 'value' => 'retired-model']);
+        Setting::factory()->create(['key' => 'telegram.locale', 'group' => 'integrations', 'value' => 'retired-locale']);
         Secrets::flush();
 
-        expect(Secrets::source('ai.text_model'))->toBe(IntegrationSource::Default)
-            ->and(config('ai-assist.text_model'))->toBe(config('ai-assist.models.text')[0]);
+        expect(Secrets::source('telegram.locale'))->toBe(IntegrationSource::Default)
+            ->and(config('services.telegram.locale'))->toBe('uz');
     });
 
     it('does not mix integration rows into the company settings', function () {
@@ -92,15 +91,15 @@ describe('precedence', function () {
 
 describe('secrets at rest', function () {
     it('stores the value encrypted and caches only the ciphertext', function () {
-        IntegrationSecret::factory()->withValue('anthropic.api_key', FAKE_ANTHROPIC_KEY)->create();
+        IntegrationSecret::factory()->withValue('payme.key', FAKE_PAYME_KEY)->create();
         Secrets::flush();
-        Secrets::get('anthropic.api_key');
+        Secrets::get('payme.key');
 
         $raw = DB::table('integration_secrets')->value('value');
 
-        expect($raw)->not->toContain(FAKE_ANTHROPIC_KEY)
-            ->and(serialize(Cache::get(Secrets::CACHE_KEY)))->not->toContain(FAKE_ANTHROPIC_KEY)
-            ->and(Cache::get(Secrets::CACHE_KEY)['secrets']['anthropic.api_key']['value'])->toBe($raw)
+        expect($raw)->not->toContain(FAKE_PAYME_KEY)
+            ->and(serialize(Cache::get(Secrets::CACHE_KEY)))->not->toContain(FAKE_PAYME_KEY)
+            ->and(Cache::get(Secrets::CACHE_KEY)['secrets']['payme.key']['value'])->toBe($raw)
             ->and(IntegrationSecret::query()->first()->toArray())->not->toHaveKey('value');
     });
 
@@ -131,14 +130,29 @@ describe('secrets at rest', function () {
         '12 characters' => ['abcdefgh1234', null],
         '19 characters' => ['abcdefghijklmno1234', null],
         '20 characters' => ['abcdefghijklmnop1234', '1234'],
-        'long' => [FAKE_ANTHROPIC_KEY, 'wxyz'],
+        'long' => [FAKE_PAYME_KEY, 'wxyz'],
     ]);
 
     it('exposes the hint of an admin secret', function () {
-        IntegrationSecret::factory()->withValue('anthropic.api_key', FAKE_ANTHROPIC_KEY)->create();
+        IntegrationSecret::factory()->withValue('payme.key', FAKE_PAYME_KEY)->create();
         Secrets::flush();
 
-        expect(Secrets::hint('anthropic.api_key'))->toBe('wxyz');
+        expect(Secrets::hint('payme.key'))->toBe('wxyz');
+    });
+
+    it('never applies, lists or decrypts an orphan secret of an unregistered key (e.g. a removed AI key)', function () {
+        IntegrationSecret::factory()->withValue('anthropic.api_key', 'sk-ant-orphan-0000000000000000000000000000')->create();
+        config(['services.anthropic' => null]);
+        Secrets::flush();
+
+        $cached = Cache::get(Secrets::CACHE_KEY);
+
+        expect(IntegrationRegistry::has('anthropic.api_key'))->toBeFalse()
+            ->and($cached['secrets'])->not->toHaveKey('anthropic.api_key')
+            ->and(serialize($cached))->not->toContain('sk-ant-orphan')
+            ->and(config('services.anthropic'))->toBeNull()
+            ->and(collect(config()->all())->flatten()->containsStrict('sk-ant-orphan-0000000000000000000000000000'))->toBeFalse()
+            ->and(fn () => Secrets::get('anthropic.api_key'))->toThrow(InvalidArgumentException::class);
     });
 });
 
@@ -175,23 +189,30 @@ it('ignores a .env value of a select field outside its options and reports the k
     Exceptions::fake();
     Setting::factory()->create(['key' => 'payme.mode', 'group' => 'integrations', 'value' => 'prod']);
 
-    freshSecrets(['services.payme.mode' => 'live-SECRETISH', 'ai-assist.text_model' => 'unknown-model']);
+    freshSecrets(['services.payme.mode' => 'live-SECRETISH', 'services.telegram.locale' => 'klingon']);
 
     expect(Secrets::source('payme.mode'))->toBe(IntegrationSource::Db)
         ->and(config('services.payme.mode'))->toBe('prod')
-        ->and(Secrets::source('ai.text_model'))->toBe(IntegrationSource::Default);
+        ->and(Secrets::source('telegram.locale'))->toBe(IntegrationSource::Default);
 
     Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[payme.mode]') && ! str_contains($e->getMessage(), 'SECRETISH'));
-    Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[ai.text_model]'));
+    Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[telegram.locale]'));
 });
 
 it('declares every integration field in config without a default and in .env.example', function () {
     $example = file_get_contents(base_path('.env.example'));
     $services = file_get_contents(config_path('services.php'));
-    $aiAssist = file_get_contents(config_path('ai-assist.php'));
 
     foreach (IntegrationRegistry::fields() as $field) {
         expect($example)->toMatch('/^'.$field->env.'=$/m');
-        expect($services.$aiAssist)->toContain("env('{$field->env}')");
+        expect($services)->toContain("env('{$field->env}')");
     }
+});
+
+it('declares no AI provider or remove.bg keys any more', function () {
+    $example = file_get_contents(base_path('.env.example'));
+
+    expect($example)->not->toMatch('/^(AI_[A-Z_]+|ANTHROPIC_API_KEY|OPENAI_API_KEY|OPENROUTER_API_KEY|REMOVEBG_API_KEY)=/m')
+        ->and(config('services'))->not->toHaveKeys(['anthropic', 'openai', 'openrouter', 'removebg'])
+        ->and(IntegrationRegistry::GROUPS)->toBe(['telegram', 'payme', 'click']);
 });

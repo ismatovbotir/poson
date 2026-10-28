@@ -12,7 +12,6 @@ return [
         'service' => 'Сервис',
         'content' => 'Контент',
         'telegram' => 'Telegram',
-        'ai' => 'ИИ-ассистент',
         'settings' => 'Настройки',
     ],
 
@@ -38,12 +37,10 @@ return [
         'telegram_bot' => 'Бот',
         'telegram_mini_app' => 'Mini App',
         'telegram_chats' => 'Чаты',
-        'ai_usage' => 'Использование и лимиты',
         'company' => 'Компания',
         'users' => 'Пользователи и роли',
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
-        'ai_prompts' => 'AI-промпты',
     ],
 
     'tabs' => [

@@ -8,9 +8,9 @@ namespace App\Enums;
  * per-crawler robots.txt policy (key robots.ai_bots); Faq is the general FAQ
  * tab (faq_items rows, not settings keys) and is used for access only.
  * ApiTokens (token created / revoked) and PriceSync (a product unlinked
- * from the price API) are audit-only areas of plan 09. AiPrompts (plan 12) is
- * audit-only too: an AI prompt override saved (Updated) or reset (Cleared);
- * restricted like the other Admin-only areas.
+ * from the price API) are audit-only areas of plan 09. Audit rows may hold
+ * legacy values no longer listed here (e.g. "ai_prompts"): read them with
+ * tryFrom() (SettingsAudit does).
  */
 enum SettingsArea: string
 {
@@ -25,7 +25,6 @@ enum SettingsArea: string
     case Integrations = 'integrations';
     case ApiTokens = 'api_tokens';
     case PriceSync = 'price_sync';
-    case AiPrompts = 'ai_prompts';
 
     public function label(): string
     {
@@ -40,7 +39,7 @@ enum SettingsArea: string
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
             self::Seo, self::Tracking, self::AiBots => 'seo',
-            self::Integrations, self::ApiTokens, self::PriceSync, self::AiPrompts => 'integrations',
+            self::Integrations, self::ApiTokens, self::PriceSync => 'integrations',
         };
     }
 
@@ -49,6 +48,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::AiPrompts], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync], true);
     }
 }

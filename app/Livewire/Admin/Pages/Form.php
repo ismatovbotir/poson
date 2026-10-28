@@ -7,11 +7,8 @@ use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\SavePage;
 use App\Enums\PageTemplate;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
-use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Pages\PageForm;
 use App\Models\Page;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\PageAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -24,16 +21,11 @@ use Livewire\WithFileUploads;
  * locale, SEO texts, read-only slug (generated once), template (fixed on
  * system pages), cover image with alt per locale, active and the
  * "lawyer review needed" flag, plus the page FAQ (after the first save).
- *
- * SI assist on title, body and SEO; never on the body of a legal page:
- * hidden in the view, refused in aiTargets() (also when the stored page is
- * legal and the form's template was switched) and again server-side in
- * the AI action (PageAiContext::refuses()).
  */
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithAiAssist, WithFileUploads;
+    use HandlesActionErrors, WithFileUploads;
 
     #[Locked]
     public ?Page $page = null;
@@ -131,38 +123,6 @@ class Form extends Component
     public function template(): PageTemplate
     {
         return $this->page?->is_system ? $this->page->template : $this->form->templateEnum();
-    }
-
-    /**
-     * SI may write the body: neither the stored page nor the template in the
-     * form is legal (an unsaved template switch never unlocks it).
-     */
-    public function allowsAiBody(): bool
-    {
-        return $this->template()->allowsAiBody() && ($this->page === null || $this->page->allowsAiBody());
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function aiTargets(): array
-    {
-        $targets = [
-            'form.body' => 'page.body',
-            'form.meta_title' => 'page.meta_title',
-            'form.meta_description' => 'page.meta_description',
-        ];
-
-        if (! $this->allowsAiBody()) {
-            unset($targets['form.body']);
-        }
-
-        return $targets;
-    }
-
-    protected function aiContext(string $fieldKey): AiContext
-    {
-        return PageAiContext::fromForm($this->form, $this->page);
     }
 
     public function render(): View

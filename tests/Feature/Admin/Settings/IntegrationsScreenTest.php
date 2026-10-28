@@ -14,6 +14,7 @@ use App\Support\Admin\MenuGroup;
 use App\Support\Admin\MenuItem;
 use App\Support\Secrets;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
@@ -22,7 +23,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
-const SCREEN_SECRET = 'sk-ant-fake-SCREENSECRET-000000000000wxyz';
+const SCREEN_SECRET = 'fake-payme-SCREENSECRET-000000000000wxyz';
 
 const SCREEN_BOT_TOKEN = '123456789:AAScreenTokenScreenTokenScreenTok4321';
 
@@ -67,9 +68,14 @@ describe('access', function () use ($otherRoles) {
             ->assertSeeLivewire(Integrations::class)
             ->getContent();
 
-        foreach (['ai', 'telegram', 'payme', 'click', 'removebg'] as $group) {
+        foreach (['telegram', 'payme', 'click'] as $group) {
             expect($html)->toContain('data-section="'.$group.'"');
         }
+
+        // The AI assistant and remove.bg are gone (decision 2026-10-28).
+        expect($html)->not->toContain('data-section="ai"')
+            ->not->toContain('data-section="removebg"')
+            ->not->toMatch('/data-(secret|setting)="(anthropic|openai|openrouter|removebg|ai)\./');
     });
 
     it('forbids every other staff role', function (Role $role) {
@@ -80,7 +86,7 @@ describe('access', function () use ($otherRoles) {
 
     it('forbids direct method calls by another role', function (Role $role, string $method, array $params) {
         confirmAdminPassword();
-        $component = integrationsScreen()->set('secretInputs.anthropic.api_key', SCREEN_SECRET);
+        $component = integrationsScreen()->set('secretInputs.payme.key', SCREEN_SECRET);
 
         $this->actingAs(staffUser($role));
 
@@ -91,10 +97,10 @@ describe('access', function () use ($otherRoles) {
             ->and(SettingsAudit::query()->count())->toBe(0);
     })->with($otherRoles)->with([
         'save' => ['save', ['telegram']],
-        'replace' => ['replaceSecret', ['anthropic.api_key']],
-        'clear' => ['clearSecret', ['anthropic.api_key']],
+        'replace' => ['replaceSecret', ['payme.key']],
+        'clear' => ['clearSecret', ['payme.key']],
         'generate' => ['generateWebhookSecret', []],
-        'test' => ['test', ['anthropic']],
+        'test' => ['test', ['telegram']],
     ]);
 
     it('shows the menu item by the settings.integrations permission', function () {
@@ -113,7 +119,7 @@ describe('access', function () use ($otherRoles) {
 describe('password confirmation', function () {
     it('asks for the password before any write and returns here afterwards', function (string $method, array $params) {
         integrationsScreen()
-            ->set('secretInputs.anthropic.api_key', SCREEN_SECRET)
+            ->set('secretInputs.payme.key', SCREEN_SECRET)
             ->set('form.values.telegram.chats.sales', '-1001234567890')
             ->call($method, ...$params)
             ->assertRedirect(route('admin.confirm-password'));
@@ -123,10 +129,10 @@ describe('password confirmation', function () {
             ->and(Setting::query()->count())->toBe(0);
     })->with([
         'save' => ['save', ['telegram']],
-        'replace' => ['replaceSecret', ['anthropic.api_key']],
-        'clear' => ['clearSecret', ['anthropic.api_key']],
+        'replace' => ['replaceSecret', ['payme.key']],
+        'clear' => ['clearSecret', ['payme.key']],
         'generate' => ['generateWebhookSecret', []],
-        'test' => ['test', ['anthropic']],
+        'test' => ['test', ['telegram']],
     ]);
 
     it('shows the confirmation banner and disables the forms until confirmed', function () {
@@ -172,12 +178,12 @@ describe('secrets', function () {
             $logged[] = $event->message.json_encode($event->context);
         });
 
-        $component = typeAndReplaceSecret(integrationsScreen(), 'anthropic.api_key', SCREEN_SECRET)
+        $component = typeAndReplaceSecret(integrationsScreen(), 'payme.key', SCREEN_SECRET)
             ->assertHasNoErrors()
-            ->assertSet('secretInputs.anthropic.api_key', '')
+            ->assertSet('secretInputs.payme.key', '')
             ->assertDispatched('toast');
 
-        expect(Secrets::get('anthropic.api_key'))->toBe(SCREEN_SECRET)
+        expect(Secrets::get('payme.key'))->toBe(SCREEN_SECRET)
             ->and(browserPayload($component))->not->toContain('SCREENSECRET')
             ->and($component->html())->toContain('••••wxyz')
             ->and(json_encode(SettingsAudit::query()->get()->toArray()))->not->toContain('SCREENSECRET')
@@ -192,9 +198,6 @@ describe('secrets', function () {
 
     it('never renders a saved secret of any field', function () {
         $values = [
-            'anthropic.api_key' => 'sk-ant-fake-AAAAONE-000000000000000000',
-            'openai.api_key' => 'sk-fake-BBBBTWO-0000000000000000000000',
-            'removebg.api_key' => 'fake-CCCCTHREE-removebg-0000',
             'telegram.bot_token' => SCREEN_BOT_TOKEN,
             'telegram.webhook_secret' => str_repeat('DDDDFOUR', 6),
             'payme.key' => 'fake-EEEEFIVE-payme-key',
@@ -210,7 +213,7 @@ describe('secrets', function () {
 
         $payload = browserPayload(integrationsScreen());
 
-        foreach (['AAAAONE', 'BBBBTWO', 'CCCCTHREE', 'AAScreenToken', 'DDDDFOUR', 'EEEEFIVE', 'FFFFSIX', 'GGGGSEVEN'] as $marker) {
+        foreach (['AAScreenToken', 'DDDDFOUR', 'EEEEFIVE', 'FFFFSIX', 'GGGGSEVEN'] as $marker) {
             expect($payload)->not->toContain($marker);
         }
     });
@@ -219,12 +222,12 @@ describe('secrets', function () {
         confirmAdminPassword();
 
         $component = integrationsScreen()
-            ->set('secretInputs.anthropic.api_key', SCREEN_SECRET)
-            ->assertSet('secretInputs.anthropic.api_key', '');
+            ->set('secretInputs.payme.key', SCREEN_SECRET)
+            ->assertSet('secretInputs.payme.key', '');
 
         expect(browserPayload($component))->not->toContain('SCREENSECRET');
 
-        $component->set('secretInputs.openai.api_key', 'sk-fake-TYPEDONLY-000000000000000')
+        $component->set('secretInputs.click.secret_key', 'fake-click-TYPEDONLY-000000000000000')
             ->set('form.values.telegram.chats.sales', '-100123');
 
         expect(browserPayload($component))->not->toContain('TYPEDONLY')->not->toContain('SCREENSECRET');
@@ -246,22 +249,22 @@ describe('secrets', function () {
     });
 
     it('shows the status of each secret', function () {
-        IntegrationSecret::factory()->withValue('openai.api_key', 'sk-fake-key-0000000000000000000000abcd')->create();
-        freshSecrets(['services.anthropic.key' => 'sk-ant-env-0000000000000000000000000']);
+        IntegrationSecret::factory()->withValue('payme.test_key', 'fake-payme-test-0000000000000000000abcd')->create();
+        freshSecrets(['services.payme.key' => 'fake-payme-env-0000000000000000000000']);
 
         integrationsScreen()
-            ->assertSeeHtml('data-secret="anthropic.api_key"')
-            ->assertSeeInOrder(['data-secret="anthropic.api_key"', 'data-status="env"', 'ANTHROPIC_API_KEY'], false)
-            ->assertSeeInOrder(['data-secret="openai.api_key"', 'data-status="configured"', '••••abcd'], false)
-            ->assertSeeInOrder(['data-secret="removebg.api_key"', 'data-status="none"'], false)
-            ->assertDontSee('sk-ant-env-');
+            ->assertSeeHtml('data-secret="payme.key"')
+            ->assertSeeInOrder(['data-secret="payme.key"', 'data-status="env"', 'PAYME_KEY'], false)
+            ->assertSeeInOrder(['data-secret="payme.test_key"', 'data-status="configured"', '••••abcd'], false)
+            ->assertSeeInOrder(['data-secret="click.secret_key"', 'data-status="none"'], false)
+            ->assertDontSee('fake-payme-env-');
     });
 
     it('refuses to replace a secret locked by .env', function () {
-        freshSecrets(['services.anthropic.key' => 'sk-ant-env-0000000000000000000000000']);
+        freshSecrets(['services.payme.key' => 'fake-payme-env-0000000000000000000000']);
         confirmAdminPassword();
 
-        typeAndReplaceSecret(integrationsScreen(), 'anthropic.api_key', SCREEN_SECRET)
+        typeAndReplaceSecret(integrationsScreen(), 'payme.key', SCREEN_SECRET)
             ->assertDispatched('toast', type: 'error');
 
         expect(IntegrationSecret::query()->count())->toBe(0);
@@ -298,16 +301,16 @@ describe('settings', function () {
         confirmAdminPassword();
 
         integrationsScreen()
-            ->set('form.values.ai.enabled', true)
-            ->set('form.values.ai.daily_text_limit', '30')
-            ->call('save', 'ai')
+            ->set('form.values.telegram.notify_new_leads', false)
+            ->set('form.values.telegram.locale', 'ru')
+            ->call('save', 'telegram')
             ->assertHasNoErrors()
-            ->assertSet('form.values.ai.daily_text_limit', '30')
+            ->assertSet('form.values.telegram.locale', 'ru')
             ->assertDispatched('toast', type: 'success');
 
-        expect(config('ai-assist.enabled'))->toBeTrue()
-            ->and(config('ai-assist.limits.daily_text'))->toBe(30)
-            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['ai.daily_text_limit', 'ai.enabled']);
+        expect(config('services.telegram.notify_new_leads'))->toBeFalse()
+            ->and(config('services.telegram.locale'))->toBe('ru')
+            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['telegram.locale', 'telegram.notify_new_leads']);
     });
 
     it('shows validation errors under the field', function () {
@@ -462,18 +465,18 @@ describe('connection tests', function () {
 
     it('is rate limited', function () {
         $user = staffUser();
-        IntegrationSecret::factory()->withValue('removebg.api_key', 'fake-key-removebg-0000')->create();
+        IntegrationSecret::factory()->withValue('telegram.bot_token', SCREEN_BOT_TOKEN)->create();
         Secrets::flush();
         confirmAdminPassword();
-        Http::fake(['api.remove.bg/*' => Http::response(['data' => ['attributes' => ['credits' => ['total' => 3]]]])]);
+        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['username' => 'poson_bot']])]);
 
         $component = integrationsScreen($user);
 
         foreach (range(1, TestIntegrationConnection::MAX_ATTEMPTS) as $attempt) {
-            $component->call('test', 'removebg')->assertSet('testResults.removebg_api_key.ok', true);
+            $component->call('test', 'telegram')->assertSet('testResults.telegram_bot_token.ok', true);
         }
 
-        $component->call('test', 'removebg')->assertSet('testResults.removebg_api_key.ok', false);
+        $component->call('test', 'telegram')->assertSet('testResults.telegram_bot_token.ok', false);
 
         Http::assertSentCount(TestIntegrationConnection::MAX_ATTEMPTS);
     });
@@ -483,17 +486,17 @@ describe('connection tests', function () {
         $component = integrationsScreen($user);
 
         foreach (range(1, TestIntegrationConnection::MAX_ATTEMPTS + 1) as $attempt) {
-            $component->call('test', 'anthropic')->assertRedirect(route('admin.confirm-password'));
+            $component->call('test', 'telegram')->assertRedirect(route('admin.confirm-password'));
         }
 
         expect(RateLimiter::attempts(TestIntegrationConnection::throttleKey($user)))->toBe(0);
     });
 
-    it('404s for an unknown target', function () {
+    it('404s for an unknown or removed target', function (string $target) {
         confirmAdminPassword();
 
-        integrationsScreen()->call('test', 'payme')->assertNotFound();
-    });
+        integrationsScreen()->call('test', $target)->assertNotFound();
+    })->with(['payme', 'anthropic', 'openrouter', 'openai', 'removebg']);
 });
 
 describe('audit history', function () {
@@ -514,6 +517,20 @@ describe('audit history', function () {
             ->and($paginator->lastPage())->toBe(5);
 
         $component->call('gotoPage', 5, 'auditPage')->assertSee('key_6')->assertDontSee('key_5<');
+    });
+
+    it('lists a legacy audit row whose area no longer exists (ai_prompts)', function () {
+        $user = staffUser();
+        DB::table('settings_audits')->insert(['user_id' => $user->id, 'area' => 'ai_prompts', 'key' => 'product.description', 'action' => AuditAction::Updated->value, 'ip' => null, 'created_at' => now()]);
+        SettingsAudit::factory()->create(['user_id' => $user->id, 'area' => SettingsArea::Integrations, 'key' => 'telegram.bot_token']);
+
+        expect(SettingsAudit::query()->where('area', 'ai_prompts')->sole()->area)->toBeNull();
+
+        $this->actingAs($user)->get(route('admin.settings.integrations'))
+            ->assertOk()
+            ->assertSee('product.description')
+            ->assertSee('ai_prompts')
+            ->assertSee(SettingsArea::Integrations->label());
     });
 
     it('shows an empty state', function () {

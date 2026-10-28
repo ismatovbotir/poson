@@ -76,12 +76,9 @@ class RolesAndPermissionsSeeder extends Seeder
      *    (quotes.view-all: every quote, Admin). The service engineer has no
      *    quote access (plan 06, safest option).
      *    customers.price-level: Admin only.
-     *  - ai.use: the AI assistant in content forms (plan 02); ai-requests.viewAny:
-     *    AI usage and limits screen (Admin only).
      *  - pages.* / news.* / banners.*: Content manager + Admin (plan 07).
      *  - api-tokens.manage / price-sync.view: price API tokens and the sync
      *    log (plan 09); Admin only, no other role.
-     *  - ai-prompts.manage: Settings → AI prompts (plan 12); Admin only.
      *
      * @return array<string, list<string>>
      */
@@ -99,7 +96,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...static::abilities($catalog, self::CRUD),
                 ...static::abilities(self::CONTENT, self::CRUD),
                 'products.manage-services',
-                'ai.use',
             ],
 
             Role::SalesManager->value => [
@@ -149,16 +145,11 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 06 quotes (quotes.view-all: Admin only).
             ...static::abilities(['quotes'], self::CRUD),
             'quotes.view-all',
-            // Plan 02 admin AI assist: ai.use (Admin + Content manager), the usage screen (Admin only).
-            'ai.use',
-            'ai-requests.viewAny',
             // Plan 07 content: pages (7a), news (7b), banners (7c).
             ...static::abilities(self::CONTENT, self::CRUD),
             // Plan 09 price API: tokens (Settings → API tokens) and the sync log. Admin only.
             'api-tokens.manage',
             'price-sync.view',
-            // Plan 12: Settings → AI prompts (override the default AI hints). Admin only.
-            'ai-prompts.manage',
         ];
     }
 

@@ -157,12 +157,4 @@ class Page extends Model implements HasMedia
     {
         return $this->template === PageTemplate::Legal;
     }
-
-    /**
-     * Whether the SI assist may write the body (never on legal pages).
-     */
-    public function allowsAiBody(): bool
-    {
-        return $this->template->allowsAiBody();
-    }
 }

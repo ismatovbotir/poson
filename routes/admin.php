@@ -5,7 +5,6 @@ use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
-use App\Livewire\Admin\Ai;
 use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Articles;
 use App\Livewire\Admin\Attributes;
@@ -74,9 +73,6 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/quotes/{quote}/edit', Quotes\Form::class)->whereNumber('quote')->name('quotes.edit');
     Route::get('/quotes/{quote}/pdf', QuotePdfController::class)->whereNumber('quote')->name('quotes.pdf');
 
-    // SI yordamchi (plan 02): usage and limits, ai-requests.viewAny (Admin only), authorized in the component.
-    Route::livewire('/ai/usage', Ai\Usage::class)->name('ai.usage');
-
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');
     Route::livewire('/analytics/ai', Analytics\AiVisibility::class)->name('analytics.ai');
@@ -136,9 +132,6 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
     // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
-    // AI prompts (plan 12): ai-prompts.manage (Admin only), AiPromptOverridePolicy in the components; unknown keys are a 404.
-    Route::livewire('/settings/ai-prompts', Settings\AiPrompts\Index::class)->name('settings.ai-prompts.index');
-    Route::livewire('/settings/ai-prompts/{fieldKey}', Settings\AiPrompts\Edit::class)->where('fieldKey', '[a-z_]+\.[a-z_]+')->name('settings.ai-prompts.edit');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

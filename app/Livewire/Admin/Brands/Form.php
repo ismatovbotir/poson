@@ -6,11 +6,8 @@ use App\Actions\Catalog\DeleteBrand;
 use App\Actions\Catalog\SaveBrand;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
-use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\BrandAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -19,13 +16,12 @@ use Livewire\WithFileUploads;
 
 /**
  * Create / edit a brand: name, slug, description and SEO meta title /
- * description (uz/ru/en), website, logo. AI assist for the description and
- * the meta fields (BrandAiContext).
+ * description (uz/ru/en), website, logo.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithAiAssist, WithFileUploads;
+    use HandlesActionErrors, WithFileUploads;
 
     public ?Brand $brand = null;
 
@@ -111,23 +107,6 @@ class Form extends Component
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => $this->brand->name, 'type' => 'success']);
             $this->redirectRoute('admin.brands.index', navigate: true);
         }
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function aiTargets(): array
-    {
-        return [
-            'form.description' => 'brand.description',
-            'form.meta_title' => 'brand.meta_title',
-            'form.meta_description' => 'brand.meta_description',
-        ];
-    }
-
-    protected function aiContext(string $fieldKey): AiContext
-    {
-        return BrandAiContext::fromForm($this->form, $this->brand);
     }
 
     public function render(): View

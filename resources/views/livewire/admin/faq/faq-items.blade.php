@@ -16,9 +16,7 @@
                 @foreach (config('app.supported_locales') as $locale)
                     <x-admin.locale-panel :locale="$locale">
                         <x-admin.input wire:model="form.question.{{ $locale }}" :label="__('admin.faq.fields.question')" :required="$locale === 'uz'" maxlength="{{ \App\Models\FaqItem::QUESTION_MAX }}" />
-                        <x-admin.textarea wire:model="form.answer.{{ $locale }}" :label="__('admin.faq.fields.answer')" :required="$locale === 'uz'" rows="5" maxlength="{{ \App\Models\FaqItem::ANSWER_MAX }}" :hint="__('admin.faq.answer_hint')">
-                            <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="faq.answer" target="form.answer" /></span></x-slot:labelAside>
-                        </x-admin.textarea>
+                        <x-admin.textarea wire:model="form.answer.{{ $locale }}" :label="__('admin.faq.fields.answer')" :required="$locale === 'uz'" rows="5" maxlength="{{ \App\Models\FaqItem::ANSWER_MAX }}" :hint="__('admin.faq.answer_hint')" />
                     </x-admin.locale-panel>
                 @endforeach
             </x-admin.locale-tabs>

@@ -36,16 +36,6 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <!-- Integrations: never use real keys from the shell or .env in tests (plan 04b). -->
-        <env name="ANTHROPIC_API_KEY" value="" force="true"/>
-        <env name="OPENAI_API_KEY" value="" force="true"/>
-        <env name="REMOVEBG_API_KEY" value="" force="true"/>
-        <env name="AI_ENABLED" value="" force="true"/>
-        <env name="AI_TEXT_MODEL" value="" force="true"/>
-        <env name="AI_VISION_MODEL" value="" force="true"/>
-        <env name="AI_IMAGE_MODEL" value="" force="true"/>
-        <env name="AI_DAILY_LIMIT_PER_USER" value="" force="true"/>
-        <env name="AI_DAILY_IMAGE_LIMIT_PER_USER" value="" force="true"/>
-        <env name="AI_MONTHLY_BUDGET_USD" value="" force="true"/>
         <env name="TELEGRAM_BOT_TOKEN" value="" force="true"/>
         <env name="TELEGRAM_WEBHOOK_SECRET" value="" force="true"/>
         <env name="TELEGRAM_SALES_CHAT_ID" value="" force="true"/>

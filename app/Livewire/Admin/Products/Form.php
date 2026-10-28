@@ -10,7 +10,6 @@ use App\Enums\AttributeType;
 use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
-use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Products\ProductForm;
 use App\Models\Attribute;
 use App\Models\Brand;
@@ -18,8 +17,6 @@ use App\Models\PriceSyncLog;
 use App\Models\Product;
 use App\Models\RollType;
 use App\Support\Admin\PasswordConfirmation;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\ProductAiContext;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ResolvedAttribute;
@@ -46,7 +43,7 @@ use Livewire\Component;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithAiAssist;
+    use HandlesActionErrors;
 
     #[Locked]
     public ?Product $product = null;
@@ -433,24 +430,6 @@ class Form extends Component
 
         session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => __('admin.products.moved_to_trash', ['name' => $this->product->name]), 'type' => 'success']);
         $this->redirectRoute('admin.products.index', navigate: true);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function aiTargets(): array
-    {
-        return [
-            'form.short_description' => 'product.short_description',
-            'form.description' => 'product.description',
-            'form.meta_title' => 'product.meta_title',
-            'form.meta_description' => 'product.meta_description',
-        ];
-    }
-
-    protected function aiContext(string $fieldKey): AiContext
-    {
-        return ProductAiContext::fromForm($this->form, $this->product);
     }
 
     public function render(): View

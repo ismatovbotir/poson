@@ -8,13 +8,10 @@ use App\Actions\News\SaveNewsPost;
 use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
-use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\News\NewsPostForm;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
-use App\Support\Ai\AiContext;
-use App\Support\Ai\NewsAiContext;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
@@ -33,16 +30,13 @@ use Livewire\WithFileUploads;
  * image with alt per locale, and the related products and categories
  * (search pickers, saved with the post).
  *
- * SI assist on title, excerpt, body and SEO; the subject and the related
- * names are resolved server-side (NewsAiContext).
- *
  * The kind is fixed by the screen (kind()): App\Livewire\Admin\Articles\Form
  * creates and edits articles; a post of the other kind is a 404 here.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithAiAssist, WithFileUploads;
+    use HandlesActionErrors, WithFileUploads;
 
     /**
      * Picker results shown per search.
@@ -272,35 +266,6 @@ class Form extends Component
         }
     }
 
-    /**
-     * FieldRegistry prefix of this screen's kind: "article" for knowledge
-     * articles, "news" for news posts (plan 12). Titles have no AI.
-     */
-    protected function aiPrefix(): string
-    {
-        return $this->kind() === NewsKind::Article ? 'article' : 'news';
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function aiTargets(): array
-    {
-        $prefix = $this->aiPrefix();
-
-        return [
-            'form.excerpt' => "{$prefix}.excerpt",
-            'form.body' => "{$prefix}.body",
-            'form.meta_title' => "{$prefix}.meta_title",
-            'form.meta_description' => "{$prefix}.meta_description",
-        ];
-    }
-
-    protected function aiContext(string $fieldKey): AiContext
-    {
-        return NewsAiContext::fromForm($this->form, $this->newsPost, $this->kind());
-    }
-
     public function render(): View
     {
         $kind = $this->kind();
@@ -310,7 +275,6 @@ class Form extends Component
 
         return view('livewire.admin.news.form', [
             'kind' => $kind,
-            'aiPrefix' => $this->aiPrefix(),
             'title' => $title,
             'statuses' => collect(NewsStatus::cases())->mapWithKeys(fn (NewsStatus $status) => [$status->value => $status->label()])->all(),
             'publicUrl' => $publicLocale !== null ? $post->url($publicLocale) : null,

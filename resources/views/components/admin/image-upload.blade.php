@@ -72,9 +72,8 @@
 
     @if ($altModel)
         <fieldset class="mt-4">
-            <legend class="flex items-center gap-1 text-xs font-semibold text-slate-600">
+            <legend class="text-xs font-semibold text-slate-600">
                 {{ __('admin.image_upload.alt') }}
-                <x-admin.ai-button :field="$altModel" />
             </legend>
             <div class="mt-1.5 space-y-2">
                 @foreach (config('app.supported_locales') as $locale)

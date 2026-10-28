@@ -19,7 +19,7 @@ use InvalidArgumentException;
 
 /**
  * Save non-secret integration values (Settings → Integrations): chat IDs,
- * merchant IDs, Payme mode, AI switches, models and limits. Secrets go
+ * merchant IDs, Payme mode, Telegram switches and locale. Secrets go
  * through SetSecret / ClearSecret instead.
  *
  * validate() normalizes (trim, lowercase where the field asks) and checks

@@ -1,6 +1,6 @@
 @php
     $locales = config('app.supported_locales');
-    $aiBody = $this->allowsAiBody();
+    $legalBody = $this->template() === \App\Enums\PageTemplate::Legal;
 @endphp
 
 <form wire:submit="save" novalidate>
@@ -34,11 +34,7 @@
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
                             <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.pages.fields.title')" :required="$locale === 'uz'" maxlength="255" />
-                            <x-admin.rich-text wire:model="form.body.{{ $locale }}" :label="__('admin.pages.fields.body')" :hint="$aiBody ? null : __('admin.pages.legal_body_hint')">
-                                @if ($aiBody)
-                                    <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="page.body" target="form.body" /></span></x-slot:labelAside>
-                                @endif
-                            </x-admin.rich-text>
+                            <x-admin.rich-text wire:model="form.body.{{ $locale }}" :label="__('admin.pages.fields.body')" :hint="$legalBody ? __('admin.pages.legal_body_hint') : null" />
                         </x-admin.locale-panel>
                     @endforeach
                 </x-admin.locale-tabs>
@@ -51,12 +47,8 @@
                 <x-admin.locale-tabs :error-keys="['form.meta_title', 'form.meta_description']" :label="__('admin.catalog.seo')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
-                            <x-admin.input wire:model="form.meta_title.{{ $locale }}" :label="__('admin.catalog.meta_title')" maxlength="255" :hint="__('admin.catalog.meta_title_hint')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="page.meta_title" target="form.meta_title" /></span></x-slot:labelAside>
-                            </x-admin.input>
-                            <x-admin.textarea wire:model="form.meta_description.{{ $locale }}" :label="__('admin.catalog.meta_description')" rows="3" maxlength="500" :hint="__('admin.catalog.meta_description_hint')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="page.meta_description" target="form.meta_description" /></span></x-slot:labelAside>
-                            </x-admin.textarea>
+                            <x-admin.input wire:model="form.meta_title.{{ $locale }}" :label="__('admin.catalog.meta_title')" maxlength="255" :hint="__('admin.catalog.meta_title_hint')" />
+                            <x-admin.textarea wire:model="form.meta_description.{{ $locale }}" :label="__('admin.catalog.meta_description')" rows="3" maxlength="500" :hint="__('admin.catalog.meta_description_hint')" />
                         </x-admin.locale-panel>
                     @endforeach
                 </x-admin.locale-tabs>
