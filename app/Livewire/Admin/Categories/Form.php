@@ -15,7 +15,6 @@ use App\Support\Ai\AiContext;
 use App\Support\Ai\CategoryAiContext;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Search;
-use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +25,7 @@ use Livewire\WithFileUploads;
 
 /**
  * Create / edit a category: content in uz/ru/en, placement in the tree,
- * slug, icon, image and the category's attributes (own ones editable,
+ * read-only slug, icon, image and the category's attributes (own ones editable,
  * inherited ones read-only with their source category).
  */
 #[Layout('layouts::admin')]
@@ -273,7 +272,8 @@ class Form extends Component
             $this->authorize('create', Category::class);
         }
 
-        $this->form->slug = Slug::make($this->form->slug);
+        // The slug is never client input: SaveCategory keeps the stored one or generates it.
+        $this->form->slug = (string) $this->category?->slug;
         $this->form->validate();
 
         $creating = $this->category === null;

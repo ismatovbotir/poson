@@ -6,7 +6,6 @@ use App\Enums\PageTemplate;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
 use App\Support\Slug;
-use Closure;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
@@ -14,8 +13,9 @@ use Livewire\Form;
 /**
  * State and validation of the page form. The component owns the page model
  * ($this->component->page); saving goes through SavePage and
- * UpdateCatalogImage (cover). Slug and template of system pages are shown
- * read-only and never sent to SavePage as changes.
+ * UpdateCatalogImage (cover). The slug is never editable (SavePage generates
+ * it once); the template of system pages is shown read-only and never sent
+ * to SavePage as a change.
  */
 class PageForm extends Form
 {
@@ -31,6 +31,10 @@ class PageForm extends Form
     /** @var array<string, string> */
     public array $meta_description = ['uz' => '', 'ru' => '', 'en' => ''];
 
+    /**
+     * Stored slug, display only: never validated nor sent to the action
+     * (generated once from the en title, else uz, then fixed).
+     */
     public string $slug = '';
 
     public string $template = 'default';
@@ -72,8 +76,7 @@ class PageForm extends Form
      */
     protected function rules(): array
     {
-        $page = $this->component->page;
-        $system = (bool) $page?->is_system;
+        $system = (bool) $this->component->page?->is_system;
 
         return [
             'title.uz' => ['required', 'string', 'max:255', new BrandSafeText],
@@ -82,17 +85,6 @@ class PageForm extends Form
             'body.*' => ['nullable', 'string', 'max:'.Page::BODY_MAX],
             'meta_title.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
             'meta_description.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
-            'slug' => $system ? ['nullable'] : [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('pages', 'slug')->ignore($page?->id),
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (filled($value) && Page::isSystemSlug((string) $value)) {
-                        $fail(__('admin.pages.errors.reserved_slug'));
-                    }
-                },
-            ],
             'template' => $system ? ['nullable'] : ['required', Rule::enum(PageTemplate::class)],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
@@ -108,7 +100,6 @@ class PageForm extends Form
     protected function validationAttributes(): array
     {
         $attributes = [
-            'slug' => __('admin.catalog.slug'),
             'template' => __('admin.pages.fields.template'),
             'sort' => __('admin.catalog.sort'),
             'image' => __('admin.pages.fields.cover'),
@@ -128,11 +119,15 @@ class PageForm extends Form
     }
 
     /**
-     * Slug SavePage will generate when the field is left empty.
+     * Slug SavePage generates on create (live preview while the record has
+     * none). A system slug gets the suffix SavePage gives it ("about" →
+     * "about-2"); other taken slugs are not looked up (no query per render).
      */
     public function autoSlug(): string
     {
-        return Slug::make(filled($this->title['en'] ?? '') ? $this->title['en'] : ($this->title['uz'] ?? ''));
+        $base = Slug::make(filled($this->title['en'] ?? '') ? $this->title['en'] : ($this->title['uz'] ?? ''));
+
+        return $base === '' ? '' : Slug::unique($base, Page::isSystemSlug(...));
     }
 
     public function templateEnum(): PageTemplate
@@ -143,7 +138,7 @@ class PageForm extends Form
     /**
      * Input for SavePage.
      *
-     * @return array{title: array<string, string>, body: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, slug: string, template: string, sort: int|null, is_active: bool, needs_review: bool}
+     * @return array{title: array<string, string>, body: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, template: string, sort: int|null, is_active: bool, needs_review: bool}
      */
     public function pageData(): array
     {
@@ -152,7 +147,6 @@ class PageForm extends Form
             'body' => $this->body,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'slug' => $this->slug,
             'template' => $this->template,
             'sort' => filled($this->sort) ? (int) $this->sort : null,
             'is_active' => $this->is_active,

@@ -139,25 +139,88 @@ describe('form', function () {
             ->and($page->getTranslation('body', 'uz'))->toBe('<p>Matn <a href="https://example.com" rel="nofollow">havola</a> <a href="/uz/page/about">biz</a></p>');
     });
 
-    it('rejects banned wording, reserved system slugs and taken slugs', function () {
-        Page::factory()->create(['slug' => 'careers']);
-
+    it('rejects banned wording', function () {
         Livewire::actingAs(staffUser())
             ->test(Form::class)
             ->set('form.title.uz', 'Eng arzon narxlar')
             ->set('form.meta_description.ru', 'Скидки каждый день')
-            ->set('form.slug', 'about')
             ->call('save')
-            ->assertHasErrors(['form.title.uz', 'form.meta_description.ru', 'form.slug']);
+            ->assertHasErrors(['form.title.uz', 'form.meta_description.ru']);
+
+        expect(Page::query()->count())->toBe(0);
+    });
+
+    it('generates the slug from the title, never a reserved system or taken one, and ignores a client slug', function () {
+        Page::factory()->create(['slug' => 'careers']);
+
+        Livewire::actingAs(staffUser())
+            ->test(Form::class)
+            ->assertDontSeeHtml('wire:model="form.slug"')
+            ->assertSeeHtml('data-slug-preview')
+            ->set('form.title.uz', 'Biz haqimizda')
+            ->set('form.title.en', 'About')
+            ->assertSeeHtml('data-slug-value>about-2</span>')
+            ->set('form.slug', 'privacy')
+            ->call('save')
+            ->assertHasNoErrors();
 
         Livewire::actingAs(staffUser())
             ->test(Form::class)
             ->set('form.title.uz', 'Ishlar')
-            ->set('form.slug', 'careers')
+            ->set('form.title.en', 'Careers')
             ->call('save')
-            ->assertHasErrors(['form.slug' => 'unique']);
+            ->assertHasNoErrors();
 
-        expect(Page::query()->count())->toBe(1);
+        expect(Page::query()->where('slug', 'about')->exists())->toBeFalse()
+            ->and(Page::query()->where('slug', 'privacy')->exists())->toBeFalse()
+            ->and(Page::query()->pluck('slug')->sort()->values()->all())->toBe(['about-2', 'careers', 'careers-2']);
+    });
+
+    it('previews the suffixed slug when the title matches a system slug', function () {
+        Livewire::actingAs(staffUser())
+            ->test(Form::class)
+            ->set('form.title.uz', 'Biz haqimizda')
+            ->set('form.title.en', 'About')
+            ->assertSeeHtml('data-slug-value>about-2</span>');
+    });
+
+    it('regenerates the slug once when a page with the same title is created concurrently', function () {
+        $clashed = false;
+
+        Page::creating(function (Page $page) use (&$clashed): void {
+            if (! $clashed) {
+                $clashed = true;
+                Page::factory()->create(['slug' => $page->slug]);
+            }
+        });
+
+        $page = app(SavePage::class)->handle(null, [
+            'title' => ['uz' => 'Hamkorlar', 'en' => 'Partners'],
+            'body' => [],
+            'meta_title' => [],
+            'meta_description' => [],
+            'template' => 'default',
+            'sort' => null,
+            'is_active' => true,
+            'needs_review' => false,
+        ]);
+
+        expect($page->slug)->toBe('partners-2');
+    });
+
+    it('keeps the slug of a custom page when it is renamed or the slug is tampered with', function () {
+        $page = Page::factory()->create(['slug' => 'delivery-info']);
+
+        Livewire::actingAs(staffUser())
+            ->test(Form::class, ['page' => $page])
+            ->assertSeeHtml('data-slug-locked')
+            ->set('form.title.en', 'Shipping and pickup')
+            ->set('form.slug', 'forged')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('form.slug', 'delivery-info');
+
+        expect($page->fresh()->slug)->toBe('delivery-info');
     });
 
     it('rejects banned wording in the body through the action', function () {

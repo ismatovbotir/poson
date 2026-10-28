@@ -85,7 +85,6 @@ class DemoProductsSeeder extends Seeder
                 'brand_id' => $row['brand'] !== null ? ($brands[$row['brand']] ?? null) : null,
                 'sku' => $row['sku'],
                 'model' => $row['model'] ?? null,
-                'slug' => null,
                 'name' => $row['name'],
                 'short_description' => $row['short_description'] ?? [],
                 'description' => $row['description'] ?? [],

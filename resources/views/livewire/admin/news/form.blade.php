@@ -39,24 +39,7 @@
                     @endforeach
                 </x-admin.locale-tabs>
 
-                <div class="mt-5">
-                    <label for="f-form-slug" class="text-sm font-semibold">{{ __('admin.catalog.slug') }}</label>
-                    <div @class([
-                        'mt-1.5 flex h-11 overflow-hidden rounded-lg border focus-within:ring-4',
-                        'border-slate-200 focus-within:border-brand-500 focus-within:ring-brand-500/15' => ! $errors->has('form.slug'),
-                        'border-red-300 focus-within:border-danger focus-within:ring-red-500/15' => $errors->has('form.slug'),
-                    ])>
-                        <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/{{ $kind->segment() }}/</span>
-                        <input id="f-form-slug" wire:model="form.slug" placeholder="{{ $form->autoSlug() ?: __('admin.catalog.slug_auto') }}" autocomplete="off" spellcheck="false" aria-describedby="f-form-slug-hint" class="min-w-0 flex-1 px-3 font-mono text-base outline-none sm:text-sm">
-                    </div>
-                    <p id="f-form-slug-hint" class="mt-1 text-xs text-slate-500">{{ __('admin.news.slug_hint') }}</p>
-                    @if ($newsPost?->isVisible())
-                        <p class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700" role="note" data-slug-warning>
-                            <x-admin.icon name="alert" size="size-3.5" class="mt-px shrink-0" />{{ $kind->adminText('slug_change_warning') }}
-                        </p>
-                    @endif
-                    <x-admin.field-error name="form.slug" />
-                </div>
+                <x-admin.slug-field class="mt-5" :prefix="'/'.$kind->segment().'/'" :slug="$newsPost?->slug" :preview="$form->autoSlug()" :hint="__('admin.news.slug_hint')" />
             </x-admin.card>
 
             {{-- Related products and categories --}}

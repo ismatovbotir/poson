@@ -15,14 +15,14 @@
             <x-admin.locale-tabs :error-keys="['form.title']" :label="__('admin.products.documents.title_field')">
                 @foreach (config('app.supported_locales') as $locale)
                     <x-admin.locale-panel :locale="$locale">
-                        <x-admin.input wire:model="form.title.{{ $locale }}" :label="__('admin.products.documents.title_field')" :required="$locale === 'uz'" maxlength="255" />
+                        <x-admin.input wire:model="form.title.{{ $locale }}" :label="__('admin.products.documents.title_field')" :required="$locale === 'uz'" maxlength="255" :placeholder="__('admin.products.documents.title_placeholder', [], $locale)" :hint="__('admin.products.documents.title_hint')" />
                     </x-admin.locale-panel>
                 @endforeach
             </x-admin.locale-tabs>
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-admin.select wire:model="form.type" :label="__('admin.products.documents.type')" :options="collect(\App\Enums\DocumentType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" required />
-                <x-admin.select wire:model="form.locale" :label="__('admin.products.documents.locale')" :placeholder="__('admin.products.documents.all_locales')" :options="collect(config('app.supported_locales'))->mapWithKeys(fn ($locale) => [$locale => __('admin.locale.'.$locale)])->all()" />
+                <x-admin.select wire:model="form.locale" :label="__('admin.products.documents.locale')" :placeholder="__('admin.products.documents.all_locales')" :options="collect(config('app.supported_locales'))->mapWithKeys(fn ($locale) => [$locale => __('admin.locale.'.$locale)])->all()" :hint="__('admin.products.documents.locale_hint')" />
             </div>
 
             <fieldset>

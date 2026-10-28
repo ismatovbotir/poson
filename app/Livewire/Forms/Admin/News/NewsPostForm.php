@@ -50,6 +50,10 @@ class NewsPostForm extends Form
     /** @var array<string, string> */
     public array $meta_description = ['uz' => '', 'ru' => '', 'en' => ''];
 
+    /**
+     * Stored slug, display only: never validated nor sent to the action
+     * (generated once from the uz title, then fixed).
+     */
     public string $slug = '';
 
     public string $status = 'draft';
@@ -97,8 +101,6 @@ class NewsPostForm extends Form
      */
     protected function rules(): array
     {
-        $post = $this->component->newsPost;
-
         return [
             'title.uz' => ['required', 'string', 'max:255', new BrandSafeText],
             'title.ru' => ['nullable', 'string', 'max:255', new BrandSafeText],
@@ -107,7 +109,6 @@ class NewsPostForm extends Form
             'body.*' => ['nullable', 'string', 'max:'.NewsPost::BODY_MAX],
             'meta_title.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
             'meta_description.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('news_posts', 'slug')->ignore($post?->id)],
             'status' => ['required', Rule::enum(NewsStatus::class)],
             'published_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX],
             'product_ids' => ['array', 'max:'.self::MAX_RELATED],
@@ -136,7 +137,6 @@ class NewsPostForm extends Form
     protected function validationAttributes(): array
     {
         $attributes = [
-            'slug' => __('admin.catalog.slug'),
             'status' => __('admin.news.fields.status'),
             'published_at' => __('admin.news.fields.published_at'),
             'product_ids' => __('admin.news.fields.products'),
@@ -158,7 +158,7 @@ class NewsPostForm extends Form
     }
 
     /**
-     * Slug SaveNewsPost will generate when the field is left empty (from the uz title).
+     * Slug SaveNewsPost generates from the uz title on create (live preview while the record has none).
      */
     public function autoSlug(): string
     {
@@ -199,7 +199,7 @@ class NewsPostForm extends Form
     /**
      * Input for SaveNewsPost.
      *
-     * @return array{title: array<string, string>, excerpt: array<string, string>, body: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, slug: string, status: string, published_at: CarbonInterface|null, product_ids: list<int>, category_ids: list<int>}
+     * @return array{title: array<string, string>, excerpt: array<string, string>, body: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, status: string, published_at: CarbonInterface|null, product_ids: list<int>, category_ids: list<int>}
      */
     public function postData(): array
     {
@@ -209,7 +209,6 @@ class NewsPostForm extends Form
             'body' => $this->body,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'slug' => $this->slug,
             'status' => $this->status,
             'published_at' => $this->publishedAtForSave(),
             'product_ids' => array_values(array_map('intval', $this->product_ids)),

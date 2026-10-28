@@ -45,26 +45,7 @@
                     @endforeach
                 </x-admin.locale-tabs>
 
-                <div class="mt-5">
-                    <label for="f-form-slug" class="text-sm font-semibold">{{ __('admin.catalog.slug') }}</label>
-                    @if ($isSystem)
-                        <div class="mt-1.5 flex h-11 items-center gap-2 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 px-3 font-mono text-sm text-slate-600" id="f-form-slug" data-slug-locked>
-                            <x-admin.icon name="lock" size="size-4" class="text-slate-400" />/page/{{ $page->slug }}
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.pages.system_slug_hint') }}</p>
-                    @else
-                        <div @class([
-                            'mt-1.5 flex h-11 overflow-hidden rounded-lg border focus-within:ring-4',
-                            'border-slate-200 focus-within:border-brand-500 focus-within:ring-brand-500/15' => ! $errors->has('form.slug'),
-                            'border-red-300 focus-within:border-danger focus-within:ring-red-500/15' => $errors->has('form.slug'),
-                        ])>
-                            <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/page/</span>
-                            <input id="f-form-slug" wire:model="form.slug" placeholder="{{ $form->autoSlug() ?: __('admin.catalog.slug_auto') }}" autocomplete="off" spellcheck="false" aria-describedby="f-form-slug-hint" class="min-w-0 flex-1 px-3 font-mono text-base outline-none sm:text-sm">
-                        </div>
-                        <p id="f-form-slug-hint" class="mt-1 text-xs text-slate-500">{{ __('admin.catalog.slug_hint') }}</p>
-                        <x-admin.field-error name="form.slug" />
-                    @endif
-                </div>
+                <x-admin.slug-field class="mt-5" prefix="/page/" :slug="$page?->slug" :preview="$form->autoSlug()" :hint="__('admin.pages.slug_hint')" :locked-hint="$isSystem ? __('admin.pages.system_slug_hint') : null" />
             </x-admin.card>
 
             {{-- SEO --}}

@@ -44,6 +44,44 @@ it('creates a product from whole soʻm and redirects to the edit page', function
         ->and($product->getTranslation('description', 'uz'))->toBe('<p>Matn </p>');
 });
 
+it('shows a live slug preview on create and ignores a slug sent by the client', function () {
+    $category = Category::factory()->create();
+    Product::factory()->create(['slug' => 'zebra-ds2208']);
+
+    Livewire::actingAs(staffUser())
+        ->test(Form::class)
+        ->assertDontSeeHtml('wire:model="form.slug"')
+        ->assertSeeHtml('data-slug-preview')
+        ->set('form.name.uz', 'Zebra DS2208')
+        ->assertSee('zebra-ds2208')
+        ->set('form.slug', 'forged')
+        ->set('form.category_id', (string) $category->id)
+        ->set('form.sku', 'ZEB-1')
+        ->set('form.price', '1000')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Product::query()->where('sku', 'ZEB-1')->sole()->slug)->toBe('zebra-ds2208-2');
+});
+
+it('keeps the stored slug when the product is renamed or the slug is tampered with', function () {
+    $product = Product::factory()->create(['slug' => 'stored-slug']);
+
+    Livewire::actingAs(staffUser())
+        ->test(Form::class, ['product' => $product])
+        ->assertSeeHtml('data-slug-locked')
+        ->assertDontSeeHtml('wire:model="form.slug"')
+        ->set('form.name.uz', 'Butunlay yangi nom')
+        ->set('form.name.en', 'Completely new name')
+        ->set('form.slug', 'forged')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('form.slug', 'stored-slug');
+
+    expect($product->fresh())->slug->toBe('stored-slug')
+        ->and($product->fresh()->getTranslation('name', 'en'))->toBe('Completely new name');
+});
+
 it('validates prices, SKU and the required fields', function () {
     Product::factory()->create(['sku' => 'TAKEN-1']);
 
@@ -313,13 +351,14 @@ it('moves the product to the trash from the danger zone', function () {
     $this->actingAs(staffUser())->get(route('admin.products.edit', $product))->assertNotFound();
 });
 
-it('shows the slug warning, SEO preview and child sections on the edit page', function () {
+it('shows the locked slug, SEO preview and child sections on the edit page', function () {
     $product = Product::factory()->create();
 
     $this->actingAs(staffUser())
         ->get(route('admin.products.edit', $product))
         ->assertOk()
-        ->assertSee('data-slug-warning', false)
+        ->assertSee('data-slug-locked', false)
+        ->assertDontSee('data-slug-warning', false)
         ->assertSee('data-seo-preview', false)
         ->assertSee('data-product-images', false)
         ->assertSee('data-product-documents', false)
@@ -330,6 +369,39 @@ it('shows the slug warning, SEO preview and child sections on the edit page', fu
         ->assertOk()
         ->assertSee('data-save-first', false)
         ->assertDontSee('data-product-images', false);
+});
+
+it('shows field hints and example placeholders on the create page', function () {
+    $this->actingAs(staffUser())
+        ->get(route('admin.products.create'))
+        ->assertOk()
+        ->assertSee(__('admin.products.hints.name', [], 'uz'))
+        ->assertSee(__('admin.products.hints.model', [], 'uz'))
+        ->assertSee(__('admin.products.hints.description', [], 'uz'))
+        ->assertSee(__('admin.products.hints.type', [], 'uz'))
+        ->assertSee(__('admin.products.hints.brand', [], 'uz'))
+        ->assertSee(__('admin.products.hints.unit', [], 'uz'))
+        ->assertSee(__('admin.products.hints.stock_status', [], 'uz'))
+        ->assertSee(__('admin.products.hints.badge', [], 'uz'))
+        ->assertSee(__('admin.products.specs.hint', [], 'uz'))
+        ->assertSee('placeholder="'.__('admin.products.placeholders.name', [], 'uz').'"', false)
+        ->assertSee('placeholder="'.__('admin.products.placeholders.name', [], 'ru').'"', false)
+        ->assertSee('placeholder="'.__('admin.products.placeholders.name', [], 'en').'"', false)
+        ->assertSee('placeholder="'.__('admin.products.placeholders.model', [], 'uz').'"', false);
+});
+
+it('shows the slug under the name in every locale panel with unique ids', function () {
+    $this->actingAs(staffUser())
+        ->get(route('admin.products.create'))
+        ->assertOk()
+        ->assertSeeInOrder([
+            'id="f-form-name-uz"', 'id="f-form-slug-uz"', 'id="f-form-short_description-uz"',
+            'id="f-form-name-ru"', 'id="f-form-slug-ru"', 'id="f-form-short_description-ru"',
+            'id="f-form-name-en"', 'id="f-form-slug-en"', 'id="f-form-short_description-en"',
+            'id="f-form-sku"',
+        ], false)
+        ->assertSee('aria-describedby="f-form-slug-ru-hint"', false)
+        ->assertDontSee('id="f-form-slug"', false);
 });
 
 it('opens the edit page with a constant number of queries', function () {

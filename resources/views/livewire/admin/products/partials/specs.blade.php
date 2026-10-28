@@ -22,6 +22,7 @@
                 <x-admin.icon name="star" size="size-3.5" class="inline align-[-2px] text-warn" style="fill: currentColor" />
                 {{ __('admin.products.specs.key_count', ['count' => $keyCount, 'max' => $maxKeys]) }}
             </p>
+            <p class="mt-1 text-xs text-slate-500" data-specs-hint>{{ __('admin.products.specs.hint') }}</p>
         </div>
         @if ($form->specs !== [])
             @if ($missingCount > 0)

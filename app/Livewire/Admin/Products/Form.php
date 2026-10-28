@@ -24,7 +24,6 @@ use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\Search;
-use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -369,7 +368,8 @@ class Form extends Component
 
         $this->authorize('useType', [Product::class, $type]);
 
-        $this->form->slug = Slug::make($this->form->slug);
+        // The slug is never client input: SaveProduct keeps the stored one or generates it.
+        $this->form->slug = (string) $this->product?->slug;
         $this->form->sku = mb_strtoupper(trim($this->form->sku));
         $this->form->validate();
 

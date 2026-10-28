@@ -208,7 +208,7 @@ describe('form', function () {
             ->assertSet('form.published_at', '2030-05-10T14:30');
     });
 
-    it('validates the title, banned wording, the date and the slug', function () {
+    it('validates the title, banned wording and the date, and never takes the slug from the client', function () {
         NewsPost::factory()->create(['slug' => 'taken-slug']);
 
         Livewire::actingAs(staffUser())
@@ -226,9 +226,10 @@ describe('form', function () {
             ->set('form.title.uz', 'Xabar')
             ->set('form.slug', 'taken-slug')
             ->call('save')
-            ->assertHasErrors(['form.slug' => 'unique']);
+            ->assertHasNoErrors();
 
-        expect(NewsPost::query()->count())->toBe(1);
+        expect(NewsPost::query()->count())->toBe(2)
+            ->and(NewsPost::query()->latest('id')->first()->slug)->toBe('xabar');
     });
 
     it('rejects banned wording in the body through the action', function () {
@@ -274,11 +275,9 @@ describe('form', function () {
         expect($first->slug)->toBe('yangi-skanerlar')
             ->and($second->slug)->toBe('yangi-skanerlar-2');
 
-        expect(fn () => $save->handle(null, newsData(['slug' => 'yangi-skanerlar'])))
-            ->toThrow(ValidationException::class);
-
-        // Its own slug is fine on update.
-        expect($save->handle($first->fresh(), newsData(['slug' => 'yangi-skanerlar']))->slug)->toBe('yangi-skanerlar');
+        // An incoming slug is ignored: generated on create, kept on update.
+        expect($save->handle(null, newsData(['slug' => 'yangi-skanerlar']))->slug)->toBe('yangi-skanerlar-3')
+            ->and($save->handle($first->fresh(), newsData(['slug' => 'forged', 'title' => ['uz' => 'Boshqa sarlavha', 'ru' => '', 'en' => '']]))->slug)->toBe('yangi-skanerlar');
     });
 
     it('updates the post and its relations, keeping the author and moving the content date only on text changes', function () {
@@ -417,7 +416,20 @@ describe('review follow-ups', function () {
         expect($post->refresh()->published_at->format('Y-m-d H:i:s'))->toBe('2026-03-05 09:20:00');
     });
 
-    it('turns a slug taken concurrently (unique index) into a slug error', function () {
+    it('regenerates a slug taken concurrently once', function () {
+        $clashed = false;
+
+        NewsPost::creating(function (NewsPost $post) use (&$clashed): void {
+            if (! $clashed) {
+                $clashed = true;
+                NewsPost::factory()->create(['slug' => $post->slug]);
+            }
+        });
+
+        expect(app(SaveNewsPost::class)->handle(null, newsData())->slug)->toBe('yangi-skanerlar-2');
+    });
+
+    it('turns a slug taken concurrently on the retry too into a slug error', function () {
         NewsPost::creating(function (NewsPost $post): void {
             DB::table('news_posts')->insert([
                 'slug' => $post->slug,
@@ -432,15 +444,27 @@ describe('review follow-ups', function () {
             ->toThrow(ValidationException::class, __('validation.unique', ['attribute' => __('admin.catalog.slug')]));
     });
 
-    it('warns that changing the slug of a published post breaks old links', function () {
+    it('shows the slug read-only: a live preview from the uz title while new, locked once saved', function () {
         Livewire::actingAs(staffUser())
-            ->test(Form::class, ['newsPost' => NewsPost::factory()->create()])
-            ->assertSeeHtml('data-slug-warning')
-            ->assertSee(__('admin.news.slug_change_warning'));
+            ->test(Form::class)
+            ->assertDontSeeHtml('wire:model="form.slug"')
+            ->assertSeeHtml('data-slug-preview')
+            ->set('form.title.uz', 'Yangi ofis ochildi')
+            ->assertSee('yangi-ofis-ochildi');
+
+        $post = NewsPost::factory()->create(['slug' => 'stored-news']);
 
         Livewire::actingAs(staffUser())
-            ->test(Form::class, ['newsPost' => NewsPost::factory()->draft()->create()])
-            ->assertDontSeeHtml('data-slug-warning');
+            ->test(Form::class, ['newsPost' => $post])
+            ->assertSeeHtml('data-slug-locked')
+            ->assertDontSeeHtml('data-slug-warning')
+            ->set('form.title.uz', 'Butunlay boshqa sarlavha')
+            ->set('form.slug', 'forged')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('form.slug', 'stored-news');
+
+        expect($post->fresh()->slug)->toBe('stored-news');
     });
 
     it('rejects banned wording in the cover alt (shared image action)', function () {

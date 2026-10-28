@@ -5,7 +5,7 @@ namespace App\Livewire\Forms\Admin\Brands;
 use App\Models\Brand;
 use App\Rules\BrandSafeText;
 use App\Rules\HttpsLink;
-use Illuminate\Validation\Rule;
+use App\Support\Slug;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
 
@@ -17,6 +17,10 @@ class BrandForm extends Form
 {
     public string $name = '';
 
+    /**
+     * Stored slug, display only: never validated nor sent to the action
+     * (generated once from the name, then fixed).
+     */
     public string $slug = '';
 
     /** @var array<string, string> */
@@ -59,7 +63,6 @@ class BrandForm extends Form
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('brands', 'slug')->ignore($this->component->brand?->id)],
             'description.*' => ['nullable', 'string', 'max:20000', new BrandSafeText],
             'website' => ['nullable', 'string', new HttpsLink],
             'is_active' => ['boolean'],
@@ -76,7 +79,6 @@ class BrandForm extends Form
     {
         $attributes = [
             'name' => __('admin.catalog.name'),
-            'slug' => __('admin.catalog.slug'),
             'website' => __('admin.brands.fields.website'),
             'sort' => __('admin.catalog.sort'),
             'logo' => __('admin.brands.fields.logo'),
@@ -91,15 +93,22 @@ class BrandForm extends Form
     }
 
     /**
+     * Slug SaveBrand generates from the name on create (live preview while the record has none).
+     */
+    public function autoSlug(): string
+    {
+        return Slug::make($this->name);
+    }
+
+    /**
      * Input for SaveBrand.
      *
-     * @return array{name: string, slug: string, description: array<string, string>, website: string|null, is_active: bool, sort: int|null}
+     * @return array{name: string, description: array<string, string>, website: string|null, is_active: bool, sort: int|null}
      */
     public function brandData(): array
     {
         return [
             'name' => $this->name,
-            'slug' => $this->slug,
             'description' => $this->description,
             'website' => filled($this->website) ? $this->website : null,
             'is_active' => $this->is_active,

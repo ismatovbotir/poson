@@ -33,7 +33,8 @@ use Illuminate\Validation\ValidationException;
  * - Prices arrive in tiyin (the form converts whole soʻm). A null Retail
  *   price means "price on request" and forces sale_mode = quote.
  * - SKU is trimmed and upper-cased; SKU and slug are unique including
- *   trashed products. An empty slug comes from the en name, else uz.
+ *   trashed products. The slug is generated once from the en name, else
+ *   uz, and never changes after that (incoming slugs are ignored).
  * - Descriptions are sanitized (HtmlSanitizer).
  * - Spec rows (ProductAttributeResolver: category chain + extras): one value
  *   row per attribute, a multiselect one row per option; empty values are
@@ -82,7 +83,6 @@ class SaveProduct
      *     brand_id: int|null,
      *     sku: string,
      *     model: string|null,
-     *     slug: string|null,
      *     name: array<string, string|null>,
      *     short_description: array<string, string|null>,
      *     description: array<string, string|null>,
@@ -135,6 +135,7 @@ class SaveProduct
         $rollTypeIds = $this->rollTypeIds($product, $data);
 
         $sku = mb_strtoupper(trim($data['sku']));
+        $generated = ! ($product->exists && (string) $product->getOriginal('slug') !== '');
         $slug = $this->slug($product, $data);
         [$rows, $missing] = $this->specRows($data['category_id'], $specs);
 
@@ -143,13 +144,15 @@ class SaveProduct
         }
 
         try {
-            return $this->store($product, $data, $sku, $slug, $rows, $missing, $rollTypeIds);
+            return $this->store($product, $data, $sku, $slug, $generated, $rows, $missing, $rollTypeIds);
         } catch (UniqueConstraintViolationException $exception) {
-            // A concurrent save took the SKU or slug between the check and the insert.
-            $field = str_contains(mb_strtolower($exception->getMessage()), 'sku') ? 'sku' : 'slug';
-            $label = $field === 'sku' ? __('admin.products.fields.sku') : __('admin.catalog.slug');
+            // A concurrent save took the SKU between the check and the insert (a taken
+            // generated slug is regenerated in store(); a stored one never clashes).
+            if (Slug::violates($exception, 'sku')) {
+                throw ValidationException::withMessages(['sku' => __('validation.unique', ['attribute' => __('admin.products.fields.sku')])]);
+            }
 
-            throw ValidationException::withMessages([$field => __('validation.unique', ['attribute' => $label])]);
+            throw $exception;
         }
     }
 
@@ -159,9 +162,9 @@ class SaveProduct
      * @param  list<ResolvedAttribute>  $missing
      * @param  list<int>|null  $rollTypeIds  null = leave the pivot as it is
      */
-    private function store(Product $product, array $data, string $sku, string $slug, array $rows, array $missing, ?array $rollTypeIds): Product
+    private function store(Product $product, array $data, string $sku, string $slug, bool $generated, array $rows, array $missing, ?array $rollTypeIds): Product
     {
-        return DB::transaction(function () use ($product, $data, $sku, $slug, $rows, $missing, $rollTypeIds): Product {
+        return DB::transaction(function () use ($product, $data, $sku, $slug, $generated, $rows, $missing, $rollTypeIds): Product {
             if ($product->exists) {
                 $pricingUnit = $data['pricing_unit'];
                 $data = $this->lockedPrices($product, $data);
@@ -204,7 +207,9 @@ class SaveProduct
             ]);
 
             $product->search_text = ProductSearchText::build($product);
-            $product->save();
+
+            // A product created concurrently with the same name: next free slug, once.
+            Slug::saveGenerated($product, $generated, fn (string $clashed): string => $this->slug($product, $data, $clashed));
 
             $this->storeSpecs($product, $rows);
 
@@ -375,26 +380,24 @@ class SaveProduct
     }
 
     /**
-     * @param  array{name: array<string, string|null>, slug: string|null}  $data
+     * The stored slug once there is one (never changed, whatever the input);
+     * otherwise a unique slug from the en name, else uz (never $except, a slug
+     * that just clashed). Incoming slugs are ignored.
      *
-     * @throws ValidationException
+     * @param  array{name: array<string, string|null>}  $data
      */
-    private function slug(Product $product, array $data): string
+    private function slug(Product $product, array $data, ?string $except = null): string
     {
-        $ignoreId = $product->exists ? $product->id : null;
-        $given = Slug::make($data['slug'] ?? '');
+        $stored = (string) $product->getOriginal('slug');
 
-        if ($given !== '') {
-            if (Slug::taken(Product::class, $given, $ignoreId)) {
-                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
-            }
-
-            return $given;
+        if ($product->exists && $stored !== '') {
+            return $stored;
         }
 
+        $ignoreId = $product->exists ? $product->id : null;
         $source = filled($data['name']['en'] ?? null) ? $data['name']['en'] : ($data['name']['uz'] ?? '');
 
-        return Slug::uniqueFor(Product::class, Slug::make($source), $ignoreId);
+        return Slug::uniqueFor(Product::class, Slug::make($source), $ignoreId, $except);
     }
 
     /**

@@ -29,6 +29,10 @@ class CategoryForm extends Form
     /** @var array<string, string> */
     public array $meta_description = ['uz' => '', 'ru' => '', 'en' => ''];
 
+    /**
+     * Stored slug, display only: never validated nor sent to the action
+     * (generated once from the en name, else uz, then fixed).
+     */
     public string $slug = '';
 
     /**
@@ -97,7 +101,6 @@ class CategoryForm extends Form
             'description.*' => ['nullable', 'string', 'max:20000'],
             'meta_title.*' => ['nullable', 'string', 'max:255'],
             'meta_description.*' => ['nullable', 'string', 'max:500'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($categoryId)],
             'parent_id' => [
                 'nullable',
                 'integer',
@@ -126,7 +129,6 @@ class CategoryForm extends Form
     protected function validationAttributes(): array
     {
         $attributes = [
-            'slug' => __('admin.catalog.slug'),
             'parent_id' => __('admin.categories.fields.parent'),
             'icon' => __('admin.categories.fields.icon'),
             'sort' => __('admin.catalog.sort'),
@@ -147,7 +149,7 @@ class CategoryForm extends Form
     }
 
     /**
-     * Slug SaveCategory will generate when the field is left empty.
+     * Slug SaveCategory generates on create (live preview while the record has none).
      */
     public function autoSlug(): string
     {
@@ -157,7 +159,7 @@ class CategoryForm extends Form
     /**
      * Input for SaveCategory.
      *
-     * @return array{parent_id: int|null, name: array<string, string>, description: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, slug: string, icon: string|null, sort: int|null, is_active: bool}
+     * @return array{parent_id: int|null, name: array<string, string>, description: array<string, string>, meta_title: array<string, string>, meta_description: array<string, string>, icon: string|null, sort: int|null, is_active: bool}
      */
     public function categoryData(): array
     {
@@ -167,7 +169,6 @@ class CategoryForm extends Form
             'description' => $this->description,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'slug' => $this->slug,
             'icon' => filled($this->icon) ? $this->icon : null,
             'sort' => filled($this->sort) ? (int) $this->sort : null,
             'is_active' => $this->is_active,

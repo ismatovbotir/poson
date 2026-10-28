@@ -51,16 +51,60 @@ it('creates a brand with an auto slug, description and logo', function () {
         ->and($brand->imageAlt('uz'))->toBe('Honeywell logotipi');
 });
 
-it('accepts only https websites and unique slugs', function () {
+it('accepts only https websites', function () {
+    Livewire::actingAs(staffUser())
+        ->test(Form::class)
+        ->set('form.name', 'Zebra 2')
+        ->set('form.website', 'http://zebra.com')
+        ->call('save')
+        ->assertHasErrors(['form.website']);
+});
+
+it('generates a unique slug from the name and ignores a slug sent by the client', function () {
     Brand::factory()->create(['slug' => 'zebra']);
 
     Livewire::actingAs(staffUser())
         ->test(Form::class)
-        ->set('form.name', 'Zebra 2')
-        ->set('form.slug', 'zebra')
-        ->set('form.website', 'http://zebra.com')
+        ->assertDontSeeHtml('wire:model="form.slug"')
+        ->set('form.name', 'Zebra')
+        ->assertSeeHtml('data-slug-value>zebra</span>')
+        ->set('form.slug', 'forged')
         ->call('save')
-        ->assertHasErrors(['form.website', 'form.slug' => 'unique']);
+        ->assertHasNoErrors();
+
+    expect(Brand::query()->latest('id')->first()->slug)->toBe('zebra-2')
+        ->and(Brand::query()->where('slug', 'forged')->exists())->toBeFalse();
+});
+
+it('regenerates the slug once when a brand with the same name is created concurrently', function () {
+    $clashed = false;
+
+    Brand::creating(function (Brand $brand) use (&$clashed): void {
+        if (! $clashed) {
+            $clashed = true;
+            Brand::factory()->create(['name' => 'Datalogic', 'slug' => $brand->slug]);
+        }
+    });
+
+    $brand = app(SaveBrand::class)->handle(null, ['name' => 'Datalogic', 'description' => [], 'website' => null, 'is_active' => true, 'sort' => null]);
+
+    expect($brand->slug)->toBe('datalogic-2')
+        ->and(Brand::query()->count())->toBe(2);
+});
+
+it('keeps the slug of an existing brand on rename and tampering', function () {
+    $brand = Brand::factory()->create(['name' => 'TSC', 'slug' => 'tsc']);
+
+    Livewire::actingAs(staffUser())
+        ->test(Form::class, ['brand' => $brand])
+        ->assertSeeHtml('data-slug-locked')
+        ->set('form.name', 'TSC Printronix')
+        ->set('form.slug', 'forged')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSet('form.slug', 'tsc');
+
+    expect($brand->fresh())->name->toBe('TSC Printronix')->slug->toBe('tsc');
 });
 
 it('updates and deletes a brand', function () {

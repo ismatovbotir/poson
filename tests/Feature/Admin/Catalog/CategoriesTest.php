@@ -155,33 +155,63 @@ describe('form', function () {
         expect(Category::query()->sole()->slug)->toBe('olchov-taminoti');
     });
 
-    it('requires the uz name and a unique slug', function () {
-        Category::factory()->create(['slug' => 'taken']);
+    it('requires the uz name and numbers a generated slug that is taken', function () {
+        Category::factory()->create(['slug' => 'skanerlar']);
 
         Livewire::actingAs(staffUser())
             ->test(Form::class)
-            ->set('form.slug', 'Taken')
             ->call('save')
-            ->assertHasErrors(['form.name.uz' => 'required', 'form.slug' => 'unique']);
+            ->assertHasErrors(['form.name.uz' => 'required']);
+
+        Livewire::actingAs(staffUser())
+            ->test(Form::class)
+            ->set('form.name.uz', 'Skanerlar')
+            ->set('form.slug', 'forged')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect(Category::query()->latest('id')->first()->slug)->toBe('skanerlar-2');
     });
 
-    it('updates a category and shows a toast', function () {
+    it('shows a read-only slug: a live preview while new, the stored one when saved', function () {
+        Livewire::actingAs(staffUser())
+            ->test(Form::class)
+            ->assertDontSeeHtml('wire:model="form.slug"')
+            ->assertSeeHtml('data-slug-preview')
+            ->set('form.name.uz', 'Yorliq printerlari')
+            ->assertSee('yorliq-printerlari')
+            ->set('form.name.en', 'Label printers')
+            ->assertSee('label-printers');
+
+        $category = Category::factory()->create(['slug' => 'old-slug']);
+
+        Livewire::actingAs(staffUser())
+            ->test(Form::class, ['category' => $category])
+            ->assertSeeHtml('data-slug-locked')
+            ->assertSee('old-slug')
+            ->set('form.name.en', 'Brand new name')
+            ->assertDontSee('brand-new-name');
+    });
+
+    it('updates a category keeping its slug (rename and tampering ignored) and shows a toast', function () {
         $category = Category::factory()->create(['slug' => 'old-slug']);
 
         Livewire::actingAs(staffUser())
             ->test(Form::class, ['category' => $category])
             ->assertSet('form.slug', 'old-slug')
             ->set('form.name.ru', 'Новое')
+            ->set('form.name.en', 'Renamed')
             ->set('form.slug', 'new-slug')
             ->set('form.is_active', false)
             ->call('save')
             ->assertHasNoErrors()
+            ->assertSet('form.slug', 'old-slug')
             ->assertDispatched('toast');
 
         $category->refresh();
 
         expect($category->getTranslation('name', 'ru'))->toBe('Новое')
-            ->and($category->slug)->toBe('new-slug')
+            ->and($category->slug)->toBe('old-slug')
             ->and($category->is_active)->toBeFalse();
     });
 

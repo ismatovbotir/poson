@@ -14,8 +14,9 @@ use Illuminate\Validation\ValidationException;
  * SyncCategoryAttributes, the image through UpdateCatalogImage).
  *
  * Guards the tree (plan 03 D4): no cycles and at most CategoryTree::MAX_DEPTH
- * levels, including the category's own subtree. The slug (D5) comes from the
- * en name, else uz, when left empty; descriptions are sanitized (D12).
+ * levels, including the category's own subtree. The slug (D5) is generated
+ * once from the en name, else uz, and never changes after that (incoming
+ * slugs are ignored); descriptions are sanitized (D12).
  */
 class SaveCategory
 {
@@ -26,7 +27,6 @@ class SaveCategory
      *     description: array<string, string|null>,
      *     meta_title: array<string, string|null>,
      *     meta_description: array<string, string|null>,
-     *     slug: string|null,
      *     icon: string|null,
      *     sort: int|null,
      *     is_active: bool
@@ -80,23 +80,20 @@ class SaveCategory
     }
 
     /**
-     * @param  array{name: array<string, string|null>, slug: string|null}  $data
+     * The stored slug once there is one (never changed, whatever the input);
+     * otherwise a unique slug from the en name, else uz. Incoming slugs are ignored.
      *
-     * @throws ValidationException
+     * @param  array{name: array<string, string|null>}  $data
      */
     private function slug(Category $category, array $data): string
     {
-        $ignoreId = $category->exists ? $category->id : null;
-        $given = Slug::make($data['slug'] ?? '');
+        $stored = (string) $category->getOriginal('slug');
 
-        if ($given !== '') {
-            if (Slug::taken(Category::class, $given, $ignoreId)) {
-                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
-            }
-
-            return $given;
+        if ($category->exists && $stored !== '') {
+            return $stored;
         }
 
+        $ignoreId = $category->exists ? $category->id : null;
         $source = filled($data['name']['en'] ?? null) ? $data['name']['en'] : ($data['name']['uz'] ?? '');
 
         return Slug::uniqueFor(Category::class, Slug::make($source), $ignoreId);

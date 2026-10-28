@@ -46,6 +46,7 @@
                     </div>
                     <div x-cloak x-show="alt" class="space-y-2 border-t border-slate-100 p-2.5">
                         <p class="flex items-center gap-1 text-xs font-semibold text-slate-600">{{ __('admin.image_upload.alt') }} <x-admin.ai-button :field="'alts.'.$media->id" /></p>
+                        <p class="text-xs text-slate-500">{{ __('admin.products.images.alt_hint') }}</p>
                         @foreach (config('app.supported_locales') as $locale)
                             <div class="flex items-center gap-1.5">
                                 <span class="w-6 shrink-0 text-center text-[11px] font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>

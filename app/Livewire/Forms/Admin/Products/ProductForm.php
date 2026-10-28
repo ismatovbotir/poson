@@ -63,6 +63,10 @@ class ProductForm extends Form
 
     public string $model = '';
 
+    /**
+     * Stored slug, display only: never validated nor sent to the action
+     * (generated once from the en name, else uz, then fixed).
+     */
     public string $slug = '';
 
     /**
@@ -213,7 +217,6 @@ class ProductForm extends Form
             'brand_id' => ['nullable', 'integer', Rule::exists('brands', 'id')],
             'sku' => ['required', 'string', 'max:64', 'regex:/^[A-Z0-9][A-Z0-9._\/+ -]*$/', Rule::unique('products', 'sku')->ignore($this->component->product?->id)],
             'model' => ['nullable', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($this->component->product?->id)],
             'price' => $price,
             'price_dealer' => $price,
             'price_wholesale' => $price,
@@ -252,7 +255,6 @@ class ProductForm extends Form
             'brand_id' => __('admin.products.fields.brand'),
             'sku' => __('admin.products.fields.sku'),
             'model' => __('admin.products.fields.model'),
-            'slug' => __('admin.catalog.slug'),
             'price' => __('enums.price_level.retail'),
             'price_dealer' => __('enums.price_level.dealer'),
             'price_wholesale' => __('enums.price_level.wholesale'),
@@ -281,7 +283,7 @@ class ProductForm extends Form
     }
 
     /**
-     * Slug SaveProduct will generate when the field is left empty.
+     * Slug SaveProduct generates on create (live preview while the record has none).
      */
     public function autoSlug(): string
     {
@@ -301,7 +303,6 @@ class ProductForm extends Form
             'brand_id' => filled($this->brand_id) ? (int) $this->brand_id : null,
             'sku' => $this->sku,
             'model' => filled($this->model) ? $this->model : null,
-            'slug' => $this->slug,
             'name' => $this->name,
             'short_description' => $this->short_description,
             'description' => $this->description,

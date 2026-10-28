@@ -17,7 +17,6 @@ use App\Support\Ai\AiContext;
 use App\Support\Ai\NewsAiContext;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Search;
-use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +28,7 @@ use Livewire\WithFileUploads;
 
 /**
  * Create / edit a news post (plan 07 7b): title, excerpt and rich-text body
- * per locale, SEO texts, slug (from the uz title when empty), status and
+ * per locale, SEO texts, read-only slug (generated once from the uz title), status and
  * publication date (Tashkent time; a future date schedules the post), cover
  * image with alt per locale, and the related products and categories
  * (search pickers, saved with the post).
@@ -231,7 +230,8 @@ class Form extends Component
             $this->authorize('create', NewsPost::class);
         }
 
-        $this->form->slug = Slug::make($this->form->slug);
+        // The slug is never client input: SaveNewsPost keeps the stored one or generates it.
+        $this->form->slug = (string) $this->newsPost?->slug;
         $this->form->validate();
 
         $creating = $this->newsPost === null;

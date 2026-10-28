@@ -13,6 +13,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttributeSkip;
 use App\Models\ProductAttributeValue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -118,7 +119,58 @@ it('generates a unique slug from the en name, else uz, including trashed product
     expect($first->slug)->toBe('ozbek-skaneri')
         ->and($second->slug)->toBe('ozbek-skaneri-2')
         ->and($english->slug)->toBe('handy-scanner')
-        ->and(saveErrors(fn () => saveProduct(null, productData($category, ['sku' => 'A4', 'slug' => 'ozbek-skaneri']))))->toHaveKey('slug');
+        ->and(saveProduct(null, productData($category, ['sku' => 'A4', 'slug' => 'ozbek-skaneri']))->slug)->toBe('poson-ps-200-skaner');
+});
+
+it('keeps the stored slug on update whatever the name or the incoming slug', function () {
+    $category = Category::factory()->create();
+    $product = saveProduct(null, productData($category, ['sku' => 'K1', 'name' => ['uz' => 'Eski nom', 'ru' => '', 'en' => '']]));
+
+    $renamed = saveProduct($product->fresh(), productData($category, ['sku' => 'K1', 'slug' => 'forged', 'name' => ['uz' => 'Yangi nom', 'ru' => '', 'en' => 'New name']]));
+
+    expect($renamed->fresh()->slug)->toBe('eski-nom');
+});
+
+it('regenerates a generated slug once when a concurrent save takes it', function () {
+    $category = Category::factory()->create();
+    $clashed = false;
+
+    Product::creating(function (Product $product) use (&$clashed): void {
+        if (! $clashed) {
+            $clashed = true;
+            Product::factory()->create(['sku' => 'OTHER-1', 'slug' => $product->slug]);
+        }
+    });
+
+    $saved = saveProduct(null, productData($category, ['sku' => 'R1', 'name' => ['uz' => 'Parallel skaner', 'ru' => '', 'en' => '']]));
+
+    expect($saved->slug)->toBe('parallel-skaner-2')
+        ->and(Product::query()->where('slug', 'parallel-skaner')->value('sku'))->toBe('OTHER-1');
+});
+
+it('turns a SKU taken concurrently into a SKU error', function () {
+    $category = Category::factory()->create();
+    $clashed = false;
+
+    Product::creating(function (Product $product) use (&$clashed): void {
+        if (! $clashed) {
+            $clashed = true;
+            Product::factory()->create(['sku' => $product->sku, 'slug' => 'other-slug']);
+        }
+    });
+
+    expect(saveErrors(fn () => saveProduct(null, productData($category, ['sku' => 'S1']))))->toHaveKey('sku')
+        ->not->toHaveKey('slug');
+});
+
+it('generates a slug on update for a legacy product without one', function () {
+    $category = Category::factory()->create();
+    $product = saveProduct(null, productData($category, ['sku' => 'L1']));
+    DB::table('products')->where('id', $product->id)->update(['slug' => '']);
+
+    $saved = saveProduct($product->fresh(), productData($category, ['sku' => 'L1', 'slug' => 'forged', 'name' => ['uz' => 'Eski skaner', 'ru' => '', 'en' => '']]));
+
+    expect($saved->fresh()->slug)->toBe('eski-skaner');
 });
 
 it('sanitizes the description and builds search_text', function () {

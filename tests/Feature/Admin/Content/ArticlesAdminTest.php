@@ -97,17 +97,20 @@ describe('kind separation', function () {
         NewsPost::factory()->create(['slug' => 'shared-slug']);
         $article = NewsPost::factory()->article()->create(['slug' => 'guide']);
 
-        Livewire::actingAs(staffUser())->test(Form::class, ['newsPost' => $article])
-            ->set('form.slug', 'shared-slug')
-            ->call('save')
-            ->assertHasErrors('form.slug');
-
-        Livewire::actingAs(staffUser())->test(Form::class, ['newsPost' => $article])
-            ->set('form.title.uz', 'Yangi sarlavha')
+        Livewire::actingAs(staffUser())->test(Form::class)
+            ->set('form.title.uz', 'Shared slug')
             ->call('save')
             ->assertHasNoErrors();
 
-        expect($article->fresh()->kind)->toBe(NewsKind::Article)
+        Livewire::actingAs(staffUser())->test(Form::class, ['newsPost' => $article])
+            ->set('form.title.uz', 'Yangi sarlavha')
+            ->set('form.slug', 'shared-slug')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect(NewsPost::query()->latest('id')->first()->slug)->toBe('shared-slug-2')
+            ->and($article->fresh()->kind)->toBe(NewsKind::Article)
+            ->and($article->fresh()->slug)->toBe('guide')
             ->and($article->fresh()->getTranslation('title', 'uz'))->toBe('Yangi sarlavha');
     });
 

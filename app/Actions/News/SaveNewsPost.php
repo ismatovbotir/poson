@@ -13,7 +13,6 @@ use App\Support\HtmlSanitizer;
 use App\Support\Site\StructuredData;
 use App\Support\Slug;
 use Carbon\CarbonInterface;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,11 +23,12 @@ use Illuminate\Validation\ValidationException;
  *
  * Re-checks what must never be stored whatever the caller: the uz title, the
  * brand rule (BrandSafeText) on every public text, sanitized body HTML, a
- * unique Latin slug (from the uz title when left empty) and, for a published
+ * unique Latin slug (generated once from the uz title, then never changed;
+ * incoming slugs are ignored) and, for a published
  * post, at least one locale with both title and body, and a publication
  * date between 2000 and 2099. A published post without a date is published
- * now; a future date schedules it. A slug taken concurrently (unique index)
- * becomes a slug validation error.
+ * now; a future date schedules it. A generated slug taken concurrently
+ * (unique index) is regenerated once (Slug::saveGenerated).
  *
  * content_updated_at is set on create and whenever the title, excerpt or
  * body actually change. The author and the kind (news or article, default
@@ -56,7 +56,6 @@ class SaveNewsPost
      *     body: array<string, string|null>,
      *     meta_title: array<string, string|null>,
      *     meta_description: array<string, string|null>,
-     *     slug: string|null,
      *     kind?: string,
      *     status: string,
      *     published_at: CarbonInterface|null,
@@ -98,6 +97,8 @@ class SaveNewsPost
                 $publishedAt = now();
             }
 
+            $generated = ! ($post->exists && (string) $post->getOriginal('slug') !== '');
+
             $post->fill([
                 'slug' => $this->slug($post, $data),
                 'status' => $status,
@@ -108,12 +109,8 @@ class SaveNewsPost
                 $post->author_id = $author->id;
             }
 
-            try {
-                $post->save();
-            } catch (UniqueConstraintViolationException) {
-                // Another save took the slug between the check and the insert.
-                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
-            }
+            // Another save took the generated slug between the check and the insert: next free slug, once.
+            Slug::saveGenerated($post, $generated, fn (string $clashed): string => $this->slug($post, $data, $clashed));
 
             $post->products()->sync($this->existing(Product::class, $data['product_ids'] ?? []));
             $post->categories()->sync($this->existing(Category::class, $data['category_ids'] ?? []));
@@ -182,24 +179,23 @@ class SaveNewsPost
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * The stored slug once there is one (never changed, whatever the input);
+     * otherwise a unique slug from the uz title (never $except, a slug that
+     * just clashed). Incoming slugs are ignored.
      *
-     * @throws ValidationException
+     * @param  array<string, mixed>  $data
      */
-    private function slug(NewsPost $post, array $data): string
+    private function slug(NewsPost $post, array $data, ?string $except = null): string
     {
-        $ignoreId = $post->exists ? $post->id : null;
-        $given = Slug::make($data['slug'] ?? '');
+        $stored = (string) $post->getOriginal('slug');
 
-        if ($given !== '') {
-            if (Slug::taken(NewsPost::class, $given, $ignoreId)) {
-                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
-            }
-
-            return $given;
+        if ($post->exists && $stored !== '') {
+            return $stored;
         }
 
-        return Slug::uniqueFor(NewsPost::class, Slug::make($data['title']['uz'] ?? '') ?: $post->kind->value, $ignoreId);
+        $ignoreId = $post->exists ? $post->id : null;
+
+        return Slug::uniqueFor(NewsPost::class, Slug::make($data['title']['uz'] ?? '') ?: $post->kind->value, $ignoreId, $except);
     }
 
     /**

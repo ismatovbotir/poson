@@ -18,22 +18,7 @@
                 <div class="space-y-5">
                     <x-admin.input wire:model.blur="form.name" :label="__('admin.catalog.name')" required maxlength="255" :hint="__('admin.brands.name_hint')" />
 
-                    <div x-data="{ original: @js($brand?->slug), active: @js((bool) $brand?->is_active) }">
-                        <label for="f-form-slug" class="text-sm font-semibold">{{ __('admin.catalog.slug') }}</label>
-                        <div @class([
-                            'mt-1.5 flex h-11 overflow-hidden rounded-lg border focus-within:ring-4',
-                            'border-slate-200 focus-within:border-brand-500 focus-within:ring-brand-500/15' => ! $errors->has('form.slug'),
-                            'border-red-300 focus-within:border-danger focus-within:ring-red-500/15' => $errors->has('form.slug'),
-                        ])>
-                            <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/brands/</span>
-                            <input id="f-form-slug" wire:model="form.slug" placeholder="{{ $autoSlug ?: __('admin.catalog.slug_auto') }}" autocomplete="off" spellcheck="false" aria-describedby="f-form-slug-hint" class="min-w-0 flex-1 px-3 font-mono text-base outline-none sm:text-sm">
-                        </div>
-                        <p id="f-form-slug-hint" class="mt-1 text-xs text-slate-500">{{ __('admin.brands.slug_hint') }}</p>
-                        <p x-cloak x-show="original && active && $wire.form.slug !== original" class="mt-1.5 flex items-start gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status">
-                            <x-admin.icon name="alert" size="size-4" class="shrink-0" />{{ __('admin.catalog.slug_changed_warning') }}
-                        </p>
-                        <x-admin.field-error name="form.slug" />
-                    </div>
+                    <x-admin.slug-field prefix="/brands/" :slug="$brand?->slug" :preview="$autoSlug" :hint="__('admin.brands.slug_hint')" />
 
                     <x-admin.input wire:model="form.website" type="url" inputmode="url" :label="__('admin.brands.fields.website')" placeholder="https://" maxlength="2048" :hint="__('admin.brands.website_hint')" />
 

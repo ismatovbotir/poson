@@ -80,9 +80,10 @@
                 <x-admin.locale-tabs :error-keys="['form.name', 'form.short_description', 'form.description']" :label="__('admin.form.content_language')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
-                            <x-admin.input wire:model.blur="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255">
+                            <x-admin.input wire:model.blur="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255" :placeholder="__('admin.products.placeholders.name', [], $locale)" :hint="__('admin.products.hints.name')">
                                 <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="product.name" target="form.name" /></span></x-slot:labelAside>
                             </x-admin.input>
+                            <x-admin.slug-field :id="'f-form-slug-'.$locale" prefix="/product/" :slug="$product?->slug" :preview="$form->autoSlug()" :hint="__('admin.catalog.slug_hint')" />
                             <x-admin.textarea wire:model="form.short_description.{{ $locale }}" :label="__('admin.products.fields.short_description')" rows="2" maxlength="500" :hint="__('admin.products.short_description_hint')">
                                 <x-slot:labelAside>
                                     <span class="ml-auto flex items-center gap-2">
@@ -91,7 +92,7 @@
                                     </span>
                                 </x-slot:labelAside>
                             </x-admin.textarea>
-                            <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.products.fields.description')">
+                            <x-admin.rich-text wire:model="form.description.{{ $locale }}" :label="__('admin.products.fields.description')" :hint="__('admin.products.hints.description')">
                                 <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="product.description" target="form.description" /></span></x-slot:labelAside>
                             </x-admin.rich-text>
                         </x-admin.locale-panel>
@@ -99,25 +100,8 @@
                 </x-admin.locale-tabs>
 
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                    <x-admin.input wire:model="form.sku" :label="__('admin.products.fields.sku')" required maxlength="64" autocomplete="off" spellcheck="false" class="[&_input]:font-mono" :hint="$priceSynced ? __('api.product.sku_locked') : __('admin.products.sku_hint')" :disabled="$priceSynced" />
-                    <x-admin.input wire:model="form.model" :label="__('admin.products.fields.model')" maxlength="255" autocomplete="off" />
-                </div>
-
-                <div class="mt-5" x-data="{ original: @js($product?->slug), active: @js((bool) $product?->is_active) }">
-                    <label for="f-form-slug" class="text-sm font-semibold">{{ __('admin.catalog.slug') }}</label>
-                    <div @class([
-                        'mt-1.5 flex h-11 overflow-hidden rounded-lg border focus-within:ring-4',
-                        'border-slate-200 focus-within:border-brand-500 focus-within:ring-brand-500/15' => ! $errors->has('form.slug'),
-                        'border-red-300 focus-within:border-danger focus-within:ring-red-500/15' => $errors->has('form.slug'),
-                    ])>
-                        <span class="hidden items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 sm:flex">/product/</span>
-                        <input id="f-form-slug" wire:model="form.slug" placeholder="{{ $form->autoSlug() ?: __('admin.catalog.slug_auto') }}" autocomplete="off" spellcheck="false" aria-describedby="f-form-slug-hint" class="min-w-0 flex-1 px-3 font-mono text-base outline-none sm:text-sm">
-                    </div>
-                    <p id="f-form-slug-hint" class="mt-1 text-xs text-slate-500">{{ __('admin.catalog.slug_hint') }}</p>
-                    <p x-cloak x-show="original && active && $wire.form.slug !== original" class="mt-1.5 flex items-start gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status" data-slug-warning>
-                        <x-admin.icon name="alert" size="size-4" class="shrink-0" />{{ __('admin.catalog.slug_changed_warning') }}
-                    </p>
-                    <x-admin.field-error name="form.slug" />
+                    <x-admin.input wire:model="form.sku" :label="__('admin.products.fields.sku')" required maxlength="64" autocomplete="off" spellcheck="false" class="[&_input]:font-mono" :placeholder="__('admin.products.placeholders.sku')" :hint="$priceSynced ? __('api.product.sku_locked') : __('admin.products.sku_hint')" :disabled="$priceSynced" />
+                    <x-admin.input wire:model="form.model" :label="__('admin.products.fields.model')" maxlength="255" autocomplete="off" spellcheck="false" :placeholder="__('admin.products.placeholders.model')" :hint="__('admin.products.hints.model')" />
                 </div>
             </x-admin.card>
 
@@ -216,7 +200,7 @@
                         @if ($form->pricing_unit === 'label')
                             <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="['roll' => \App\Enums\ProductUnit::Roll->label()]" :hint="__('admin.products.unit_roll_hint')" required disabled />
                         @else
-                            <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="collect(\App\Enums\ProductUnit::cases())->mapWithKeys(fn ($unit) => [$unit->value => $unit->label()])->all()" required />
+                            <x-admin.select wire:model="form.unit" :label="__('admin.products.fields.unit')" :options="collect(\App\Enums\ProductUnit::cases())->mapWithKeys(fn ($unit) => [$unit->value => $unit->label()])->all()" :hint="__('admin.products.hints.unit')" required />
                         @endif
                         <x-admin.input wire:model="form.min_qty" type="number" min="1" inputmode="numeric" :label="__('admin.products.fields.min_qty')" :hint="$form->pricing_unit === 'label' ? __('admin.products.min_qty_rolls_hint') : __('admin.products.min_qty_hint')" required />
                         <x-admin.input wire:model="form.warranty_months" type="number" min="0" max="600" inputmode="numeric" :label="__('admin.products.fields.warranty_months')" :hint="__('admin.products.warranty_hint')" />
@@ -224,7 +208,7 @@
 
                     {{-- Software shows no stock status on the site: the field is hidden, the stored value is kept. --}}
                     <div @if ($form->type === 'software') x-cloak @endif x-show="$wire.form.type !== 'software'" data-stock-status-field>
-                        <x-admin.select wire:model="form.stock_status" :label="__('admin.products.fields.stock_status')" :options="collect(\App\Enums\StockStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" required class="sm:max-w-xs" />
+                        <x-admin.select wire:model="form.stock_status" :label="__('admin.products.fields.stock_status')" :options="collect(\App\Enums\StockStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" :hint="__('admin.products.hints.stock_status')" required class="sm:max-w-xs" />
                     </div>
                 </div>
             </x-admin.card>
@@ -269,7 +253,7 @@
                         <x-admin.locale-panel :locale="$locale">
                             <div class="rounded-xl border border-slate-200 bg-canvas p-4" data-seo-preview>
                                 <p class="text-xs text-slate-500">{{ __('admin.products.seo_preview') }}</p>
-                                <p class="mt-2 truncate text-xs text-slate-600">{{ $siteHost }} › {{ $locale }} › product › <span x-text="$wire.form.slug || @js($form->autoSlug()) || '…'"></span></p>
+                                <p class="mt-2 truncate text-xs text-slate-600">{{ $siteHost }} › {{ $locale }} › product › <span>{{ $product?->slug ?: ($form->autoSlug() ?: '…') }}</span></p>
                                 <p class="mt-0.5 line-clamp-1 text-lg leading-snug text-[#1a0dab]" x-text="$wire.form.meta_title[@js($locale)] || $wire.form.name[@js($locale)] || $wire.form.name.uz || @js(__('admin.products.seo_preview_title'))"></p>
                                 <p class="mt-0.5 line-clamp-2 text-sm text-slate-600" x-text="$wire.form.meta_description[@js($locale)] || $wire.form.short_description[@js($locale)] || @js(__('admin.products.seo_preview_description'))"></p>
                             </div>
@@ -315,6 +299,7 @@
                                 </label>
                             @endforeach
                         </div>
+                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.hints.badge') }}</p>
                         <x-admin.field-error name="form.badge" />
                     </fieldset>
                 </div>
@@ -322,12 +307,12 @@
 
             <x-admin.card :title="__('admin.products.sections.classification')">
                 <div class="space-y-4">
-                    <x-admin.select wire:model="form.type" :label="__('admin.products.fields.type')" :options="$typeChoices->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" required />
+                    <x-admin.select wire:model="form.type" :label="__('admin.products.fields.type')" :options="$typeChoices->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" :hint="__('admin.products.hints.type')" required />
                     <div>
                         <x-admin.select wire:model.live="form.category_id" :label="__('admin.products.fields.category')" :placeholder="__('admin.common.choose')" :options="$this->categoryOptions" required />
                         <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.category_hint') }}</p>
                     </div>
-                    <x-admin.select wire:model="form.brand_id" :label="__('admin.products.fields.brand')" :placeholder="__('admin.products.no_brand')" :options="$this->brandOptions" />
+                    <x-admin.select wire:model="form.brand_id" :label="__('admin.products.fields.brand')" :placeholder="__('admin.products.no_brand')" :options="$this->brandOptions" :hint="__('admin.products.hints.brand')" />
                 </div>
             </x-admin.card>
 

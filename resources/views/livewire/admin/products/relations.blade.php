@@ -35,7 +35,7 @@
 
     @if ($canEdit)
         <div class="mt-4 space-y-2 border-t border-slate-100 pt-4">
-            <x-admin.select wire:model.live="type" :label="__('admin.products.relations.type')" :options="collect(\App\Enums\RelationType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" />
+            <x-admin.select wire:model.live="type" :label="__('admin.products.relations.type')" :options="collect(\App\Enums\RelationType::cases())->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" :hint="__('admin.products.relations.type_hint')" />
             <div class="relative">
                 <x-admin.icon name="search" size="size-4" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input wire:model.live.debounce.300ms="search" type="search" placeholder="{{ __('admin.products.relations.search') }}" aria-label="{{ __('admin.products.relations.search') }}" class="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-base outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm">

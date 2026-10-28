@@ -10,7 +10,6 @@ use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
 use App\Support\Ai\AiContext;
-use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -69,7 +68,8 @@ class Form extends Component
             $this->authorize('create', Brand::class);
         }
 
-        $this->form->slug = Slug::make($this->form->slug);
+        // The slug is never client input: SaveBrand keeps the stored one or generates it.
+        $this->form->slug = (string) $this->brand?->slug;
         $this->form->website = trim($this->form->website);
         $this->form->validate();
 
@@ -134,7 +134,7 @@ class Form extends Component
 
         return view('livewire.admin.brands.form', [
             'title' => $title,
-            'autoSlug' => Slug::make($this->form->name),
+            'autoSlug' => $this->form->autoSlug(),
             'currentLogoUrl' => $this->form->remove_logo ? null : $this->brand?->imageUrl(),
             'logoProcessing' => ! $this->form->remove_logo && $this->form->logo === null && (bool) $this->brand?->imageProcessing(),
             'canSave' => $this->brand ? auth()->user()->can('update', $this->brand) : true,

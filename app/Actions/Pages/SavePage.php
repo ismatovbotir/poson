@@ -17,9 +17,11 @@ use Illuminate\Validation\ValidationException;
  *
  * Re-checks what must never be stored whatever the caller: the uz title, the
  * brand rule (BrandSafeText) on every public text, sanitized body HTML, a
- * unique Latin slug that no custom page may take from the system list, and
- * the fixed slug and template of system pages (only texts, SEO, sort, active
- * and the review flag change there).
+ * unique Latin slug generated once from the title (never changed after that,
+ * incoming slugs are ignored) that no custom page may take from the system
+ * list, and the fixed slug and template of system pages (only texts, SEO,
+ * sort, active and the review flag change there). A generated slug taken
+ * concurrently is regenerated once (Slug::saveGenerated).
  *
  * content_updated_at is set on create and whenever the title or body
  * actually change (not on SEO, sort, active or review-flag edits).
@@ -32,7 +34,6 @@ class SavePage
      *     body: array<string, string|null>,
      *     meta_title: array<string, string|null>,
      *     meta_description: array<string, string|null>,
-     *     slug: string|null,
      *     template: string|null,
      *     sort: int|null,
      *     is_active: bool,
@@ -61,6 +62,8 @@ class SavePage
             $page->storeTranslations('meta_title', $data['meta_title'] ?? []);
             $page->storeTranslations('meta_description', $data['meta_description'] ?? []);
 
+            $generated = ! $page->is_system && ! ($page->exists && (string) $page->getOriginal('slug') !== '');
+
             $page->fill([
                 'slug' => $page->is_system ? $page->slug : $this->slug($page, $data),
                 'template' => $page->is_system ? $page->template : $this->template($data['template'] ?? null),
@@ -70,7 +73,9 @@ class SavePage
             ]);
 
             $page->is_system = (bool) $page->is_system;
-            $page->save();
+
+            // A page created concurrently with the same title: next free slug, once.
+            Slug::saveGenerated($page, $generated, fn (string $clashed): string => $this->slug($page, $data, $clashed));
 
             return $page;
         });
@@ -119,28 +124,27 @@ class SavePage
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * The stored slug once there is one (never changed, whatever the input);
+     * otherwise a unique slug from the en title, else uz, that is not on the
+     * system list (nor $except, a slug that just clashed). Incoming slugs are
+     * ignored.
      *
-     * @throws ValidationException
+     * @param  array<string, mixed>  $data
      */
-    private function slug(Page $page, array $data): string
+    private function slug(Page $page, array $data, ?string $except = null): string
     {
-        $ignoreId = $page->exists ? $page->id : null;
-        $given = Slug::make($data['slug'] ?? '');
+        $stored = (string) $page->getOriginal('slug');
 
-        if ($given !== '') {
-            if (Page::isSystemSlug($given) || Slug::taken(Page::class, $given, $ignoreId)) {
-                throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
-            }
-
-            return $given;
+        if ($page->exists && $stored !== '') {
+            return $stored;
         }
 
+        $ignoreId = $page->exists ? $page->id : null;
         $source = filled($data['title']['en'] ?? null) ? $data['title']['en'] : ($data['title']['uz'] ?? '');
 
         return Slug::unique(
             Slug::make($source) ?: 'page',
-            fn (string $slug): bool => Page::isSystemSlug($slug) || Slug::taken(Page::class, $slug, $ignoreId),
+            fn (string $slug): bool => $slug === $except || Page::isSystemSlug($slug) || Slug::taken(Page::class, $slug, $ignoreId),
         );
     }
 

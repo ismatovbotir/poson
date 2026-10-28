@@ -4,7 +4,9 @@ namespace App\Support;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * One shared Latin slug per record (plan 03 D5).
@@ -60,9 +62,63 @@ class Slug
      *
      * @param  class-string<Model>  $model
      */
-    public static function uniqueFor(string $model, string $base, ?int $ignoreId = null): string
+    public static function uniqueFor(string $model, string $base, ?int $ignoreId = null, ?string $except = null): string
     {
-        return static::unique($base, fn (string $slug): bool => static::taken($model, $slug, $ignoreId));
+        return static::unique($base, fn (string $slug): bool => $slug === $except || static::taken($model, $slug, $ignoreId));
+    }
+
+    /**
+     * Save a model. When its slug was generated (not the stored one) and a
+     * concurrent save took it between the check and the insert (unique
+     * index), the slug is regenerated once, never the one that just clashed,
+     * and the save retried. Should that clash too, a slug validation error.
+     * Other unique violations (e.g. a product SKU) are rethrown untouched.
+     *
+     * @param  callable(string): string  $regenerate  receives the clashed slug, returns a new one
+     *
+     * @throws ValidationException
+     * @throws UniqueConstraintViolationException
+     */
+    public static function saveGenerated(Model $model, bool $generated, callable $regenerate): void
+    {
+        try {
+            $model->save();
+
+            return;
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! $generated || ! static::violates($exception, 'slug')) {
+                throw $exception;
+            }
+        }
+
+        $model->setAttribute('slug', $regenerate((string) $model->getAttribute('slug')));
+
+        try {
+            $model->save();
+        } catch (UniqueConstraintViolationException $exception) {
+            if (! static::violates($exception, 'slug')) {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages(['slug' => __('validation.unique', ['attribute' => __('admin.catalog.slug')])]);
+        }
+    }
+
+    /**
+     * Whether a unique violation is on the given column. Reads the driver
+     * message only (not the SQL, which lists every column): MySQL names the
+     * key ("for key 'products.products_slug_unique'"), SQLite the column
+     * ("UNIQUE constraint failed: products.slug").
+     */
+    public static function violates(UniqueConstraintViolationException $exception, string $column): bool
+    {
+        $message = (string) ($exception->errorInfo[2] ?? $exception->getPrevious()?->getMessage() ?? '');
+
+        if (preg_match("/for key '([^']+)'/", $message, $match) || preg_match('/UNIQUE constraint failed: (.+)$/', $message, $match)) {
+            $message = $match[1];
+        }
+
+        return preg_match('/(^|[^a-z])'.preg_quote($column, '/').'([^a-z]|$)/', mb_strtolower($message)) === 1;
     }
 
     /**

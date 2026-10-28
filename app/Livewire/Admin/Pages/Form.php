@@ -12,7 +12,6 @@ use App\Livewire\Forms\Admin\Pages\PageForm;
 use App\Models\Page;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\PageAiContext;
-use App\Support\Slug;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -22,7 +21,7 @@ use Livewire\WithFileUploads;
 
 /**
  * Create / edit a static page (plan 07 7a): title and rich-text body per
- * locale, SEO texts, slug (read-only on system pages), template (fixed on
+ * locale, SEO texts, read-only slug (generated once), template (fixed on
  * system pages), cover image with alt per locale, active and the
  * "lawyer review needed" flag, plus the page FAQ (after the first save).
  *
@@ -84,9 +83,8 @@ class Form extends Component
             $this->authorize('create', Page::class);
         }
 
-        if (! $this->page?->is_system) {
-            $this->form->slug = Slug::make($this->form->slug);
-        }
+        // The slug is never client input: SavePage keeps the stored one or generates it.
+        $this->form->slug = (string) $this->page?->slug;
 
         $this->form->validate();
 
