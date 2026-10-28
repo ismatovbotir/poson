@@ -21,7 +21,9 @@ use Illuminate\Support\Facades\DB;
  * data. Only the top N pages per day / kind / bot are kept. Partner clicks
  * (VisitType::PartnerClick) are counted in traffic_daily.partner_clicks and,
  * per /{locale}/go/{slug} path with its product, in traffic_daily_pages
- * (kind partner); they are neither page views nor leads.
+ * (kind partner); they are neither page views nor leads. "Add to cart"
+ * rows (VisitType::AddToCart, plan 11a) are counted in
+ * traffic_daily.add_to_carts.
  *
  * One run per date at a time (cache lock; waits up to
  * config analytics.aggregate_lock_wait seconds, otherwise skips: the other
@@ -73,7 +75,7 @@ class AggregateTraffic
                 DB::table('traffic_daily')->upsert(
                     $chunk,
                     ['date', 'kind', 'dimension', 'channel', 'value'],
-                    ['visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at', 'updated_at'],
+                    ['visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'add_to_carts', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at', 'updated_at'],
                 );
             }
 
@@ -111,6 +113,7 @@ class AggregateTraffic
                 "SUM(CASE WHEN type = 'page_view' AND is_entry = 1 THEN 1 ELSE 0 END) AS entries",
                 "SUM(CASE WHEN type = 'lead' THEN 1 ELSE 0 END) AS leads",
                 "SUM(CASE WHEN type = 'partner_click' THEN 1 ELSE 0 END) AS partner_clicks",
+                "SUM(CASE WHEN type = 'add_to_cart' THEN 1 ELSE 0 END) AS add_to_carts",
                 "SUM(CASE WHEN type = 'page_view' AND status >= 400 AND status < 500 THEN 1 ELSE 0 END) AS errors_4xx",
                 "SUM(CASE WHEN type = 'page_view' AND status >= 500 THEN 1 ELSE 0 END) AS errors_5xx",
                 'MAX(occurred_at) AS last_seen_at',
@@ -140,6 +143,7 @@ class AggregateTraffic
                     'entries' => (int) $result->entries,
                     'leads' => (int) $result->leads,
                     'partner_clicks' => (int) $result->partner_clicks,
+                    'add_to_carts' => (int) $result->add_to_carts,
                     'hits' => 0,
                     'verified_hits' => 0,
                     'spoofed_hits' => 0,
@@ -186,6 +190,7 @@ class AggregateTraffic
                 'entries' => 0,
                 'leads' => 0,
                 'partner_clicks' => 0,
+                'add_to_carts' => 0,
                 'hits' => (int) $result->hits,
                 'verified_hits' => (int) $result->verified_hits,
                 'spoofed_hits' => (int) $result->spoofed_hits,

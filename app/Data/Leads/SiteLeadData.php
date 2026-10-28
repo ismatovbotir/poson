@@ -13,11 +13,14 @@ use App\Enums\TrafficChannel;
  * trafficChannel / trafficSource / landingPath are the session's first-touch
  * attribution (plan 04 4c), for the CRM's lead source reports.
  * A label product (plan 08) also carries the chosen roll type and rolls.
+ * A cart quote request (plan 11a, type checkout) carries several items
+ * instead of one product (ConvertCartToLead).
  */
 final readonly class SiteLeadData
 {
     /**
      * @param  array<string, string>  $utm  utm_source, utm_medium, utm_campaign, utm_term, utm_content
+     * @param  list<LeadItemData>  $items  Items of a cart quote request (used when productId is null)
      */
     public function __construct(
         public string $name,
@@ -36,5 +39,6 @@ final readonly class SiteLeadData
         public ?string $landingPath = null,
         public ?int $rollTypeId = null,
         public ?int $rolls = null,
+        public array $items = [],
     ) {}
 }

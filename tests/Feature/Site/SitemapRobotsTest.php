@@ -94,6 +94,7 @@ it('serves robots.txt with the base rules and the sitemap', function () {
             'Disallow: /*/search',
             'Disallow: /*/go/',
             'Disallow: /q/',
+            'Disallow: /*/cart$',
             'Disallow: /*?*sort=',
             'Disallow: /*?*f[',
             'Disallow: /*?*f%5B',
@@ -132,4 +133,15 @@ it('trusts only the APP_URL host and its www twin', function () {
     config(['app.url' => 'https://poson.uz']);
 
     expect(CanonicalHost::trustedHosts())->toBe(['^poson\\.uz$', '^www\\.poson\\.uz$']);
+});
+
+it('keeps product URLs that merely start with "cart" crawlable', function () {
+    $rule = collect(RobotsTxt::DISALLOW)->first(fn (string $rule) => str_contains($rule, 'cart'));
+    // Robots matching: "*" is any run of characters, a trailing "$" anchors the end.
+    $pattern = '#^'.str_replace(['\\*', '\\$'], ['.*', '$'], preg_quote($rule, '#')).'#';
+
+    expect(preg_match($pattern, '/uz/cart'))->toBe(1)
+        ->and(preg_match($pattern, '/ru/cart'))->toBe(1)
+        ->and(preg_match($pattern, '/uz/catalog/cartridges'))->toBe(0)
+        ->and(preg_match($pattern, '/uz/product/cartridge-hp-85a'))->toBe(0);
 });

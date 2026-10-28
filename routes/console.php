@@ -43,3 +43,13 @@ Schedule::command('quotes:expire')->dailyAt('00:40')->timezone('Asia/Tashkent')-
 */
 
 Schedule::command('model:prune', ['--model' => [PriceSyncLog::class]])->dailyAt('01:50')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Cart (plan 11a)
+|--------------------------------------------------------------------------
+| Empty carts after 1 day, converted ones 1 day after the order, the rest
+| after 30 days untouched.
+*/
+
+Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();

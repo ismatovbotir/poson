@@ -1,6 +1,7 @@
 {{--
     Sticky site header: burger (below 900px), logo, catalog menu (x-site.catalog-menu), search
-    (/{locale}/search), phone (from 1100px) and the quote CTA, followed by the
+    (/{locale}/search), phone (from 1100px), the cart link with its counter (plan 11a,
+    while the cart is on; Site\Cart\Counter) and the quote CTA, followed by the
     main nav.
     The burger toggles "menuOpen" from the x-data on <body> (see x-site.mobile-menu).
 --}}
@@ -53,6 +54,11 @@
                 <span class="font-bold whitespace-nowrap text-ink">{{ $company->phoneDisplay() }}</span>
                 <span class="text-xs whitespace-nowrap text-ink-2">{{ $company->workingHours() }}</span>
             </a>
+        @endif
+
+        {{-- Only on localized pages (the cart route needs the locale), and while the cart is on. --}}
+        @if (config('site.cart_enabled') && isset(\Illuminate\Support\Facades\URL::getDefaultParameters()['locale']))
+            <livewire:site.cart.counter />
         @endif
 
         <a

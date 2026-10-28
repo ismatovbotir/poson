@@ -6,7 +6,8 @@
     badges are "hit" and "new" only. Buttons come from App\Support\Catalog\ProductCtas
     (compact): "Try" + "Contact us" with a partner link, "Add to cart" while the cart is
     on and allowed, else "Request a quote" ("Contact us" for software), which opens the
-    lead form on the product page.
+    lead form on the product page. Plan 11a: "Add to cart" adds the product at its minimum
+    in place (header Site\Cart\Counter); a label product's button leads to its roll picker.
 --}}
 <article {{ $attributes->class('relative flex flex-col overflow-hidden rounded-box-lg border border-line bg-white transition-shadow hover:border-ink-soft hover:shadow-card') }} data-product-card data-mode="{{ $product->saleMode->value }}">
     <a href="{{ $product->url }}" class="relative grid aspect-[1/0.85] place-items-center bg-bg-soft" tabindex="-1" aria-hidden="true">
@@ -49,7 +50,7 @@
             @if ($product->ctas !== [])
                 <div class="flex flex-col gap-2" data-ctas>
                     @foreach ($product->ctas as $cta)
-                        <x-site.product-cta :cta="$cta" size="card" :product-name="$product->name" />
+                        <x-site.product-cta :cta="$cta" size="card" :product-name="$product->name" :add-in-place="! $product->pricedPerLabel" />
                     @endforeach
                 </div>
             @endif

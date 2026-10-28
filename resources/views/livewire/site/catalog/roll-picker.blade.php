@@ -1,6 +1,7 @@
 {{--
     Roll picker of a label product (App\Livewire\Site\Catalog\RollPicker, plan 08).
     Retail price only; without a price no amounts are shown (quote only). No discount wording.
+    Plan 11a: "Add to cart" for the chosen roll while the product can go to the cart.
 --}}
 <div class="mt-5 grid gap-4" data-roll-picker>
     @if ($rollTypes->isNotEmpty())
@@ -36,6 +37,37 @@
                 <p class="rounded-btn bg-bg-soft px-4 py-3 text-sm text-ink-2" data-roll-on-request>{{ __('site.roll_picker.on_request') }}</p>
             @endif
         </div>
+
+        @if ($canAddToCart)
+            <div class="grid gap-2">
+                <button
+                    type="button"
+                    wire:click="addToCart"
+                    wire:loading.attr="disabled"
+                    wire:target="addToCart"
+                    class="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-wait disabled:opacity-80"
+                    data-cta="cart"
+                    data-roll-add
+                >
+                    <x-site.icon name="cart" />
+                    {{ __('site.card.add_to_cart') }}
+                </button>
+
+                <div role="status" aria-live="polite">
+                    @if ($added)
+                        <p class="flex flex-wrap items-center gap-x-2 text-sm font-medium text-brand-600" data-added>
+                            <x-site.icon name="check" size="size-4" />
+                            {{ __('checkout.cart.added') }}
+                            <a href="{{ route('site.cart') }}" class="underline hover:text-brand-700">{{ __('checkout.cart.go_to_cart') }}</a>
+                        </p>
+                    @endif
+                </div>
+
+                @error('cart')
+                    <p role="alert" class="text-sm font-medium text-danger" data-cart-error>{{ $message }}</p>
+                @enderror
+            </div>
+        @endif
     @else
         <p class="rounded-btn bg-bg-soft px-4 py-3 text-sm text-ink-2" data-roll-none>{{ __('site.roll_picker.none') }}</p>
     @endif

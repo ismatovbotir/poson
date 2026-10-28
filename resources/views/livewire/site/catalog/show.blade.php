@@ -103,7 +103,7 @@
                 <p class="mt-4 text-ink-2">{{ $shortDescription }}</p>
             @endif
 
-            <div class="my-[22px] rounded-box-lg border border-line bg-white p-6 shadow-card" data-buybox>
+            <div id="{{ \App\Data\Site\ProductCta::BUY_BOX_ANCHOR }}" class="my-[22px] scroll-mt-36 rounded-box-lg border border-line bg-white p-6 shadow-card" data-buybox>
                 @if ($product->price !== null)
                     <p class="text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-4xl" data-price>{{ $pricedPerLabel ? __('catalog.roll.per_label', ['price' => \App\Support\Money::format($product->price)]) : \App\Support\Money::format($product->price) }}</p>
                 @else
@@ -116,9 +116,20 @@
                     <livewire:site.catalog.roll-picker :product-id="$product->id" :key="'roll-picker-'.$product->id" />
                 @endif
 
+                {{-- Plan 11a: "Add to cart" is the quantity stepper + button (Site\Cart\AddButton); label products add from the roll picker above. --}}
+                @foreach ($ctas as $cta)
+                    @if ($cta->isCart() && ! $pricedPerLabel)
+                        <div class="mt-4">
+                            <livewire:site.cart.add-button :product-id="$product->id" :key="'cart-add-'.$product->id" />
+                        </div>
+                    @endif
+                @endforeach
+
                 <div class="mt-4 flex flex-col gap-2.5 sm:flex-row" data-ctas>
                     @foreach ($ctas as $cta)
-                        <x-site.product-cta :cta="$cta" size="page" :href="$cta->pageHref()" wire:key="cta-{{ $cta->kind->value }}" />
+                        @unless ($cta->isCart())
+                            <x-site.product-cta :cta="$cta" size="page" :href="$cta->pageHref()" wire:key="cta-{{ $cta->kind->value }}" />
+                        @endunless
                     @endforeach
                 </div>
             </div>

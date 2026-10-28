@@ -58,6 +58,36 @@ function loadMetrika(id) {
     loadScript('https://mc.yandex.ru/metrika/tag.js');
 }
 
+/**
+ * Plan 11a: "Add to cart" (Livewire browser event "poson-add-to-cart",
+ * dispatched by the server only while the site tracks visitors) → GA4
+ * add_to_cart with the SKU and quantity; no price, cart or personal data.
+ */
+function listenForCartEvents(config) {
+    window.addEventListener('poson-add-to-cart', (event) => {
+        const detail = event.detail || {};
+        const sku = typeof detail.sku === 'string' ? detail.sku.slice(0, 64) : '';
+        const quantity = Number.isInteger(detail.quantity) ? detail.quantity : 1;
+
+        if (sku === '') {
+            return;
+        }
+
+        const payload = { currency: 'UZS', items: [{ item_id: sku, quantity }] };
+
+        if (typeof window.gtag === 'function') {
+            window.gtag('event', 'add_to_cart', payload);
+        } else {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: 'add_to_cart', ecommerce: payload });
+        }
+
+        if (typeof config.metrika === 'string' && METRIKA.test(config.metrika) && typeof window.ym === 'function') {
+            window.ym(Number(config.metrika), 'reachGoal', 'add_to_cart');
+        }
+    });
+}
+
 export function initAnalytics() {
     const config = readConfig();
 
@@ -75,6 +105,8 @@ export function initAnalytics() {
     if (typeof config.metrika === 'string' && METRIKA.test(config.metrika)) {
         loadMetrika(config.metrika);
     }
+
+    listenForCartEvents(config);
 }
 
 initAnalytics();

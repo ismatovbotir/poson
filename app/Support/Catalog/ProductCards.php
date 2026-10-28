@@ -18,10 +18,11 @@ class ProductCards
 {
     /**
      * Relations a card reads (strict models forbid lazy loading).
+     * activeRollTypes: whether a label product can go to the cart (ProductCtas, plan 11a).
      *
      * @var list<string>
      */
-    public const EAGER_LOADS = ['brand', 'media', 'keySpecValues.attribute', 'keySpecValues.option'];
+    public const EAGER_LOADS = ['brand', 'media', 'keySpecValues.attribute', 'keySpecValues.option', 'activeRollTypes'];
 
     /**
      * Between the values of one attribute (a multiselect).

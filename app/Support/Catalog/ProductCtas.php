@@ -5,7 +5,9 @@ namespace App\Support\Catalog;
 use App\Data\Site\ProductCta;
 use App\Enums\ProductCtaKind;
 use App\Enums\ProductType;
+use App\Enums\StockStatus;
 use App\Models\Product;
+use App\Models\RollType;
 
 /**
  * THE source of a product's call-to-action buttons (decision 2026-10-22),
@@ -22,10 +24,12 @@ use App\Models\Product;
  *     "Contact us" (secondary; the lead form with the product). Other types
  *     never get "Try", even when their brand has a website.
  *  2. The cart is on (config site.cart_enabled) and the product can go to the
- *     cart (sale mode cart / both with a Retail price, not priced per label)
+ *     cart (canAddToCart(): sale mode cart / both with a Retail price, in
+ *     stock or on order; a label product only with an active roll type)
  *     → "Add to cart" (primary) + "Request a quote" (secondary; "Contact us"
- *     for software). Label products (pricing_unit label, sold in rolls) stay
- *     quote-only until the cart has roll-aware lines (plan 11).
+ *     for software). Out of stock → the quote CTA (rule 4). Label products
+ *     (pricing_unit label) are added through the roll picker on the product
+ *     page, so their card CTA links there (plan 11a).
  *  3. Software → "Contact us" (primary).
  *  4. Everything else → "Request a quote" (primary).
  *
@@ -62,7 +66,8 @@ class ProductCtas
 
         if ($cartEnabled && self::canAddToCart($product)) {
             return array_values(array_filter([
-                // The cart page doesn't exist yet: the button leads to the product page.
+                // url: the product page (label products pick their roll there); cards and
+                // the buy box add other products directly (Site\Cart\AddButton).
                 self::make($product, ProductCtaKind::Cart, ProductCta::ACTION_CART, $productUrl, true),
                 $compact ? null : self::make($product, $inquiry, ProductCta::ACTION_LEAD_FORM, $leadFormUrl, false),
             ]));
@@ -73,14 +78,35 @@ class ProductCtas
 
     /**
      * Sale mode cart / both with a Retail price (a product without a price is
-     * quote-only). Products priced per label are quote-only until the cart
-     * supports rolls (plan 11).
+     * quote-only), in stock or on order (security condition 17). A label
+     * product (plan 08) also needs at least one active roll type to be
+     * picked. The cart actions re-check all of this (CartPricer::evaluate()).
+     * Uses the loaded "activeRollTypes" / "rollTypes" relation when present,
+     * else one query (label products only).
      */
     public static function canAddToCart(Product $product): bool
     {
         return $product->price !== null
-            && ! $product->isPricedPerLabel()
-            && $product->effectiveSaleMode()->allowsCart();
+            && $product->price > 0
+            && $product->effectiveSaleMode()->allowsCart()
+            && in_array($product->stock_status, [StockStatus::InStock, StockStatus::OnOrder], true)
+            && (! $product->isPricedPerLabel() || self::hasActiveRollType($product));
+    }
+
+    /**
+     * The label product offers at least one active roll type.
+     */
+    public static function hasActiveRollType(Product $product): bool
+    {
+        if ($product->relationLoaded('activeRollTypes')) {
+            return $product->activeRollTypes->isNotEmpty();
+        }
+
+        if ($product->relationLoaded('rollTypes')) {
+            return $product->rollTypes->contains(fn (RollType $rollType): bool => $rollType->is_active);
+        }
+
+        return $product->activeRollTypes()->exists();
     }
 
     private static function make(Product $product, ProductCtaKind $kind, string $action, string $url, bool $primary): ProductCta

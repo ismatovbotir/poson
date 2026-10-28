@@ -25,6 +25,7 @@ return [
             'page_view' => 'Koʻrish',
             'lead' => 'Murojaat',
             'partner_click' => 'Hamkor havolasiga oʻtish',
+            'add_to_cart' => 'Savatga qoʻshish',
         ],
         'bot_purpose' => [
             'training' => 'SI oʻqitish',

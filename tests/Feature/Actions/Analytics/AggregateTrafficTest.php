@@ -4,6 +4,7 @@ use App\Actions\Analytics\AggregateTraffic;
 use App\Actions\Analytics\PruneAnalytics;
 use App\Enums\DeviceType;
 use App\Enums\TrafficChannel;
+use App\Enums\VisitType;
 use App\Models\BotHit;
 use App\Models\SiteVisit;
 use App\Models\TrafficDaily;
@@ -187,4 +188,17 @@ it('schedules aggregation, verification, pruning and the range refresh without o
         'analytics:prune' => ['10 1 * * *', $tz, true, 10],
         'analytics:refresh-bot-ranges' => ['30 3 * * 1', $tz, true, 10],
     ]);
+});
+
+it('counts add to cart rows in add_to_carts, not as page views or leads', function () {
+    SiteVisit::factory()->create(['occurred_at' => $this->at, 'visitor_hash' => 'cccccccccccccccc']);
+    SiteVisit::factory()->count(2)->create(['occurred_at' => $this->at, 'visitor_hash' => 'cccccccccccccccc', 'type' => VisitType::AddToCart, 'is_entry' => false, 'product_id' => 7]);
+
+    app(AggregateTraffic::class)->handle($this->date);
+
+    $total = TrafficDaily::query()->where('kind', TrafficDaily::KIND_VISITS)->where('dimension', TrafficDaily::DIM_TOTAL)->sole();
+
+    expect($total->add_to_carts)->toBe(2)
+        ->and($total->page_views)->toBe(1)
+        ->and($total->leads)->toBe(0);
 });

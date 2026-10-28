@@ -32,6 +32,8 @@ class RobotsTxt
         '/*/go/',
         // Customers' quote links (plan 06).
         '/q/',
+        // The cart (plan 11a, /{locale}/cart); "$" keeps /catalog/cartridges etc. crawlable.
+        '/*/cart$',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

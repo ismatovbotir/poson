@@ -146,7 +146,18 @@ class TrafficRecorder
     }
 
     /**
-     * One attributed site_visits row (lead or partner click).
+     * Record an "Add to cart" (plan 11a) with the session's attribution
+     * (RecordAddToCart): the product only, no quantity, price or cart.
+     *
+     * @param  array<string, string>  $attribution
+     */
+    public function recordAddToCart(Request $request, array $attribution, string $path, ?string $locale, int $productId): void
+    {
+        $this->recordAttributed(VisitType::AddToCart, $request, $attribution, $path, $locale, $productId, 200, null);
+    }
+
+    /**
+     * One attributed site_visits row (lead, partner click or add to cart).
      *
      * @param  array<string, string>  $attribution
      */

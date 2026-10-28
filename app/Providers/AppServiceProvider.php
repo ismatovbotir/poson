@@ -19,6 +19,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
+use App\Support\Cart\CartToken;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
 use App\Support\Site\BannerDirectory;
@@ -46,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
         // Scoped: reset between Octane requests and queued jobs, so the memoized
         // overrides never outlive a request.
         $this->app->scoped(CompanySettings::class);
+
+        // Scoped: the cart token issued during a request is seen by the rest of that request only.
+        $this->app->scoped(CartToken::class);
 
         // Singleton: keeps the captured .env values and the applied version
         // for the whole process (queue workers included).

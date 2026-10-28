@@ -10,6 +10,7 @@ use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Livewire\Site\Articles;
 use App\Livewire\Site\Brands;
+use App\Livewire\Site\Cart;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Home;
 use App\Livewire\Site\News;
@@ -52,6 +53,9 @@ Route::prefix('{locale}')
         Route::livewire('/brands/{brand:slug}', Brands\Show::class)->name('brands.show');
 
         Route::livewire('/search', Search::class)->name('search');
+
+        // Cart (plan 11a): 404 while config site.cart_enabled is off; noindex, robots.txt disallows /*/cart.
+        Route::livewire('/cart', Cart\Page::class)->name('cart');
 
         // Static pages (plan 07 7a): 404 unless active.
         Route::livewire('/page/{page:slug}', Pages\Show::class)->name('page');

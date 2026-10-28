@@ -28,6 +28,7 @@ class TrafficDailyFactory extends Factory
             'entries' => fake()->numberBetween(10, 100),
             'leads' => fake()->numberBetween(0, 5),
             'partner_clicks' => 0,
+            'add_to_carts' => 0,
         ];
     }
 
@@ -42,6 +43,7 @@ class TrafficDailyFactory extends Factory
             'entries' => 0,
             'leads' => 0,
             'partner_clicks' => 0,
+            'add_to_carts' => 0,
             'hits' => $hits,
             'last_seen_at' => now(),
         ]);

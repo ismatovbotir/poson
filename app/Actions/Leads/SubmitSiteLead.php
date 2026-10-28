@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Log;
  * A quote request from a product page carries the product as the lead's
  * item and is always a quote, for service products too (decision
  * 2026-10-22: service-product enquiries go to sales as quotes). A label
- * product (plan 08) is asked for in the chosen roll type and rolls.
+ * product (plan 08) is asked for in the chosen roll type and rolls. A
+ * cart quote request (plan 11a, ConvertCartToLead) keeps its type
+ * (checkout) and carries the cart's lines as items.
  *
  * Logs only non-personal data (plan 05 C8): lead id, type, source, locale,
  * channel and product SKU; never the name, phone, company, message,
@@ -39,7 +41,7 @@ class SubmitSiteLead
             locale: $data->locale,
             company: $data->company,
             message: $data->message,
-            items: $data->productId !== null ? [new LeadItemData($data->productId, qty: $data->rolls ?? 1, rollTypeId: $data->rollTypeId)] : [],
+            items: $data->productId !== null ? [new LeadItemData($data->productId, qty: $data->rolls ?? 1, rollTypeId: $data->rollTypeId)] : $data->items,
             utm: $data->utm,
             pageUrl: $data->pageUrl,
             trafficChannel: $data->trafficChannel,
@@ -54,6 +56,7 @@ class SubmitSiteLead
             'type' => $lead->type->value,
             'channel' => $lead->traffic_channel?->value,
             'product_sku' => $data->productSku,
+            'items' => $data->productId === null && $data->items !== [] ? count($data->items) : null,
         ], fn (int|string|null $value): bool => $value !== null));
 
         return $lead->reference();

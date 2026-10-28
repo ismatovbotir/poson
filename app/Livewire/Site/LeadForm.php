@@ -7,6 +7,7 @@ use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadType;
 use App\Livewire\Site\Catalog\RollPicker;
+use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Product;
 use App\Models\RollType;
 use App\Rules\UzPhone;
@@ -15,7 +16,6 @@ use App\Support\Catalog\RollPricing;
 use App\Support\NumberFormat;
 use App\Support\Phone;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -44,6 +44,8 @@ use Livewire\Component;
  */
 class LeadForm extends Component
 {
+    use GuardsLeadSubmissions;
+
     /**
      * Valid submissions allowed per IP within RATE_LIMIT_SECONDS.
      */
@@ -212,11 +214,7 @@ class LeadForm extends Component
             return;
         }
 
-        // Count first, then compare: concurrent requests can't slip past the limit.
-        if (
-            $this->limitExceeded('site-lead:'.sha1((string) request()->ip()), self::RATE_LIMIT, self::RATE_LIMIT_SECONDS)
-            || $this->limitExceeded('site-lead-phone:'.sha1($phone), self::PHONE_LIMIT, self::PHONE_LIMIT_SECONDS)
-        ) {
+        if ($this->leadLimitsExceeded($phone)) {
             return;
         }
 
@@ -294,22 +292,6 @@ class LeadForm extends Component
     }
 
     /**
-     * Register a hit and report (as a form error) whether the limit is now exceeded.
-     */
-    protected function limitExceeded(string $key, int $maxAttempts, int $decaySeconds): bool
-    {
-        if (RateLimiter::hit($key, $decaySeconds) <= $maxAttempts) {
-            return false;
-        }
-
-        $this->addError('form', __('site.lead_form.error_rate_limited', [
-            'seconds' => RateLimiter::availableIn($key),
-        ]));
-
-        return true;
-    }
-
-    /**
      * The product when it is shown on the site, else null.
      */
     protected function publishedProduct(int $productId): ?Product
@@ -317,28 +299,6 @@ class LeadForm extends Component
         $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'name', 'category_id', 'is_active', 'pricing_unit', 'min_qty']);
 
         return $product instanceof Product ? $product : null;
-    }
-
-    protected function looksLikeBot(): bool
-    {
-        return $this->fax_ext !== ''
-            || now()->getTimestamp() - $this->renderedAt < self::MIN_FILL_SECONDS;
-    }
-
-    /**
-     * The session's first-touch attribution; empty if analytics fails (the form must always work).
-     *
-     * @return array<string, string>
-     */
-    protected function captureAttribution(): array
-    {
-        try {
-            return app(Attribution::class)->current(request());
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return [];
-        }
     }
 
     /**

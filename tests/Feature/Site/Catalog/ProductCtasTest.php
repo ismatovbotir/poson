@@ -3,8 +3,10 @@
 use App\Data\Site\ProductCta;
 use App\Enums\ProductCtaKind;
 use App\Enums\SaleMode;
+use App\Enums\StockStatus;
 use App\Models\Brand;
 use App\Models\Product;
+use App\Models\RollType;
 use App\Support\Catalog\ProductCtas;
 
 /**
@@ -85,13 +87,50 @@ it('asks for a quote for quote-only and price-on-request products even with the 
     expect(ctaShape(ProductCtas::for($product)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]]);
 })->with(['quoteOnly', 'priceOnRequest']);
 
-it('keeps label products (priced per label, sold in rolls) quote-only until the cart supports rolls', function () {
+it('lets label products into the cart only with an active roll type, linking the card to the picker', function (Closure $rollTypes, bool $expected) {
     config(['site.cart_enabled' => true]);
     $product = Product::factory()->perLabel()->create(['sale_mode' => SaleMode::Both]);
 
-    expect(ProductCtas::canAddToCart($product))->toBeFalse()
-        ->and(ctaShape(ProductCtas::for($product)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]])
-        ->and(ctaShape(ProductCtas::for($product, compact: true)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]]);
+    foreach ($rollTypes() as $index => $rollType) {
+        $product->rollTypes()->attach($rollType->id, ['sort' => $index + 1]);
+    }
+
+    $ctas = ProductCtas::for($product->fresh(), locale: 'en');
+
+    expect(ProductCtas::canAddToCart($product->fresh()))->toBe($expected)
+        ->and(array_column(ctaShape($ctas), 0))->toBe($expected ? ['cart', 'quote'] : ['quote']);
+
+    if ($expected) {
+        // The card's cart CTA leads to the product page, where the roll is picked.
+        expect($ctas[0]->url)->toBe(url('/en/product/'.$product->slug))
+            ->and($ctas[0]->pageHref())->toBe('#'.ProductCta::BUY_BOX_ANCHOR);
+    }
+})->with([
+    'no roll type' => [fn () => [], false],
+    'only an inactive roll type' => [fn () => [RollType::factory()->inactive()->create()], false],
+    'an active roll type' => [fn () => [RollType::factory()->inactive()->create(), RollType::factory()->create()], true],
+]);
+
+it('allows the cart by sale mode, Retail price and stock status', function (array $attributes, bool $expected) {
+    config(['site.cart_enabled' => true]);
+    $product = Product::factory()->create($attributes);
+
+    expect(ProductCtas::canAddToCart($product))->toBe($expected)
+        ->and(ctaShape(ProductCtas::for($product))[0][0])->toBe($expected ? 'cart' : 'quote');
+})->with([
+    'in stock, both' => [['stock_status' => StockStatus::InStock, 'sale_mode' => SaleMode::Both], true],
+    'in stock, cart' => [['stock_status' => StockStatus::InStock, 'sale_mode' => SaleMode::Cart], true],
+    'on order' => [['stock_status' => StockStatus::OnOrder], true],
+    'out of stock' => [['stock_status' => StockStatus::OutOfStock], false],
+    'quote only' => [['sale_mode' => SaleMode::Quote], false],
+    'no Retail price' => [['price' => null, 'sale_mode' => SaleMode::Both], false],
+    'zero Retail price' => [['price' => 0], false],
+]);
+
+it('never reads the Dealer or Wholesale price to decide the cart', function () {
+    $product = Product::factory()->create(['price' => null, 'price_dealer' => 100_000, 'price_wholesale' => 90_000, 'sale_mode' => SaleMode::Both]);
+
+    expect(ProductCtas::canAddToCart($product))->toBeFalse();
 });
 
 it('uses Contact us instead of Request a quote for software', function () {

@@ -25,6 +25,7 @@ return [
             'page_view' => 'Page view',
             'lead' => 'Lead',
             'partner_click' => 'Partner click',
+            'add_to_cart' => 'Add to cart',
         ],
         'bot_purpose' => [
             'training' => 'AI training',

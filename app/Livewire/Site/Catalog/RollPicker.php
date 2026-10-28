@@ -5,8 +5,10 @@ namespace App\Livewire\Site\Catalog;
 use App\Actions\Quotes\SaveQuoteItems;
 use App\Data\Catalog\RollLine;
 use App\Enums\PriceLevel;
+use App\Livewire\Site\Cart\Concerns\AddsToCart;
 use App\Models\Product;
 use App\Models\RollType;
+use App\Support\Catalog\ProductCtas;
 use App\Support\Catalog\RollPricing;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -22,10 +24,17 @@ use Livewire\Component;
  * the page as "roll-selected" (productId, rollTypeId, rolls), which checks it
  * again on submit. The buttons below follow sale_mode (ProductCtas).
  *
+ * Plan 11a: while the cart is on and the product can go to the cart
+ * (ProductCtas::canAddToCart()), "Add to cart" adds the chosen roll type
+ * and rolls (addToCart(); AddToCart prices nothing from here and checks
+ * the roll type and rolls again).
+ *
  * Brand rule: Retail only, no discount wording.
  */
 class RollPicker extends Component
 {
+    use AddsToCart;
+
     /**
      * Most rolls in one request (a quote line's maximum).
      */
@@ -46,6 +55,11 @@ class RollPicker extends Component
      * minimum. Untyped for the same reason as $rollTypeId (cast in normalize()).
      */
     public mixed $rolls = 1;
+
+    /**
+     * The last "Add to cart" succeeded ("Added" + link to the cart).
+     */
+    public bool $added = false;
 
     private ?Product $loaded = null;
 
@@ -82,6 +96,24 @@ class RollPicker extends Component
         $this->normalize();
     }
 
+    /**
+     * Add the chosen roll type and rolls to the cart (plan 11a).
+     */
+    public function addToCart(): void
+    {
+        $this->normalize();
+        $product = $this->product();
+        $rollTypeId = is_int($this->rollTypeId) ? $this->rollTypeId : null;
+
+        if ($product === null || $rollTypeId === null) {
+            $this->addError('cart', __('checkout.cart.errors.unavailable'));
+
+            return;
+        }
+
+        $this->added = $this->addProductToCart($product->id, $rollTypeId, (int) $this->rolls, $product->sku);
+    }
+
     public function render(): View
     {
         $product = $this->product();
@@ -90,6 +122,7 @@ class RollPicker extends Component
         return view('livewire.site.catalog.roll-picker', [
             'product' => $product,
             'rollTypes' => $rollTypes,
+            'canAddToCart' => $product !== null && config('site.cart_enabled') && ProductCtas::canAddToCart($product),
             'minRolls' => $this->minRolls(),
             'maxRolls' => self::MAX_ROLLS,
             'line' => $this->line(),
@@ -101,6 +134,7 @@ class RollPicker extends Component
      */
     private function normalize(): void
     {
+        $this->added = false;
         $rollTypes = $this->product()?->activeRollTypes ?? collect();
         $rollTypeId = filter_var($this->rollTypeId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $this->rollTypeId = $rollTypeId !== false && $rollTypes->contains('id', $rollTypeId)
@@ -166,7 +200,7 @@ class RollPicker extends Component
             $this->loaded = Product::query()
                 ->visible()
                 ->with('activeRollTypes')
-                ->find($this->productId, ['id', 'pricing_unit', 'price', 'min_qty', 'is_active', 'category_id']);
+                ->find($this->productId, ['id', 'sku', 'pricing_unit', 'price', 'sale_mode', 'stock_status', 'min_qty', 'is_active', 'category_id']);
 
             // RollPricing reads "rollTypes" when loaded: the active ones are all it may offer.
             $this->loaded?->setRelation('rollTypes', $this->loaded->activeRollTypes);

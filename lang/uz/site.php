@@ -189,7 +189,7 @@ return [
     ],
 
     'card' => [
-        'add_to_cart' => 'Savatga',
+        'add_to_cart' => 'Savatga qoʻshish',
         'request_quote' => 'Taklif soʻrash',
         'price_on_request' => 'Narx soʻrov boʻyicha',
         'products_count' => ':count ta mahsulot',

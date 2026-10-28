@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int $entries
  * @property int $leads
  * @property int $partner_clicks
+ * @property int $add_to_carts
  * @property int $hits
  * @property int $verified_hits
  * @property int $spoofed_hits
@@ -31,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_seen_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['date', 'kind', 'dimension', 'channel', 'value', 'visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at'])]
+#[Fillable(['date', 'kind', 'dimension', 'channel', 'value', 'visitors', 'page_views', 'entries', 'leads', 'partner_clicks', 'add_to_carts', 'hits', 'verified_hits', 'spoofed_hits', 'errors_4xx', 'errors_5xx', 'last_seen_at'])]
 class TrafficDaily extends Model
 {
     /** @use HasFactory<TrafficDailyFactory> */
@@ -76,6 +77,7 @@ class TrafficDaily extends Model
             'entries' => 'integer',
             'leads' => 'integer',
             'partner_clicks' => 'integer',
+            'add_to_carts' => 'integer',
             'hits' => 'integer',
             'verified_hits' => 'integer',
             'spoofed_hits' => 'integer',

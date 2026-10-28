@@ -22,6 +22,7 @@ function baseRobotsGroup(): string
         'Disallow: /*/search',
         'Disallow: /*/go/',
         'Disallow: /q/',
+        'Disallow: /*/cart$',
         'Disallow: /*?*sort=',
         'Disallow: /*?*f[',
         'Disallow: /*?*f%5B',
