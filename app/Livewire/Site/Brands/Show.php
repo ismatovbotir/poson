@@ -31,7 +31,9 @@ use Livewire\WithPagination;
  * noindex,follow; canonical and hreflang keep the clean URL (page only).
  *
  * An inactive or unknown brand is a 404. Brand + BreadcrumbList JSON-LD;
- * the OG image is the logo.
+ * the OG image is the logo. <title> and meta description: the brand's
+ * meta_title / meta_description in the current locale when set (plan 12),
+ * else the default title and the description.
  */
 class Show extends Component
 {
@@ -111,6 +113,8 @@ class Show extends Component
         $description = HtmlSanitizer::clean((string) $brand->getTranslation('description', $locale));
         $plainDescription = SeoText::description($description);
         $website = $brand->publicWebsite();
+        // Meta title / description of this locale (plan 12), else the defaults.
+        $metaTitle = trim((string) $brand->getTranslation('meta_title', $locale, false));
         $breadcrumbs = [
             ['label' => __('site.breadcrumbs.home'), 'url' => route('site.home')],
             ['label' => __('site.brands.title'), 'url' => route('site.brands.index')],
@@ -131,9 +135,10 @@ class Show extends Component
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),
             ],
         ])
-            ->title(__('site.brands.show.seo_title', ['name' => $brand->name]))
+            ->title($metaTitle !== '' ? $metaTitle : __('site.brands.show.seo_title', ['name' => $brand->name]))
             ->layoutData(array_filter([
-                'description' => $plainDescription ?? __('site.brands.show.seo_description', ['name' => $brand->name]),
+                'description' => SeoText::description($brand->getTranslation('meta_description', $locale, false), $plainDescription)
+                    ?? __('site.brands.show.seo_description', ['name' => $brand->name]),
                 'image' => $logo,
                 'robots' => $selected !== null || $products->total() === 0 ? 'noindex,follow' : null,
             ]));

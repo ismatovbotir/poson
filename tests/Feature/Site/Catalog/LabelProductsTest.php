@@ -239,3 +239,47 @@ it('casts and clamps tampered non-numeric roll type and rolls values instead of 
     expect($component->get('rolls'))->toBeInt()
         ->and($component->get('rollTypeId'))->toBe($large->id);
 });
+
+it('starts the picker at min_qty rolls, capped at the maximum', function () {
+    [$product] = siteLabelProduct(['min_qty' => RollPicker::MAX_ROLLS + 50]);
+
+    Livewire::test(RollPicker::class, ['productId' => $product->id])
+        ->assertSet('rolls', RollPicker::MAX_ROLLS);
+});
+
+it('tolerates tampered roll values in the quote form and re-checks them on submit', function (Closure $tamper) {
+    [$product] = siteLabelProduct();
+    $this->mock(SubmitSiteLead::class)->shouldNotReceive('handle');
+
+    $component = Livewire::test(LeadForm::class, ['productId' => $product->id])
+        ->set('name', 'Aziz')
+        ->set('phone', '90 123 45 67');
+    $tamper($component);
+
+    $this->travel(LeadForm::MIN_FILL_SECONDS + 1)->seconds();
+    $component->assertOk()->call('submit')->assertHasErrors('form')->assertSet('sent', false);
+})->with([
+    'text roll type' => [fn ($component) => $component->set('rollTypeId', 'abc')],
+    'array rolls' => [fn ($component) => $component->set('rolls', ['x'])],
+    'text rolls' => [fn ($component) => $component->set('rolls', '4 rolls')],
+    'event with strings' => [fn ($component) => $component->dispatch('roll-selected', productId: 'x', rollTypeId: 'y', rolls: 'z')->set('rolls', 'z')],
+]);
+
+it('accepts numeric strings for the roll in the quote form', function () {
+    [$product, , $small] = siteLabelProduct();
+
+    $this->mock(SubmitSiteLead::class)
+        ->shouldReceive('handle')
+        ->once()
+        ->withArgs(fn (SiteLeadData $data): bool => $data->rollTypeId === $small->id && $data->rolls === 9)
+        ->andReturn('L-TEST');
+
+    $component = Livewire::test(LeadForm::class, ['productId' => $product->id])
+        ->dispatch('roll-selected', productId: (string) $product->id, rollTypeId: (string) $small->id, rolls: '9')
+        ->assertSet('rolls', 9)
+        ->set('name', 'Aziz')
+        ->set('phone', '90 123 45 67');
+
+    $this->travel(LeadForm::MIN_FILL_SECONDS + 1)->seconds();
+    $component->call('submit')->assertHasNoErrors();
+});

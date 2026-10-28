@@ -24,8 +24,12 @@
                 <x-admin.locale-tabs :error-keys="['form.title', 'form.text', 'form.button_label']" :label="__('admin.form.content_language')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
-                            <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.banners.fields.title')" :required="$locale === 'uz'" maxlength="{{ \App\Models\Banner::TITLE_MAX }}" :hint="__('admin.banners.max_hint', ['max' => \App\Models\Banner::TITLE_MAX])" />
-                            <x-admin.textarea wire:model="form.text.{{ $locale }}" :label="__('admin.banners.fields.text')" rows="3" maxlength="{{ \App\Models\Banner::TEXT_MAX }}" :hint="__('admin.banners.max_hint', ['max' => \App\Models\Banner::TEXT_MAX])" />
+                            <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.banners.fields.title')" :required="$locale === 'uz'" maxlength="{{ \App\Models\Banner::TITLE_MAX }}" :hint="__('admin.banners.max_hint', ['max' => \App\Models\Banner::TITLE_MAX])">
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="banner.title" target="form.title" /></span></x-slot:labelAside>
+                            </x-admin.input>
+                            <x-admin.textarea wire:model="form.text.{{ $locale }}" :label="__('admin.banners.fields.text')" rows="3" maxlength="{{ \App\Models\Banner::TEXT_MAX }}" :hint="__('admin.banners.max_hint', ['max' => \App\Models\Banner::TEXT_MAX])">
+                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="banner.text" target="form.text" /></span></x-slot:labelAside>
+                            </x-admin.textarea>
                             <x-admin.input wire:model="form.button_label.{{ $locale }}" :label="__('admin.banners.fields.button_label')" maxlength="{{ \App\Models\Banner::BUTTON_MAX }}" :hint="__('admin.banners.button_hint')" />
                         </x-admin.locale-panel>
                     @endforeach

@@ -105,13 +105,16 @@ class LeadForm extends Component
 
     /**
      * Roll type of a label product (plan 08); set by the RollPicker, checked on submit.
+     * Untyped like RollPicker's: a tampered value ("abc", an array) is read
+     * as "none" (rollTypeIdValue()) instead of failing with a TypeError.
      */
-    public ?int $rollTypeId = null;
+    public mixed $rollTypeId = null;
 
     /**
-     * Rolls of a label product (plan 08); set by the RollPicker, checked on submit.
+     * Rolls of a label product (plan 08); set by the RollPicker, checked on
+     * submit. Untyped for the same reason (rollsValue()).
      */
-    public ?int $rolls = null;
+    public mixed $rolls = null;
 
     #[Locked]
     public bool $sellsRolls = false;
@@ -187,11 +190,11 @@ class LeadForm extends Component
      * The page's RollPicker changed the roll (validated again on submit).
      */
     #[On('roll-selected')]
-    public function selectRoll(int $productId, int $rollTypeId, int $rolls): void
+    public function selectRoll(mixed $productId, mixed $rollTypeId, mixed $rolls): void
     {
-        if ($this->sellsRolls && $productId === $this->productId) {
-            $this->rollTypeId = $rollTypeId;
-            $this->rolls = $rolls;
+        if ($this->sellsRolls && self::intOrNull($productId) === $this->productId) {
+            $this->rollTypeId = self::intOrNull($rollTypeId);
+            $this->rolls = self::intOrNull($rolls);
         }
     }
 
@@ -243,8 +246,8 @@ class LeadForm extends Component
                 trafficChannel: Attribution::channel($this->attribution),
                 trafficSource: $this->attribution['source'] ?? null,
                 landingPath: $this->attribution['landing'] ?? null,
-                rollTypeId: $sendsRoll ? $this->rollTypeId : null,
-                rolls: $sendsRoll ? $this->rolls : null,
+                rollTypeId: $sendsRoll ? self::intOrNull($this->rollTypeId) : null,
+                rolls: $sendsRoll ? self::intOrNull($this->rolls) : null,
             ));
 
             $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale, $product?->id);
@@ -256,11 +259,13 @@ class LeadForm extends Component
 
     public function render(): View
     {
-        $rollType = $this->sellsRolls && $this->rollTypeId !== null ? RollType::query()->active()->find($this->rollTypeId) : null;
+        $rollTypeId = self::intOrNull($this->rollTypeId);
+        $rolls = self::intOrNull($this->rolls);
+        $rollType = $this->sellsRolls && $rollTypeId !== null ? RollType::query()->active()->find($rollTypeId) : null;
 
         return view('livewire.site.lead-form', [
-            'rollSummary' => $rollType !== null && $this->rolls !== null
-                ? RollPricing::describe(null, $rollType->labels_per_roll, $rollType->core_diameter_mm, $this->rolls)
+            'rollSummary' => $rollType !== null && $rolls !== null && $rolls >= 1 && $rolls <= RollPicker::MAX_ROLLS
+                ? RollPricing::describe(null, $rollType->labels_per_roll, $rollType->core_diameter_mm, $rolls)
                 : null,
         ]);
     }
@@ -270,7 +275,8 @@ class LeadForm extends Component
      */
     protected function rollError(Product $product): ?string
     {
-        $rollType = $this->rollTypeId !== null ? RollType::query()->find($this->rollTypeId) : null;
+        $rollTypeId = self::intOrNull($this->rollTypeId);
+        $rollType = $rollTypeId !== null ? RollType::query()->find($rollTypeId) : null;
 
         if (! $rollType instanceof RollType || ! RollPricing::isAvailable($product, $rollType)) {
             return __('catalog.roll.errors.required');
@@ -278,7 +284,9 @@ class LeadForm extends Component
 
         $min = max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
 
-        if ($this->rolls === null || $this->rolls < $min || $this->rolls > RollPicker::MAX_ROLLS) {
+        $rolls = self::intOrNull($this->rolls);
+
+        if ($rolls === null || $rolls < $min || $rolls > RollPicker::MAX_ROLLS) {
             return __('site.roll_picker.rolls_invalid', ['min' => NumberFormat::format($min), 'max' => NumberFormat::format(RollPicker::MAX_ROLLS)]);
         }
 
@@ -341,5 +349,15 @@ class LeadForm extends Component
     public static function sanitizeUtm(mixed $input): array
     {
         return Attribution::sanitizeUtm($input);
+    }
+
+    /**
+     * An integer (also from a numeric string), else null.
+     */
+    private static function intOrNull(mixed $value): ?int
+    {
+        $int = is_int($value) || is_string($value) ? filter_var($value, FILTER_VALIDATE_INT) : false;
+
+        return $int === false ? null : $int;
     }
 }

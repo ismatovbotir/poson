@@ -19,9 +19,7 @@
                     <x-admin.locale-tabs :error-keys="['form.name']">
                         @foreach ($locales as $locale)
                             <x-admin.locale-panel :locale="$locale">
-                                <x-admin.input wire:model="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255">
-                                    <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button :field="'form.name.'.$locale" /></span></x-slot:labelAside>
-                                </x-admin.input>
+                                <x-admin.input wire:model="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255" />
                             </x-admin.locale-panel>
                         @endforeach
                     </x-admin.locale-tabs>

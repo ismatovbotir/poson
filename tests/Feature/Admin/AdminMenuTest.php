@@ -55,7 +55,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'content' => ['pages', 'news', 'articles', 'banners'],
         'telegram' => ['telegram-bot', 'telegram-mini-app', 'telegram-chats'],
         'ai' => ['ai-usage'],
-        'settings' => ['company', 'users', 'integrations', 'api-tokens'],
+        'settings' => ['company', 'users', 'integrations', 'ai-prompts', 'api-tokens'],
     ]],
     'sales manager' => [Role::SalesManager, [
         'dashboard' => ['dashboard'],

@@ -9,7 +9,9 @@ use App\Actions\Ai\TranslateFieldText;
 use App\Enums\AiErrorCode;
 use App\Enums\AiFeature;
 use App\Enums\AiRequestStatus;
+use App\Enums\NewsKind;
 use App\Models\AiRequest;
+use App\Models\NewsPost;
 use App\Models\User;
 use App\Services\Ai\AiException;
 use App\Services\Ai\AiQuota;
@@ -342,13 +344,15 @@ class Assistant extends Component
     private function subjectFor(string $field, ?string $type, ?int $id): array
     {
         $none = ['subject_type' => null, 'subject_id' => null];
-        $allowed = match (Str::before($field, '.')) {
+        $prefix = Str::before($field, '.');
+        $allowed = match ($prefix) {
             'product' => ['product'],
             'category' => ['category'],
             'brand' => ['brand'],
             'page' => ['page'],
-            'news' => ['news_post'],
+            'news', 'article' => ['news_post'],
             'faq' => ['category', 'product', 'page'],
+            'banner' => ['banner'],
             default => [],
         };
 
@@ -358,6 +362,11 @@ class Assistant extends Component
 
         $class = Relation::getMorphedModel($type);
         $model = $class !== null ? $class::query()->find($id) : null;
+
+        // A news_post belongs to the field of its kind: news.* for news, article.* for articles.
+        if ($model instanceof NewsPost && $model->kind !== ($prefix === 'article' ? NewsKind::Article : NewsKind::News)) {
+            return $none;
+        }
 
         return $model !== null && $this->user()->can('view', $model) ? ['subject_type' => $type, 'subject_id' => $id] : $none;
     }

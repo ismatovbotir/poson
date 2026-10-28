@@ -286,6 +286,13 @@ describe('form', function () {
         'relative' => ['catalog/scanners', null],
         'backslash' => ['/\\evil.example.com', null],
         'whitespace' => ['/uz/cat alog', null],
+        'dot segments to another host' => ['/ru/..//evil.example.com/', null],
+        'dot segment into admin' => ['/../admin', null],
+        'encoded dot segment into admin' => ['/%2e%2e/admin', null],
+        'mixed-case encoded dot segment' => ['/catalog/%2E./admin', null],
+        'single dot segment' => ['/catalog/./scanners', null],
+        'encoded admin' => ['/%61dmin', null],
+        'dots inside a name' => ['/page/v1..2', '/page/v1..2'],
     ]);
 
     it('validates the title, lengths, banned wording, dates order and the images', function () {

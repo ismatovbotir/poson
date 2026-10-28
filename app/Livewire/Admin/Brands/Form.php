@@ -10,6 +10,7 @@ use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
 use App\Support\Ai\AiContext;
+use App\Support\Ai\BrandAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -17,7 +18,9 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 /**
- * Create / edit a brand: name, slug, description (uz/ru/en), website, logo.
+ * Create / edit a brand: name, slug, description and SEO meta title /
+ * description (uz/ru/en), website, logo. AI assist for the description and
+ * the meta fields (BrandAiContext).
  */
 #[Layout('layouts::admin')]
 class Form extends Component
@@ -115,17 +118,16 @@ class Form extends Component
      */
     protected function aiTargets(): array
     {
-        return ['form.description' => 'brand.description'];
+        return [
+            'form.description' => 'brand.description',
+            'form.meta_title' => 'brand.meta_title',
+            'form.meta_description' => 'brand.meta_description',
+        ];
     }
 
     protected function aiContext(string $fieldKey): AiContext
     {
-        return AiContext::fromArray([
-            'name' => $this->form->name,
-            'facts' => array_filter(['Website' => $this->form->website]),
-            'subject_type' => $this->brand?->exists ? $this->brand->getMorphClass() : null,
-            'subject_id' => $this->brand?->exists ? $this->brand->id : null,
-        ]);
+        return BrandAiContext::fromForm($this->form, $this->brand);
     }
 
     public function render(): View

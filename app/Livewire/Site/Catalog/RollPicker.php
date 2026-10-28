@@ -57,7 +57,7 @@ class RollPicker extends Component
         abort_unless($product !== null && $product->isPricedPerLabel(), 404);
 
         $this->rollTypeId = $product->activeRollTypes->first()?->id;
-        $this->rolls = max(1, $product->min_qty);
+        $this->rolls = $this->minRolls();
     }
 
     public function updatedRollTypeId(): void

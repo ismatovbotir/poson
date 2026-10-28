@@ -6,8 +6,11 @@ use App\Actions\Banners\DeleteBanner;
 use App\Actions\Banners\SaveBanner;
 use App\Enums\BannerPlacement;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Livewire\Forms\Admin\Banners\BannerForm;
 use App\Models\Banner;
+use App\Support\Ai\AiContext;
+use App\Support\Ai\BannerAiContext;
 use App\Support\Catalog\CategoryTree;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
@@ -22,11 +25,13 @@ use Livewire\WithFileUploads;
  * locale, link (internal path or https URL), Tashkent-time date window,
  * active switch, and the desktop (required) and mobile images with alt per
  * locale. Everything is saved by SaveBanner in one transaction.
+ * AI assist (plan 12) for the title and the text (BannerAiContext); the
+ * button label and the image alts have none.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiAssist, WithFileUploads;
 
     #[Locked]
     public ?Banner $banner = null;
@@ -139,6 +144,22 @@ class Form extends Component
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => (string) $this->banner->title, 'type' => 'success']);
             $this->redirectRoute('admin.banners.index', navigate: true);
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function aiTargets(): array
+    {
+        return [
+            'form.title' => 'banner.title',
+            'form.text' => 'banner.text',
+        ];
+    }
+
+    protected function aiContext(string $fieldKey): AiContext
+    {
+        return BannerAiContext::fromForm($this->form, $this->banner);
     }
 
     public function render(): View

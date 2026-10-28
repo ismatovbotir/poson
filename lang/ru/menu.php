@@ -43,6 +43,7 @@ return [
         'users' => 'Пользователи и роли',
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
+        'ai_prompts' => 'AI-промпты',
     ],
 
     'tabs' => [

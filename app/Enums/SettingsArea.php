@@ -9,7 +9,8 @@ namespace App\Enums;
  * tab (faq_items rows, not settings keys) and is used for access only.
  * ApiTokens (token created / revoked) and PriceSync (a product unlinked
  * from the price API) are audit-only areas of plan 09. AiPrompts (plan 12) is
- * audit-only too: an AI prompt override saved (Updated) or reset (Cleared).
+ * audit-only too: an AI prompt override saved (Updated) or reset (Cleared);
+ * restricted like the other Admin-only areas.
  */
 enum SettingsArea: string
 {
@@ -48,6 +49,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::AiPrompts], true);
     }
 }

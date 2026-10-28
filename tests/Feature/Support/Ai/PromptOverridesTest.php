@@ -13,6 +13,7 @@ use App\Support\Ai\AiContext;
 use App\Support\Ai\FieldRegistry;
 use App\Support\Ai\PromptOverrides;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(fn () => app()->setLocale('en'));
 
@@ -57,6 +58,34 @@ it('caches the overrides and flushes them on save and delete', function () {
 
     expect(PromptOverrides::for('faq.answer'))->toBeNull()
         ->and(FieldRegistry::get('faq.answer')->isOverridden())->toBeFalse();
+});
+
+it('flushes the cache after the commit when saved inside a transaction', function () {
+    expect(PromptOverrides::all())->toBe([]);
+
+    DB::transaction(function (): void {
+        AiPromptOverride::factory()->forField('faq.answer')->create(['prompt' => 'Answer {question}.']);
+
+        // A read inside the transaction re-caches the uncommitted row...
+        expect(PromptOverrides::for('faq.answer'))->toBe('Answer {question}.');
+    });
+
+    // ...and the commit flushes it again, so other processes never keep a stale copy.
+    expect(Cache::has(PromptOverrides::CACHE_KEY))->toBeFalse()
+        ->and(PromptOverrides::for('faq.answer'))->toBe('Answer {question}.');
+
+    try {
+        DB::transaction(function (): void {
+            AiPromptOverride::query()->where('field_key', 'faq.answer')->sole()->delete();
+            expect(PromptOverrides::for('faq.answer'))->toBeNull();
+
+            throw new RuntimeException('rollback');
+        });
+    } catch (RuntimeException) {
+    }
+
+    // Rolled back: the cached "no override" from inside the transaction is not kept.
+    expect(PromptOverrides::for('faq.answer'))->toBe('Answer {question}.');
 });
 
 it('ignores overrides of unregistered keys and blank texts', function () {
@@ -108,7 +137,7 @@ it('lets only the admin manage AI prompts', function (Role $role, bool $allowed)
 
 it('audits AI prompt changes in the integrations group', function () {
     expect(SettingsArea::AiPrompts->group())->toBe('integrations')
-        ->and(SettingsArea::AiPrompts->isRestricted())->toBeFalse();
+        ->and(SettingsArea::AiPrompts->isRestricted())->toBeTrue();
 
     foreach (config('app.supported_locales') as $locale) {
         expect(__('enums.settings_area.ai_prompts', [], $locale))->not->toBe('enums.settings_area.ai_prompts')

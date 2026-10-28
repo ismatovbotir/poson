@@ -33,6 +33,32 @@
                     </x-admin.locale-tabs>
                 </div>
             </x-admin.card>
+
+            {{-- SEO (plan 12): empty = the site's default brand title / description --}}
+            <x-admin.card :title="__('admin.catalog.seo')" :description="__('admin.catalog.seo_help')" data-brand-seo>
+                <x-admin.locale-tabs :error-keys="['form.meta_title', 'form.meta_description']" :label="__('admin.catalog.seo')">
+                    @foreach ($locales as $locale)
+                        <x-admin.locale-panel :locale="$locale">
+                            <x-admin.input wire:model="form.meta_title.{{ $locale }}" :label="__('admin.catalog.meta_title')" maxlength="{{ \App\Models\Brand::META_TITLE_MAX }}" :hint="__('admin.catalog.meta_title_hint')">
+                                <x-slot:labelAside>
+                                    <span class="ml-auto flex items-center gap-2">
+                                        <span class="text-xs font-medium tabular-nums text-slate-400" x-text="(($wire.form.meta_title[@js($locale)] ?? '').length) + '/{{ \App\Models\Brand::META_TITLE_MAX }}'"></span>
+                                        <x-admin.ai-button field="brand.meta_title" target="form.meta_title" />
+                                    </span>
+                                </x-slot:labelAside>
+                            </x-admin.input>
+                            <x-admin.textarea wire:model="form.meta_description.{{ $locale }}" :label="__('admin.catalog.meta_description')" rows="3" maxlength="{{ \App\Models\Brand::META_DESCRIPTION_MAX }}" :hint="__('admin.catalog.meta_description_hint')">
+                                <x-slot:labelAside>
+                                    <span class="ml-auto flex items-center gap-2">
+                                        <span class="text-xs font-medium tabular-nums text-slate-400" x-text="(($wire.form.meta_description[@js($locale)] ?? '').length) + '/{{ \App\Models\Brand::META_DESCRIPTION_MAX }}'"></span>
+                                        <x-admin.ai-button field="brand.meta_description" target="form.meta_description" />
+                                    </span>
+                                </x-slot:labelAside>
+                            </x-admin.textarea>
+                        </x-admin.locale-panel>
+                    @endforeach
+                </x-admin.locale-tabs>
+            </x-admin.card>
         </div>
 
         <aside class="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start lg:space-y-6">

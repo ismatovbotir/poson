@@ -273,15 +273,26 @@ class Form extends Component
     }
 
     /**
+     * FieldRegistry prefix of this screen's kind: "article" for knowledge
+     * articles, "news" for news posts (plan 12). Titles have no AI.
+     */
+    protected function aiPrefix(): string
+    {
+        return $this->kind() === NewsKind::Article ? 'article' : 'news';
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function aiTargets(): array
     {
+        $prefix = $this->aiPrefix();
+
         return [
-            'form.excerpt' => 'news.excerpt',
-            'form.body' => 'news.body',
-            'form.meta_title' => 'news.meta_title',
-            'form.meta_description' => 'news.meta_description',
+            'form.excerpt' => "{$prefix}.excerpt",
+            'form.body' => "{$prefix}.body",
+            'form.meta_title' => "{$prefix}.meta_title",
+            'form.meta_description' => "{$prefix}.meta_description",
         ];
     }
 
@@ -299,6 +310,7 @@ class Form extends Component
 
         return view('livewire.admin.news.form', [
             'kind' => $kind,
+            'aiPrefix' => $this->aiPrefix(),
             'title' => $title,
             'statuses' => collect(NewsStatus::cases())->mapWithKeys(fn (NewsStatus $status) => [$status->value => $status->label()])->all(),
             'publicUrl' => $publicLocale !== null ? $post->url($publicLocale) : null,

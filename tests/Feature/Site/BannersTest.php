@@ -244,7 +244,7 @@ describe('brand rule', function () {
 
         expect($html)->toContain('Havolasiz')
             ->not->toContain('data-banner-link');
-    })->with(['/admin', '/ru/admin/banners', '/livewire/update', '/uz//evil.example.com']);
+    })->with(['/admin', '/ru/admin/banners', '/livewire/update', '/uz//evil.example.com', '/ru/..//evil.example.com/', '/../admin', '/%2e%2e/admin', '/catalog/%2E%2E/admin']);
 
     it('drops a banner with a banned alt text and ignores an invalid link', function () {
         $banner = Banner::factory()->withImages()->create(['title' => ['uz' => 'Alt banner']]);

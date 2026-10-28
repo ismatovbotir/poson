@@ -10,8 +10,9 @@ use App\Support\Catalog\HttpsUrl;
  *
  * Internal: starts with a single "/" (never "//", a protocol-relative URL
  * to another host), at most HttpsUrl::MAX_LENGTH bytes, no whitespace,
- * control, format (\p{Cf}) characters or backslashes, and never into the
- * admin panel or the Livewire endpoint (/admin, /livewire...). Stored
+ * control, format (\p{Cf}) characters or backslashes, no "." / ".."
+ * segments (plain or percent-encoded), and never into the admin panel or
+ * the Livewire endpoint (/admin, /livewire..., also percent-encoded). Stored
  * WITHOUT a locale prefix ("/catalog/scanners"): normalize() strips a
  * pasted "/uz", "/ru" or "/en" ("/ru" alone becomes "/"), and href()
  * prepends the visitor's locale on the site ("/ru/catalog/scanners").
@@ -61,7 +62,12 @@ class BannerLink
         // "/ru//host" would become the protocol-relative "//host" once the prefix is stripped.
         $path = static::withoutLocale($value);
 
-        return ! str_starts_with($path, '//') && preg_match(self::BLOCKED_PATH, $path) === 0;
+        if (str_starts_with($path, '//') || static::hasDotSegment($path)) {
+            return false;
+        }
+
+        // The router matches the decoded path: "/%61dmin" is /admin too.
+        return preg_match(self::BLOCKED_PATH, $path) === 0 && preg_match(self::BLOCKED_PATH, static::decoded($path)) === 0;
     }
 
     /**
@@ -86,6 +92,42 @@ class BannerLink
         }
 
         return HttpsUrl::isValid($value) ? $value : null;
+    }
+
+    /**
+     * A "." or ".." segment in the path (also percent-encoded, "%2e%2e"):
+     * browsers resolve them, so "/ru/..//evil.example.com/" would leave the
+     * site and "/../admin" would reach the admin panel.
+     */
+    private static function hasDotSegment(string $path): bool
+    {
+        foreach (explode('/', static::decoded($path)) as $segment) {
+            if ($segment === '.' || $segment === '..') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The path part (before "?" / "#"), percent-decoded until stable (at most three rounds).
+     */
+    private static function decoded(string $path): string
+    {
+        $path = (string) preg_split('/[?#]/', $path, 2)[0];
+
+        for ($round = 0; $round < 3; $round++) {
+            $decoded = rawurldecode($path);
+
+            if ($decoded === $path) {
+                break;
+            }
+
+            $path = $decoded;
+        }
+
+        return $path;
     }
 
     /**

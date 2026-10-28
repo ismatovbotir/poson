@@ -94,6 +94,8 @@ final class Menu
                 new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', permission: 'settings.company'),
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', permission: 'settings.integrations'),
+                // Plan 12: editable default hints of the AI fields.
+                new MenuItem('ai-prompts', 'menu.items.ai_prompts', 'sparkles', 'admin.settings.ai-prompts.index', permission: 'ai-prompts.manage'),
                 new MenuItem('api-tokens', 'menu.items.api_tokens', 'shield', 'admin.settings.api-tokens', permission: 'api-tokens.manage'),
             ]),
         ];

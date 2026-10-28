@@ -5,7 +5,10 @@ namespace App\Livewire\Admin\Products;
 use App\Actions\Catalog\AddProductImages;
 use App\Actions\Catalog\UpdateProductImages;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiAssist;
 use App\Models\Product;
+use App\Support\Ai\AiContext;
+use App\Support\Ai\ProductAiContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -18,10 +21,19 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * Product images (child of the product form, after the first save):
  * multi-upload (JPG/PNG/WebP ≤ 5 MB, stored right away in one transaction),
  * drag sort (the first image is the main one), alt text per locale, delete.
+ *
+ * AI assist for the alt text (plan 12, product.image_alt): offered only to
+ * users who may update the product and only for the product's own images
+ * (target "alts.{media id}"); the context is the saved product, its saved
+ * specs and the image position, never the file. Apply fills the inputs,
+ * the manager still saves each alt.
  */
 class Images extends Component
 {
     use HandlesActionErrors;
+    use WithAiAssist {
+        openAi as protected openAiFor;
+    }
     use WithFileUploads {
         _startUpload as protected startTemporaryUpload;
         _finishUpload as protected finishTemporaryUpload;
@@ -38,6 +50,11 @@ class Images extends Component
      * @var array<int, array<string, string>>
      */
     public array $alts = [];
+
+    /**
+     * Target of the openAi() call being handled (per request, never in the snapshot).
+     */
+    protected ?string $aiTarget = null;
 
     public function mount(Product $product): void
     {
@@ -128,6 +145,47 @@ class Images extends Component
         $images->delete($this->product, $id);
         $this->refreshImages();
         $this->dispatch('toast', title: __('admin.toast.deleted'), body: __('admin.products.images.deleted'));
+    }
+
+    /**
+     * Open the assistant for one image's alt text (the target says which image).
+     */
+    public function openAi(string $target, string $locale = 'uz'): void
+    {
+        $this->aiTarget = $target;
+
+        $this->openAiFor($target, $locale);
+    }
+
+    /**
+     * "alts.{id}" of the product's own images, only for users who may update it.
+     *
+     * @return array<string, string>
+     */
+    protected function aiTargets(): array
+    {
+        if (! auth()->user()?->can('update', $this->product)) {
+            return [];
+        }
+
+        return $this->images
+            ->mapWithKeys(fn (Media $media): array => ["alts.{$media->id}" => 'product.image_alt'])
+            ->all();
+    }
+
+    protected function aiContext(string $fieldKey): AiContext
+    {
+        $context = ProductAiContext::fromProduct($this->product)->toArray();
+        $images = $this->images;
+        $index = $images->search(fn (Media $media): bool => "alts.{$media->id}" === $this->aiTarget);
+
+        if ($index !== false) {
+            $context['facts']['Image'] = ($index + 1).' of '.$images->count().($index === 0 ? ' (main image)' : '');
+        }
+
+        $context['specs'] = ProductAiContext::savedSpecs($this->product);
+
+        return AiContext::fromArray($context);
     }
 
     /**

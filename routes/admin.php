@@ -136,6 +136,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
     // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
+    // AI prompts (plan 12): ai-prompts.manage (Admin only), AiPromptOverridePolicy in the components; unknown keys are a 404.
+    Route::livewire('/settings/ai-prompts', Settings\AiPrompts\Index::class)->name('settings.ai-prompts.index');
+    Route::livewire('/settings/ai-prompts/{fieldKey}', Settings\AiPrompts\Edit::class)->where('fieldKey', '[a-z_]+\.[a-z_]+')->name('settings.ai-prompts.edit');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

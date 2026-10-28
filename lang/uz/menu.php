@@ -43,6 +43,7 @@ return [
         'users' => 'Foydalanuvchilar va rollar',
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
+        'ai_prompts' => 'AI promptlar',
     ],
 
     'tabs' => [

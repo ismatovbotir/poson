@@ -9,6 +9,7 @@ use App\Models\Attribute;
 use App\Models\AttributeOption;
 use App\Models\Brand;
 use App\Models\Product;
+use App\Models\ProductAttributeValue;
 use App\Support\Catalog\CategoryTree;
 
 /**
@@ -67,6 +68,52 @@ final class ProductAiContext
             'subject_type' => $product->getMorphClass(),
             'subject_id' => $product->id,
         ]);
+    }
+
+    /**
+     * "- Print resolution: 203 dpi" lines of a saved product's spec values
+     * (image alt, plan 12): in English, one line per attribute (multiselect
+     * options joined), in the saved order, skipped attributes left out.
+     * Two queries (values with attribute and option, skips).
+     */
+    public static function savedSpecs(Product $product): string
+    {
+        $skipped = $product->attributeSkips()->pluck('attribute_id')->map(fn (mixed $id): int => (int) $id)->all();
+
+        $values = $product->attributeValues()
+            ->with(['attribute', 'option'])
+            ->whereNotIn('attribute_id', $skipped)
+            ->orderBy('sort')
+            ->orderBy('id')
+            ->get();
+
+        $lines = [];
+
+        foreach ($values->groupBy('attribute_id') as $rows) {
+            /** @var ProductAttributeValue $first */
+            $first = $rows->first();
+            $attribute = $first->getRelationValue('attribute');
+
+            if (! $attribute instanceof Attribute) {
+                continue;
+            }
+
+            $value = match ($attribute->type) {
+                AttributeType::Text => self::first($first->getTranslations('value_text'), preferred: 'en'),
+                AttributeType::Number => $first->numberForDisplay() !== null ? $first->numberForDisplay().($attribute->unit ? ' '.$attribute->unit : '') : '',
+                AttributeType::Boolean => $first->value_bool === null ? '' : ($first->value_bool ? 'yes' : 'no'),
+                AttributeType::Select, AttributeType::Multiselect => $rows
+                    ->map(fn (ProductAttributeValue $row): string => (string) $row->getRelationValue('option')?->getTranslation('value', 'en'))
+                    ->filter()
+                    ->implode(', '),
+            };
+
+            if (trim($value) !== '') {
+                $lines[] = '- '.$attribute->getTranslation('name', 'en').': '.AiContext::clean($value, 300);
+            }
+        }
+
+        return implode("\n", $lines);
     }
 
     /**

@@ -43,6 +43,7 @@ return [
         'users' => 'Users & roles',
         'integrations' => 'Integrations',
         'api_tokens' => 'API tokens',
+        'ai_prompts' => 'AI prompts',
     ],
 
     'tabs' => [

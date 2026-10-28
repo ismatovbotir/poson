@@ -41,6 +41,13 @@ class Brand extends Model implements HasMedia
     use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
 
     /**
+     * SEO meta lengths (plan 12): the brand form and SaveBrand enforce them.
+     */
+    public const META_TITLE_MAX = 60;
+
+    public const META_DESCRIPTION_MAX = 160;
+
+    /**
      * @var list<string>
      */
     public array $translatable = ['description', 'meta_title', 'meta_description'];
