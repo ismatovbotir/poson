@@ -7,7 +7,8 @@
     mobile WebP below 640px when there is one. The texts are rendered over
     the image (no text is baked into banner images, K7). Eager images get
     fetchpriority="high" (the first slide); the others load lazily.
-    External https links open in a new tab with rel="noopener".
+    Internal links are already in the current locale (BannerLink::href());
+    external https links open in a new tab with rel="noopener".
 --}}
 @php
     use App\Models\Banner;
@@ -36,9 +37,9 @@
         @if ($slide->text !== '')
             <p class="line-clamp-2 text-sm text-white/90 sm:line-clamp-3 sm:text-base lg:text-lg">{{ $slide->text }}</p>
         @endif
-        @if ($slide->link)
+        @if ($slide->href)
             <a
-                href="{{ $slide->link }}"
+                href="{{ $slide->href }}"
                 @if ($slide->external) target="_blank" rel="noopener" @endif
                 class="mt-1 inline-flex h-11 w-fit items-center gap-2 rounded-btn bg-brand-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:mt-2 sm:h-[50px] sm:px-6 sm:text-base"
                 data-banner-link

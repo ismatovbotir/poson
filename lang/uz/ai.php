@@ -54,6 +54,7 @@ return [
         'invalid_key' => 'SI provayderi kalitni rad etdi. Administratordan uni Sozlamalar → Integratsiyalar boʻlimida tekshirishni soʻrang.',
         'refused' => 'SI provayderi soʻrovni bajarishni rad etdi (masalan, moderatsiya tufayli). Koʻrsatmalarni oʻzgartiring yoki administratordan boshqa model tanlashni soʻrang.',
         'bad_request' => 'SI provayderi soʻrovni notoʻgʻri deb rad etdi. Administratordan Sozlamalar → Integratsiyalar boʻlimida SI modelini tekshirishni soʻrang.',
+        'field_retired' => 'Bu maydon uchun SI yordamchi endi mavjud emas.',
         'unknown_field' => 'Bu maydon uchun SI yordamchi mavjud emas.',
         'legal_body' => 'Huquqiy sahifa matnini SI yozmaydi: uni yurist bilan qoʻlda tahrirlang.',
         'hint_invalid' => 'Koʻrsatmani kiriting (:max belgigacha).',
@@ -115,43 +116,67 @@ return [
     ],
 
     /*
+    | Har bir maydon guruhi uchun namuna yozuv: «Sozlamalar → SI promptlari»
+    | boʻlimida promptni oldindan koʻrish (12-reja).
+    */
+    'samples' => [
+        'products' => ['name' => 'Zebra ZD421 yorliq printeri', 'brand' => 'Zebra', 'category' => 'Printerlar › Yorliq printerlari'],
+        'categories' => ['name' => 'Yorliq printerlari', 'category' => 'Printerlar'],
+        'brands' => ['name' => 'Zebra'],
+        'pages' => ['name' => 'Yetkazib berish va toʻlov'],
+        'news' => ['name' => 'Zebra ZD421 printerlari yana omborda'],
+        'articles' => ['name' => 'Shtrix-kod skanerini qanday tanlash kerak'],
+        'faq' => ['name' => 'Yorliq printerlari', 'category' => 'Printerlar', 'question' => 'Bu printerga qaysi yorliqlar mos keladi?'],
+        'banners' => ['name' => 'Shtrix-kod skanerlari', 'category' => 'Skanerlar'],
+    ],
+
+    /*
     | Har bir maydon uchun standart koʻrsatma (panelda tahrirlanadi).
-    | Oʻrinbosarlar: {name} {category} {brand} {specs} {question}; {from} — manba tili.
+    | Administrator oʻzgartirgan matn (Sozlamalar → SI promptlari, 12-reja) ularni almashtiradi.
+    | Maydon oʻrinbosarlari: FieldSpec::$placeholders ({specs} emas); {from} — manba tili.
     */
     'hints' => [
         'translate' => 'Matnni (manba tili: {from}) boshqa tillarga tarjima qiling. Maʼno, atamalar va formatlashni saqlang; har bir tilda tabiiy yozing.',
         'product' => [
-            'name' => 'Mahsulotning katalogdagi nomini yozing: mahsulot turi, brend va model, masalan «Yorliq printeri Zebra ZD421». Hozirgi nomi: {name}. Brend: {brand}. Toifa: {category}.',
             'short_description' => '{name} uchun mahsulot kartochkasiga qisqa tavsif yozing (1–2 gap): bu nima va biznesning qaysi vazifalari uchun. Toifa: {category}.',
             'description' => '{name} ({brand}, {category}) mahsulot sahifasi uchun biznes mijozlarga moʻljallangan tavsif yozing: vazifasi va odatiy qoʻllanilishi, xususiyatlarga asoslangan asosiy imkoniyatlari hamda Poson qanday yordam berishi (tanlash, sozlash, rasmiy kafolat, servis markazi). 2–4 ta qisqa xatboshi yoki bitta xatboshi va roʻyxat.',
             'meta_title' => '{name} mahsulot sahifasi uchun SEO sarlavha yozing: avval mahsulot turi va model, keyin «Poson». Narxlarsiz.',
             'meta_description' => '{name} ({category}) uchun SEO tavsif yozing: bu nima va Posondan xarid qilishning bitta servis afzalligi (sozlash, rasmiy kafolat, servis). Narxlarsiz.',
+            'image_alt' => '{name} ({brand}, {category}) fotosi uchun qisqa alt matn yozing: mahsulot turi, brend va model koʻrsatilgan bitta tavsiflovchi ibora, «… fotosi» yoki «… rasmi» soʻzlarisiz va reklama soʻzlarisiz. Fotoning oʻrni (asosiy yoki N tadan n-chi) kontekstda bor: uni faqat fotolarni farqlashga yordam bersa koʻrsating. Narxlarsiz.',
         ],
         'category' => [
-            'name' => '«{name}» uchun katalog toifasining tushunarli nomini taklif qiling. Ota toifa: {category}. Qisqa, kerak boʻlsa koʻplikda.',
             'description' => '«{name}» katalog toifasi (ota toifa: {category}) uchun kirish matnini yozing: bu mahsulotlar nima uchun kerak, tanlashda qaysi xususiyatlarga qarash kerak va Poson tanlash, sozlash va servisda qanday yordam beradi. 2–3 ta qisqa xatboshi.',
             'meta_title' => '«{name}» katalog toifasi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
             'meta_description' => '«{name}» katalog toifasi uchun SEO tavsif yozing: mijoz bu yerda nimani topadi va Posonning bitta servis afzalligi (mutaxassis tanlovi, sozlash, rasmiy kafolat). Narxlarsiz.',
         ],
         'brand' => [
             'description' => '{name} brendi sahifasi uchun qisqa kirish matnini yozing: u qanday uskunalar ishlab chiqaradi va Poson ularni tanlash, sozlash va servis qilishda yordam beradi. Tarix, raqamlar va mukofotlarni oʻylab topmang.',
+            'meta_title' => '{name} brendi sahifasi uchun SEO sarlavha yozing: brend va u ishlab chiqaradigan asosiy uskuna turlari, oxirida «Poson». Narxlarsiz.',
+            'meta_description' => '{name} brendi sahifasi uchun SEO tavsif yozing: brend qanday uskunalar ishlab chiqaradi va Poson ularni mutaxassis tanlovi, sozlash, rasmiy kafolat va servis bilan yetkazib beradi. Narxlarsiz.',
         ],
         'page' => [
-            'title' => 'Poson saytidagi «{name}» sahifasi uchun tushunarli sarlavha yozing. Qisqa, narxlarsiz.',
             'body' => 'Biznes mijozlar uchun «{name}» sayt sahifasi matnini joriy matn va kontekstdagi faktlar asosida yozing: H2 sarlavhali boʻlimlar, qisqa xatboshilar va roʻyxatlar. Poson servisini taʼkidlang (mutaxassis tanlovi, sozlash, rasmiy kafolat, oʻz servis markazi). Manzil, telefon, narx va muddatlarni oʻylab topmang.',
             'meta_title' => '«{name}» sayt sahifasi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
             'meta_description' => '«{name}» sayt sahifasi uchun SEO tavsif yozing: tashrif buyuruvchi unda nimani topadi. Narxlarsiz.',
         ],
         'news' => [
-            'title' => 'Poson uchun «{name}» haqida tushunarli yangilik sarlavhasini yozing. Qisqa va faktlarga asoslangan, narxlarsiz.',
             'excerpt' => '«{name}» yangiligi uchun yangiliklar roʻyxatiga bir-ikki gaplik qisqacha mazmun yozing, kontekstdagi matnga asoslaning. Narxlarsiz.',
             'body' => 'Biznes mijozlar uchun Posonning «{name}» yangiligi matnini joriy matn va kontekstdagi faktlar asosida yozing: qisqa kirish, soʻng H2 sarlavhali boʻlimlar, qisqa xatboshilar va roʻyxatlar. Poson servisini taʼkidlang (mutaxassis tanlovi, sozlash, rasmiy kafolat, oʻz servis markazi). Sana, raqam, narx va iqtiboslarni oʻylab topmang.',
             'meta_title' => '«{name}» yangiligi uchun SEO sarlavha yozing, oxirida «Poson». Narxlarsiz.',
             'meta_description' => '«{name}» yangiligi uchun SEO tavsif yozing: oʻquvchi nimani bilib oladi. Narxlarsiz.',
         ],
+        'article' => [
+            'excerpt' => '«{name}» qoʻllanmasi uchun maqolalar roʻyxatiga bir-ikki gaplik qisqacha mazmun yozing: u qaysi amaliy vazifada yordam beradi va kimlar uchun. Narxlarsiz.',
+            'body' => 'Biznes mijozlar uchun «{name}» amaliy qoʻllanmasini joriy matn va kontekstdagi faktlar asosida yozing. Bu yangilik emas, yoʻriqnoma: H2 sarlavhali boʻlimlar (qadamlar, tanlash mezonlari, keng tarqalgan xatolar, qisqa nazorat roʻyxati), qisqa xatboshilar va roʻyxatlar. Texnik atamalarni qisqacha tushuntiring. Faqat kontekstdagi faktlardan foydalaning; raqam, sana va xususiyatlarni oʻylab topmang. Oxirida Poson qanday yordam berishi haqida bitta xatboshi (mutaxassis tanlovi, sozlash va integratsiya, rasmiy kafolat, oʻz servis markazi). Narxlarsiz.',
+            'meta_title' => '«{name}» qoʻllanmasi uchun qidiruv soʻroviga mos SEO sarlavha yozing (masalan, «… qanday tanlanadi» yoki «… boʻyicha qoʻllanma»), oxirida «Poson». Narxlarsiz.',
+            'meta_description' => '«{name}» qoʻllanmasi uchun SEO tavsif yozing: oʻquvchi nimani bilib oladi va qaysi vazifa uchun. Narxlarsiz.',
+        ],
         'faq' => [
-            'question' => 'Biznes mijozning {name} haqida tez-tez beradigan bitta savolini taklif qiling. Toifa: {category}.',
             'answer' => '«{question}» savoliga aniq javob yozing (mavzu: {name}). Faqat yozuvdagi maʼlumotlardan foydalaning; javob model yoki buyurtmaga bogʻliq boʻlsa, shuni ayting va Poson bilan bogʻlanishni taklif qiling.',
+        ],
+        'banner' => [
+            'title' => '«{name}» banneri uchun sarlavha yozing (90 belgigacha; bosh sahifa slayderi yoki {category} toifasi banneri): Posonning bitta aniq servis afzalligi (mutaxassis tanlovi, sozlash va integratsiya, rasmiy kafolat, oʻz servis markazi, mavjudlik va yetkazib berish). Narxlarsiz, shoshiltirishsiz va muddat cheklovlarisiz.',
+            'text' => '«{name}» banneri uchun kichik sarlavha yozing (200 belgigacha, bir-ikki gap; bosh sahifa slayderi yoki {category} toifasi banneri): u sarlavhani Posonning aniq servis afzalligi bilan quvvatlasin. Narxlarsiz, shoshiltirishsiz va muddat cheklovlarisiz.',
         ],
     ],
 

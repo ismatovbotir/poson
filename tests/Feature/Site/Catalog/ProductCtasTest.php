@@ -85,6 +85,15 @@ it('asks for a quote for quote-only and price-on-request products even with the 
     expect(ctaShape(ProductCtas::for($product)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]]);
 })->with(['quoteOnly', 'priceOnRequest']);
 
+it('keeps label products (priced per label, sold in rolls) quote-only until the cart supports rolls', function () {
+    config(['site.cart_enabled' => true]);
+    $product = Product::factory()->perLabel()->create(['sale_mode' => SaleMode::Both]);
+
+    expect(ProductCtas::canAddToCart($product))->toBeFalse()
+        ->and(ctaShape(ProductCtas::for($product)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]])
+        ->and(ctaShape(ProductCtas::for($product, compact: true)))->toBe([['quote', ProductCta::ACTION_LEAD_FORM, true]]);
+});
+
 it('uses Contact us instead of Request a quote for software', function () {
     config(['site.cart_enabled' => true]);
     $product = Product::factory()->software()->create(['sale_mode' => SaleMode::Both, 'price' => 50_000_000]);

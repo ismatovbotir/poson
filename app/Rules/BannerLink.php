@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * A banner link: an internal path ("/uz/catalog/...", never "//") or an
+ * A banner link: an internal path ("/catalog/...", never "//"; a locale prefix is stripped on save) or an
  * https URL (App\Support\Site\BannerLink). Empty values are left to "nullable".
  */
 class BannerLink implements ValidationRule

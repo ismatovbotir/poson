@@ -29,7 +29,7 @@ class DemoBannersSeeder extends Seeder
         $banners = [
             [
                 'colors' => [[23, 128, 69], [12, 74, 110]],
-                'link' => '/uz/catalog',
+                'link' => '/catalog',
                 'title' => [
                     'uz' => 'Uskunani tanlash, sozlash va servis bir joyda',
                     'ru' => 'Подбор, настройка и сервис оборудования в одном месте',
@@ -44,7 +44,7 @@ class DemoBannersSeeder extends Seeder
             ],
             [
                 'colors' => [[15, 23, 42], [23, 128, 69]],
-                'link' => '/uz/page/warranty-service',
+                'link' => '/page/warranty-service',
                 'title' => [
                     'uz' => 'Rasmiy kafolat va oʻz servis markazimiz',
                     'ru' => 'Официальная гарантия и собственный сервисный центр',

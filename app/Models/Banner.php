@@ -24,8 +24,8 @@ use Spatie\Translatable\HasTranslations;
  * Banner (plan 07 7c): a slide of the home slider below the static hero
  * (placement home_hero) or the banner on page 1 of one category listing
  * (placement category). Title, text and button label per locale (uz
- * required; ru and en fall back to uz); a link that is an internal path or
- * an https URL (App\Support\Site\BannerLink).
+ * required; ru and en fall back to uz); a link that is an internal path
+ * stored without a locale prefix or an https URL (App\Support\Site\BannerLink).
  *
  * Images (medialibrary, like HasCatalogImage: private original, WebP
  * conversions, queued; alt per locale in the custom property "alt"):

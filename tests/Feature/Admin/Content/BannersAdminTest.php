@@ -44,7 +44,7 @@ function bannerData(array $overrides = []): array
         'title' => ['uz' => 'Servis markazi'],
         'text' => [],
         'button_label' => [],
-        'link' => '/uz/catalog',
+        'link' => '/catalog',
         'starts_at' => null,
         'ends_at' => null,
         'is_active' => true,
@@ -248,7 +248,7 @@ describe('form', function () {
             ->and($banner->fresh()->placement)->toBe(BannerPlacement::HomeHero);
     });
 
-    it('accepts internal paths and https links and refuses the rest', function (string $link, bool $valid) {
+    it('accepts internal paths (stored without a locale prefix) and https links and refuses the rest', function (string $link, ?string $stored) {
         $component = Livewire::actingAs(staffUser())
             ->test(Form::class)
             ->set('form.title.uz', 'Banner')
@@ -256,17 +256,36 @@ describe('form', function () {
             ->set('form.desktop', bannerDesktopUpload())
             ->call('save');
 
-        $valid ? $component->assertHasNoErrors() : $component->assertHasErrors(['form.link']);
+        if ($stored === null) {
+            $component->assertHasErrors(['form.link']);
+
+            expect(Banner::query()->count())->toBe(0);
+
+            return;
+        }
+
+        $component->assertHasNoErrors();
+
+        expect(Banner::query()->sole()->link)->toBe($stored);
     })->with([
-        'internal path' => ['/ru/catalog/scanners?brand=zebra', true],
-        'root' => ['/', true],
-        'https' => ['https://zebra.com/uz', true],
-        'protocol-relative' => ['//evil.example.com', false],
-        'http' => ['http://example.com', false],
-        'javascript' => ['javascript:alert(1)', false],
-        'relative' => ['catalog/scanners', false],
-        'backslash' => ['/\\evil.example.com', false],
-        'whitespace' => ['/uz/cat alog', false],
+        'internal path' => ['/catalog/scanners?brand=zebra', '/catalog/scanners?brand=zebra'],
+        'ru prefix stripped' => ['/ru/catalog/scanners', '/catalog/scanners'],
+        'uz prefix with query' => ['  /uz/catalog/scanners?brand=zebra ', '/catalog/scanners?brand=zebra'],
+        'bare en prefix' => ['/en', '/'],
+        'prefix with query only' => ['/ru?x=1', '/?x=1'],
+        'not a locale' => ['/uzbekistan/delivery', '/uzbekistan/delivery'],
+        'root' => ['/', '/'],
+        'https' => ['https://zebra.com/uz', 'https://zebra.com/uz'],
+        'admin' => ['/admin/banners', null],
+        'admin behind a locale' => ['/ru/admin', null],
+        'livewire' => ['/livewire/update', null],
+        'protocol-relative behind a locale' => ['/ru//evil.example.com', null],
+        'protocol-relative' => ['//evil.example.com', null],
+        'http' => ['http://example.com', null],
+        'javascript' => ['javascript:alert(1)', null],
+        'relative' => ['catalog/scanners', null],
+        'backslash' => ['/\\evil.example.com', null],
+        'whitespace' => ['/uz/cat alog', null],
     ]);
 
     it('validates the title, lengths, banned wording, dates order and the images', function () {

@@ -8,7 +8,8 @@ namespace App\Enums;
  * per-crawler robots.txt policy (key robots.ai_bots); Faq is the general FAQ
  * tab (faq_items rows, not settings keys) and is used for access only.
  * ApiTokens (token created / revoked) and PriceSync (a product unlinked
- * from the price API) are audit-only areas of plan 09.
+ * from the price API) are audit-only areas of plan 09. AiPrompts (plan 12) is
+ * audit-only too: an AI prompt override saved (Updated) or reset (Cleared).
  */
 enum SettingsArea: string
 {
@@ -23,6 +24,7 @@ enum SettingsArea: string
     case Integrations = 'integrations';
     case ApiTokens = 'api_tokens';
     case PriceSync = 'price_sync';
+    case AiPrompts = 'ai_prompts';
 
     public function label(): string
     {
@@ -37,7 +39,7 @@ enum SettingsArea: string
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
             self::Seo, self::Tracking, self::AiBots => 'seo',
-            self::Integrations, self::ApiTokens, self::PriceSync => 'integrations',
+            self::Integrations, self::ApiTokens, self::PriceSync, self::AiPrompts => 'integrations',
         };
     }
 

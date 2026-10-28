@@ -35,7 +35,7 @@ class BannerFactory extends Factory
             'title' => ['uz' => $title, 'ru' => 'RU '.$title, 'en' => 'EN '.$title],
             'text' => ['uz' => 'Matn '.$title.'.', 'ru' => 'Текст '.$title.'.', 'en' => 'Text '.$title.'.'],
             'button_label' => ['uz' => 'Batafsil', 'ru' => 'Подробнее', 'en' => 'Learn more'],
-            'link' => '/uz/catalog',
+            'link' => '/catalog',
             'starts_at' => null,
             'ends_at' => null,
             'is_active' => true,

@@ -321,7 +321,6 @@ class Form extends Component
     protected function aiTargets(): array
     {
         return [
-            'form.name' => 'category.name',
             'form.description' => 'category.description',
             'form.meta_title' => 'category.meta_title',
             'form.meta_description' => 'category.meta_description',

@@ -136,6 +136,7 @@ return [
         'invalid_key' => 'Kalit rad etildi',
         'refused' => 'Provayder rad etdi',
         'bad_request' => 'Notoʻgʻri soʻrov',
+        'field_retired' => 'Maydon oʻchirilgan',
     ],
 
     'quote_status' => [
@@ -233,6 +234,7 @@ return [
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
         'price_sync' => 'Narxlar sinxronizatsiyasi',
+        'ai_prompts' => 'SI promptlari',
     ],
 
     'audit_action' => [

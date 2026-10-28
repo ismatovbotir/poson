@@ -46,6 +46,13 @@ class ProcessAiRequest
             return $request->refresh();
         }
 
+        // Plan 12: a field removed from the registry while the request was queued.
+        if (! $task->isRegistered()) {
+            $this->fail($request, AiErrorCode::FieldRetired);
+
+            return $request->refresh();
+        }
+
         $claimed = AiRequest::query()
             ->whereKey($request->id)
             ->where('status', AiRequestStatus::Pending->value)

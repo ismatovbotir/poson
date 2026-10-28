@@ -37,7 +37,7 @@ use Tests\Support\FakeTextAssistant;
 /**
  * @return Testable
  */
-function openAssistant(string $field = 'product.name', string $locale = 'uz', array $current = [], string $target = 'form.name')
+function openAssistant(string $field = 'product.meta_title', string $locale = 'uz', array $current = [], string $target = 'form.meta_title')
 {
     return Livewire::test(Assistant::class)->call('openFor', 'form-component-1', $target, $field, $locale, ['name' => 'Zebra ZD421', 'brand' => 'Zebra'], $current);
 }
@@ -52,9 +52,9 @@ describe('assistant flow', function () {
     it('opens with the hint from the registry', function () {
         openAssistant()
             ->assertSet('open', true)
-            ->assertSet('fieldKey', 'product.name')
+            ->assertSet('fieldKey', 'product.meta_title')
             ->assertSet('mode', 'generate')
-            ->assertSet('hint', fn (string $hint): bool => $hint === FieldRegistry::get('product.name')->hintFor(new AiContext(name: 'Zebra ZD421', brand: 'Zebra')) && str_contains($hint, 'Zebra ZD421'))
+            ->assertSet('hint', fn (string $hint): bool => $hint === FieldRegistry::get('product.meta_title')->hintFor(new AiContext(name: 'Zebra ZD421', brand: 'Zebra')) && str_contains($hint, 'Zebra ZD421'))
             ->assertSee(__('ai.assistant.title'));
     });
 
@@ -69,7 +69,7 @@ describe('assistant flow', function () {
             ->assertSee('Принтер этикеток Zebra ZD421')
             ->assertSee(__('ai.assistant.review_uz'))
             ->assertSeeHtml('data-ai-review-note')
-            ->assertSee('27/120');
+            ->assertSee('27/60');
 
         $request = AiRequest::query()->sole();
         expect($request->prompt)->toBe('Short name please.')
@@ -77,14 +77,14 @@ describe('assistant flow', function () {
             ->and($this->fake->tasks[0]->context->name)->toBe('Zebra ZD421');
 
         $component->call('applyAll')
-            ->assertDispatched('ai-apply', owner: 'form-component-1', target: 'form.name', field: 'product.name', values: $request->response)
+            ->assertDispatched('ai-apply', owner: 'form-component-1', target: 'form.meta_title', field: 'product.meta_title', values: $request->response)
             ->assertSet('open', false);
     });
 
     it('applies one locale only', function () {
         openAssistant()->call('generate')
             ->call('apply', 'ru')
-            ->assertDispatched('ai-apply', owner: 'form-component-1', target: 'form.name', field: 'product.name', values: ['ru' => 'Принтер этикеток Zebra ZD421']);
+            ->assertDispatched('ai-apply', owner: 'form-component-1', target: 'form.meta_title', field: 'product.meta_title', values: ['ru' => 'Принтер этикеток Zebra ZD421']);
     });
 
     it('translates from the active locale and never applies the source card', function () {
@@ -197,13 +197,16 @@ describe('forms', function () {
         $component = Livewire::test(CategoryForm::class);
         $id = $component->id();
 
-        $component->call('applyAi', $id, 'form.name', 'category.name', ['uz' => 'Skanerlar', 'ru' => 'Сканеры', 'xx' => 'no'])
-            ->assertSet('form.name.uz', 'Skanerlar')
-            ->assertSet('form.name.ru', 'Сканеры')
-            ->call('applyAi', $id, 'form.slug', 'category.name', ['uz' => 'hacked'])
+        $component->call('applyAi', $id, 'form.meta_title', 'category.meta_title', ['uz' => 'Skanerlar', 'ru' => 'Сканеры', 'xx' => 'no'])
+            ->assertSet('form.meta_title.uz', 'Skanerlar')
+            ->assertSet('form.meta_title.ru', 'Сканеры')
+            ->call('applyAi', $id, 'form.slug', 'category.meta_title', ['uz' => 'hacked'])
             ->assertSet('form.slug', '')
-            ->call('applyAi', $id, 'form.is_active', 'category.name', ['uz' => 'x'])
+            ->call('applyAi', $id, 'form.is_active', 'category.meta_title', ['uz' => 'x'])
             ->assertSet('form.is_active', true)
+            // A retired field (plan 12) is no longer a target.
+            ->call('applyAi', $id, 'form.name', 'category.name', ['uz' => 'Retired'])
+            ->assertSet('form.name.uz', '')
             ->call('applyAi', 'another-component', 'form.description', 'category.description', ['uz' => 'Other'])
             ->assertSet('form.description.uz', '')
             // A text written for another field isn't applied (e.g. a meta title into the description).
@@ -231,7 +234,8 @@ describe('forms', function () {
     it('shows the AI button and the assistant to a content manager', function () {
         $this->get(route('admin.categories.create'))
             ->assertOk()
-            ->assertSee('data-ai-button="category.name"', false)
+            ->assertSee('data-ai-button="category.description"', false)
+            ->assertDontSee('data-ai-button="category.name"', false)
             ->assertSee('data-ai-button="category.meta_description"', false)
             ->assertSee('data-ai-assistant', false);
     });
@@ -317,11 +321,11 @@ describe('secrets', function () {
 
 describe('review fixes', function () {
     it('disables Apply for a plain text longer than the field maximum', function () {
-        fakeTextAssistant(new FakeTextAssistant(['uz' => str_repeat('a', 121), 'ru' => 'Принтер', 'en' => 'Printer']));
+        fakeTextAssistant(new FakeTextAssistant(['uz' => str_repeat('a', 61), 'ru' => 'Принтер', 'en' => 'Printer']));
 
         openAssistant()->call('generate')
             ->assertSeeHtml('data-ai-too-long')
-            ->assertSee(__('ai.assistant.too_long', ['max' => 120]))
+            ->assertSee(__('ai.assistant.too_long', ['max' => 60]))
             ->call('apply', 'uz')
             ->assertNotDispatched('ai-apply')
             ->call('applyAll')
@@ -340,13 +344,13 @@ describe('review fixes', function () {
         $category = Category::factory()->create();
 
         $open = fn (string $field, string $type, int $id) => Livewire::test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.name', $field, 'uz', ['name' => 'X', 'subject_type' => $type, 'subject_id' => $id], [])
+            ->call('openFor', 'form-1', 'form.meta_title', $field, 'uz', ['name' => 'X', 'subject_type' => $type, 'subject_id' => $id], [])
             ->get('context');
 
-        expect($open('product.name', 'product', $product->id))->subject_type->toBe('product')->subject_id->toBe($product->id)
-            ->and($open('product.name', 'category', $category->id))->subject_type->toBeNull()
+        expect($open('product.meta_title', 'product', $product->id))->subject_type->toBe('product')->subject_id->toBe($product->id)
+            ->and($open('product.meta_title', 'category', $category->id))->subject_type->toBeNull()
             ->and($open('faq.answer', 'category', $category->id))->subject_type->toBe('category')
-            ->and($open('product.name', 'product', 999999))->subject_id->toBeNull();
+            ->and($open('product.meta_title', 'product', 999999))->subject_id->toBeNull();
     });
 
     it('checks ai.use on every request, not only on mount', function (string $method, array $args) {
@@ -389,7 +393,7 @@ describe('request lifecycle', function () {
             $stale = app(FailStaleAiRequest::class)->handle($request->fresh());
         }));
 
-        app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.name', 'x', new AiContext));
+        app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.short_description', 'x', new AiContext));
 
         expect($stale)->toBeFalse()
             ->and($request->fresh()->status)->toBe(AiRequestStatus::Succeeded);
@@ -403,14 +407,14 @@ describe('request lifecycle', function () {
             app(FailStaleAiRequest::class)->handle($request->fresh());
         }));
 
-        app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.name', 'x', new AiContext));
+        app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.short_description', 'x', new AiContext));
 
         expect($request->fresh())->status->toBe(AiRequestStatus::Failed)->error_code->toBe(AiErrorCode::Timeout)->response->toBeNull();
     });
 
     it('runs a pending request only once', function () {
         $request = AiRequest::factory()->pending()->for($this->user)->create();
-        $task = new TextTask(AiFeature::TextGenerate, 'product.name', 'x', new AiContext);
+        $task = new TextTask(AiFeature::TextGenerate, 'product.short_description', 'x', new AiContext);
 
         app(ProcessAiRequest::class)->handle($request->id, $task);
         app(ProcessAiRequest::class)->handle($request->id, $task);

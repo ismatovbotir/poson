@@ -24,7 +24,9 @@ use Illuminate\Support\Facades\Cache;
  *
  * Read time (K7): a banner whose title, text, button label or alt in the
  * current locale breaks the brand rule (BrandSafeText, e.g. edited directly
- * in the DB) is dropped; an invalid link is dropped from the banner.
+ * in the DB) is dropped; an invalid link is dropped from the banner. The
+ * cache is locale-neutral: an internal link is stored without a locale and
+ * gets the current one here (BannerLink::href()).
  *
  * Two queries (banners, then their media) on a cache miss, none on a hit;
  * a per-request copy in the container.
@@ -203,15 +205,16 @@ class BannerDirectory
             }
         }
 
-        $link = BannerLink::isValid($row['link']) ? $row['link'] : null;
+        // Internal paths are stored without a locale (decision 2026-10-27): the href gets the current one.
+        $href = BannerLink::href($row['link'], $locale);
 
         return new BannerSlide(
             id: $row['id'],
             title: $title,
             text: $text,
-            buttonLabel: $link !== null ? ($button !== '' ? $button : __('site.banners.more')) : '',
-            link: $link,
-            external: BannerLink::isExternal($link),
+            buttonLabel: $href !== null ? ($button !== '' ? $button : __('site.banners.more')) : '',
+            href: $href,
+            external: $href !== null && BannerLink::isExternal($row['link']),
             image: $row['large'],
             imageMedium: $row['medium'],
             imageAlt: $alt,

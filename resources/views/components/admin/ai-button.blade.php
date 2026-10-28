@@ -1,7 +1,7 @@
 @props(['field' => null, 'target' => null])
 
 {{--
-    AI assist button (plan 02 §2). field = FieldRegistry key ("product.name"),
+    AI assist button (plan 02 §2). field = FieldRegistry key ("product.description"),
     target = the form property it fills ("form.name", whitelisted by the
     component's WithAiAssist::aiTargets()). Opens the assistant for the
     active locale tab (the closest [lang] = <x-admin.locale-panel>).

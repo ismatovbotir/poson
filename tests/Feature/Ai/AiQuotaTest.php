@@ -21,7 +21,7 @@ beforeEach(function () {
 
 function generateFor($user): AiRequest
 {
-    return app(GenerateFieldText::class)->handle($user, 'product.name', 'Write the name.', new AiContext(name: 'Zebra ZD421'));
+    return app(GenerateFieldText::class)->handle($user, 'product.meta_title', 'Write the name.', new AiContext(name: 'Zebra ZD421'));
 }
 
 function expectAiError(callable $callback, AiErrorCode $code): void

@@ -141,7 +141,7 @@ class FaqItems extends Component
      */
     protected function aiTargets(): array
     {
-        return $this->editing ? ['form.question' => 'faq.question', 'form.answer' => 'faq.answer'] : [];
+        return $this->editing ? ['form.answer' => 'faq.answer'] : [];
     }
 
     /**

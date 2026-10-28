@@ -22,8 +22,10 @@ use App\Models\Product;
  *     "Contact us" (secondary; the lead form with the product). Other types
  *     never get "Try", even when their brand has a website.
  *  2. The cart is on (config site.cart_enabled) and the product can go to the
- *     cart (sale mode cart / both with a Retail price) → "Add to cart"
- *     (primary) + "Request a quote" (secondary; "Contact us" for software).
+ *     cart (sale mode cart / both with a Retail price, not priced per label)
+ *     → "Add to cart" (primary) + "Request a quote" (secondary; "Contact us"
+ *     for software). Label products (pricing_unit label, sold in rolls) stay
+ *     quote-only until the cart has roll-aware lines (plan 11).
  *  3. Software → "Contact us" (primary).
  *  4. Everything else → "Request a quote" (primary).
  *
@@ -70,11 +72,15 @@ class ProductCtas
     }
 
     /**
-     * Sale mode cart / both with a Retail price (a product without a price is quote-only).
+     * Sale mode cart / both with a Retail price (a product without a price is
+     * quote-only). Products priced per label are quote-only until the cart
+     * supports rolls (plan 11).
      */
     public static function canAddToCart(Product $product): bool
     {
-        return $product->price !== null && $product->effectiveSaleMode()->allowsCart();
+        return $product->price !== null
+            && ! $product->isPricedPerLabel()
+            && $product->effectiveSaleMode()->allowsCart();
     }
 
     private static function make(Product $product, ProductCtaKind $kind, string $action, string $url, bool $primary): ProductCta

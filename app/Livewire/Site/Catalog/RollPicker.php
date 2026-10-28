@@ -34,12 +34,18 @@ class RollPicker extends Component
     #[Locked]
     public int $productId;
 
-    public ?int $rollTypeId = null;
+    /**
+     * The chosen roll type id. Untyped on purpose: a tampered request may send
+     * any value (a string, an array), which normalize() casts back to an
+     * offered roll type instead of failing with a TypeError.
+     */
+    public mixed $rollTypeId = null;
 
     /**
-     * Rolls; null (an emptied input) counts as the minimum.
+     * Rolls; null, an emptied input or a non-numeric value counts as the
+     * minimum. Untyped for the same reason as $rollTypeId (cast in normalize()).
      */
-    public ?int $rolls = 1;
+    public mixed $rolls = 1;
 
     private ?Product $loaded = null;
 
@@ -66,13 +72,13 @@ class RollPicker extends Component
 
     public function increment(): void
     {
-        $this->rolls = ($this->rolls ?? $this->minRolls()) + 1;
+        $this->rolls = $this->rollsOrMinimum() + 1;
         $this->normalize();
     }
 
     public function decrement(): void
     {
-        $this->rolls = ($this->rolls ?? $this->minRolls()) - 1;
+        $this->rolls = $this->rollsOrMinimum() - 1;
         $this->normalize();
     }
 
@@ -91,21 +97,39 @@ class RollPicker extends Component
     }
 
     /**
-     * Clamp to an offered roll type and min_qty..MAX_ROLLS, then tell the lead form.
+     * Cast and clamp to an offered roll type and min_qty..MAX_ROLLS, then tell the lead form.
      */
     private function normalize(): void
     {
         $rollTypes = $this->product()?->activeRollTypes ?? collect();
+        $rollTypeId = filter_var($this->rollTypeId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $this->rollTypeId = $rollTypeId !== false && $rollTypes->contains('id', $rollTypeId)
+            ? $rollTypeId
+            : $rollTypes->first()?->id;
 
-        if (! $rollTypes->contains('id', $this->rollTypeId)) {
-            $this->rollTypeId = $rollTypes->first()?->id;
-        }
-
-        $this->rolls = max($this->minRolls(), min(self::MAX_ROLLS, $this->rolls ?? $this->minRolls()));
+        $this->rolls = max($this->minRolls(), min(self::MAX_ROLLS, $this->rollsOrMinimum()));
 
         if ($this->rollTypeId !== null) {
             $this->dispatch('roll-selected', productId: $this->productId, rollTypeId: $this->rollTypeId, rolls: $this->rolls);
         }
+    }
+
+    /**
+     * The rolls as an integer: the minimum when empty or not a number.
+     */
+    private function rollsOrMinimum(): int
+    {
+        $rolls = $this->rolls;
+
+        if (is_int($rolls)) {
+            return $rolls;
+        }
+
+        if ((is_string($rolls) || is_float($rolls)) && is_numeric($rolls)) {
+            return (int) max(-self::MAX_ROLLS, min(self::MAX_ROLLS + 1, (float) $rolls));
+        }
+
+        return $this->minRolls();
     }
 
     private function minRolls(): int
@@ -127,7 +151,7 @@ class RollPicker extends Component
 
         try {
             // Retail only (brand rule): the site never reads Dealer / Wholesale.
-            return RollPricing::line($product, $rollType, max(1, $this->rolls ?? $this->minRolls()), $product->price, PriceLevel::Retail);
+            return RollPricing::line($product, $rollType, max(1, $this->rollsOrMinimum()), $product->price, PriceLevel::Retail);
         } catch (ValidationException) {
             return null;
         }

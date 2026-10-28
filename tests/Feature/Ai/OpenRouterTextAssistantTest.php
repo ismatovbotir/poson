@@ -19,7 +19,7 @@ const OR_PAID_MODEL = 'qwen/qwen3.8-flash';
 
 function orTask(AiFeature $feature = AiFeature::TextGenerate, ?string $from = null, string $source = ''): TextTask
 {
-    return new TextTask($feature, 'product.name', 'Write the catalog name.', new AiContext(name: 'Zebra ZD421', brand: 'Zebra'), $from, $source);
+    return new TextTask($feature, 'product.meta_title', 'Write the catalog name.', new AiContext(name: 'Zebra ZD421', brand: 'Zebra'), $from, $source);
 }
 
 /**

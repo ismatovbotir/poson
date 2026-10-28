@@ -136,6 +136,7 @@ return [
         'invalid_key' => 'Key rejected',
         'refused' => 'Refused by provider',
         'bad_request' => 'Invalid request',
+        'field_retired' => 'Field retired',
     ],
 
     'quote_status' => [
@@ -233,6 +234,7 @@ return [
         'integrations' => 'Integrations',
         'api_tokens' => 'API tokens',
         'price_sync' => 'Price sync',
+        'ai_prompts' => 'AI prompts',
     ],
 
     'audit_action' => [

@@ -5,8 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Brands. The name is not translated; the description is (json). The logo
- * lives in medialibrary (collection "logo").
+ * Brands. The name is not translated; the description and the SEO meta
+ * title / description are (json, plan 12). The logo lives in medialibrary
+ * (collection "logo").
  */
 return new class extends Migration
 {
@@ -20,6 +21,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->json('description')->nullable();
+            $table->json('meta_title')->nullable();
+            $table->json('meta_description')->nullable();
             // For software brands also the partner / referral link of the "Try" button (kept as entered).
             $table->string('website', 2048)->nullable();
             $table->boolean('is_active')->default(true);

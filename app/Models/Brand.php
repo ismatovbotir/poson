@@ -19,8 +19,9 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\Translatable\HasTranslations;
 
 /**
- * Product brand. The name is the same in every locale; the description is
- * translatable. Logo in the medialibrary collection "logo".
+ * Product brand. The name is the same in every locale; the description and
+ * the SEO meta title / description (plan 12) are translatable. Logo in the
+ * medialibrary collection "logo".
  *
  * Public brand pages (/{locale}/brands) list the "listed" brands: active,
  * with at least one product visible on the site. Saving or deleting a
@@ -33,7 +34,7 @@ use Spatie\Translatable\HasTranslations;
  * @property bool $is_active
  * @property int $sort
  */
-#[Fillable(['name', 'slug', 'description', 'website', 'is_active', 'sort'])]
+#[Fillable(['name', 'slug', 'description', 'meta_title', 'meta_description', 'website', 'is_active', 'sort'])]
 class Brand extends Model implements HasMedia
 {
     /** @use HasFactory<BrandFactory> */
@@ -42,7 +43,7 @@ class Brand extends Model implements HasMedia
     /**
      * @var list<string>
      */
-    public array $translatable = ['description'];
+    public array $translatable = ['description', 'meta_title', 'meta_description'];
 
     protected static function booted(): void
     {

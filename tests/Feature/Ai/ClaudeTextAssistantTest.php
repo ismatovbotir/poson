@@ -20,7 +20,7 @@ use Laravel\Ai\Prompts\AgentPrompt;
 
 function nameTask(AiFeature $feature = AiFeature::TextGenerate, ?string $from = null, string $source = ''): TextTask
 {
-    return new TextTask($feature, 'product.name', 'Write the catalog name.', new AiContext(name: 'Zebra ZD421', brand: 'Zebra', specs: '- Resolution: 203 dpi'), $from, $source);
+    return new TextTask($feature, 'product.meta_title', 'Write the catalog name.', new AiContext(name: 'Zebra ZD421', brand: 'Zebra', specs: '- Resolution: 203 dpi'), $from, $source);
 }
 
 /**

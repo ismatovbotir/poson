@@ -6,6 +6,7 @@ use App\Enums\AiFeature;
 use App\Support\Ai\AiContext;
 use App\Support\Ai\FieldRegistry;
 use App\Support\Ai\FieldSpec;
+use InvalidArgumentException;
 
 /**
  * Input of TextAssistant: which field, the final hint (as edited by the
@@ -23,9 +24,21 @@ final readonly class TextTask
         public string $sourceText = '',
     ) {}
 
+    /**
+     * @throws InvalidArgumentException for a retired key: check isRegistered() first
+     */
     public function field(): FieldSpec
     {
         return FieldRegistry::get($this->fieldKey);
+    }
+
+    /**
+     * The field is still in FieldRegistry (a queued request may carry a key
+     * removed since; ProcessAiRequest then fails it with field_retired).
+     */
+    public function isRegistered(): bool
+    {
+        return FieldRegistry::has($this->fieldKey);
     }
 
     public function isTranslation(): bool

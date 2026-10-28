@@ -81,6 +81,7 @@ class RolesAndPermissionsSeeder extends Seeder
      *  - pages.* / news.* / banners.*: Content manager + Admin (plan 07).
      *  - api-tokens.manage / price-sync.view: price API tokens and the sync
      *    log (plan 09); Admin only, no other role.
+     *  - ai-prompts.manage: Settings → AI prompts (plan 12); Admin only.
      *
      * @return array<string, list<string>>
      */
@@ -156,6 +157,8 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 09 price API: tokens (Settings → API tokens) and the sync log. Admin only.
             'api-tokens.manage',
             'price-sync.view',
+            // Plan 12: Settings → AI prompts (override the default AI hints). Admin only.
+            'ai-prompts.manage',
         ];
     }
 

@@ -27,6 +27,8 @@ enum AiErrorCode: string
     case Refused = 'refused';
     // OpenRouter (plan 10): the provider rejected the request as invalid (other 4xx); retrying won't help.
     case BadRequest = 'bad_request';
+    // Plan 12: the field was removed from FieldRegistry while the request was queued.
+    case FieldRetired = 'field_retired';
 
     /**
      * Translated message for the assistant panel.

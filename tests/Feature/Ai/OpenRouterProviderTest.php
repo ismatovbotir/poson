@@ -32,7 +32,7 @@ beforeEach(function () {
 
 function queueOpenRouterRequest($user): AiRequest
 {
-    return app(GenerateFieldText::class)->handle($user, 'product.name', 'Write the name.', new AiContext(name: 'Zebra ZD421'));
+    return app(GenerateFieldText::class)->handle($user, 'product.meta_title', 'Write the name.', new AiContext(name: 'Zebra ZD421'));
 }
 
 it('stores the current provider and model on a new request', function () {
@@ -87,7 +87,7 @@ it('runs a queued request on the provider and model of its row after the provide
     $claude = fakeTextAssistant(new FakeTextAssistant, AiProvider::Anthropic);
     $openRouter = fakeTextAssistant(new FakeTextAssistant(texts: ['uz' => 'OR uz', 'ru' => 'OR ru', 'en' => 'OR en']), AiProvider::OpenRouter);
 
-    app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.name', 'Write the name.', new AiContext));
+    app(ProcessAiRequest::class)->handle($request->id, new TextTask(AiFeature::TextGenerate, 'product.meta_title', 'Write the name.', new AiContext));
 
     expect($claude->tasks)->toBeEmpty()
         ->and($openRouter->models)->toBe(['qwen/qwen3.8-flash'])

@@ -3,14 +3,20 @@
 namespace App\Support\Ai;
 
 /**
- * One AI-assisted form field (plan 02 §3), declared in FieldRegistry.
+ * One AI-assisted form field (plan 02 §3, plan 12), declared in FieldRegistry.
  *
  * - key: "product.short_description" (also ai_requests.field_key)
- * - type: what the text is (name, short, long, seo_title, seo_description, question, answer)
+ * - group: screen group of Settings → AI prompts (FieldRegistry::GROUPS)
+ * - type: what the text is (short, long, seo_title, seo_description, answer, alt, headline)
  * - maxLength: recommended length shown in the preview (character count vs max)
  * - format: plain text or sanitized HTML (rich-text fields)
- * - hint: lang key of the hint template (ai.hints.*), placeholders {category} {brand} {name} {specs} {question}
+ * - hint: lang key of the default hint template (ai.hints.*)
  * - label: lang key of the field label
+ * - placeholders: the {placeholders} the hint may use (a subset of
+ *   AiContext::placeholders(), never "specs": the specs are in <context>)
+ *
+ * Hint precedence: admin override (PromptOverrides) → lang default in the
+ * UI locale → the manager's edit in the panel (per request, never saved).
  */
 final readonly class FieldSpec
 {
@@ -18,6 +24,9 @@ final readonly class FieldSpec
 
     public const HTML = 'html';
 
+    /**
+     * @param  list<string>  $placeholders
+     */
     public function __construct(
         public string $key,
         public string $type,
@@ -25,6 +34,8 @@ final readonly class FieldSpec
         public string $format,
         public string $hint,
         public string $label,
+        public string $group,
+        public array $placeholders,
     ) {}
 
     public function isHtml(): bool
@@ -38,11 +49,39 @@ final readonly class FieldSpec
     }
 
     /**
-     * The hint template with the context values filled in.
+     * The localized default hint template (lang ai.hints.*), placeholders unfilled.
      */
-    public function hintFor(AiContext $context): string
+    public function defaultTemplate(?string $locale = null): string
     {
-        return FieldRegistry::fill(__($this->hint), $context->placeholders());
+        return (string) __($this->hint, [], $locale);
+    }
+
+    /**
+     * The hint template in use: the admin override, else the localized default.
+     */
+    public function template(?string $locale = null): string
+    {
+        return PromptOverrides::for($this->key) ?? $this->defaultTemplate($locale);
+    }
+
+    /**
+     * An admin override replaces the default hint.
+     */
+    public function isOverridden(): bool
+    {
+        return PromptOverrides::for($this->key) !== null;
+    }
+
+    /**
+     * The hint template with the context values of the allowed placeholders
+     * filled in (any other {placeholder} is left as it is). $template: a
+     * text being edited (preview); by default template().
+     */
+    public function hintFor(AiContext $context, ?string $template = null): string
+    {
+        $values = array_intersect_key($context->placeholders(), array_flip($this->placeholders));
+
+        return FieldRegistry::fill($template ?? $this->template(), $values);
     }
 
     /**

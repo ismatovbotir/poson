@@ -805,7 +805,7 @@ return [
         'content_help' => 'Shown over the image. The Uzbek title is required; Russian and English fall back to Uzbek.',
         'max_hint' => 'Up to :max characters.',
         'button_hint' => 'Shown when there is a link. Left empty: “Learn more”.',
-        'link_hint' => 'An internal path such as /uz/catalog/scanners, or a full https:// address. Internal paths are used exactly as entered, so add the language prefix (/uz, /ru or /en) yourself. External links open in a new tab.',
+        'link_hint' => 'An internal path without a language prefix, such as /catalog/scanners, or a full https:// address. The site adds the visitor\'s language itself; a pasted /uz, /ru or /en prefix is removed on save. External links open in a new tab.',
         'images' => 'Images',
         'images_help' => 'JPG, PNG or WebP, up to 5 MB. Images are cropped to the banner size from the centre.',
         'no_text_in_images' => 'Don’t put text, prices or buttons into the image itself: they can’t be translated, read by search engines or screen readers, and become unreadable on phones. Enter the texts in the fields above.',

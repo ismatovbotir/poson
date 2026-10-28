@@ -148,7 +148,6 @@ class Form extends Component
     protected function aiTargets(): array
     {
         $targets = [
-            'form.title' => 'page.title',
             'form.body' => 'page.body',
             'form.meta_title' => 'page.meta_title',
             'form.meta_description' => 'page.meta_description',

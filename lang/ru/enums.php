@@ -136,6 +136,7 @@ return [
         'invalid_key' => 'Ключ отклонён',
         'refused' => 'Отказ провайдера',
         'bad_request' => 'Некорректный запрос',
+        'field_retired' => 'Поле отключено',
     ],
 
     'quote_status' => [
@@ -233,6 +234,7 @@ return [
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
         'price_sync' => 'Синхронизация цен',
+        'ai_prompts' => 'Промпты ИИ',
     ],
 
     'audit_action' => [

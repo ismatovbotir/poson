@@ -80,9 +80,7 @@
                 <x-admin.locale-tabs :error-keys="['form.name', 'form.short_description', 'form.description']" :label="__('admin.form.content_language')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
-                            <x-admin.input wire:model.blur="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255" :placeholder="__('admin.products.placeholders.name', [], $locale)" :hint="__('admin.products.hints.name')">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="product.name" target="form.name" /></span></x-slot:labelAside>
-                            </x-admin.input>
+                            <x-admin.input wire:model.blur="form.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255" :placeholder="__('admin.products.placeholders.name', [], $locale)" :hint="__('admin.products.hints.name')" />
                             <x-admin.slug-field :id="'f-form-slug-'.$locale" prefix="/product/" :slug="$product?->slug" :preview="$form->autoSlug()" :hint="__('admin.catalog.slug_hint')" />
                             <x-admin.textarea wire:model="form.short_description.{{ $locale }}" :label="__('admin.products.fields.short_description')" rows="2" maxlength="500" :hint="__('admin.products.short_description_hint')">
                                 <x-slot:labelAside>

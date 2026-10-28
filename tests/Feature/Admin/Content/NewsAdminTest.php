@@ -528,10 +528,10 @@ describe('SI assist', function () {
         fakeTextAssistant();
     });
 
-    it('offers SI on title, excerpt, body and SEO', function () {
+    it('offers SI on excerpt, body and SEO, not on the title', function () {
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Form::class)
-            ->assertSeeHtml('data-ai-button="news.title"')
+            ->assertDontSeeHtml('data-ai-button="news.title"')
             ->assertSeeHtml('data-ai-button="news.excerpt"')
             ->assertSeeHtml('data-ai-button="news.body"')
             ->assertSeeHtml('data-ai-button="news.meta_title"')
@@ -560,7 +560,7 @@ describe('SI assist', function () {
 
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.title', 'news.title', 'uz', ['name' => 'X', 'subject_type' => 'news_post', 'subject_id' => $post->id], [])
+            ->call('openFor', 'form-1', 'form.excerpt', 'news.excerpt', 'uz', ['name' => 'X', 'subject_type' => 'news_post', 'subject_id' => $post->id], [])
             ->assertSet('open', true)
             ->assertSet('context.subject_type', 'news_post')
             ->assertSet('context.subject_id', $post->id);
@@ -568,7 +568,7 @@ describe('SI assist', function () {
         // A forged subject of another kind is dropped.
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.title', 'news.title', 'uz', ['name' => 'X', 'subject_type' => 'page', 'subject_id' => $page->id], [])
+            ->call('openFor', 'form-1', 'form.excerpt', 'news.excerpt', 'uz', ['name' => 'X', 'subject_type' => 'page', 'subject_id' => $page->id], [])
             ->assertSet('context.subject_type', null)
             ->assertSet('context.subject_id', null);
     });

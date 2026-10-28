@@ -24,6 +24,8 @@ class BrandFactory extends Factory
             'name' => $name,
             'slug' => Slug::make($name).'-'.fake()->unique()->numberBetween(1, 999_999),
             'description' => null,
+            'meta_title' => null,
+            'meta_description' => null,
             'website' => null,
             'is_active' => true,
             'sort' => 0,

@@ -32,7 +32,7 @@
                 </x-admin.locale-tabs>
 
                 <div class="mt-5">
-                    <x-admin.input wire:model="form.link" :label="__('admin.banners.fields.link')" placeholder="/uz/catalog/..." maxlength="2048" autocomplete="off" spellcheck="false" :hint="__('admin.banners.link_hint')" />
+                    <x-admin.input wire:model="form.link" :label="__('admin.banners.fields.link')" placeholder="/catalog/..." maxlength="2048" autocomplete="off" spellcheck="false" :hint="__('admin.banners.link_hint')" />
                 </div>
             </x-admin.card>
 

@@ -26,9 +26,7 @@
                 <x-admin.locale-tabs :error-keys="['form.title', 'form.excerpt', 'form.body']" :label="__('admin.form.content_language')">
                     @foreach ($locales as $locale)
                         <x-admin.locale-panel :locale="$locale">
-                            <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.news.fields.title')" :required="$locale === 'uz'" maxlength="255">
-                                <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="news.title" target="form.title" /></span></x-slot:labelAside>
-                            </x-admin.input>
+                            <x-admin.input wire:model.blur="form.title.{{ $locale }}" :label="__('admin.news.fields.title')" :required="$locale === 'uz'" maxlength="255" />
                             <x-admin.textarea wire:model="form.excerpt.{{ $locale }}" :label="__('admin.news.fields.excerpt')" rows="3" maxlength="500" :hint="$kind->adminText('excerpt_hint')">
                                 <x-slot:labelAside><span class="ml-auto"><x-admin.ai-button field="news.excerpt" target="form.excerpt" /></span></x-slot:labelAside>
                             </x-admin.textarea>

@@ -40,7 +40,7 @@ function sliderImages(string $html): array
 describe('home slider', function () {
     it('shows live banners below the static hero in sort order, without autoplay', function () {
         Banner::factory()->withImages(mobile: true)->create(['sort' => 2, 'title' => ['uz' => 'Ikkinchi banner'], 'link' => 'https://zebra.com/uz']);
-        Banner::factory()->withImages()->create(['sort' => 1, 'title' => ['uz' => 'Birinchi banner'], 'link' => '/uz/catalog']);
+        Banner::factory()->withImages()->create(['sort' => 1, 'title' => ['uz' => 'Birinchi banner'], 'link' => '/catalog']);
 
         $html = $this->get('/uz')->assertOk()->getContent();
 
@@ -73,9 +73,17 @@ describe('home slider', function () {
         expect(substr_count($html, '<source media="(max-width: 639px)"'))->toBe(1)
             ->and($html)->toContain('width="'.Banner::MOBILE_WIDTH.'" height="'.Banner::MOBILE_HEIGHT.'"');
 
-        // The internal link stays as entered; the external one opens with noopener.
+        // The internal link gets the visitor's locale; the external one opens with noopener.
         expect($html)->toContain('href="/uz/catalog"')
             ->toMatch('#href="https://zebra.com/uz"\s+target="_blank" rel="noopener"#');
+
+        // Same cached banners, ru visitor: the internal path in ru, the external link as stored.
+        newBannerRequest();
+        $ru = $this->get('/ru')->assertOk()->getContent();
+
+        expect($ru)->toContain('href="/ru/catalog"')
+            ->not->toContain('href="/uz/catalog"')
+            ->toContain('href="https://zebra.com/uz"');
 
         expectNoBannedWording($html);
     });
@@ -213,6 +221,30 @@ describe('brand rule', function () {
         $this->get('/ru')->assertOk()->assertDontSee('Чистый баннер')->assertSee('Второй');
         $this->get('/uz')->assertOk()->assertSee('Toza banner');
     });
+
+    it('renders internal links in the visitor locale, also legacy ones stored with a prefix', function (string $stored, string $locale, string $href) {
+        $banner = Banner::factory()->withImages()->create(['title' => ['uz' => 'Havola']]);
+        DB::table('banners')->where('id', $banner->id)->update(['link' => $stored]);
+        BannerDirectory::flush();
+
+        $this->get('/'.$locale)->assertOk()->assertSee('href="'.$href.'"', false);
+    })->with([
+        'path' => ['/catalog/scanners?brand=zebra', 'en', '/en/catalog/scanners?brand=zebra'],
+        'root' => ['/', 'ru', '/ru'],
+        'root with query' => ['/?utm=x', 'ru', '/ru?utm=x'],
+        'legacy uz prefix' => ['/uz/page/warranty-service', 'ru', '/ru/page/warranty-service'],
+    ]);
+
+    it('ignores stored internal links into the admin panel or Livewire', function (string $stored) {
+        $banner = Banner::factory()->withImages()->create(['title' => ['uz' => 'Havolasiz']]);
+        DB::table('banners')->where('id', $banner->id)->update(['link' => $stored]);
+        BannerDirectory::flush();
+
+        $html = $this->get('/uz')->assertOk()->getContent();
+
+        expect($html)->toContain('Havolasiz')
+            ->not->toContain('data-banner-link');
+    })->with(['/admin', '/ru/admin/banners', '/livewire/update', '/uz//evil.example.com']);
 
     it('drops a banner with a banned alt text and ignores an invalid link', function () {
         $banner = Banner::factory()->withImages()->create(['title' => ['uz' => 'Alt banner']]);

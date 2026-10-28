@@ -435,13 +435,13 @@ describe('SI assist', function () {
 
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Form::class, ['page' => $default])
-            ->assertSeeHtml('data-ai-button="page.title"')
+            ->assertDontSeeHtml('data-ai-button="page.title"')
             ->assertSeeHtml('data-ai-button="page.body"')
             ->assertSeeHtml('data-ai-button="page.meta_description"');
 
         Livewire::actingAs(staffUser(Role::ContentManager))
             ->test(Form::class, ['page' => $legal])
-            ->assertSeeHtml('data-ai-button="page.title"')
+            ->assertSeeHtml('data-ai-button="page.meta_title"')
             ->assertDontSeeHtml('data-ai-button="page.body"')
             ->assertSee(__('admin.pages.legal_body_hint'))
             ->call('openAi', 'form.body', 'uz')
@@ -470,8 +470,8 @@ describe('SI assist', function () {
             ->test(Form::class, ['page' => $legal])
             ->set('form.slug', 'other')
             ->set('form.template', 'default')
-            ->call('openAi', 'form.title', 'uz')
-            ->assertDispatched('ai-open', fn (string $name, array $params): bool => $params['field'] === 'page.title'
+            ->call('openAi', 'form.meta_title', 'uz')
+            ->assertDispatched('ai-open', fn (string $name, array $params): bool => $params['field'] === 'page.meta_title'
                 && $params['context']['subject_type'] === 'page'
                 && $params['context']['subject_id'] === $legal->id
                 && $params['context']['facts']['Page'] === 'page/terms (legal template)');
@@ -495,10 +495,10 @@ describe('SI assist', function () {
             ->toThrow(ValidationException::class, __('ai.errors.legal_body'));
         expect(AiRequest::query()->count())->toBe(0);
 
-        // Title of the legal page and the body of a default page still work, with the page as subject.
+        // Meta title of the legal page and the body of a default page still work, with the page as subject.
         Livewire::actingAs($user)
             ->test(Assistant::class)
-            ->call('openFor', 'form-1', 'form.title', 'page.title', 'uz', $forged, [])
+            ->call('openFor', 'form-1', 'form.meta_title', 'page.meta_title', 'uz', $forged, [])
             ->assertSet('open', true)
             ->assertSet('context.subject_id', $legal->id);
 

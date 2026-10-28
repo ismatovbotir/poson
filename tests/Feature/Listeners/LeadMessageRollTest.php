@@ -27,3 +27,25 @@ it('names the roll and the rolls of a label line in the Telegram message, escape
         ->toContain('Zebra ZD421 (ZD421) ×2')
         ->not->toContain('<b>tags</b>');
 });
+
+it('names the roll in the message locale, not the current request locale', function () {
+    $roll = RollType::factory()->size(1000, '40.0')->create();
+    $product = Product::factory()->perLabel()->withRollTypes([$roll])->create();
+    $lead = Lead::factory()->quote()->create();
+    LeadItem::factory()->for($lead)->create([
+        'product_id' => $product->id,
+        'product_name' => 'Labels',
+        'qty' => 5,
+        'roll_type_id' => $roll->id,
+        'labels_per_roll' => 1000,
+        'core_diameter_mm' => '40.0',
+    ]);
+    app()->setLocale('ru');
+
+    $html = LeadMessage::for($lead->load(['items', 'customer']), 'uz')->html;
+
+    expect($html)->toContain(RollType::describe(1000, '40.0', 'uz').' × 5 rulon')
+        ->not->toContain('рулон')
+        ->not->toContain('этикет')
+        ->and(app()->getLocale())->toBe('ru');
+});

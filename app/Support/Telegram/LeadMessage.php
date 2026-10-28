@@ -41,13 +41,13 @@ final readonly class LeadMessage
         app()->setLocale($locale);
 
         try {
-            return new self(self::html($lead), self::buttons($lead));
+            return new self(self::html($lead, $locale), self::buttons($lead));
         } finally {
             app()->setLocale($previous);
         }
     }
 
-    private static function html(Lead $lead): string
+    private static function html(Lead $lead, string $locale): string
     {
         $lines = [
             '<b>'.e(__('telegram.lead.title', ['reference' => $lead->reference()])).'</b> · '.e($lead->type->label()),
@@ -61,9 +61,9 @@ final readonly class LeadMessage
 
         $items = $lead->items->take(self::MAX_ITEMS)->map(fn (LeadItem $item): string => e($item->product_name)
             .($item->sku ? ' ('.e($item->sku).')' : '')
-            // Plan 08: a roll line says which roll and how many rolls.
+            // Plan 08: a roll line says which roll and how many rolls, in the message locale.
             .($item->isRollLine()
-                ? ', '.e($item->rollName()).' × '.e(trans_choice('catalog.roll.rolls', $item->qty, ['count' => $item->qty]))
+                ? ', '.e($item->rollName($locale)).' × '.e(trans_choice('catalog.roll.rolls', $item->qty, ['count' => $item->qty], $locale))
                 : ' ×'.$item->qty));
 
         if ($items->isNotEmpty()) {

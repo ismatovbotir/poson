@@ -217,3 +217,25 @@ it('takes a quote request without a roll when the product has no active roll typ
         ->labels_per_roll->toBeNull()
         ->qty->toBe(1);
 });
+
+it('casts and clamps tampered non-numeric roll type and rolls values instead of failing', function () {
+    [$product, $large] = siteLabelProduct();
+
+    $component = Livewire::test(RollPicker::class, ['productId' => $product->id])
+        ->set('rollTypeId', 'abc')
+        ->assertSet('rollTypeId', $large->id)
+        ->set('rollTypeId', ['x'])
+        ->assertSet('rollTypeId', $large->id)
+        ->set('rolls', 'lots')
+        ->assertSet('rolls', 4)
+        ->set('rolls', ['x' => 1])
+        ->assertSet('rolls', 4)
+        ->set('rolls', '6.7')
+        ->assertSet('rolls', 6)
+        ->set('rolls', '1e30')
+        ->assertSet('rolls', RollPicker::MAX_ROLLS)
+        ->assertHasNoErrors();
+
+    expect($component->get('rolls'))->toBeInt()
+        ->and($component->get('rollTypeId'))->toBe($large->id);
+});

@@ -805,7 +805,7 @@ return [
         'content_help' => 'Rasm ustida koʻrsatiladi. Oʻzbekcha sarlavha majburiy; ruscha va inglizcha boʻsh boʻlsa, oʻzbekchasi olinadi.',
         'max_hint' => ':max belgigacha.',
         'button_hint' => 'Havola boʻlsa koʻrsatiladi. Boʻsh qolsa: “Batafsil”.',
-        'link_hint' => 'Ichki yoʻl, masalan /uz/catalog/scanners, yoki toʻliq https:// manzil. Ichki yoʻl kiritilgandek ishlatiladi, shuning uchun til prefiksini (/uz, /ru yoki /en) oʻzingiz qoʻshing. Tashqi havolalar yangi oynada ochiladi.',
+        'link_hint' => 'Til prefiksisiz ichki yoʻl, masalan /catalog/scanners, yoki toʻliq https:// manzil. Tashrif buyuruvchining tilini sayt oʻzi qoʻshadi; kiritilgan /uz, /ru yoki /en prefiksi saqlashda olib tashlanadi. Tashqi havolalar yangi oynada ochiladi.',
         'images' => 'Rasmlar',
         'images_help' => 'JPG, PNG yoki WebP, 5 MB gacha. Rasm banner oʻlchamiga markazdan kesiladi.',
         'no_text_in_images' => 'Rasmning oʻziga matn, narx yoki tugma joylamang: ularni tarjima qilib boʻlmaydi, qidiruv tizimlari va ekran oʻquvchilar ularni oʻqimaydi, telefonda esa oʻqib boʻlmaydigan boʻladi. Matnlarni yuqoridagi maydonlarga kiriting.',
