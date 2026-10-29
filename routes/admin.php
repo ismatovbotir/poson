@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
@@ -17,7 +18,9 @@ use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\News;
+use App\Livewire\Admin\Orders;
 use App\Livewire\Admin\Pages;
+use App\Livewire\Admin\Payments;
 use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
@@ -72,6 +75,14 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/quotes/{quote}', Quotes\Show::class)->whereNumber('quote')->name('quotes.show');
     Route::livewire('/quotes/{quote}/edit', Quotes\Form::class)->whereNumber('quote')->name('quotes.edit');
     Route::get('/quotes/{quote}/pdf', QuotePdfController::class)->whereNumber('quote')->name('quotes.pdf');
+
+    // Orders and payments (plan 11b). OrderPolicy in the components; lists use Order::visibleTo().
+    Route::livewire('/orders', Orders\Index::class)->name('orders.index');
+    Route::livewire('/orders/create', Orders\Form::class)->name('orders.create');
+    Route::livewire('/orders/{order}', Orders\Show::class)->whereNumber('order')->name('orders.show');
+    Route::livewire('/orders/{order}/edit', Orders\Form::class)->whereNumber('order')->name('orders.edit');
+    Route::get('/orders/{order}/invoice', OrderInvoiceController::class)->whereNumber('order')->name('orders.invoice');
+    Route::livewire('/payments', Payments\Index::class)->name('payments.index');
 
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');
@@ -130,6 +141,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // Integrations (plan 04b): settings.integrations (Admin only) + password re-confirmation within 15 minutes.
     Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
+    // Checkout settings (plan 11b): settings.checkout (Admin only): delivery fees, caps, IKPU, UzQR.
+    Route::livewire('/settings/checkout', Settings\Checkout::class)->name('settings.checkout');
     // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
 

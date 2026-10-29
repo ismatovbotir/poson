@@ -4,7 +4,7 @@ namespace App\Actions\Settings;
 
 use App\Enums\AuditAction;
 use App\Enums\IntegrationSource;
-use App\Enums\PaymeMode;
+use App\Enums\PaymentMode;
 use App\Enums\SettingsArea;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
@@ -19,12 +19,13 @@ use InvalidArgumentException;
 
 /**
  * Save non-secret integration values (Settings → Integrations): chat IDs,
- * merchant IDs, Payme mode, Telegram switches and locale. Secrets go
+ * merchant IDs, Payme / Click mode, Telegram switches and locale. Secrets go
  * through SetSecret / ClearSecret instead.
  *
  * validate() normalizes (trim, lowercase where the field asks) and checks
  * every value with its registry rules, plus: Payme can only switch to
- * "prod" when the merchant ID and the live key are configured. Fields
+ * "prod" when the merchant ID and the live key are configured, Click only
+ * when the live service ID, merchant user ID and secret key are. Fields
  * locked by a .env value are ignored (never written).
  *
  * handle() then, in one transaction, writes only the keys that changed
@@ -74,8 +75,12 @@ class SaveIntegrationSettings
             $normalized[$key] = $value;
         }
 
-        if (($normalized['payme.mode'] ?? null) === PaymeMode::Prod->value && ! $this->paymeLiveReady($normalized)) {
+        if (($normalized['payme.mode'] ?? null) === PaymentMode::Prod->value && ! $this->paymeLiveReady($normalized)) {
             $errors['payme.mode'] = [__('admin.settings.integrations.errors.payme_prod_requires_keys')];
+        }
+
+        if (($normalized['click.mode'] ?? null) === PaymentMode::Prod->value && ! $this->clickLiveReady($normalized)) {
+            $errors['click.mode'] = [__('admin.settings.integrations.errors.click_prod_requires_keys')];
         }
 
         if ($errors !== []) {
@@ -151,6 +156,25 @@ class SaveIntegrationSettings
         $value = trim($value);
 
         return $field->lowercase ? strtolower($value) : $value;
+    }
+
+    /**
+     * Live Click needs the merchant ID, live service ID and merchant user ID (new values or
+     * the effective ones) and the live secret key.
+     *
+     * @param  array<string, mixed>  $normalized
+     */
+    protected function clickLiveReady(array $normalized): bool
+    {
+        foreach (['click.merchant_id', 'click.service_id', 'click.merchant_user_id'] as $key) {
+            $value = array_key_exists($key, $normalized) ? $normalized[$key] : Secrets::get($key);
+
+            if (! IntegrationField::isFilled($value)) {
+                return false;
+            }
+        }
+
+        return Secrets::isConfigured('click.secret_key');
     }
 
     /**

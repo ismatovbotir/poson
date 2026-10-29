@@ -308,6 +308,7 @@ return [
             'contact_missing' => 'The contact list has changed. Reload the page.',
             'has_leads' => 'This customer has :count lead and can’t be deleted.|This customer has :count leads and can’t be deleted.',
             'has_quotes' => 'This customer has :count quote and can’t be deleted.|This customer has :count quotes and can’t be deleted.',
+            'has_orders' => 'This customer has :count order and can’t be deleted.|This customer has :count orders and can’t be deleted.',
             'lead_closed' => 'Only an open lead can be converted.',
             'pick_target' => 'Choose a customer or “Create a new customer”.',
         ],

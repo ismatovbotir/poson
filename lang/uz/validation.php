@@ -159,6 +159,8 @@ return [
     'url' => ':Attribute notoʻgʻri formatga ega.',
     'uuid' => ':Attribute toʻgʻri UUID qiymatga ega boʻlishi kerak.',
     'uz_phone' => ':Attribute maydoniga Oʻzbekiston telefon raqamini kiriting, masalan +998 90 123 45 67.',
+    'stir' => ':Attribute maydoniga kompaniya STIRini kiriting: 2 yoki 3 bilan boshlanuvchi 9 raqam.',
+    'stir_or_pinfl' => ':Attribute maydoniga STIR (4–6 bilan boshlanuvchi 9 raqam) yoki JSHSHIR (14 raqam) kiriting.',
     'brand_safe' => ':Attribute maydonida narx yoki chegirma haqidagi daʼvolar boʻlmasligi kerak.',
     'social_url' => ':Attribute maydoni :hosts saytiga https havola boʻlishi kerak.',
 

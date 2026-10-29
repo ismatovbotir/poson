@@ -95,6 +95,8 @@ it('serves robots.txt with the base rules and the sitemap', function () {
             'Disallow: /*/go/',
             'Disallow: /q/',
             'Disallow: /*/cart$',
+            'Disallow: /*/checkout$',
+            'Disallow: /o/',
             'Disallow: /*?*sort=',
             'Disallow: /*?*f[',
             'Disallow: /*?*f%5B',

@@ -2,14 +2,14 @@
 
 namespace App\Support\Integrations;
 
-use App\Enums\PaymeMode;
+use App\Enums\PaymentMode;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
 /**
  * Every integration value editable in Settings → Integrations (plan 04 S3, §2).
  * Secrets (encrypted in integration_secrets): Telegram bot token and
- * webhook secret, Payme keys, Click secret key. Everything else is a
+ * webhook secret, Payme keys, Click secret keys (live and test). Everything else is a
  * non-secret value in "settings" (group integrations).
  *
  * App\Support\Secrets resolves each field (non-empty .env > admin value >
@@ -165,13 +165,18 @@ final class IntegrationRegistry
             new IntegrationField('payme.merchant_id', 'payme', ['services.payme.merchant_id'], 'PAYME_MERCHANT_ID', rules: ['string', 'regex:'.self::PAYME_MERCHANT_ID], lowercase: true),
             new IntegrationField('payme.key', 'payme', ['services.payme.key'], 'PAYME_KEY', secret: true, rules: ['string', 'min:10', 'max:300', 'regex:'.self::API_KEY]),
             new IntegrationField('payme.test_key', 'payme', ['services.payme.test_key'], 'PAYME_TEST_KEY', secret: true, rules: ['string', 'min:10', 'max:300', 'regex:'.self::API_KEY]),
-            new IntegrationField('payme.mode', 'payme', ['services.payme.mode'], 'PAYME_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymeMode::class)], default: PaymeMode::Test->value, options: array_column(PaymeMode::cases(), 'value')),
+            new IntegrationField('payme.mode', 'payme', ['services.payme.mode'], 'PAYME_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymentMode::class)], default: PaymentMode::Test->value, options: array_column(PaymentMode::cases(), 'value')),
 
             // Click
             new IntegrationField('click.service_id', 'click', ['services.click.service_id'], 'CLICK_SERVICE_ID', rules: $digits),
             new IntegrationField('click.merchant_id', 'click', ['services.click.merchant_id'], 'CLICK_MERCHANT_ID', rules: $digits),
             new IntegrationField('click.merchant_user_id', 'click', ['services.click.merchant_user_id'], 'CLICK_MERCHANT_USER_ID', rules: $digits),
             new IntegrationField('click.secret_key', 'click', ['services.click.secret_key'], 'CLICK_SECRET_KEY', secret: true, rules: ['string', 'min:8', 'max:300', 'regex:'.self::API_KEY]),
+            // Plan 11 v2 §1.8: a separate Click test service; one active mode at a time (default test).
+            new IntegrationField('click.test_secret_key', 'click', ['services.click.test_secret_key'], 'CLICK_TEST_SECRET_KEY', secret: true, rules: ['string', 'min:8', 'max:300', 'regex:'.self::API_KEY]),
+            new IntegrationField('click.test_service_id', 'click', ['services.click.test_service_id'], 'CLICK_TEST_SERVICE_ID', rules: $digits),
+            new IntegrationField('click.test_merchant_user_id', 'click', ['services.click.test_merchant_user_id'], 'CLICK_TEST_MERCHANT_USER_ID', rules: $digits),
+            new IntegrationField('click.mode', 'click', ['services.click.mode'], 'CLICK_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymentMode::class)], default: PaymentMode::Test->value, options: array_column(PaymentMode::cases(), 'value')),
         ];
 
         $keyed = [];

@@ -400,6 +400,7 @@ return [
             'active' => 'Активные',
             'drafts' => 'Черновики',
             'incomplete' => 'Не заполнены характеристики',
+            'no_ikpu' => 'Нет ИКПУ',
             'trash' => 'Удалённые',
         ],
         'status' => [
@@ -479,6 +480,8 @@ return [
             'brand' => 'Показывается на странице товара со ссылкой на страницу бренда и используется в фильтре по брендам. Оставьте пустым, если бренда нет.',
             'unit' => 'Цены и минимальный заказ указываются в этой единице; она же копируется в строки КП.',
             'stock_status' => 'Показывается в карточке и на странице товара и используется в фильтре наличия. Заказ не блокирует.',
+            'ikpu_code' => '17 цифр с tasnif.soliq.uz. Нужен для чеков Payme / Click: без него онлайн-оплата для этого товара скрыта.',
+            'package_code' => 'Код упаковки (единицы) с tasnif.soliq.uz для этого ИКПУ.',
             'badge' => 'Необязательная метка в карточке и на странице товара: «Хит» — для популярных товаров, «Новинка» — для новых поступлений.',
         ],
         'placeholders' => [
@@ -508,6 +511,8 @@ return [
             'min_qty' => 'Минимальный заказ',
             'sale_mode' => 'Способ оформления',
             'stock_status' => 'Наличие',
+            'ikpu_code' => 'Код ИКПУ (MXIK)',
+            'package_code' => 'Код упаковки',
             'warranty_months' => 'Гарантия, мес.',
             'badge' => 'Метка',
             'is_featured' => 'Избранный на главной',
@@ -1087,6 +1092,10 @@ return [
                 'click_merchant_id' => 'Merchant ID',
                 'click_merchant_user_id' => 'Merchant user ID',
                 'click_secret_key' => 'Секретный ключ',
+                'click_test_service_id' => 'Тестовый Service ID',
+                'click_test_merchant_user_id' => 'Тестовый Merchant user ID',
+                'click_test_secret_key' => 'Тестовый секретный ключ',
+                'click_mode' => 'Режим',
             ],
             'hints' => [
                 'telegram_bot_token' => 'Выдаёт @BotFather, вида 123456789:AA….',
@@ -1105,10 +1114,15 @@ return [
                 'click_merchant_id' => 'Кабинет мерчанта Click: MERCHANT_ID.',
                 'click_merchant_user_id' => 'Кабинет мерчанта Click: MERCHANT_USER_ID.',
                 'click_secret_key' => 'Кабинет мерчанта Click → Сервисы: SECRET_KEY.',
+                'click_test_service_id' => 'SERVICE_ID отдельного тестового сервиса Click.',
+                'click_test_merchant_user_id' => 'MERCHANT_USER_ID тестового сервиса Click.',
+                'click_test_secret_key' => 'SECRET_KEY тестового сервиса Click.',
+                'click_mode' => 'Тест использует тестовый сервис; Боевой принимает реальные оплаты.',
             ],
             'errors' => [
                 'secret_format' => 'Значение не похоже на правильное для этого поля. Проверьте, что оно скопировано полностью и без пробелов.',
                 'payme_prod_requires_keys' => 'Для боевого режима сначала сохраните ID мерчанта Payme и боевой ключ.',
+                'click_prod_requires_keys' => 'Для боевого режима сначала сохраните Service ID, Merchant user ID и секретный ключ Click.',
             ],
             'telegram' => [
                 'generate' => 'Создать новый секрет',
@@ -1123,6 +1137,11 @@ return [
                 'prod_confirm_label' => 'Включить боевой режим',
                 'not_production' => 'Это не рабочий сайт (APP_ENV не «production»): боевые оплаты здесь спишут деньги с реальных карт.',
                 'test_key_missing' => 'Включён тестовый режим, но тестовый ключ не сохранён: оплаты в песочнице не пройдут, пока он не будет введён.',
+            ],
+            'click' => [
+                'prod_confirm_title' => 'Перевести Click в боевой режим?',
+                'prod_confirm_body' => 'Клиенты будут платить реальные деньги через боевой сервис Click.',
+                'test_key_missing' => 'Включён тестовый режим, но тестовый секретный ключ не сохранён: оплаты в песочнице не пройдут, пока его не введут.',
             ],
             'webhooks' => [
                 'not_public' => 'APP_URL — не публичный https-адрес (:url). Payme и Click вызывают вебхуки только на рабочем https-домене, поэтому сначала укажите APP_URL.',

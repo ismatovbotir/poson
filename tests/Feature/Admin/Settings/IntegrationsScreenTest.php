@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Settings\SetSecret;
 use App\Actions\Settings\TestIntegrationConnection;
 use App\Enums\AuditAction;
 use App\Enums\Role;
@@ -344,6 +345,49 @@ describe('settings', function () {
     });
 });
 
+describe('click mode', function () {
+    it('asks for an extra confirmation before switching Click to prod', function () {
+        IntegrationSecret::factory()->withValue('click.secret_key', 'fake-click-live-0000')->create();
+        Setting::factory()->create(['key' => 'click.service_id', 'group' => 'integrations', 'value' => '12345']);
+        Setting::factory()->create(['key' => 'click.merchant_user_id', 'group' => 'integrations', 'value' => '67890']);
+        Secrets::flush();
+        confirmAdminPassword();
+
+        $component = integrationsScreen()
+            ->set('form.values.click.mode', 'prod')
+            ->call('save', 'click')
+            ->assertDispatched('confirm', method: 'confirmProd')
+            ->assertSet('prodConfirmGroup', 'click');
+
+        expect(config('services.click.mode'))->toBe('test');
+
+        $component->call('confirmProd')->assertSet('prodConfirmGroup', null);
+
+        expect(config('services.click.mode'))->toBe('prod');
+    });
+
+    it('refuses Click prod without the live credentials', function () {
+        confirmAdminPassword();
+
+        integrationsScreen()
+            ->set('form.values.click.mode', 'prod')
+            ->call('save', 'click')
+            ->assertHasErrors('form.values.click.mode')
+            ->assertNotDispatched('confirm');
+
+        expect(config('services.click.mode'))->toBe('test');
+    });
+
+    it('stores the Click test secret encrypted like the other secrets', function () {
+        app(SetSecret::class)->handle('click.test_secret_key', 'fake-click-test-0000', null, null);
+
+        integrationsScreen()->assertSeeHtml('data-secret="click.test_secret_key"')->assertDontSeeHtml('fake-click-test-0000');
+
+        expect(Secrets::isConfigured('click.test_secret_key'))->toBeTrue()
+            ->and(config('services.click.test_secret_key'))->toBe('fake-click-test-0000');
+    });
+});
+
 describe('payme mode', function () {
     it('asks for an extra confirmation before switching to prod', function () {
         IntegrationSecret::factory()->withValue('payme.key', 'payme-fake-live-key-0000')->create();
@@ -355,14 +399,14 @@ describe('payme mode', function () {
             ->set('form.values.payme.mode', 'prod')
             ->assertSeeHtml('data-payme-warning')
             ->call('save', 'payme')
-            ->assertDispatched('confirm', method: 'confirmPaymeProd')
-            ->assertSet('paymeProdConfirmPending', true);
+            ->assertDispatched('confirm', method: 'confirmProd')
+            ->assertSet('prodConfirmGroup', 'payme');
 
         expect(config('services.payme.mode'))->toBe('test')
             ->and(Setting::query()->where('key', 'payme.mode')->exists())->toBeFalse();
 
-        $component->call('confirmPaymeProd')
-            ->assertSet('paymeProdConfirmPending', false)
+        $component->call('confirmProd')
+            ->assertSet('prodConfirmGroup', null)
             ->assertDispatched('toast', type: 'success');
 
         expect(config('services.payme.mode'))->toBe('prod');
@@ -371,9 +415,9 @@ describe('payme mode', function () {
     it('keeps the pending flag on the server', function () {
         confirmAdminPassword();
 
-        integrationsScreen()->call('confirmPaymeProd')->assertForbidden();
+        integrationsScreen()->call('confirmProd')->assertForbidden();
 
-        expect(fn () => integrationsScreen()->set('paymeProdConfirmPending', true))
+        expect(fn () => integrationsScreen()->set('prodConfirmGroup', 'payme'))
             ->toThrow(CannotUpdateLockedPropertyException::class);
     });
 
@@ -385,7 +429,7 @@ describe('payme mode', function () {
             ->call('save', 'payme')
             ->assertHasErrors('form.values.payme.mode')
             ->assertNotDispatched('confirm')
-            ->assertSet('paymeProdConfirmPending', false);
+            ->assertSet('prodConfirmGroup', null);
 
         expect(config('services.payme.mode'))->toBe('test');
     });

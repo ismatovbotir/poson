@@ -24,7 +24,7 @@ it('renders the list for every staff role', function (Role $role) {
 })->with([...catalogWriterRoles(), ...catalogViewOnlyRoles()]);
 
 it('splits products into active, drafts, specs incomplete and trash', function () {
-    $active = Product::factory()->create(['sku' => 'ACT-1']);
+    $active = Product::factory()->withIkpu()->create(['sku' => 'ACT-1']);
     $draft = Product::factory()->inactive()->create(['sku' => 'DRF-1']);
     $incomplete = Product::factory()->inactive()->create(['sku' => 'INC-1', 'has_missing_specs' => true]);
     $trashed = Product::factory()->create(['sku' => 'TRS-1']);
@@ -32,11 +32,12 @@ it('splits products into active, drafts, specs incomplete and trash', function (
 
     $component = Livewire::actingAs(staffUser())->test(Index::class);
 
-    expect($component->get('tabCounts'))->toBe(['active' => 1, 'drafts' => 2, 'incomplete' => 1, 'trash' => 1]);
+    expect($component->get('tabCounts'))->toBe(['active' => 1, 'drafts' => 2, 'incomplete' => 1, 'no_ikpu' => 2, 'trash' => 1]);
 
     $component->assertSee('ACT-1')->assertDontSee('DRF-1')->assertDontSee('TRS-1')
         ->call('setTab', 'drafts')->assertSee('DRF-1')->assertSee('INC-1')->assertDontSee('ACT-1')
         ->call('setTab', 'incomplete')->assertSee('INC-1')->assertDontSee('DRF-1')
+        ->call('setTab', 'no_ikpu')->assertSee('DRF-1')->assertSee('INC-1')->assertDontSee('ACT-1')
         ->call('setTab', 'trash')->assertSee('TRS-1')->assertDontSee('ACT-1');
 });
 

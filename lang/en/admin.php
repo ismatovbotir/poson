@@ -400,6 +400,7 @@ return [
             'active' => 'Active',
             'drafts' => 'Drafts',
             'incomplete' => 'Specs incomplete',
+            'no_ikpu' => 'IKPU missing',
             'trash' => 'Deleted',
         ],
         'status' => [
@@ -479,6 +480,8 @@ return [
             'brand' => 'Shown on the product page with a link to the brand page, and used in the brand filter. Leave empty if there is none.',
             'unit' => 'Prices and the minimum order refer to this unit; it is also copied to quote lines.',
             'stock_status' => 'Shown on the product card and page and used in the availability filter. It does not block ordering.',
+            'ikpu_code' => '17 digits from tasnif.soliq.uz. Needed for Payme / Click receipts: without it online payment is hidden for this product.',
+            'package_code' => 'Package (unit) code from tasnif.soliq.uz for this IKPU.',
             'badge' => 'An optional label on the product card and page: “Bestseller” for popular items, “New” for new arrivals.',
         ],
         'placeholders' => [
@@ -508,6 +511,8 @@ return [
             'min_qty' => 'Minimum order',
             'sale_mode' => 'Ordering mode',
             'stock_status' => 'Availability',
+            'ikpu_code' => 'IKPU (MXIK) code',
+            'package_code' => 'Package code',
             'warranty_months' => 'Warranty, months',
             'badge' => 'Badge',
             'is_featured' => 'Featured on the home page',
@@ -1087,6 +1092,10 @@ return [
                 'click_merchant_id' => 'Merchant ID',
                 'click_merchant_user_id' => 'Merchant user ID',
                 'click_secret_key' => 'Secret key',
+                'click_test_service_id' => 'Test service ID',
+                'click_test_merchant_user_id' => 'Test merchant user ID',
+                'click_test_secret_key' => 'Test secret key',
+                'click_mode' => 'Mode',
             ],
             'hints' => [
                 'telegram_bot_token' => 'From @BotFather, looks like 123456789:AA….',
@@ -1105,10 +1114,15 @@ return [
                 'click_merchant_id' => 'Click merchant cabinet: MERCHANT_ID.',
                 'click_merchant_user_id' => 'Click merchant cabinet: MERCHANT_USER_ID.',
                 'click_secret_key' => 'Click merchant cabinet → Services: SECRET_KEY.',
+                'click_test_service_id' => 'SERVICE_ID of the separate Click test service.',
+                'click_test_merchant_user_id' => 'MERCHANT_USER_ID of the Click test service.',
+                'click_test_secret_key' => 'SECRET_KEY of the Click test service.',
+                'click_mode' => 'Test uses the test service; Live accepts real payments.',
             ],
             'errors' => [
                 'secret_format' => 'This doesn’t look like a valid value for this field. Check that it was copied completely, without spaces.',
                 'payme_prod_requires_keys' => 'Live mode needs the Payme merchant ID and the live key first.',
+                'click_prod_requires_keys' => 'Live mode needs the Click service ID, merchant user ID and secret key first.',
             ],
             'telegram' => [
                 'generate' => 'Generate new secret',
@@ -1123,6 +1137,11 @@ return [
                 'prod_confirm_label' => 'Switch to live',
                 'not_production' => 'This is not the production site (APP_ENV is not “production”): live payments here would charge real cards.',
                 'test_key_missing' => 'Test mode is on but no test key is saved: sandbox payments will fail until it is entered.',
+            ],
+            'click' => [
+                'prod_confirm_title' => 'Switch Click to live mode?',
+                'prod_confirm_body' => 'Customers will pay real money through the live Click service.',
+                'test_key_missing' => 'Test mode is on but no test secret key is saved: sandbox payments will fail until it is entered.',
             ],
             'webhooks' => [
                 'not_public' => 'APP_URL is not a public https address (:url). Payme and Click can only call webhooks on the live https domain, so set APP_URL before pasting these.',

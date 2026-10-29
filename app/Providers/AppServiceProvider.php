@@ -12,6 +12,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
@@ -72,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
         // must be listed, or getMorphClass() throws. Owners today: media
         // (medialibrary: brand, category, page, product, setting), roles/permissions
         // (spatie: user), faq_items (category, product, page) and the CRM activities
-        // timeline (lead, customer, quote). Livewire 4 reads
+        // timeline (lead, customer, quote, order). Livewire 4 reads
         // this map directly, so models as component properties are unaffected.
         Relation::enforceMorphMap([
             'brand' => Brand::class,
@@ -81,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
             'lead' => Lead::class,
             // Plan 07 content: news posts (7b), banners (7c).
             'news_post' => 'App\Models\NewsPost',
+            // Plan 11b: the order history (activities).
+            'order' => Order::class,
             'banner' => Banner::class,
             'page' => Page::class,
             'product' => Product::class,
@@ -102,6 +105,11 @@ class AppServiceProvider extends ServiceProvider
         // Customers' quote links (plan 06): separate per-IP budgets for the page and the PDF.
         RateLimiter::for('quote-page', fn (Request $request) => Limit::perMinute(60)->by('quote-page:'.$request->ip()));
         RateLimiter::for('quote-pdf', fn (Request $request) => Limit::perMinute(10)->by('quote-pdf:'.$request->ip()));
+
+        // Customers' order links (plan 11b, condition 10): page, invoice and pay per IP.
+        RateLimiter::for('order-page', fn (Request $request) => Limit::perMinute(60)->by('order-page:'.$request->ip()));
+        RateLimiter::for('order-invoice', fn (Request $request) => Limit::perMinute(10)->by('order-invoice:'.$request->ip()));
+        RateLimiter::for('order-pay', fn (Request $request) => Limit::perMinute(10)->by('order-pay:'.$request->ip()));
 
         // Price API (plan 09): 30 batches per minute per token (after AuthenticateApiToken).
         RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(30)

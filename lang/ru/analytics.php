@@ -26,6 +26,7 @@ return [
             'lead' => 'Заявка',
             'partner_click' => 'Переход к партнёру',
             'add_to_cart' => 'Добавление в корзину',
+            'order' => 'Заказ',
         ],
         'bot_purpose' => [
             'training' => 'Обучение ИИ',

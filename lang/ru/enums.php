@@ -100,6 +100,8 @@ return [
         'conversion' => 'Конвертация',
         'price_level_change' => 'Смена уровня цен',
         'quote' => 'Коммерческое предложение',
+        'order' => 'Заказ',
+        'payment' => 'Оплата',
     ],
 
     'quote_status' => [
@@ -197,6 +199,7 @@ return [
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
         'price_sync' => 'Синхронизация цен',
+        'checkout' => 'Оформление заказа',
     ],
 
     'audit_action' => [
@@ -216,7 +219,7 @@ return [
         'rejected' => 'Отклонён',
     ],
 
-    'payme_mode' => [
+    'payment_mode' => [
         'test' => 'Тест',
         'prod' => 'Боевой',
     ],
@@ -226,6 +229,89 @@ return [
         'db' => 'Админка',
         'default' => 'По умолчанию',
         'none' => 'Не задано',
+    ],
+
+    'order_status' => [
+        'new' => 'Новый',
+        'confirmed' => 'Подтверждён',
+        'processing' => 'Комплектуется',
+        'shipped' => 'Отправлен',
+        'completed' => 'Выполнен',
+        'cancelled' => 'Отменён',
+    ],
+
+    'payment_status' => [
+        'unpaid' => 'Не оплачен',
+        'pending' => 'Оплата в процессе',
+        'paid' => 'Оплачен',
+        'refunded' => 'Возвращён',
+    ],
+
+    'payment_method' => [
+        'payme' => 'Payme',
+        'click' => 'Click',
+        'uzqr_static' => 'UzQR',
+        'on_receipt' => 'При получении',
+        'bank_transfer' => 'Банковский перевод',
+        'uzqr_dynamic' => 'UzQR (онлайн)',
+    ],
+
+    'receipt_channel' => [
+        'cash' => 'Наличные',
+        'card' => 'Карта',
+        'uzqr' => 'UzQR',
+    ],
+
+    'order_source' => [
+        'site' => 'Сайт',
+        'quote' => 'Коммерческое предложение',
+        'manual' => 'Вручную',
+    ],
+
+    'buyer_type' => [
+        'individual' => 'Физическое лицо',
+        'company' => 'Компания',
+        'sole_proprietor' => 'ИП (ЯТТ)',
+    ],
+
+    'delivery_type' => [
+        'pickup' => 'Самовывоз',
+        'courier_kokand' => 'Курьер по Коканду',
+        'courier_region' => 'Курьер в регион',
+    ],
+
+    'delivery_pricing' => [
+        'fixed' => 'В сумме заказа',
+        'separate' => 'Оплачивается отдельно',
+    ],
+
+    'region' => [
+        'tashkent_city' => 'г. Ташкент',
+        'tashkent' => 'Ташкентская область',
+        'andijan' => 'Андижанская область',
+        'bukhara' => 'Бухарская область',
+        'fergana' => 'Ферганская область',
+        'jizzakh' => 'Джизакская область',
+        'kashkadarya' => 'Кашкадарьинская область',
+        'khorezm' => 'Хорезмская область',
+        'namangan' => 'Наманганская область',
+        'navoi' => 'Навоийская область',
+        'samarkand' => 'Самаркандская область',
+        'surkhandarya' => 'Сурхандарьинская область',
+        'syrdarya' => 'Сырдарьинская область',
+        'karakalpakstan' => 'Республика Каракалпакстан',
+    ],
+
+    'order_payment_purpose' => [
+        'goods' => 'Товары',
+        'delivery' => 'Доставка',
+    ],
+
+    'order_payment_status' => [
+        'pending' => 'Ожидает оплаты',
+        'paid' => 'Оплачен',
+        'refunded' => 'Возвращён',
+        'cancelled' => 'Отменён',
     ],
 
 ];

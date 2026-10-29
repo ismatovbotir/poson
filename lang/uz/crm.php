@@ -308,6 +308,7 @@ return [
             'contact_missing' => 'Kontaktlar roʻyxati oʻzgargan. Sahifani yangilang.',
             'has_leads' => 'Mijozda :count ta murojaat bor. Oʻchirib boʻlmaydi.',
             'has_quotes' => 'Mijozda :count ta tijorat taklifi bor. Oʻchirib boʻlmaydi.',
+            'has_orders' => 'Mijozda :count ta buyurtma bor. Oʻchirib boʻlmaydi.',
             'lead_closed' => 'Faqat ochiq murojaatni mijozga aylantirish mumkin.',
             'pick_target' => 'Mijozni yoki “Yangi mijoz yaratish”ni tanlang.',
         ],

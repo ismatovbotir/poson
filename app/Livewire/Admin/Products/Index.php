@@ -25,7 +25,7 @@ use Livewire\Component;
 
 /**
  * Products list (plan 03 T12): tabs Active · Drafts · Specs incomplete ·
- * Trash, search on search_text, filters (category with its subcategories,
+ * IKPU missing (plan 11b) · Trash, search on search_text, filters (category with its subcategories,
  * brand, type, stock), whitelisted sort, bulk publish / unpublish / delete,
  * and restore / permanent delete in the trash (permanent: Admin only).
  *
@@ -38,7 +38,7 @@ class Index extends Component
 {
     use HandlesActionErrors, WithAdminPagination;
 
-    public const TABS = ['active', 'drafts', 'incomplete', 'trash'];
+    public const TABS = ['active', 'drafts', 'incomplete', 'no_ikpu', 'trash'];
 
     /**
      * Sort key → [column, direction].
@@ -196,6 +196,7 @@ class Index extends Component
             'active' => $this->filtered(Product::query())->where('is_active', true)->count(),
             'drafts' => $this->filtered(Product::query())->where('is_active', false)->count(),
             'incomplete' => $this->filtered(Product::query())->where('has_missing_specs', true)->count(),
+            'no_ikpu' => $this->filtered(Product::query())->whereNull('ikpu_code')->count(),
             'trash' => $this->filtered(Product::onlyTrashed())->count(),
         ];
     }
@@ -262,6 +263,8 @@ class Index extends Component
             ->when($tab === 'active', fn (Builder $query) => $query->where('is_active', true))
             ->when($tab === 'drafts', fn (Builder $query) => $query->where('is_active', false))
             ->when($tab === 'incomplete', fn (Builder $query) => $query->where('has_missing_specs', true))
+            // Plan 11b: no IKPU yet (Payme / Click are hidden for carts holding such products).
+            ->when($tab === 'no_ikpu', fn (Builder $query) => $query->whereNull('ikpu_code'))
             ->with(['brand', 'media'])
             ->orderBy($column, $direction)
             ->orderByDesc('id');

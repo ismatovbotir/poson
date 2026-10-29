@@ -169,6 +169,8 @@ return [
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
     'uz_phone' => 'The :attribute field must be a valid Uzbek phone number, e.g. +998 90 123 45 67.',
+    'stir' => 'The :attribute must be a company STIR: 9 digits starting with 2 or 3.',
+    'stir_or_pinfl' => 'The :attribute must be a STIR (9 digits starting with 4–6) or a PINFL (14 digits).',
     'brand_safe' => 'The :attribute must not contain price or discount claims.',
     'social_url' => 'The :attribute must be an https link on :hosts.',
 

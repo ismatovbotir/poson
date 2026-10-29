@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\Money;
+use App\Support\Orders\CheckoutSettings;
 use App\Support\Slug;
 use Closure;
 use Illuminate\Support\Collection;
@@ -98,6 +99,13 @@ class ProductForm extends Form
 
     public string $stock_status = 'in_stock';
 
+    /**
+     * Fiscal codes for Payme / Click receipts (plan 11b): IKPU / MXIK (17 digits) and the package code.
+     */
+    public string $ikpu_code = '';
+
+    public string $package_code = '';
+
     public string $warranty_months = '';
 
     /**
@@ -144,6 +152,8 @@ class ProductForm extends Form
         $this->min_qty = (string) $product->min_qty;
         $this->sale_mode = $product->sale_mode->value;
         $this->stock_status = $product->stock_status->value;
+        $this->ikpu_code = (string) $product->ikpu_code;
+        $this->package_code = (string) $product->package_code;
         $this->warranty_months = (string) ($product->warranty_months ?? '');
         $this->badge = (string) $product->badge?->value;
         $this->is_active = $product->is_active;
@@ -227,6 +237,8 @@ class ProductForm extends Form
             'min_qty' => ['required', 'integer', 'min:1', 'max:1000000'],
             'sale_mode' => ['required', Rule::enum(SaleMode::class)],
             'stock_status' => ['required', Rule::enum(StockStatus::class)],
+            'ikpu_code' => ['nullable', 'regex:'.CheckoutSettings::IKPU],
+            'package_code' => ['nullable', 'regex:'.CheckoutSettings::PACKAGE_CODE],
             'warranty_months' => ['nullable', 'integer', 'min:0', 'max:600'],
             'badge' => ['nullable', Rule::enum(ProductBadge::class)],
             'is_active' => ['boolean'],
@@ -264,6 +276,8 @@ class ProductForm extends Form
             'min_qty' => __('admin.products.fields.min_qty'),
             'sale_mode' => __('admin.products.fields.sale_mode'),
             'stock_status' => __('admin.products.fields.stock_status'),
+            'ikpu_code' => __('admin.products.fields.ikpu_code'),
+            'package_code' => __('admin.products.fields.package_code'),
             'warranty_months' => __('admin.products.fields.warranty_months'),
             'badge' => __('admin.products.fields.badge'),
             'specs.*.number' => __('admin.products.specs.value'),
@@ -317,6 +331,8 @@ class ProductForm extends Form
             'min_qty' => (int) $this->min_qty,
             'sale_mode' => SaleMode::from($this->sale_mode),
             'stock_status' => StockStatus::from($this->stock_status),
+            'ikpu_code' => trim($this->ikpu_code) !== '' ? trim($this->ikpu_code) : null,
+            'package_code' => trim($this->package_code) !== '' ? trim($this->package_code) : null,
             'warranty_months' => filled($this->warranty_months) ? (int) $this->warranty_months : null,
             'badge' => filled($this->badge) ? ProductBadge::from($this->badge) : null,
             'is_active' => $this->is_active,

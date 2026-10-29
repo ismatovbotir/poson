@@ -32,11 +32,6 @@ final class Menu
         $service = [Role::Admin, Role::ServiceEngineer];
         $admin = [Role::Admin];
 
-        // Matrix: service engineer has service_request leads (own), customers (view),
-        // service quotes (own) and orders (view); the sales manager views payments.
-        $crm = [Role::Admin, Role::SalesManager, Role::ServiceEngineer];
-        $payments = [Role::Admin, Role::SalesManager];
-
         return [
             new MenuGroup('dashboard', 'menu.groups.dashboard', [
                 new MenuItem('dashboard', 'menu.items.dashboard', 'dashboard', 'admin.dashboard'),
@@ -50,8 +45,9 @@ final class Menu
                 new MenuItem('leads', 'menu.items.leads', 'inbox', 'admin.leads.index', permission: 'leads.viewAny'),
                 new MenuItem('customers', 'menu.items.customers', 'building', 'admin.customers.index', permission: 'customers.viewAny'),
                 new MenuItem('quotes', 'menu.items.quotes', 'file-text', 'admin.quotes.index', permission: 'quotes.viewAny'),
-                new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', roles: $crm),
-                new MenuItem('payments', 'menu.items.payments', 'card', 'admin.payments.index', roles: $payments),
+                // Plan 11b: orders (Admin, Sales, Service engineer read-only) and the payment ledger.
+                new MenuItem('orders', 'menu.items.orders', 'bag', 'admin.orders.index', permission: 'orders.viewAny'),
+                new MenuItem('payments', 'menu.items.payments', 'card', 'admin.payments.index', permission: 'payments.viewAny'),
             ]),
 
             new MenuGroup('catalog', 'menu.groups.catalog', [
@@ -89,6 +85,8 @@ final class Menu
             new MenuGroup('settings', 'menu.groups.settings', [
                 new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', permission: 'settings.company'),
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
+                // Plan 11b: delivery fees, order caps, IKPU, UzQR (Admin).
+                new MenuItem('checkout', 'menu.items.checkout', 'bag', 'admin.settings.checkout', permission: 'settings.checkout'),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', permission: 'settings.integrations'),
                 new MenuItem('api-tokens', 'menu.items.api_tokens', 'shield', 'admin.settings.api-tokens', permission: 'api-tokens.manage'),
             ]),

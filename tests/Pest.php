@@ -1,13 +1,31 @@
 <?php
 
+use App\Actions\Orders\PlaceOrder;
+use App\Actions\Settings\UpdateUzqrImage;
+use App\Data\Orders\CheckoutData;
+use App\Data\Orders\ManualPaymentData;
+use App\Enums\DeliveryType;
+use App\Enums\Region;
 use App\Enums\Role;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Lead;
+use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\Cart\CartPricer;
+use App\Support\Cart\CartToken;
+use App\Support\CompanySettings;
 use App\Support\Integrations\IntegrationRegistry;
+use App\Support\Orders\CheckoutSettings;
+use App\Support\Orders\DeliveryQuote;
 use App\Support\Secrets;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -183,4 +201,111 @@ function postPrices(array|string $body, ?string $token = null, array $server = [
 function priceItem(mixed $code, mixed $retail = 1000, mixed $dealer = null, mixed $wholesale = null): array
 {
     return ['code' => $code, 'retail' => $retail, 'dealer' => $dealer, 'wholesale' => $wholesale];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Orders (plan 11b)
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * A cart (with its token issued for this test) holding the given products, qty 1 each by default.
+ *
+ * @param  list<Product>|Product  $products
+ */
+function orderCart(array|Product $products = [], int $qty = 1): Cart
+{
+    config(['site.cart_enabled' => true]);
+    $products = $products instanceof Product ? [$products] : $products;
+    $products = $products === [] ? [Product::factory()->withIkpu()->create(['price' => 1_000_000_00])] : $products;
+
+    $cart = Cart::factory()->create();
+
+    foreach ($products as $product) {
+        CartItem::factory()->for($cart)->create(['product_id' => $product->id, 'qty' => $qty]);
+    }
+
+    app(CartToken::class)->issue($cart->token);
+
+    return $cart;
+}
+
+/**
+ * Checkout input for a cart, with the fingerprint the page would show.
+ *
+ * @param  array<string, mixed>  $overrides  CheckoutData constructor arguments
+ */
+function checkoutData(Cart $cart, array $overrides = []): CheckoutData
+{
+    $values = array_merge([
+        'name' => 'Aziz Karimov',
+        'phone' => '+998 90 123 45 67',
+        'buyerType' => 'individual',
+        'companyName' => '',
+        'tin' => '',
+        'deliveryType' => 'pickup',
+        'region' => '',
+        'address' => '',
+        'kokandConfirmed' => false,
+        'comment' => '',
+        'paymentMethod' => 'on_receipt',
+        'locale' => 'uz',
+        'fingerprint' => null,
+    ], $overrides);
+
+    if ($values['fingerprint'] === null) {
+        $settings = app(CheckoutSettings::class);
+        $delivery = DeliveryQuote::for(DeliveryType::from($values['deliveryType']), Region::tryFrom($values['region']), $settings);
+        $values['fingerprint'] = PlaceOrder::fingerprint(app(CartPricer::class)->price($cart->fresh()), $delivery);
+    }
+
+    return new CheckoutData(...$values);
+}
+
+/**
+ * Settings → Checkout values (whole soʻm), merged over the defaults.
+ *
+ * @param  array<string, mixed>  $values
+ */
+function checkoutSettings(array $values): void
+{
+    Setting::query()->updateOrCreate(['key' => 'checkout'], ['group' => 'checkout', 'value' => array_merge((array) config('checkout.defaults'), $values)]);
+    CompanySettings::flush();
+}
+
+/**
+ * Complete seller requisites (bank transfer needs them).
+ */
+function sellerRequisites(): void
+{
+    Setting::query()->updateOrCreate(['key' => 'legal'], ['group' => 'company', 'value' => [
+        'legal_name' => ['uz' => 'Poson MChJ', 'ru' => 'ООО Poson', 'en' => 'Poson LLC'],
+        'inn' => '305123456',
+        'vat_code' => '',
+        'bank' => 'Kapitalbank',
+        'mfo' => '01088',
+        'account' => '20208000900123456001',
+        'oked' => '',
+        'director' => 'Karimov A.',
+        'legal_address' => ['uz' => 'Qoʻqon sh.', 'ru' => '', 'en' => ''],
+    ]]);
+    CompanySettings::flush();
+}
+
+/**
+ * Upload a static UzQR code (fake PNG) through the real action.
+ */
+function uzqrUploaded(?User $by = null): void
+{
+    Storage::fake('local');
+    app(UpdateUzqrImage::class)->handle(UploadedFile::fake()->image('qr.png', 300, 300), false, $by, null);
+}
+
+/**
+ * Manual payment input (amount in tiyin).
+ */
+function manualPayment(string $method, ?int $amount, ?string $reference = 'PP-000123', ?string $paidOn = null, ?string $channel = null): ManualPaymentData
+{
+    return new ManualPaymentData($method, $amount, $paidOn ?? now(Lead::TIMEZONE)->toDateString(), $reference, $channel);
 }

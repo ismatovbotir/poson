@@ -73,6 +73,10 @@ return [
         'merchant_id' => env('CLICK_MERCHANT_ID'),
         'merchant_user_id' => env('CLICK_MERCHANT_USER_ID'),
         'secret_key' => env('CLICK_SECRET_KEY'),
+        'test_service_id' => env('CLICK_TEST_SERVICE_ID'),
+        'test_merchant_user_id' => env('CLICK_TEST_MERCHANT_USER_ID'),
+        'test_secret_key' => env('CLICK_TEST_SECRET_KEY'),
+        'mode' => env('CLICK_MODE'),
     ],
 
 ];

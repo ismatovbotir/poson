@@ -157,7 +157,18 @@ class TrafficRecorder
     }
 
     /**
-     * One attributed site_visits row (lead, partner click or add to cart).
+     * Record a placed order (plan 11b) with the session's attribution
+     * (RecordOrderPlaced): the checkout path only, no amount, order or person.
+     *
+     * @param  array<string, string>  $attribution
+     */
+    public function recordOrderPlaced(Request $request, array $attribution, string $path, ?string $locale): void
+    {
+        $this->recordAttributed(VisitType::Order, $request, $attribution, $path, $locale, null, 200, null);
+    }
+
+    /**
+     * One attributed site_visits row (lead, partner click, add to cart or order).
      *
      * @param  array<string, string>  $attribution
      */

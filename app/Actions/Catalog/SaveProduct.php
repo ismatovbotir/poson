@@ -21,6 +21,7 @@ use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductSearchText;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\HtmlSanitizer;
+use App\Support\Orders\CheckoutSettings;
 use App\Support\Slug;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +101,9 @@ class SaveProduct
      *     warranty_months: int|null,
      *     badge: ProductBadge|null,
      *     is_active: bool,
-     *     is_featured: bool
+     *     is_featured: bool,
+     *     ikpu_code?: string|null,
+     *     package_code?: string|null
      * }  $data
      * @param  list<array{
      *     attribute_id: int,
@@ -118,6 +121,13 @@ class SaveProduct
     public function handle(?Product $product, array $data, array $specs = []): Product
     {
         $product ??= new Product;
+
+        foreach (['ikpu_code' => CheckoutSettings::IKPU, 'package_code' => CheckoutSettings::PACKAGE_CODE] as $code => $pattern) {
+            if (filled($data[$code] ?? null) && ! preg_match($pattern, trim((string) $data[$code]))) {
+                throw ValidationException::withMessages([$code => __('validation.regex', ['attribute' => __('admin.products.fields.'.$code)])]);
+            }
+        }
+
         $wasActive = $product->exists && (bool) $product->getOriginal('is_active');
 
         // The price API owns the prices of a synced product: incoming price fields are ignored,
@@ -205,6 +215,13 @@ class SaveProduct
                 'is_featured' => $data['is_featured'],
                 'has_missing_specs' => $missing !== [],
             ]);
+
+            // Plan 11b fiscal codes (optional keys: callers without them leave the stored codes).
+            foreach (['ikpu_code', 'package_code'] as $code) {
+                if (array_key_exists($code, $data)) {
+                    $product->{$code} = filled($data[$code]) ? trim((string) $data[$code]) : null;
+                }
+            }
 
             $product->search_text = ProductSearchText::build($product);
 

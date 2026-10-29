@@ -400,6 +400,7 @@ return [
             'active' => 'Faol',
             'drafts' => 'Qoralamalar',
             'incomplete' => 'Xususiyatlar toʻliq emas',
+            'no_ikpu' => 'IKPU yoʻq',
             'trash' => 'Oʻchirilganlar',
         ],
         'status' => [
@@ -479,6 +480,8 @@ return [
             'brand' => 'Mahsulot sahifasida brend sahifasiga havola bilan koʻrsatiladi va brendlar filtrida ishlatiladi. Brend boʻlmasa, boʻsh qoldiring.',
             'unit' => 'Narxlar va minimal buyurtma shu birlikda koʻrsatiladi; u tijorat taklifi qatorlariga ham koʻchiriladi.',
             'stock_status' => 'Mahsulot kartochkasi va sahifasida koʻrsatiladi hamda mavjudlik filtrida ishlatiladi. Buyurtmani toʻsmaydi.',
+            'ikpu_code' => 'tasnif.soliq.uz dagi 17 raqam. Payme / Click cheklari uchun kerak: usiz bu mahsulot uchun onlayn toʻlov yashiriladi.',
+            'package_code' => 'Shu IKPU uchun tasnif.soliq.uz dagi qadoq (birlik) kodi.',
             'badge' => 'Mahsulot kartochkasi va sahifasidagi ixtiyoriy belgi: ommabop mahsulotlar uchun “Xit”, yangi kelganlar uchun “Yangi”.',
         ],
         'placeholders' => [
@@ -508,6 +511,8 @@ return [
             'min_qty' => 'Eng kam buyurtma',
             'sale_mode' => 'Rasmiylashtirish usuli',
             'stock_status' => 'Mavjudlik',
+            'ikpu_code' => 'IKPU (MXIK) kodi',
+            'package_code' => 'Qadoq kodi',
             'warranty_months' => 'Kafolat, oy',
             'badge' => 'Belgi',
             'is_featured' => 'Bosh sahifada tanlangan',
@@ -959,7 +964,7 @@ return [
                 'phones' => '5 tagacha raqam. Asosiy raqam saytning yuqori qismida va qidiruv natijalarida koʻrsatiladi; boshqalari faqat belgilansa saytda chiqadi.',
                 'coordinates' => 'Yandex Xaritalardan oʻnli gradusda: ofisni oʻng tugma bilan bosing va koordinatalarni nusxalang. Xarita havolasi va qidiruv tizimlari uchun kerak.',
                 'opening_hours' => 'Ixtiyoriy. Google va Yandex uchun mashina oʻqiydigan ish vaqti; tashrif buyuruvchilar yuqoridagi ish vaqti matnini koʻradi.',
-                'legal' => 'Hisob-fakturalarda, ommaviy ofertada va qidiruv tizimlari maʼlumotlarida (STIR va yuridik nom) ishlatiladi.',
+                'legal' => 'Toʻlov hisoblarida, ommaviy ofertada va qidiruv tizimlari maʼlumotlarida (STIR va yuridik nom) ishlatiladi.',
                 'legal_name' => 'Roʻyxatdan oʻtgandagidek, masalan “POSON MChJ”.',
                 'inn' => '9 ta raqam.',
                 'vat_code' => '12 ta raqam, agar QQS toʻlovchi boʻlsangiz.',
@@ -1087,6 +1092,10 @@ return [
                 'click_merchant_id' => 'Merchant ID',
                 'click_merchant_user_id' => 'Merchant user ID',
                 'click_secret_key' => 'Maxfiy kalit',
+                'click_test_service_id' => 'Sinov Service ID',
+                'click_test_merchant_user_id' => 'Sinov Merchant user ID',
+                'click_test_secret_key' => 'Sinov maxfiy kaliti',
+                'click_mode' => 'Rejim',
             ],
             'hints' => [
                 'telegram_bot_token' => '@BotFather beradi, koʻrinishi 123456789:AA….',
@@ -1105,10 +1114,15 @@ return [
                 'click_merchant_id' => 'Click merchant kabineti: MERCHANT_ID.',
                 'click_merchant_user_id' => 'Click merchant kabineti: MERCHANT_USER_ID.',
                 'click_secret_key' => 'Click merchant kabineti → Servislar: SECRET_KEY.',
+                'click_test_service_id' => 'Alohida Click sinov xizmatining SERVICE_ID raqami.',
+                'click_test_merchant_user_id' => 'Click sinov xizmatining MERCHANT_USER_ID raqami.',
+                'click_test_secret_key' => 'Click sinov xizmatining SECRET_KEY kaliti.',
+                'click_mode' => 'Sinov rejimi sinov xizmatidan foydalanadi; ishchi rejim haqiqiy toʻlovlarni qabul qiladi.',
             ],
             'errors' => [
                 'secret_format' => 'Qiymat bu maydon uchun toʻgʻri koʻrinmaydi. Toʻliq va boʻsh joysiz nusxalanganini tekshiring.',
                 'payme_prod_requires_keys' => 'Ishchi rejim uchun avval Payme merchant ID va ishchi kalitni saqlang.',
+                'click_prod_requires_keys' => 'Ishchi rejim uchun avval Click Service ID, Merchant user ID va maxfiy kalitni saqlang.',
             ],
             'telegram' => [
                 'generate' => 'Yangi maxfiy kalit yaratish',
@@ -1123,6 +1137,11 @@ return [
                 'prod_confirm_label' => 'Ishchi rejimni yoqish',
                 'not_production' => 'Bu asosiy (production) sayt emas (APP_ENV “production” emas): bu yerdagi ishchi toʻlovlar haqiqiy kartalardan pul yechadi.',
                 'test_key_missing' => 'Test rejimi yoqilgan, lekin test kaliti saqlanmagan: u kiritilmaguncha sinov muhitidagi toʻlovlar oʻtmaydi.',
+            ],
+            'click' => [
+                'prod_confirm_title' => 'Click ishchi rejimga oʻtkazilsinmi?',
+                'prod_confirm_body' => 'Mijozlar ishchi Click xizmati orqali haqiqiy pul toʻlaydi.',
+                'test_key_missing' => 'Sinov rejimi yoqilgan, lekin sinov maxfiy kaliti saqlanmagan: kiritilmaguncha sinov toʻlovlari oʻtmaydi.',
             ],
             'webhooks' => [
                 'not_public' => 'APP_URL ochiq https manzil emas (:url). Payme va Click webhooklarni faqat ishchi https domenga yuboradi, shuning uchun avval APP_URL ni sozlang.',

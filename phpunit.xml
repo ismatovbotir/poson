@@ -49,5 +49,9 @@
         <env name="CLICK_MERCHANT_ID" value="" force="true"/>
         <env name="CLICK_MERCHANT_USER_ID" value="" force="true"/>
         <env name="CLICK_SECRET_KEY" value="" force="true"/>
+        <env name="CLICK_TEST_SERVICE_ID" value="" force="true"/>
+        <env name="CLICK_TEST_MERCHANT_USER_ID" value="" force="true"/>
+        <env name="CLICK_TEST_SECRET_KEY" value="" force="true"/>
+        <env name="CLICK_MODE" value="" force="true"/>
     </php>
 </phpunit>

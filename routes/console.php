@@ -53,3 +53,13 @@ Schedule::command('model:prune', ['--model' => [PriceSyncLog::class]])->dailyAt(
 */
 
 Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Orders (plan 11b)
+|--------------------------------------------------------------------------
+| Orders left "pending" after their Payme / Click hold ended (Payme state 1
+| older than 12 h, Click prepare older than 60 min) go back to unpaid.
+*/
+
+Schedule::command('orders:release-holds')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();

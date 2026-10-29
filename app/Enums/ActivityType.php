@@ -17,6 +17,8 @@ enum ActivityType: string
     case Conversion = 'conversion';
     case PriceLevelChange = 'price_level_change';
     case Quote = 'quote';
+    case Order = 'order';
+    case Payment = 'payment';
 
     public function label(): string
     {
@@ -38,6 +40,8 @@ enum ActivityType: string
             self::Conversion => 'building',
             self::PriceLevelChange => 'tag',
             self::Quote => 'file-text',
+            self::Order => 'bag',
+            self::Payment => 'card',
         };
     }
 
@@ -56,6 +60,8 @@ enum ActivityType: string
             self::Conversion => 'bg-brand-600',
             self::PriceLevelChange => 'bg-sky-500',
             self::Quote => 'bg-violet-500',
+            self::Order => 'bg-slate-900',
+            self::Payment => 'bg-brand-600',
         };
     }
 

@@ -36,6 +36,11 @@ class RolesAndPermissionsSeeder extends Seeder
     public const CONTENT = ['pages', 'news', 'banners'];
 
     /**
+     * Orders (plan 11 v2 §8): what the sales manager may do; Admin also refunds.
+     */
+    public const ORDERS_SALES = ['orders.viewAny', 'orders.view', 'orders.create', 'orders.update', 'orders.mark-paid'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -79,6 +84,13 @@ class RolesAndPermissionsSeeder extends Seeder
      *  - pages.* / news.* / banners.*: Content manager + Admin (plan 07).
      *  - api-tokens.manage / price-sync.view: price API tokens and the sync
      *    log (plan 09); Admin only, no other role.
+     *  - orders.* (plan 11b): sales manager views, creates, edits every real
+     *    order and marks manual payments paid; the service engineer only
+     *    views (no payment details); orders.refund, orders.price-override
+     *    (manual order prices below the floor, free-text lines), payments.void (void a
+     *    manual payment), payments.reconcile, payments.test (TEST orders)
+     *    and settings.checkout are Admin only. payments.viewAny / view:
+     *    Admin + sales manager.
      *
      * @return array<string, list<string>>
      */
@@ -104,6 +116,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'leads.sales', 'leads.service-view', 'leads.reassign',
                 'customers.viewAny', 'customers.view', 'customers.create', 'customers.update', 'customers.reassign',
                 ...static::abilities(['quotes'], self::CRUD),
+                ...self::ORDERS_SALES,
+                'payments.viewAny', 'payments.view',
             ],
 
             Role::ServiceEngineer->value => [
@@ -112,6 +126,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'leads.viewAny', 'leads.view', 'leads.create', 'leads.update',
                 'leads.service',
                 'customers.viewAny', 'customers.view',
+                'orders.viewAny', 'orders.view',
             ],
         ];
     }
@@ -150,6 +165,17 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 09 price API: tokens (Settings → API tokens) and the sync log. Admin only.
             'api-tokens.manage',
             'price-sync.view',
+            // Plan 11b orders and payments (orders.refund, orders.price-override,
+            // payments.test / void / reconcile and settings.checkout: Admin only).
+            ...self::ORDERS_SALES,
+            'orders.refund',
+            'orders.price-override',
+            'payments.viewAny',
+            'payments.view',
+            'payments.test',
+            'payments.void',
+            'payments.reconcile',
+            'settings.checkout',
         ];
     }
 

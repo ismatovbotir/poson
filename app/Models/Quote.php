@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PriceLevel;
 use App\Enums\QuoteStatus;
 use App\Support\Search;
+use App\Support\Vat;
 use Carbon\CarbonImmutable;
 use Database\Factories\QuoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -61,7 +62,7 @@ class Quote extends Model
     /**
      * VAT (QQS) rate included in every price, percent.
      */
-    public const VAT_PERCENT = 12;
+    public const VAT_PERCENT = Vat::PERCENT;
 
     /**
      * Working days (Mon–Fri) a new quote is valid by default.
@@ -91,13 +92,11 @@ class Quote extends Model
     }
 
     /**
-     * The VAT part of a VAT-inclusive amount: round(amount × 12 / 112), in integer tiyin.
+     * The VAT part of a VAT-inclusive amount (App\Support\Vat::of()).
      */
     public static function vatOf(int $total): int
     {
-        $denominator = 100 + self::VAT_PERCENT;
-
-        return intdiv($total * self::VAT_PERCENT * 2 + $denominator, $denominator * 2);
+        return Vat::of($total);
     }
 
     /**

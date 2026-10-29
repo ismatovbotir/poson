@@ -100,6 +100,8 @@ return [
         'conversion' => 'Conversion',
         'price_level_change' => 'Price level change',
         'quote' => 'Quote',
+        'order' => 'Order',
+        'payment' => 'Payment',
     ],
 
     'quote_status' => [
@@ -197,6 +199,7 @@ return [
         'integrations' => 'Integrations',
         'api_tokens' => 'API tokens',
         'price_sync' => 'Price sync',
+        'checkout' => 'Checkout',
     ],
 
     'audit_action' => [
@@ -216,7 +219,7 @@ return [
         'rejected' => 'Rejected',
     ],
 
-    'payme_mode' => [
+    'payment_mode' => [
         'test' => 'Test',
         'prod' => 'Live',
     ],
@@ -226,6 +229,89 @@ return [
         'db' => 'Admin panel',
         'default' => 'Default',
         'none' => 'Not set',
+    ],
+
+    'order_status' => [
+        'new' => 'New',
+        'confirmed' => 'Confirmed',
+        'processing' => 'Processing',
+        'shipped' => 'Shipped',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+    ],
+
+    'payment_status' => [
+        'unpaid' => 'Unpaid',
+        'pending' => 'Payment in progress',
+        'paid' => 'Paid',
+        'refunded' => 'Refunded',
+    ],
+
+    'payment_method' => [
+        'payme' => 'Payme',
+        'click' => 'Click',
+        'uzqr_static' => 'UzQR',
+        'on_receipt' => 'On receipt',
+        'bank_transfer' => 'Bank transfer',
+        'uzqr_dynamic' => 'UzQR (online)',
+    ],
+
+    'receipt_channel' => [
+        'cash' => 'Cash',
+        'card' => 'Card',
+        'uzqr' => 'UzQR',
+    ],
+
+    'order_source' => [
+        'site' => 'Site',
+        'quote' => 'Quote',
+        'manual' => 'Manual',
+    ],
+
+    'buyer_type' => [
+        'individual' => 'Individual',
+        'company' => 'Company',
+        'sole_proprietor' => 'Sole proprietor (YaTT)',
+    ],
+
+    'delivery_type' => [
+        'pickup' => 'Pickup',
+        'courier_kokand' => 'Courier in Kokand',
+        'courier_region' => 'Courier to a region',
+    ],
+
+    'delivery_pricing' => [
+        'fixed' => 'In the total',
+        'separate' => 'Billed separately',
+    ],
+
+    'region' => [
+        'tashkent_city' => 'Tashkent city',
+        'tashkent' => 'Tashkent region',
+        'andijan' => 'Andijan region',
+        'bukhara' => 'Bukhara region',
+        'fergana' => 'Fergana region',
+        'jizzakh' => 'Jizzakh region',
+        'kashkadarya' => 'Kashkadarya region',
+        'khorezm' => 'Khorezm region',
+        'namangan' => 'Namangan region',
+        'navoi' => 'Navoi region',
+        'samarkand' => 'Samarkand region',
+        'surkhandarya' => 'Surkhandarya region',
+        'syrdarya' => 'Syrdarya region',
+        'karakalpakstan' => 'Republic of Karakalpakstan',
+    ],
+
+    'order_payment_purpose' => [
+        'goods' => 'Goods',
+        'delivery' => 'Delivery',
+    ],
+
+    'order_payment_status' => [
+        'pending' => 'Awaiting payment',
+        'paid' => 'Paid',
+        'refunded' => 'Refunded',
+        'cancelled' => 'Cancelled',
     ],
 
 ];

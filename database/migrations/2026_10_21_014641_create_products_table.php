@@ -55,6 +55,9 @@ return new class extends Migration
             $table->unsignedInteger('min_qty')->default(1);
             $table->string('sale_mode', 20);
             $table->string('stock_status', 20);
+            // Plan 11b fiscal codes: IKPU / MXIK (17 digits) and the package (unit) code, for Payme / Click receipts.
+            $table->string('ikpu_code', 17)->nullable();
+            $table->string('package_code', 20)->nullable();
             $table->unsignedSmallInteger('warranty_months')->nullable();
             $table->string('badge', 20)->nullable();
             $table->boolean('is_active')->default(false);
@@ -74,6 +77,7 @@ return new class extends Migration
             $table->index('type');
             $table->index('has_missing_specs');
             $table->index('price_synced_at');
+            $table->index('ikpu_code');
         });
     }
 

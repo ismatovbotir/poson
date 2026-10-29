@@ -39,7 +39,7 @@ use Livewire\Component;
  * "Request a quote for this cart": an inline lead form (same fields, spam
  * checks and rate limits as Site\LeadForm) creating a checkout lead with
  * the cart's lines (ConvertCartToLead), recorded as a conversion.
- * Checkout itself comes in plan 11b.
+ * "Checkout" leads to /{locale}/checkout (plan 11b) while every line can be bought.
  */
 class Page extends Component
 {

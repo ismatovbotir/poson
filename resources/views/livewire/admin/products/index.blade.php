@@ -36,9 +36,9 @@
                     <span>{{ $label }}</span>
                     <span @class([
                         'rounded-full px-2 py-0.5 text-xs tabular-nums',
-                        'bg-brand-50 text-brand-700' => $currentTab === $tab && $tab !== 'incomplete',
-                        'bg-amber-50 text-amber-700' => $tab === 'incomplete' && $this->tabCounts[$tab] > 0,
-                        'bg-slate-100 text-slate-500' => $currentTab !== $tab && ! ($tab === 'incomplete' && $this->tabCounts[$tab] > 0),
+                        'bg-brand-50 text-brand-700' => $currentTab === $tab && ! in_array($tab, ['incomplete', 'no_ikpu'], true),
+                        'bg-amber-50 text-amber-700' => in_array($tab, ['incomplete', 'no_ikpu'], true) && $this->tabCounts[$tab] > 0,
+                        'bg-slate-100 text-slate-500' => $currentTab !== $tab && ! (in_array($tab, ['incomplete', 'no_ikpu'], true) && $this->tabCounts[$tab] > 0),
                     ])>{{ number_format($this->tabCounts[$tab], 0, ',', ' ') }}</span>
                 </button>
             @endforeach

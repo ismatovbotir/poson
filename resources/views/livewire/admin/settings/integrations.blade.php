@@ -54,14 +54,14 @@
                             @endforeach
                         </div>
 
-                        @if ($group === 'payme' && $paymeTestKeyMissing)
-                            <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-payme-test-key-warning>
-                                <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.payme.test_key_missing') }}
+                        @if (in_array($group, $testKeyMissing, true))
+                            <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-{{ $group }}-test-key-warning>
+                                <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.'.$group.'.test_key_missing') }}
                             </p>
                         @endif
 
-                        @if ($group === 'payme' && $paymeProd && ! $isProduction)
-                            <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-payme-warning>
+                        @if (in_array($group, $prodGroups, true) && ! $isProduction)
+                            <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-{{ $group }}-warning>
                                 <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.payme.not_production') }}
                             </p>
                         @endif

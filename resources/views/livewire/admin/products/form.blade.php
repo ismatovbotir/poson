@@ -205,6 +205,12 @@
                     <div @if ($form->type === 'software') x-cloak @endif x-show="$wire.form.type !== 'software'" data-stock-status-field>
                         <x-admin.select wire:model="form.stock_status" :label="__('admin.products.fields.stock_status')" :options="collect(\App\Enums\StockStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()])->all()" :hint="__('admin.products.hints.stock_status')" required class="sm:max-w-xs" />
                     </div>
+
+                    {{-- Plan 11b: fiscal codes for Payme / Click receipts (online payment is hidden while any line lacks an IKPU). --}}
+                    <div class="grid gap-4 sm:grid-cols-2" data-fiscal-codes>
+                        <x-admin.input wire:model="form.ikpu_code" inputmode="numeric" maxlength="17" :label="__('admin.products.fields.ikpu_code')" :hint="__('admin.products.hints.ikpu_code')" placeholder="08471001001000000" />
+                        <x-admin.input wire:model="form.package_code" inputmode="numeric" maxlength="20" :label="__('admin.products.fields.package_code')" :hint="__('admin.products.hints.package_code')" placeholder="1501171" />
+                    </div>
                 </div>
             </x-admin.card>
 

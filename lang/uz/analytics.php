@@ -26,6 +26,7 @@ return [
             'lead' => 'Murojaat',
             'partner_click' => 'Hamkor havolasiga oʻtish',
             'add_to_cart' => 'Savatga qoʻshish',
+            'order' => 'Buyurtma',
         ],
         'bot_purpose' => [
             'training' => 'SI oʻqitish',

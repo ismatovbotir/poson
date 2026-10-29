@@ -34,6 +34,9 @@ class RobotsTxt
         '/q/',
         // The cart (plan 11a, /{locale}/cart); "$" keeps /catalog/cartridges etc. crawlable.
         '/*/cart$',
+        // Checkout (plan 11b) and customers' order links.
+        '/*/checkout$',
+        '/o/',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

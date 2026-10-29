@@ -26,10 +26,22 @@ class SettingPolicy
         return $user->can('settings.integrations');
     }
 
+    /**
+     * Settings → Checkout (plan 11b): delivery fees, caps, IKPU, UzQR.
+     */
+    public function manageCheckout(User $user): bool
+    {
+        return $user->can('settings.checkout');
+    }
+
     public function manageArea(User $user, SettingsArea $area): bool
     {
         if ($area === SettingsArea::Integrations) {
             return $this->manageIntegrations($user);
+        }
+
+        if ($area === SettingsArea::Checkout) {
+            return $this->manageCheckout($user);
         }
 
         return $this->manageCompany($user) && (! $area->isRestricted() || $this->manageIntegrations($user));

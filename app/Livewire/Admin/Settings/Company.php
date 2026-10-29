@@ -17,6 +17,7 @@ use App\Livewire\Forms\Admin\Settings\SettingsTabForm;
 use App\Livewire\Forms\Admin\Settings\SocialForm;
 use App\Livewire\Forms\Admin\Settings\TrackingForm;
 use App\Models\Setting;
+use App\Support\Admin\PasswordConfirmation;
 use App\Support\CompanySettings;
 use App\Support\Site\AiBotRules;
 use Illuminate\Contracts\View\View;
@@ -208,6 +209,13 @@ class Company extends Component
         $form = $this->form($area->value);
         $form->normalize();
         $form->validate();
+
+        // Bank requisites customers pay to need a fresh password (security review M2).
+        if ($form instanceof LegalForm && UpdateCompanySettings::changedBankFields($settings->get('legal'), $form->values()['legal']) !== [] && ! PasswordConfirmation::isRecent()) {
+            $this->redirect(PasswordConfirmation::url(route('admin.settings.company', ['tab' => 'legal'])), navigate: false);
+
+            return;
+        }
 
         $user = auth()->user();
         $ip = request()->ip();

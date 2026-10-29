@@ -4,13 +4,14 @@ namespace App\Actions\Customers;
 
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\Order;
 use App\Models\Quote;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Delete a customer for good (Admin, customers.delete). Blocked while any
- * lead or quote links to it, so no history is lost silently; contacts go through the
+ * lead, quote or order links to it, so no history is lost silently; contacts go through the
  * cascade, its activities with it.
  */
 class DeleteCustomer
@@ -34,6 +35,13 @@ class DeleteCustomer
 
             if ($quotes > 0) {
                 throw ValidationException::withMessages(['customer' => trans_choice('crm.customers.errors.has_quotes', $quotes, ['count' => $quotes])]);
+            }
+
+            // Plan 11b: orders keep their customer (restrictOnDelete).
+            $orders = Order::query()->where('customer_id', $customer->id)->count();
+
+            if ($orders > 0) {
+                throw ValidationException::withMessages(['customer' => trans_choice('crm.customers.errors.has_orders', $orders, ['count' => $orders])]);
             }
 
             $customer->activities()->delete();

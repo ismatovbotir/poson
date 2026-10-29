@@ -26,6 +26,7 @@ return [
             'lead' => 'Lead',
             'partner_click' => 'Partner click',
             'add_to_cart' => 'Add to cart',
+            'order' => 'Order',
         ],
         'bot_purpose' => [
             'training' => 'AI training',

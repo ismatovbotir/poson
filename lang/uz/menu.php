@@ -39,6 +39,7 @@ return [
         'telegram_chats' => 'Chatlar',
         'company' => 'Kompaniya',
         'users' => 'Foydalanuvchilar va rollar',
+        'checkout' => 'Buyurtma rasmiylashtirish',
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
     ],

@@ -98,6 +98,8 @@ return [
         'up', '_*',
         // Customers' quote links carry an access token (plan 06).
         'q/*',
+        // Customers' order links (plan 11b).
+        'o/*',
     ],
 
     /*

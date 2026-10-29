@@ -10,12 +10,9 @@ use Illuminate\Support\Facades\Schema;
  * holds no personal data and no prices (CartPricer re-reads them). The row
  * is created lazily on the first "Add to cart" and pruned by carts:prune.
  *
- * converted_order_id: the order placed from this cart (plan 11b). The orders
- * table doesn't exist yet in 11a, so the column has no foreign key here.
- * This migration is timestamped after the slot reserved for 11b's
- * create_orders_table (2026_10_28_1200xx), so 11b edits this file to
- * ->constrained('orders')->nullOnDelete() (pre-production rule) and runs
- * migrate:fresh.
+ * converted_order_id: the order placed from this cart (plan 11b); the
+ * orders migration (2026_10_28_120001) runs before this one. Deleting an
+ * order (only TEST orders can be) unsets it.
  */
 return new class extends Migration
 {
@@ -28,8 +25,7 @@ return new class extends Migration
             $table->id();
             $table->ulid('token')->unique();
             $table->string('locale', 5);
-            // TODO(11b): ->constrained('orders')->nullOnDelete() once create_orders_table runs before this migration.
-            $table->unsignedBigInteger('converted_order_id')->nullable();
+            $table->foreignId('converted_order_id')->nullable()->constrained('orders')->nullOnDelete();
             $table->timestamp('converted_at')->nullable();
             $table->timestamps();
 

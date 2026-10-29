@@ -206,6 +206,14 @@ class ProductFactory extends Factory
     /**
      * Prices owned by the price API (plan 09).
      */
+    /**
+     * With fiscal codes (IKPU 17 digits, package code), as Payme / Click receipts need (plan 11b).
+     */
+    public function withIkpu(string $ikpu = '08471001001000000', string $packageCode = '1501171'): static
+    {
+        return $this->state(fn (array $attributes) => ['ikpu_code' => $ikpu, 'package_code' => $packageCode]);
+    }
+
     public function priceSynced(): static
     {
         return $this->state(fn (array $attributes) => [

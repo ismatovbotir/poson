@@ -178,7 +178,8 @@ class UpdateCompanyMedia
     private function pending(array $changes): array
     {
         foreach (array_keys($changes) as $key) {
-            if (Setting::collectionFor($key) === null) {
+            // The UzQR code has its own action (re-encoding, history, alerts): UpdateUzqrImage.
+            if (Setting::collectionFor($key) === null || ! array_key_exists($key, self::MIN_DIMENSIONS)) {
                 throw new InvalidArgumentException("Unknown media setting [{$key}].");
             }
         }

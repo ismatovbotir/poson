@@ -70,6 +70,8 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $price
  * @property int|null $price_dealer
  * @property int|null $price_wholesale
+ * @property string|null $ikpu_code
+ * @property string|null $package_code
  * @property Carbon|null $price_synced_at
  * @property int|null $price_sync_log_id
  * @property ProductPricingUnit $pricing_unit
@@ -89,6 +91,7 @@ use Spatie\Translatable\HasTranslations;
     'category_id', 'brand_id', 'type', 'sku', 'model', 'slug',
     'name', 'short_description', 'description', 'meta_title', 'meta_description',
     'price', 'price_dealer', 'price_wholesale', 'pricing_unit', 'unit', 'min_qty', 'sale_mode', 'stock_status',
+    'ikpu_code', 'package_code',
     'warranty_months', 'badge', 'is_active', 'is_featured', 'has_missing_specs', 'search_text', 'sort',
 ])]
 class Product extends Model implements HasMedia

@@ -69,13 +69,25 @@ class Setting extends Model implements HasMedia
     public const SIGNATURE = 'signature';
 
     /**
-     * Private images used only inside quote PDFs (plan 06): PNG only, the
-     * original on the private originals disk, no conversions, no URL ever.
-     * Uploaded on Settings → Company → Legal (Admin).
+     * The company's static UzQR payment code (plan 11 v2, security condition
+     * 24): re-encoded to PNG on upload (App\Actions\Settings\UpdateUzqrImage),
+     * private disk, shown only as a data URI on /o and the invoice. Replaced
+     * codes move to UZQR_HISTORY (kept for the audit, never shown).
+     */
+    public const UZQR = 'uzqr';
+
+    public const UZQR_HISTORY = 'uzqr_history';
+
+    /**
+     * Private images (PNG only, the original on the private originals disk,
+     * no conversions, no URL ever): the stamp and signature inside quote /
+     * invoice PDFs (plan 06, Settings → Company → Legal) and the static UzQR
+     * code (plan 11b, Settings → Checkout).
      */
     public const PRIVATE_MEDIA = [
         self::STAMP => ['collection' => self::STAMP],
         self::SIGNATURE => ['collection' => self::SIGNATURE],
+        self::UZQR => ['collection' => self::UZQR],
     ];
 
     public const PNG_MIMES = ['image/png'];
@@ -171,9 +183,9 @@ class Setting extends Model implements HasMedia
                 ->storeConversionsOnDisk(config('media-library.disk_name', 'public'));
         }
 
-        // Stamp and signature: originals only, private disk, PNG (transparent background).
-        foreach (self::PRIVATE_MEDIA as $media) {
-            $this->addMediaCollection($media['collection'])
+        // Stamp, signature and UzQR: originals only, private disk, PNG (transparent background).
+        foreach ([...array_column(self::PRIVATE_MEDIA, 'collection'), self::UZQR_HISTORY] as $collection) {
+            $this->addMediaCollection($collection)
                 ->acceptsMimeTypes(self::PNG_MIMES)
                 ->useDisk(config('media-library.originals_disk', 'local'));
         }

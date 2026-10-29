@@ -4,6 +4,7 @@ namespace App\Actions\Settings;
 
 use App\Enums\AuditAction;
 use App\Enums\SettingsArea;
+use App\Events\BankRequisitesChanged;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
@@ -18,7 +19,9 @@ use InvalidArgumentException;
  * In one transaction: only keys whose value really changed (compared with
  * the stored row, or the config default when there is none) are written,
  * each with an audit row (who/when/area/key/action/IP, never the value).
- * The CompanySettings cache is flushed after commit.
+ * The CompanySettings cache is flushed after commit. A change of the
+ * legal bank fields (STIR, bank, MFO, account) alerts finance and sales
+ * (BankRequisitesChanged, after commit).
  *
  * Validation lives in the tab's Form object; this action owns the key
  * whitelist per area, so a tab can never write another tab's keys.
@@ -36,7 +39,29 @@ class UpdateCompanySettings
         'seo' => ['verification'],
         'tracking' => ['tracking'],
         'ai_bots' => [AiBotRules::SETTING_KEY],
+        // Plan 11b: Settings → Checkout (one key, App\Support\Orders\CheckoutSettings).
+        'checkout' => ['checkout'],
     ];
+
+    /**
+     * Legal fields customers send money to (security review M2): changing
+     * them needs a fresh password and alerts finance + sales.
+     */
+    public const BANK_FIELDS = ['inn', 'bank', 'mfo', 'account'];
+
+    /**
+     * The bank fields whose value would change from $current to $new.
+     *
+     * @return list<string>
+     */
+    public static function changedBankFields(mixed $current, mixed $new): array
+    {
+        $current = is_array($current) ? $current : [];
+        $new = is_array($new) ? $new : [];
+
+        return array_values(array_filter(self::BANK_FIELDS, fn (string $field): bool => static::canonical($current[$field] ?? null) !== static::canonical($new[$field] ?? null)
+            && ! (blank($current[$field] ?? null) && blank($new[$field] ?? null))));
+    }
 
     /**
      * @param  array<string, mixed>  $values  key => new value
@@ -62,6 +87,10 @@ class UpdateCompanySettings
 
                 if (static::canonical($current) === static::canonical($value)) {
                     continue;
+                }
+
+                if ($key === 'legal' && ($bankFields = static::changedBankFields($current, $value)) !== []) {
+                    BankRequisitesChanged::dispatch($bankFields, $user);
                 }
 
                 Setting::query()->updateOrCreate(['key' => $key], ['group' => $area->group(), 'value' => $value]);

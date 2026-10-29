@@ -169,6 +169,11 @@
                     <li class="flex items-start gap-2"><x-site.icon name="truck" size="size-4" class="mt-0.5 text-brand-600" />{{ __('checkout.cart.benefits.delivery') }}</li>
                 </ul>
 
+                @if ($cart->hasInvalidLines())
+                    <span class="inline-flex h-12 cursor-not-allowed items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white opacity-50" aria-disabled="true" data-checkout-disabled>{{ __('checkout.cart.checkout') }}</span>
+                @else
+                    <a href="{{ route('site.checkout') }}" class="inline-flex h-12 items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white transition-colors hover:bg-brand-700" data-checkout-link>{{ __('checkout.cart.checkout') }}</a>
+                @endif
                 <a href="#cart-quote" class="inline-flex h-12 items-center justify-center rounded-btn border-[1.5px] border-brand-600 px-5 font-semibold text-brand-600 transition-colors hover:bg-brand-50" data-quote-link>{{ __('checkout.cart.quote.button') }}</a>
             </aside>
         </div>

@@ -8,7 +8,7 @@ use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
 use App\Actions\Settings\TestIntegrationConnection;
 use App\Enums\IntegrationSource;
-use App\Enums\PaymeMode;
+use App\Enums\PaymentMode;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Livewire\Forms\Admin\Settings\IntegrationSettingsForm;
@@ -27,7 +27,8 @@ use Livewire\Component;
 
 /**
  * Settings → Integrations (/admin/settings/integrations, plan 04b T7).
- * Sections Telegram · Payme · Click, plus the settings
+ * Sections Telegram · Payme · Click (each provider with a test / prod
+ * mode, plan 11 v2 §1.8), plus the settings
  * audit history (all areas, latest 50).
  *
  * Security (plan 04 S5, S7):
@@ -49,6 +50,11 @@ class Integrations extends Component
 
     public const AUDIT_PER_PAGE = 10;
 
+    /**
+     * Payment providers with a test / prod mode (plan 11 v2 §1.8).
+     */
+    public const PAYMENT_GROUPS = ['payme', 'click'];
+
     public IntegrationSettingsForm $form;
 
     /**
@@ -66,13 +72,13 @@ class Integrations extends Component
     public array $testResults = [];
 
     /**
-     * Set by the server when save('payme') opened the "switch to live"
-     * dialog; confirmPaymeProd() only runs while it is set. A UX guard
-     * against an accidental switch, not a security boundary (the admin
-     * may save "prod" anyway); #[Locked] so the browser can't set it.
+     * Set by the server when save('payme' | 'click') opened the "switch to
+     * live" dialog for that provider; confirmProd() only runs while it is
+     * set. A UX guard against an accidental switch, not a security boundary
+     * (the admin may save "prod" anyway); #[Locked] so the browser can't set it.
      */
     #[Locked]
-    public bool $paymeProdConfirmPending = false;
+    public ?string $prodConfirmGroup = null;
 
     /**
      * Runs on every request (initial render and each update).
@@ -113,18 +119,18 @@ class Integrations extends Component
 
         $values = $this->form->valuesFor($group);
 
-        if ($group === 'payme' && $this->switchesPaymeToProd($values)) {
+        if (in_array($group, self::PAYMENT_GROUPS, true) && $this->switchesToProd($group, $values)) {
             // Validate first, so the dialog never opens for a value that can't be saved.
             $this->runFormAction(fn (): array => $saveSettings->validate($values), 'form.values.');
 
-            $this->paymeProdConfirmPending = true;
+            $this->prodConfirmGroup = $group;
 
             $this->dispatch('confirm',
-                title: __('admin.settings.integrations.payme.prod_confirm_title'),
-                body: __('admin.settings.integrations.payme.prod_confirm_body').(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
+                title: __("admin.settings.integrations.{$group}.prod_confirm_title"),
+                body: __("admin.settings.integrations.{$group}.prod_confirm_body").(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
                 label: __('admin.settings.integrations.payme.prod_confirm_label'),
                 componentId: $this->getId(),
-                method: 'confirmPaymeProd',
+                method: 'confirmProd',
             );
 
             return;
@@ -134,21 +140,23 @@ class Integrations extends Component
     }
 
     /**
-     * Called by the confirm dialog after save('payme') asked for it.
+     * Called by the confirm dialog after save('payme' | 'click') asked for it.
      */
-    public function confirmPaymeProd(SaveIntegrationSettings $saveSettings): void
+    public function confirmProd(SaveIntegrationSettings $saveSettings): void
     {
         $this->authorize('manageIntegrations', Setting::class);
 
-        abort_unless($this->paymeProdConfirmPending, 403);
+        $group = $this->prodConfirmGroup;
 
-        $this->paymeProdConfirmPending = false;
+        abort_unless(in_array($group, self::PAYMENT_GROUPS, true), 403);
+
+        $this->prodConfirmGroup = null;
 
         if (! $this->ensurePasswordConfirmed()) {
             return;
         }
 
-        $this->persist('payme', $this->form->valuesFor('payme'), $saveSettings);
+        $this->persist($group, $this->form->valuesFor($group), $saveSettings);
     }
 
     /**
@@ -314,8 +322,8 @@ class Integrations extends Component
         return view('livewire.admin.settings.integrations', [
             'sections' => $sections,
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
-            'paymeProd' => Secrets::get('payme.mode') === PaymeMode::Prod->value || data_get($this->form->values, 'payme.mode') === PaymeMode::Prod->value,
-            'paymeTestKeyMissing' => (data_get($this->form->values, 'payme.mode') ?: Secrets::get('payme.mode')) === PaymeMode::Test->value && ! Secrets::isConfigured('payme.test_key'),
+            'prodGroups' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => Secrets::get("{$group}.mode") === PaymentMode::Prod->value || data_get($this->form->values, "{$group}.mode") === PaymentMode::Prod->value)),
+            'testKeyMissing' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => (data_get($this->form->values, "{$group}.mode") ?: Secrets::get("{$group}.mode")) === PaymentMode::Test->value && ! Secrets::isConfigured($group === 'payme' ? 'payme.test_key' : 'click.test_secret_key'))),
             'webhooksPublic' => IntegrationRegistry::webhooksArePublic(),
             'isProduction' => app()->isProduction(),
             'webhookUrls' => IntegrationRegistry::webhookUrls(),
@@ -339,10 +347,10 @@ class Integrations extends Component
     /**
      * @param  array<string, mixed>  $values
      */
-    protected function switchesPaymeToProd(array $values): bool
+    protected function switchesToProd(string $group, array $values): bool
     {
-        return ($values['payme.mode'] ?? null) === PaymeMode::Prod->value
-            && Secrets::get('payme.mode') !== PaymeMode::Prod->value;
+        return ($values["{$group}.mode"] ?? null) === PaymentMode::Prod->value
+            && Secrets::get("{$group}.mode") !== PaymentMode::Prod->value;
     }
 
     protected function secretField(string $key): IntegrationField

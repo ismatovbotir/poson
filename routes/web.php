@@ -5,6 +5,7 @@ use App\Http\Controllers\Site\DownloadProductDocumentController;
 use App\Http\Controllers\Site\LlmsController;
 use App\Http\Controllers\Site\NewsFeedController;
 use App\Http\Controllers\Site\PartnerRedirectController;
+use App\Http\Controllers\Site\PublicOrderController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
@@ -12,6 +13,7 @@ use App\Livewire\Site\Articles;
 use App\Livewire\Site\Brands;
 use App\Livewire\Site\Cart;
 use App\Livewire\Site\Catalog;
+use App\Livewire\Site\Checkout;
 use App\Livewire\Site\Home;
 use App\Livewire\Site\News;
 use App\Livewire\Site\Pages;
@@ -28,6 +30,11 @@ Route::get('/llms.txt', LlmsController::class)->name('llms');
 // Plan 06: the customer's quote link (no login, unguessable ULID, noindex, throttled).
 Route::get('/q/{ulid}', [PublicQuoteController::class, 'show'])->whereUlid('ulid')->middleware('throttle:quote-page')->name('quotes.public');
 Route::get('/q/{ulid}/pdf', [PublicQuoteController::class, 'pdf'])->whereUlid('ulid')->middleware('throttle:quote-pdf')->name('quotes.public.pdf');
+
+// Plan 11b: the customer's order link (no login, random ULID, noindex, no-store, throttled; ?lang=).
+Route::get('/o/{ulid}', [PublicOrderController::class, 'show'])->whereUlid('ulid')->middleware('throttle:order-page')->name('orders.public');
+Route::get('/o/{ulid}/invoice.pdf', [PublicOrderController::class, 'invoice'])->whereUlid('ulid')->middleware('throttle:order-invoice')->name('orders.public.invoice');
+Route::post('/o/{ulid}/pay', [PublicOrderController::class, 'pay'])->whereUlid('ulid')->middleware('throttle:order-pay')->name('orders.public.pay');
 
 Route::prefix('{locale}')
     ->whereIn('locale', config('app.supported_locales'))
@@ -56,6 +63,8 @@ Route::prefix('{locale}')
 
         // Cart (plan 11a): 404 while config site.cart_enabled is off; noindex, robots.txt disallows /*/cart.
         Route::livewire('/cart', Cart\Page::class)->name('cart');
+        // Checkout (plan 11b): 404 while the cart is off; noindex, robots.txt disallows /*/checkout$.
+        Route::livewire('/checkout', Checkout\Page::class)->name('checkout');
 
         // Static pages (plan 07 7a): 404 unless active.
         Route::livewire('/page/{page:slug}', Pages\Show::class)->name('page');

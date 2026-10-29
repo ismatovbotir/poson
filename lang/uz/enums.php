@@ -100,6 +100,8 @@ return [
         'conversion' => 'Mijozga aylantirish',
         'price_level_change' => 'Narx darajasi oʻzgarishi',
         'quote' => 'Tijorat taklifi',
+        'order' => 'Buyurtma',
+        'payment' => 'Toʻlov',
     ],
 
     'quote_status' => [
@@ -197,6 +199,7 @@ return [
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
         'price_sync' => 'Narxlar sinxronizatsiyasi',
+        'checkout' => 'Buyurtma rasmiylashtirish',
     ],
 
     'audit_action' => [
@@ -216,7 +219,7 @@ return [
         'rejected' => 'Rad etildi',
     ],
 
-    'payme_mode' => [
+    'payment_mode' => [
         'test' => 'Sinov rejimi',
         'prod' => 'Ishchi rejim',
     ],
@@ -226,6 +229,89 @@ return [
         'db' => 'Admin panel',
         'default' => 'Standart',
         'none' => 'Kiritilmagan',
+    ],
+
+    'order_status' => [
+        'new' => 'Yangi',
+        'confirmed' => 'Tasdiqlangan',
+        'processing' => 'Yigʻilmoqda',
+        'shipped' => 'Joʻnatilgan',
+        'completed' => 'Yakunlangan',
+        'cancelled' => 'Bekor qilingan',
+    ],
+
+    'payment_status' => [
+        'unpaid' => 'Toʻlanmagan',
+        'pending' => 'Toʻlov jarayonida',
+        'paid' => 'Toʻlangan',
+        'refunded' => 'Qaytarilgan',
+    ],
+
+    'payment_method' => [
+        'payme' => 'Payme',
+        'click' => 'Click',
+        'uzqr_static' => 'UzQR',
+        'on_receipt' => 'Olganda toʻlash',
+        'bank_transfer' => 'Bank oʻtkazmasi',
+        'uzqr_dynamic' => 'UzQR (onlayn)',
+    ],
+
+    'receipt_channel' => [
+        'cash' => 'Naqd',
+        'card' => 'Karta',
+        'uzqr' => 'UzQR',
+    ],
+
+    'order_source' => [
+        'site' => 'Sayt',
+        'quote' => 'Tijorat taklifi',
+        'manual' => 'Qoʻlda',
+    ],
+
+    'buyer_type' => [
+        'individual' => 'Jismoniy shaxs',
+        'company' => 'Kompaniya',
+        'sole_proprietor' => 'YaTT',
+    ],
+
+    'delivery_type' => [
+        'pickup' => 'Olib ketish',
+        'courier_kokand' => 'Qoʻqon boʻylab kuryer',
+        'courier_region' => 'Viloyatga kuryer',
+    ],
+
+    'delivery_pricing' => [
+        'fixed' => 'Summaga kiritilgan',
+        'separate' => 'Alohida toʻlanadi',
+    ],
+
+    'region' => [
+        'tashkent_city' => 'Toshkent shahri',
+        'tashkent' => 'Toshkent viloyati',
+        'andijan' => 'Andijon viloyati',
+        'bukhara' => 'Buxoro viloyati',
+        'fergana' => 'Fargʻona viloyati',
+        'jizzakh' => 'Jizzax viloyati',
+        'kashkadarya' => 'Qashqadaryo viloyati',
+        'khorezm' => 'Xorazm viloyati',
+        'namangan' => 'Namangan viloyati',
+        'navoi' => 'Navoiy viloyati',
+        'samarkand' => 'Samarqand viloyati',
+        'surkhandarya' => 'Surxondaryo viloyati',
+        'syrdarya' => 'Sirdaryo viloyati',
+        'karakalpakstan' => 'Qoraqalpogʻiston Respublikasi',
+    ],
+
+    'order_payment_purpose' => [
+        'goods' => 'Mahsulotlar',
+        'delivery' => 'Yetkazib berish',
+    ],
+
+    'order_payment_status' => [
+        'pending' => 'Toʻlov kutilmoqda',
+        'paid' => 'Toʻlangan',
+        'refunded' => 'Qaytarilgan',
+        'cancelled' => 'Bekor qilingan',
     ],
 
 ];
