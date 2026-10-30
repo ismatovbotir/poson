@@ -42,9 +42,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Demo catalog: local and staging only, never production.
-        if (app()->environment(['local', 'staging'])) {
-            $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
-        }
+        //if (app()->environment(['local', 'staging'])) {
+        $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
+        //}
 
         if (app()->environment(['local', 'testing'])) {
             User::query()->firstOrCreate(
