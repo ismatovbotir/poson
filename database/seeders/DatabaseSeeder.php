@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Local / testing seed: roles and permissions, the catalog base data
@@ -46,11 +47,11 @@ class DatabaseSeeder extends Seeder
         $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
         //}
 
-        if (app()->environment(['local', 'testing'])) {
-            User::query()->firstOrCreate(
-                ['email' => 'test@example.com'],
-                User::factory()->make(['name' => 'Test User'])->only(['name', 'password', 'locale']),
-            );
-        }
+        //if (app()->environment(['local', 'testing'])) {
+        User::query()->firstOrCreate(
+            ['email' => env('ADMIN_LOGIN')],
+            ['name' => 'Admin', 'password' => Hash::make(env('ADMIN_PASSWORD'))],
+        );
+        //}
     }
 }
