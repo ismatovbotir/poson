@@ -110,7 +110,7 @@ it('escapes category names in link text and in the submenu aria-label', function
     expect($panel)->not->toContain($payload)
         ->and($panel)->toContain('<span class="flex-1">'.$escaped.'</span>')
         ->and($panel)->toContain('aria-label="'.$escaped.'"')
-        ->and($panel)->toContain('>'.$escaped.' child</a>');
+        ->and($panel)->toContain('<span class="flex-1">'.$escaped.' child</span>');
 });
 
 it('localizes category labels', function (string $locale, string $label) {

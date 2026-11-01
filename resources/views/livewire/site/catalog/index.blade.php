@@ -43,7 +43,10 @@
             <ul class="flex flex-wrap gap-2">
                 @foreach ($subcategories as $subcategory)
                     <li wire:key="subcategory-{{ $loop->index }}">
-                        <a href="{{ $subcategory['url'] }}" class="inline-flex h-9 items-center rounded-full border border-line bg-white px-4 text-sm font-medium text-ink-2 transition-colors hover:border-brand hover:text-brand-600">{{ $subcategory['label'] }}</a>
+                        <a href="{{ $subcategory['url'] }}" class="inline-flex h-9 items-center gap-2 rounded-full border border-line bg-white px-3.5 text-sm font-medium text-ink-2 transition-colors hover:border-brand hover:text-brand-600">
+                            <x-site.icon :name="$subcategory['icon']" size="size-[18px]" class="text-brand-600" />
+                            {{ $subcategory['label'] }}
+                        </a>
                     </li>
                 @endforeach
             </ul>

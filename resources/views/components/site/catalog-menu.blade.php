@@ -136,11 +136,14 @@
                                         href="{{ $child['url'] }}"
                                         @if ($trail !== [] && $trail[0] === $child['id']) aria-current="page" @endif
                                         @class([
-                                            'block rounded-lg px-3 py-2 text-sm transition-colors hover:bg-bg-soft hover:text-brand-600 focus-visible:bg-bg-soft',
+                                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-bg-soft hover:text-brand-600 focus-visible:bg-bg-soft',
                                             'font-semibold text-brand-600' => in_array($child['id'], $trail, true),
                                             'text-ink-2' => ! in_array($child['id'], $trail, true),
                                         ])
-                                    >{{ $child['label'] }}</a>
+                                    >
+                                        <x-site.icon :name="$child['icon']" size="size-[18px]" class="text-brand-600" />
+                                        <span class="flex-1">{{ $child['label'] }}</span>
+                                    </a>
                                 </li>
                             @endforeach
                         </ul>

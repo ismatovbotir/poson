@@ -8,6 +8,7 @@ use App\Support\Catalog\CatalogQuery;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductCards;
 use App\Support\Site\BannerDirectory;
+use App\Support\Site\CatalogMenu;
 use App\Support\Site\FaqContent;
 use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
@@ -290,7 +291,7 @@ class Index extends Component
     /**
      * Visible subcategories (the top-level categories on the catalog index).
      *
-     * @return list<array{label: string, url: string}>
+     * @return list<array{label: string, url: string, icon: string}>
      */
     protected function subcategories(): array
     {
@@ -298,6 +299,7 @@ class Index extends Component
             fn (array $node): array => [
                 'label' => CategoryTree::name($node['id']),
                 'url' => route('site.catalog.category', ['category' => $node['slug']]),
+                'icon' => $node['icon'] ?: CatalogMenu::DEFAULT_ICON,
             ],
             CategoryTree::visibleChildren($this->category?->id),
         );

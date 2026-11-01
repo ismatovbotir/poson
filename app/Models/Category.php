@@ -50,7 +50,41 @@ class Category extends Model implements HasMedia
      *
      * @var list<string>
      */
-    public const ICONS = ['scan', 'print', 'term', 'label', 'rfid', 'pos', 'doc', 'wrench', 'shield', 'truck', 'grid'];
+    public const ICONS = [
+        'scan', 'print', 'term', 'label', 'rfid', 'pos', 'doc', 'wrench', 'shield', 'truck', 'grid',
+        'cat-accessory',
+        'cat-cash-drawer',
+        'cat-customer-display',
+        'cat-desktop-label-printer',
+        'cat-embedded-scanner',
+        'cat-fixed-rfid-reader',
+        'cat-handheld-rfid-reader',
+        'cat-handheld-scanner',
+        'cat-industrial-label-printer',
+        'cat-mobile-computer',
+        'cat-mobile-label-printer',
+        'cat-pos-software',
+        'cat-pos-terminal',
+        'cat-presentation-scanner',
+        'cat-price-checker',
+        'cat-receipt-paper',
+        'cat-receipt-printer',
+        'cat-repair-maintenance',
+        'cat-rfid-antenna',
+        'cat-rfid-mobile-computer',
+        'cat-rfid-printer',
+        'cat-rfid-tag',
+        'cat-ribbon',
+        'cat-scale',
+        'cat-setup-integration',
+        'cat-spare-part',
+        'cat-textile-tape',
+        'cat-thermal-label-roll',
+        'cat-thermal-transfer-roll',
+        'cat-warehouse-software',
+        'cat-wearable-computer',
+        'cat-wireless-scanner',
+    ];
 
     /**
      * @var list<string>

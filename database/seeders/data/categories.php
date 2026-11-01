@@ -29,7 +29,7 @@ return [
     // ─── 1. Barcode scanners ────────────────────────────────────────────────
     [
         'slug' => 'scanners',
-        'icon' => 'scan',
+        'icon' => 'cat-handheld-scanner',
         'sort' => 1,
         'name' => [
             'uz' => 'Shtrix-kod skanerlari',
@@ -54,7 +54,7 @@ return [
         'children' => [
             [
                 'slug' => 'handheld-scanners',
-                'icon' => 'scan',
+                'icon' => 'cat-handheld-scanner',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Qoʻl skanerlari',
@@ -80,7 +80,7 @@ return [
             ],
             [
                 'slug' => 'wireless-scanners',
-                'icon' => 'scan',
+                'icon' => 'cat-wireless-scanner',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Simsiz skanerlar',
@@ -106,7 +106,7 @@ return [
             ],
             [
                 'slug' => 'presentation-scanners',
-                'icon' => 'scan',
+                'icon' => 'cat-presentation-scanner',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'Statsionar skanerlar',
@@ -132,7 +132,7 @@ return [
             ],
             [
                 'slug' => 'embedded-scanners',
-                'icon' => 'scan',
+                'icon' => 'cat-embedded-scanner',
                 'sort' => 4,
                 'name' => [
                     'uz' => 'Oʻrnatiladigan skanerlar',
@@ -162,7 +162,7 @@ return [
     // ─── 2. Label printers ──────────────────────────────────────────────────
     [
         'slug' => 'label-printers',
-        'icon' => 'print',
+        'icon' => 'cat-desktop-label-printer',
         'sort' => 2,
         'name' => [
             'uz' => 'Yorliq printerlari',
@@ -187,7 +187,7 @@ return [
         'children' => [
             [
                 'slug' => 'desktop-label-printers',
-                'icon' => 'print',
+                'icon' => 'cat-desktop-label-printer',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Stol usti yorliq printerlari',
@@ -213,7 +213,7 @@ return [
             ],
             [
                 'slug' => 'industrial-label-printers',
-                'icon' => 'print',
+                'icon' => 'cat-industrial-label-printer',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Sanoat yorliq printerlari',
@@ -239,7 +239,7 @@ return [
             ],
             [
                 'slug' => 'mobile-label-printers',
-                'icon' => 'print',
+                'icon' => 'cat-mobile-label-printer',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'Mobil yorliq printerlari',
@@ -269,7 +269,7 @@ return [
     // ─── 3. Mobile computers (TSD) ──────────────────────────────────────────
     [
         'slug' => 'mobile-computers',
-        'icon' => 'term',
+        'icon' => 'cat-mobile-computer',
         'sort' => 3,
         'name' => [
             'uz' => 'Maʼlumot yigʻish terminallari (TSD)',
@@ -294,7 +294,7 @@ return [
         'children' => [
             [
                 'slug' => 'android-mobile-computers',
-                'icon' => 'term',
+                'icon' => 'cat-mobile-computer',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Android TSD',
@@ -320,7 +320,7 @@ return [
             ],
             [
                 'slug' => 'wearable-computers',
-                'icon' => 'term',
+                'icon' => 'cat-wearable-computer',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Taqiladigan terminallar',
@@ -346,7 +346,7 @@ return [
             ],
             [
                 'slug' => 'rfid-mobile-computers',
-                'icon' => 'term',
+                'icon' => 'cat-rfid-mobile-computer',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'RFID oʻquvchili TSD',
@@ -376,7 +376,7 @@ return [
     // ─── 4. Labels and ribbons (consumables) ────────────────────────────────
     [
         'slug' => 'labels-ribbons',
-        'icon' => 'label',
+        'icon' => 'cat-thermal-label-roll',
         'sort' => 4,
         'name' => [
             'uz' => 'Yorliqlar va ribbonlar',
@@ -401,7 +401,7 @@ return [
         'children' => [
             [
                 'slug' => 'thermal-labels',
-                'icon' => 'label',
+                'icon' => 'cat-thermal-label-roll',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Termoyorliqlar',
@@ -427,7 +427,7 @@ return [
             ],
             [
                 'slug' => 'thermal-transfer-labels',
-                'icon' => 'label',
+                'icon' => 'cat-thermal-transfer-roll',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Termotransfer yorliqlar',
@@ -453,7 +453,7 @@ return [
             ],
             [
                 'slug' => 'ribbons',
-                'icon' => 'label',
+                'icon' => 'cat-ribbon',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'Ribbonlar',
@@ -479,7 +479,7 @@ return [
             ],
             [
                 'slug' => 'receipt-paper',
-                'icon' => 'label',
+                'icon' => 'cat-receipt-paper',
                 'sort' => 4,
                 'name' => [
                     'uz' => 'Chek lentalari',
@@ -505,7 +505,7 @@ return [
             ],
             [
                 'slug' => 'textile-tapes',
-                'icon' => 'label',
+                'icon' => 'cat-textile-tape',
                 'sort' => 5,
                 'is_active' => false,
                 'name' => [
@@ -536,7 +536,7 @@ return [
     // ─── 5. RFID ────────────────────────────────────────────────────────────
     [
         'slug' => 'rfid',
-        'icon' => 'rfid',
+        'icon' => 'cat-fixed-rfid-reader',
         'sort' => 5,
         'name' => [
             'uz' => 'RFID uskunalari',
@@ -561,7 +561,7 @@ return [
         'children' => [
             [
                 'slug' => 'fixed-rfid-readers',
-                'icon' => 'rfid',
+                'icon' => 'cat-fixed-rfid-reader',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Statsionar RFID oʻquvchilar',
@@ -587,7 +587,7 @@ return [
             ],
             [
                 'slug' => 'handheld-rfid-readers',
-                'icon' => 'rfid',
+                'icon' => 'cat-handheld-rfid-reader',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Qoʻl RFID oʻquvchilari',
@@ -613,7 +613,7 @@ return [
             ],
             [
                 'slug' => 'rfid-antennas',
-                'icon' => 'rfid',
+                'icon' => 'cat-rfid-antenna',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'RFID antennalar',
@@ -639,7 +639,7 @@ return [
             ],
             [
                 'slug' => 'rfid-tags',
-                'icon' => 'rfid',
+                'icon' => 'cat-rfid-tag',
                 'sort' => 4,
                 'name' => [
                     'uz' => 'RFID metkalar va inleylar',
@@ -665,7 +665,7 @@ return [
             ],
             [
                 'slug' => 'rfid-printers',
-                'icon' => 'print',
+                'icon' => 'cat-rfid-printer',
                 'sort' => 5,
                 'name' => [
                     'uz' => 'RFID printerlar',
@@ -695,7 +695,7 @@ return [
     // ─── 6. POS equipment ───────────────────────────────────────────────────
     [
         'slug' => 'pos',
-        'icon' => 'pos',
+        'icon' => 'cat-pos-terminal',
         'sort' => 6,
         'name' => [
             'uz' => 'POS uskunalari',
@@ -720,7 +720,7 @@ return [
         'children' => [
             [
                 'slug' => 'pos-terminals',
-                'icon' => 'pos',
+                'icon' => 'cat-pos-terminal',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'POS terminallar',
@@ -746,7 +746,7 @@ return [
             ],
             [
                 'slug' => 'receipt-printers',
-                'icon' => 'print',
+                'icon' => 'cat-receipt-printer',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Chek printerlari',
@@ -772,7 +772,7 @@ return [
             ],
             [
                 'slug' => 'cash-drawers',
-                'icon' => 'pos',
+                'icon' => 'cat-cash-drawer',
                 'sort' => 3,
                 'name' => [
                     'uz' => 'Pul yashiklari',
@@ -798,7 +798,7 @@ return [
             ],
             [
                 'slug' => 'customer-displays',
-                'icon' => 'pos',
+                'icon' => 'cat-customer-display',
                 'sort' => 4,
                 'name' => [
                     'uz' => 'Xaridor displeylari',
@@ -824,7 +824,7 @@ return [
             ],
             [
                 'slug' => 'scales',
-                'icon' => 'pos',
+                'icon' => 'cat-scale',
                 'sort' => 5,
                 'name' => [
                     'uz' => 'Yorliq chop etuvchi tarozilar',
@@ -850,7 +850,7 @@ return [
             ],
             [
                 'slug' => 'price-checkers',
-                'icon' => 'pos',
+                'icon' => 'cat-price-checker',
                 'sort' => 6,
                 'is_active' => false,
                 'name' => [
@@ -881,7 +881,7 @@ return [
     // ─── 7. Software ────────────────────────────────────────────────────────
     [
         'slug' => 'software',
-        'icon' => null,
+        'icon' => 'cat-pos-software',
         'sort' => 7,
         'name' => [
             'uz' => 'Dasturiy taʼminot',
@@ -906,7 +906,7 @@ return [
         'children' => [
             [
                 'slug' => 'pos-software',
-                'icon' => null,
+                'icon' => 'cat-pos-software',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Kassa dasturlari',
@@ -933,7 +933,7 @@ return [
             // CONFIRM: 1C data exchange is stated per business-facts row 3 ("software"); confirm it applies to each inventory program sold.
             [
                 'slug' => 'warehouse-software',
-                'icon' => null,
+                'icon' => 'cat-warehouse-software',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Tovar va ombor hisobi dasturlari',
@@ -963,7 +963,7 @@ return [
     // ─── 8. Services ────────────────────────────────────────────────────────
     [
         'slug' => 'services',
-        'icon' => null,
+        'icon' => 'cat-setup-integration',
         'sort' => 8,
         'name' => [
             'uz' => 'Servis xizmatlari',
@@ -988,7 +988,7 @@ return [
         'children' => [
             [
                 'slug' => 'setup-integration',
-                'icon' => null,
+                'icon' => 'cat-setup-integration',
                 'sort' => 1,
                 'name' => [
                     'uz' => 'Oʻrnatish va integratsiya',
@@ -1014,7 +1014,7 @@ return [
             ],
             [
                 'slug' => 'repair-maintenance',
-                'icon' => null,
+                'icon' => 'cat-repair-maintenance',
                 'sort' => 2,
                 'name' => [
                     'uz' => 'Taʼmirlash va texnik xizmat',
@@ -1044,7 +1044,7 @@ return [
     // ─── 9. Accessories & spare parts (plan 16, created inactive) ───────────
     [
         'slug' => 'accessories-parts',
-        'icon' => 'pos',
+        'icon' => 'cat-accessory',
         'sort' => 9,
         'is_active' => false,
         'name' => [
@@ -1070,7 +1070,7 @@ return [
         'children' => [
             [
                 'slug' => 'accessories',
-                'icon' => 'pos',
+                'icon' => 'cat-accessory',
                 'sort' => 1,
                 'is_active' => false,
                 'name' => [
@@ -1097,7 +1097,7 @@ return [
             ],
             [
                 'slug' => 'spare-parts',
-                'icon' => 'pos',
+                'icon' => 'cat-spare-part',
                 'sort' => 2,
                 'is_active' => false,
                 'name' => [

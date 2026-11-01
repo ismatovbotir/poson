@@ -20,22 +20,27 @@ class CatalogMenu
     public const DEFAULT_ICON = HomeContent::DEFAULT_ICON;
 
     /**
-     * @return list<array{id: int, slug: string, label: string, url: string, icon: string, children: list<array{id: int, label: string, url: string}>}>
+     * @return list<array{id: int, slug: string, label: string, url: string, icon: string, children: list<array{id: int, label: string, url: string, icon: string}>}>
      */
     public static function items(): array
     {
-        return array_map(fn (array $node): array => [
-            'id' => $node['id'],
-            'slug' => $node['slug'],
-            'label' => CategoryTree::name($node['id']),
-            'url' => static::url($node['slug']),
-            'icon' => $node['icon'] ?: self::DEFAULT_ICON,
-            'children' => array_map(fn (array $child): array => [
-                'id' => $child['id'],
-                'label' => CategoryTree::name($child['id']),
-                'url' => static::url($child['slug']),
-            ], CategoryTree::visibleChildren($node['id'])),
-        ], CategoryTree::visibleChildren(null));
+        return array_map(function (array $node): array {
+            $icon = $node['icon'] ?: self::DEFAULT_ICON;
+
+            return [
+                'id' => $node['id'],
+                'slug' => $node['slug'],
+                'label' => CategoryTree::name($node['id']),
+                'url' => static::url($node['slug']),
+                'icon' => $icon,
+                'children' => array_map(fn (array $child): array => [
+                    'id' => $child['id'],
+                    'label' => CategoryTree::name($child['id']),
+                    'url' => static::url($child['slug']),
+                    'icon' => $child['icon'] ?: $icon,
+                ], CategoryTree::visibleChildren($node['id'])),
+            ];
+        }, CategoryTree::visibleChildren(null));
     }
 
     /**
