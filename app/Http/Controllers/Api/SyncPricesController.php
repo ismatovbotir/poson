@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use JsonException;
 
 /**
- * POST /api/v1/prices (plan 09; contract in docs/api/prices.md). Runs
+ * POST /api/v1/prices (plan 09; contract in .claude/docs/api/prices.md). Runs
  * after LimitJsonBody, AuthenticateApiToken and the price-api throttle.
  *
  * Only Content-Type application/json (else 415); the body is decoded here

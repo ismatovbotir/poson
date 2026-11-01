@@ -18,7 +18,7 @@
 |   B3 (timestamp tolerance ≤ 300 s, replay rejection, IP allow-list, key
 |   entropy) and B5 (fiscal receipt obligations) in writing. Ops record
 |   the answered items in UZQR_BANK_ANSWERS (e.g. "B1,B2,B3,B5") after
-|   adding them to docs/pm/decisions.md.
+|   adding them to .claude/docs/pm/decisions.md.
 |
 */
 

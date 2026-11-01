@@ -26,18 +26,17 @@ return [
 
     // List of ['label' => PhoneLabel value, 'number' => E.164, 'primary' => bool, 'site' => bool].
     // The primary number is the main one on the site (topbar, header, JSON-LD telephone).
-    // TODO: placeholder (well-formed landline format only), replace with the real sales phone (Kokand office).
     'phones' => [
-        ['label' => 'orders', 'number' => '+998712000000', 'primary' => true, 'site' => true],
+        ['label' => 'orders', 'number' => '+998915010757', 'primary' => true, 'site' => true],
+        ['label' => 'orders', 'number' => '+998985559393', 'primary' => false, 'site' => true],
     ],
 
     'email' => 'info@poson.uz',
 
-    // TODO: real office address (main office in Kokand).
     'address' => [
-        'uz' => 'Qoʻqon sh., manzil aniqlanmoqda',
-        'ru' => 'г. Коканд, адрес уточняется',
-        'en' => 'Kokand, address TBD',
+        'uz' => 'Qoʻqon sh., Poʻstindoʻz koʻchasi, 14A',
+        'ru' => 'г. Коканд, ул. Пустиндуз, 14А',
+        'en' => '14A Postindoz street, Kokand',
     ],
 
     'city' => [
@@ -47,7 +46,7 @@ return [
     ],
 
     // ['lat' => float, 'lng' => float] or null. The map link is built from it (Yandex, plan 04 S9).
-    'geo' => null,
+    'geo' => ['lat' => 40.545429, 'lng' => 70.934588],
 
     // Map link template; {lat} and {lng} are replaced. No pasted embeds.
     'map_url_template' => 'https://yandex.uz/maps/?pt={lng},{lat}&z=17&l=map',
@@ -90,6 +89,9 @@ return [
 
     'social' => [
         ['network' => 'telegram', 'url' => 'https://t.me/poson_uz'],
+        ['network' => 'instagram', 'url' => 'https://www.instagram.com/posonuz'],
+        ['network' => 'facebook', 'url' => 'https://facebook.com/posonuz'],
+        ['network' => 'youtube', 'url' => 'https://www.youtube.com/@posonuz'],
     ],
 
     /*

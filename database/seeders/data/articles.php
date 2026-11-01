@@ -3,11 +3,11 @@
 /**
  * Evergreen knowledge articles (buying guides, how-tos, comparisons).
  *
- * Facts about Poson follow docs/pm/notes/business-facts.md (confirmed
+ * Facts about Poson follow .claude/docs/pm/notes/business-facts.md (confirmed
  * 2026-10-21): Kokand main office, 1C as the only integration (no WMS
  * projects), manufacturer warranty, own service centre, setup as a separate
  * optional service with training included, paid label templates. Software
- * names follow docs/pm/notes/software-facts.md. No prices, no low-price
+ * names follow .claude/docs/pm/notes/software-facts.md. No prices, no low-price
  * wording. Articles marked 'confirm' => true need a business/legal check.
  *
  * categories: 1–3 category slugs from database/seeders/data/categories.php.

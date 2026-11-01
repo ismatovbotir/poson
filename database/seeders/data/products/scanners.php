@@ -2,7 +2,7 @@
 
 /**
  * Real products, group "scanners" (scanners, TSD, RFID TSD, accessories).
- * Source: docs/pm/import/products-base.json (group = scanners), 48 rows.
+ * Source: .claude/docs/pm/import/products-base.json (group = scanners), 48 rows.
  *
  * Row shape = products.php plus `has_missing_specs` (bool).
  * Prices are whole soʻm (the seeder converts to tiyin); null = price on request.
@@ -95,7 +95,7 @@ $make = static function (array $o) use ($service, $common): array {
         'min_qty' => 1,
         'sale_mode' => $price === null ? 'quote' : ($isAccessory ? 'cart' : 'both'),
         'stock_status' => 'on_order',
-        'warranty_months' => null,
+        'warranty_months' => $kind === 'accessory' ? null : 1,
         'badge' => null,
         'is_featured' => false,
         'price' => $price,

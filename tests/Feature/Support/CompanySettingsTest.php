@@ -15,11 +15,11 @@ it('is shared within a request', function () {
 });
 
 it('returns config defaults with an empty settings table', function () {
-    expect(settings()->phone())->toBe('+998712000000')
-        ->and(settings()->phoneDisplay())->toBe('+998 (71) 200-00-00')
+    expect(settings()->phone())->toBe('+998915010757')
+        ->and(settings()->phoneDisplay())->toBe('+998 (91) 501-07-57')
         ->and(settings()->email())->toBe('info@poson.uz')
         ->and(settings()->telegramUrl())->toBe('https://t.me/poson_uz')
-        ->and(settings()->social())->toBe([['network' => 'telegram', 'url' => 'https://t.me/poson_uz']])
+        ->and(settings()->social())->toHaveCount(4)
         ->and(settings()->get('missing', 'fallback'))->toBe('fallback');
 });
 

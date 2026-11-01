@@ -3,7 +3,7 @@
 /**
  * Starter copy for system pages (Plan 07, T2), keyed by slug.
  *
- * Facts follow docs/pm/notes/business-facts.md (confirmed 2026-10-21): Kokand
+ * Facts follow .claude/docs/pm/notes/business-facts.md (confirmed 2026-10-21): Kokand
  * main office, free delivery within Kokand, courier across Uzbekistan, pickup,
  * 1C as the only integration, manufacturer warranty, own service centre.
  * Phone, address, map and legal requisites come from Settings → Company and

@@ -50,7 +50,7 @@ class CatalogSeeder extends Seeder
     ];
 
     /**
-     * Official sites of the software vendors (docs/pm/notes/software-facts.md,
+     * Official sites of the software vendors (.claude/docs/pm/notes/software-facts.md,
      * user answer for AliPos), set only when the brand is created. For a
      * software brand the website is also the "Try" link (ProductCtas): admins
      * replace it with the partner / referral link in Brands.

@@ -135,7 +135,6 @@ describe('saving', function () {
 
     it('saves phones with labels, a primary number and the site flag', function () {
         companyScreen()
-            ->call('addPhone')
             ->set('contacts.phones.0.number', '90 123 45 67')
             ->set('contacts.phones.1.label', 'service')
             ->set('contacts.phones.1.number', '+998 (93) 555-44-33')
@@ -179,8 +178,6 @@ describe('saving', function () {
             ->set('legal.legal_name.uz', 'POSON MChJ')
             ->call('save')->assertHasNoErrors()
             ->set('tab', 'social')
-            ->call('addSocialLink')
-            ->set('social.links.1.network', 'instagram')
             ->set('social.links.1.url', 'https://www.instagram.com/poson.uz')
             ->call('save')->assertHasNoErrors()
             ->set('tab', 'hero')
@@ -199,7 +196,7 @@ describe('saving', function () {
 
         expect($settings->legal()['inn'])->toBe('301234567')
             ->and($settings->legal()['account'])->toBe('20208000123456789001')
-            ->and($settings->social())->toHaveCount(2)
+            ->and($settings->social())->toHaveCount(4)
             ->and($settings->heroStats())->toHaveCount(3)
             ->and($settings->verification()['google'])->toBe('abcDEF123_-abcDEF123_-xyz')
             ->and($settings->tracking())->toBe(['enabled' => true, 'ga4' => 'G-AB12CD34EF', 'metrika' => '98765432'])

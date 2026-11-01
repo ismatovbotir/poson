@@ -7,7 +7,7 @@
  * category slug from database/seeders/data/categories.php.
  * Answers are plain text, 2–4 sentences. No prices, no low-price wording.
  *
- * Facts follow docs/pm/notes/business-facts.md (confirmed 2026-10-21): Kokand
+ * Facts follow .claude/docs/pm/notes/business-facts.md (confirmed 2026-10-21): Kokand
  * main office, 1C integration (no WMS projects), paid label templates.
  * Mark any new unconfirmed claim with 'confirm' => true.
  *

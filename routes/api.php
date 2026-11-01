@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | Loaded in bootstrap/app.php with the "api" prefix and middleware group
 | (no Sanctum: custom api_tokens, App\Http\Middleware\AuthenticateApiToken).
 | Order: body size (413) → token (401) → per-token limit (429).
-| Contract for the 1C developer: docs/api/prices.md.
+| Contract for the 1C developer: .claude/docs/api/prices.md.
 |
 */
 

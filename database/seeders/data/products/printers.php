@@ -3,7 +3,7 @@
 /**
  * Real product data, group "printers" (label printers, RFID printer, printheads).
  *
- * Source: docs/pm/import/products-base.json (rows with group = printers). Row shape follows
+ * Source: .claude/docs/pm/import/products-base.json (rows with group = printers). Row shape follows
  * database/seeders/data/products.php plus two internal fields that are never displayed:
  * `has_missing_specs` (bool).
  *
@@ -271,7 +271,7 @@ $build = static function (array $r) use ($kinds, $specLine, $specPrefix, $keySpe
         'min_qty' => 1,
         'sale_mode' => $isPart ? ($r['price'] === null ? 'quote' : 'cart') : 'both',
         'stock_status' => 'on_order',
-        'warranty_months' => $isPart ? null : 12,
+        'warranty_months' => $isPart ? null : 1,
         'badge' => null,
         'is_featured' => false,
         'price' => $r['price'],

@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Real catalog data, group "pos" (from docs/pm/import/products-base.json, 1C export).
+ * Real catalog data, group "pos" (from .claude/docs/pm/import/products-base.json, 1C export).
  *
  * Row shape = products.php plus two internal keys:
  * - `has_missing_specs`: true when a required spec could not be verified (1C name only).
  *
  * `sku` is the 1C code (string). `price` = retail whole soʻm (null = price on request).
- * Warranty term is not confirmed for any item, so `warranty_months` is null.
+ * Warranty is 1 month for every item (owner decision 2026-11-01).
  * Uzbek is Latin: oʻ, gʻ use ʻ (U+02BB); the tutuq belgisi uses ʼ (U+02BC).
  *
  * @return list<array<string, mixed>>
@@ -57,7 +57,7 @@ $make = static function (array $r): array {
         'min_qty' => 1,
         'sale_mode' => $r['price'] === null ? 'quote' : 'both',
         'stock_status' => 'on_order',
-        'warranty_months' => null,
+        'warranty_months' => 1,
         'badge' => null,
         'is_featured' => false,
         'price' => $r['price'] === null ? null : (int) round($r['price']),
@@ -799,9 +799,9 @@ return [
     $make([
         'sku' => '219', 'model' => 'APEXA EL-1500 (G) J6412 4/128', 'brand' => 'Posbank', 'category' => 'pos-terminals', 'price' => 8700000.0,
         'name' => [
-            'uz' => 'Posbank APEXA EL-1500 (G) POS monoblok, J6412, 4/128 GB',
-            'ru' => 'POS-моноблок Posbank APEXA EL-1500 (G), J6412, 4/128 ГБ',
-            'en' => 'Posbank APEXA EL-1500 (G) POS all-in-one, J6412, 4/128 GB',
+            'uz' => 'Posbank APEXA EL-1500 POS monoblok, J6412, 4/128 GB, kulrang',
+            'ru' => 'POS-моноблок Posbank APEXA EL-1500, J6412, 4/128 ГБ, серый',
+            'en' => 'Posbank APEXA EL-1500 POS all-in-one, J6412, 4/128 GB, grey',
         ],
         'short' => [
             'uz' => '15 dyuymli sensorli POS terminal Intel Celeron J6412, 4 GB operativ va 128 GB xotira bilan: ish joyi uchun ishonchli kassa.',
@@ -810,9 +810,9 @@ return [
         ],
         'desc' => $desc(
             [
-                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi; I/O paneli yuqori tomonda joylashgan. Bu (G) varianti 4 GB operativ va 128 GB doimiy xotira bilan.',
-                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC; панель разъёмов расположена сверху. Вариант (G) — с 4 ГБ ОЗУ и 128 ГБ встроенной памяти.',
-                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen, supports Windows 10 IoT Enterprise LTSC and keeps its I/O panel on top. This (G) version comes with 4 GB RAM and 128 GB storage.',
+                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi; I/O paneli yuqori tomonda joylashgan. Bu kulrang variant 4 GB operativ va 128 GB doimiy xotira bilan.',
+                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC; панель разъёмов расположена сверху. Вариант серого цвета — с 4 ГБ ОЗУ и 128 ГБ встроенной памяти.',
+                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen, supports Windows 10 IoT Enterprise LTSC and keeps its I/O panel on top. This grey version comes with 4 GB RAM and 128 GB storage.',
             ],
             [
                 'uz' => $li('<strong>Supermarket va doʻkonlar:</strong> kassa tugunlari.', '<strong>HoReCa:</strong> restoran va kafe kassasi.', '<strong>Dorixona:</strong> sotuv kassasi.', 'Koʻp barmoqli 15 dyuymli ekran, Gigabit Ethernet, chek printeri va pul yashigini ulash portlari.'),
@@ -822,14 +822,14 @@ return [
             $svc['terminal'],
         ),
         'mt' => [
-            'uz' => 'Posbank APEXA EL-1500 (G) POS terminal 4/128 — Poson',
-            'ru' => 'POS-терминал Posbank APEXA EL-1500 (G) 4/128 — Poson',
-            'en' => 'Posbank APEXA EL-1500 (G) POS terminal 4/128 — Poson',
+            'uz' => 'Posbank APEXA EL-1500 POS terminal 4/128, kulrang — Poson',
+            'ru' => 'POS-терминал Posbank APEXA EL-1500 4/128, серый — Poson',
+            'en' => 'Posbank APEXA EL-1500 POS terminal 4/128, grey — Poson',
         ],
         'md' => [
-            'uz' => 'Posbank APEXA EL-1500 (G): 15 dyuymli sensorli POS terminal, Celeron J6412, 4 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
-            'ru' => 'Posbank APEXA EL-1500 (G): 15-дюймовый сенсорный POS-терминал, Celeron J6412, 4 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
-            'en' => 'Posbank APEXA EL-1500 (G) 15-inch touch POS terminal, Celeron J6412, 4 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
+            'uz' => 'Posbank APEXA EL-1500, kulrang: 15 dyuymli sensorli POS terminal, Celeron J6412, 4 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
+            'ru' => 'Posbank APEXA EL-1500, серый: 15-дюймовый сенсорный POS-терминал, Celeron J6412, 4 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
+            'en' => 'Posbank APEXA EL-1500, grey: 15-inch touch POS terminal, Celeron J6412, 4 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
         ],
         'specs' => [
             'os' => ['value' => 'Windows', 'key' => true],
@@ -842,9 +842,9 @@ return [
     $make([
         'sku' => '218', 'model' => 'APEXA EL-1500 (W) J6412 4/128', 'brand' => 'Posbank', 'category' => 'pos-terminals', 'price' => 8700000.0,
         'name' => [
-            'uz' => 'Posbank APEXA EL-1500 (W) POS monoblok, J6412, 4/128 GB',
-            'ru' => 'POS-моноблок Posbank APEXA EL-1500 (W), J6412, 4/128 ГБ',
-            'en' => 'Posbank APEXA EL-1500 (W) POS all-in-one, J6412, 4/128 GB',
+            'uz' => 'Posbank APEXA EL-1500 POS monoblok, J6412, 4/128 GB, oq',
+            'ru' => 'POS-моноблок Posbank APEXA EL-1500, J6412, 4/128 ГБ, белый',
+            'en' => 'Posbank APEXA EL-1500 POS all-in-one, J6412, 4/128 GB, white',
         ],
         'short' => [
             'uz' => '15 dyuymli sensorli POS terminal Intel Celeron J6412, 4 GB operativ va 128 GB xotira bilan: ish joyi uchun ishonchli kassa.',
@@ -853,9 +853,9 @@ return [
         ],
         'desc' => $desc(
             [
-                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi; I/O paneli yuqori tomonda joylashgan. Bu (W) varianti 4 GB operativ va 128 GB doimiy xotira bilan.',
-                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC; панель разъёмов расположена сверху. Вариант (W) — с 4 ГБ ОЗУ и 128 ГБ встроенной памяти.',
-                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen, supports Windows 10 IoT Enterprise LTSC and keeps its I/O panel on top. This (W) version comes with 4 GB RAM and 128 GB storage.',
+                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi; I/O paneli yuqori tomonda joylashgan. Bu oq variant 4 GB operativ va 128 GB doimiy xotira bilan.',
+                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC; панель разъёмов расположена сверху. Вариант белого цвета — с 4 ГБ ОЗУ и 128 ГБ встроенной памяти.',
+                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen, supports Windows 10 IoT Enterprise LTSC and keeps its I/O panel on top. This white version comes with 4 GB RAM and 128 GB storage.',
             ],
             [
                 'uz' => $li('<strong>Supermarket va doʻkonlar:</strong> kassa tugunlari.', '<strong>HoReCa:</strong> restoran va kafe kassasi.', '<strong>Dorixona:</strong> sotuv kassasi.', 'Koʻp barmoqli 15 dyuymli ekran, Gigabit Ethernet, chek printeri va pul yashigini ulash portlari.'),
@@ -865,14 +865,14 @@ return [
             $svc['terminal'],
         ),
         'mt' => [
-            'uz' => 'Posbank APEXA EL-1500 (W) POS terminal 4/128 — Poson',
-            'ru' => 'POS-терминал Posbank APEXA EL-1500 (W) 4/128 — Poson',
-            'en' => 'Posbank APEXA EL-1500 (W) POS terminal 4/128 — Poson',
+            'uz' => 'Posbank APEXA EL-1500 POS terminal 4/128, oq — Poson',
+            'ru' => 'POS-терминал Posbank APEXA EL-1500 4/128, белый — Poson',
+            'en' => 'Posbank APEXA EL-1500 POS terminal 4/128, white — Poson',
         ],
         'md' => [
-            'uz' => 'Posbank APEXA EL-1500 (W): 15 dyuymli sensorli POS terminal, Celeron J6412, 4 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
-            'ru' => 'Posbank APEXA EL-1500 (W): 15-дюймовый сенсорный POS-терминал, Celeron J6412, 4 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
-            'en' => 'Posbank APEXA EL-1500 (W) 15-inch touch POS terminal, Celeron J6412, 4 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
+            'uz' => 'Posbank APEXA EL-1500, oq: 15 dyuymli sensorli POS terminal, Celeron J6412, 4 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
+            'ru' => 'Posbank APEXA EL-1500, белый: 15-дюймовый сенсорный POS-терминал, Celeron J6412, 4 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
+            'en' => 'Posbank APEXA EL-1500, white: 15-inch touch POS terminal, Celeron J6412, 4 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
         ],
         'specs' => [
             'os' => ['value' => 'Windows', 'key' => true],
@@ -885,9 +885,9 @@ return [
     $make([
         'sku' => '220', 'model' => 'APEXA EL-1500 (G) J6412 8/128', 'brand' => 'Posbank', 'category' => 'pos-terminals', 'price' => 9650000.0,
         'name' => [
-            'uz' => 'Posbank APEXA EL-1500 (G) POS monoblok, J6412, 8/128 GB',
-            'ru' => 'POS-моноблок Posbank APEXA EL-1500 (G), J6412, 8/128 ГБ',
-            'en' => 'Posbank APEXA EL-1500 (G) POS all-in-one, J6412, 8/128 GB',
+            'uz' => 'Posbank APEXA EL-1500 POS monoblok, J6412, 8/128 GB, kulrang',
+            'ru' => 'POS-моноблок Posbank APEXA EL-1500, J6412, 8/128 ГБ, серый',
+            'en' => 'Posbank APEXA EL-1500 POS all-in-one, J6412, 8/128 GB, grey',
         ],
         'short' => [
             'uz' => '15 dyuymli sensorli POS terminal Intel Celeron J6412, 8 GB operativ va 128 GB xotira bilan: katta tovar bazali kassalar uchun.',
@@ -896,9 +896,9 @@ return [
         ],
         'desc' => $desc(
             [
-                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi. Bu (G) varianti 8 GB operativ va 128 GB doimiy xotira bilan — katta tovar bazasi va koʻp vazifali kassa dasturlari uchun zaxira.',
-                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC. Вариант (G) — с 8 ГБ ОЗУ и 128 ГБ встроенной памяти: запас для большой базы товаров и многозадачных кассовых программ.',
-                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen and supports Windows 10 IoT Enterprise LTSC. This (G) version has 8 GB RAM and 128 GB storage, leaving headroom for large product databases and heavier POS software.',
+                'uz' => '<strong>Posbank APEXA EL-1500</strong> — 15 dyuymli sensorli POS terminal. Ishlab chiqaruvchi maʼlumotiga koʻra, u Intel Celeron J6412 protsessorida ishlaydi, sensor ekrani koʻp barmoqli, Windows 10 IoT Enterprise LTSC bilan ishlashni qoʻllab-quvvatlaydi. Bu kulrang variant 8 GB operativ va 128 GB doimiy xotira bilan — katta tovar bazasi va koʻp vazifali kassa dasturlari uchun zaxira.',
+                'ru' => '<strong>Posbank APEXA EL-1500</strong> — 15-дюймовый сенсорный POS-терминал. По данным производителя, он построен на Intel Celeron J6412, имеет мультитач-экран и поддерживает Windows 10 IoT Enterprise LTSC. Вариант серого цвета — с 8 ГБ ОЗУ и 128 ГБ встроенной памяти: запас для большой базы товаров и многозадачных кассовых программ.',
+                'en' => 'The <strong>Posbank APEXA EL-1500</strong> is a 15-inch touch POS terminal. According to the manufacturer it runs on an Intel Celeron J6412, has a multi-touch screen and supports Windows 10 IoT Enterprise LTSC. This grey version has 8 GB RAM and 128 GB storage, leaving headroom for large product databases and heavier POS software.',
             ],
             [
                 'uz' => $li('<strong>Supermarket va doʻkonlar:</strong> katta assortimentli kassa tugunlari.', '<strong>HoReCa:</strong> restoran va kafe kassasi.', '<strong>Dorixona:</strong> sotuv kassasi.', '15 dyuymli koʻp barmoqli ekran, 8 GB RAM, 128 GB xotira.'),
@@ -908,14 +908,14 @@ return [
             $svc['terminal'],
         ),
         'mt' => [
-            'uz' => 'Posbank APEXA EL-1500 (G) POS terminal 8/128 — Poson',
-            'ru' => 'POS-терминал Posbank APEXA EL-1500 (G) 8/128 — Poson',
-            'en' => 'Posbank APEXA EL-1500 (G) POS terminal 8/128 — Poson',
+            'uz' => 'Posbank APEXA EL-1500 POS terminal 8/128, kulrang — Poson',
+            'ru' => 'POS-терминал Posbank APEXA EL-1500 8/128, серый — Poson',
+            'en' => 'Posbank APEXA EL-1500 POS terminal 8/128, grey — Poson',
         ],
         'md' => [
-            'uz' => 'Posbank APEXA EL-1500 (G): 15 dyuymli sensorli POS terminal, Celeron J6412, 8 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
-            'ru' => 'Posbank APEXA EL-1500 (G): 15-дюймовый сенсорный POS-терминал, Celeron J6412, 8 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
-            'en' => 'Posbank APEXA EL-1500 (G) 15-inch touch POS terminal, Celeron J6412, 8 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
+            'uz' => 'Posbank APEXA EL-1500, kulrang: 15 dyuymli sensorli POS terminal, Celeron J6412, 8 GB RAM, 128 GB. Kassa dasturi, 1C integratsiyasi, kafolat va servis.',
+            'ru' => 'Posbank APEXA EL-1500, серый: 15-дюймовый сенсорный POS-терминал, Celeron J6412, 8 ГБ ОЗУ, 128 ГБ. Кассовая программа, интеграция с 1С, гарантия, сервис.',
+            'en' => 'Posbank APEXA EL-1500, grey: 15-inch touch POS terminal, Celeron J6412, 8 GB RAM, 128 GB. POS software, 1C integration, warranty and service.',
         ],
         'specs' => [
             'os' => ['value' => 'Windows', 'key' => true],
@@ -1106,9 +1106,9 @@ return [
                 'en' => 'The <strong>Rongta RLS1000C</strong> is an electronic label-printing scale for weighed goods. It prints a barcode label for each weighed item, so checkout is quick and error-free.',
             ],
             [
-                'uz' => $li('<strong>Chakana savdo:</strong> sabzavot, meva va gastronomiya boʻlimlari.', '<strong>Fasovka:</strong> vaznli mahsulotni yorliq bilan qadoqlash.', '<strong>Supermarket:</strong> yorliqdagi shtrix-kod kassada skanerlanadi.', 'Tortish chegarasi modifikatsiyaga qarab belgilanadi, buyurtmada aniqlaymiz.'),
-                'ru' => $li('<strong>Розница:</strong> отделы овощей, фруктов и гастрономии.', '<strong>Фасовка:</strong> упаковка весового товара с этикеткой.', '<strong>Супермаркет:</strong> штрихкод на этикетке считывается на кассе.', 'Предел взвешивания зависит от модификации, уточним при заказе.'),
-                'en' => $li('<strong>Retail:</strong> produce and deli counters.', '<strong>Pre-packing:</strong> weighed goods packed with a label.', '<strong>Supermarkets:</strong> the label barcode is scanned at the till.', 'The capacity depends on the version, which we confirm when you order.'),
+                'uz' => $li('<strong>Chakana savdo:</strong> sabzavot, meva va gastronomiya boʻlimlari.', '<strong>Fasovka:</strong> vaznli mahsulotni yorliq bilan qadoqlash.', '<strong>Supermarket:</strong> yorliqdagi shtrix-kod kassada skanerlanadi.', 'Tortish chegarasi 30 kg.'),
+                'ru' => $li('<strong>Розница:</strong> отделы овощей, фруктов и гастрономии.', '<strong>Фасовка:</strong> упаковка весового товара с этикеткой.', '<strong>Супермаркет:</strong> штрихкод на этикетке считывается на кассе.', 'Наибольший предел взвешивания 30 кг.'),
+                'en' => $li('<strong>Retail:</strong> produce and deli counters.', '<strong>Pre-packing:</strong> weighed goods packed with a label.', '<strong>Supermarkets:</strong> the label barcode is scanned at the till.', 'Maximum capacity 30 kg.'),
             ],
             $svc['scale'],
         ),
@@ -1122,8 +1122,8 @@ return [
             'ru' => 'Rongta RLS1000C: электронные весы с печатью этикеток со штрихкодом для весовой торговли и фасовки. Загрузка базы товаров, связь с кассой, гарантия, сервис.',
             'en' => 'Rongta RLS1000C electronic scale printing barcode labels for weighed goods and pre-packing. Database load, POS link, warranty and service.',
         ],
-        'specs' => [],
-        'missing' => true,
+        'specs' => ['max_weight' => ['value' => 30, 'key' => true]],
+        'missing' => false,
     ]),
 
     // ─── Price checkers ─────────────────────────────────────────────────────

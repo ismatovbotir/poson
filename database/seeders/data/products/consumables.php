@@ -3,7 +3,7 @@
 /**
  * Real consumables (labels, ribbons, receipt paper, textile tapes) from the 1C price list.
  *
- * Source: docs/pm/import/products-base.json, rows with group = consumables (131 rows).
+ * Source: .claude/docs/pm/import/products-base.json, rows with group = consumables (131 rows).
  * Row shape follows database/seeders/data/products.php plus three extras:
  * `pricing_unit` ('label' = `price` is per single label, 'unit' = per roll), `suspicious_price`
  * and `has_missing_specs`. Every row is built from the compact table at the bottom
@@ -17,7 +17,7 @@
  *      The 56 mm width is the `paper_width` option "56" (owner confirmed 2026-11-01).
  *   2. Label `roll_types` are NOT in the 1C names (except sku 56: 5000 pcs). They are assumed
  *      by label height: <=25 mm 40/2000 + 40/1000; <=45 mm 40/1000 + 40/500; <=100 mm 40/500;
- *      taller 25/500 (core mm / labels per roll). Skus 161 and 39 have none (unknown).
+ *      taller 40/500 (core mm / labels per roll; default core is 40 mm, owner 2026-11-01). Skus 161 and 39 have none (unknown).
  *   3. Ribbons: `ink_side` = OUT and `core_diameter` = 25 (1 inch core) for every ribbon, confirmed
  *      by the owner 2026-11-01; they are complete (has_missing_specs = false).
  *   4. Textile tapes use the tape_* attributes (tape_width, tape_length, tape_material, tape_color).
@@ -599,7 +599,7 @@ $rollTypes = static function (float|int $height, string $sku): array {
         return [['core' => '40', 'labels' => 500]];
     }
 
-    return [['core' => '25', 'labels' => 500]];
+    return [['core' => '40', 'labels' => 500]];
 };
 
 $suspicious = ['65', '56', '161', '39', '152'];
@@ -798,7 +798,7 @@ $table = [
     ['113', 'wash', 40, 300, 85000, $P, 'TDR370'],
     ['112', 'wash', 50, 300, 110000, $P, 'TDR370'],
     ['37', 'wash', 60, 300, 129709.19, $P, 'TDR370'],
-    // Receipt paper (48 g/m2; second number = length in metres, assumption)
+    // Receipt paper (48 g/m2; second number = length in metres, owner confirmed 2026-11-01)
     ['201', 'paper', 56, 12, 1200, $P, null, 'cl'],
     ['167', 'paper', 56, 12, 1655.73, $P],
     ['186', 'paper', 56, 15, 2025, $P],
