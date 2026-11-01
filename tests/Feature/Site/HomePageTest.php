@@ -191,3 +191,10 @@ it('escapes settings values inside the JSON-LD script', function () {
         ->and(collect(jsonLdBlocks($html))->firstWhere('@type', 'Organization')['address']['streetAddress'])
         ->toBe('</script><script>alert(1)</script>');
 });
+
+it('renders the hero scanner illustration with a translated accessible title', function (string $locale) {
+    $this->get("/{$locale}")->assertOk()
+        ->assertSee('role="img"', false)
+        ->assertSee('<title>'.e(__('site.home.hero.scanner_alt', [], $locale)).'</title>', false)
+        ->assertSee('id="hs-head"', false);
+})->with(['uz', 'ru', 'en']);

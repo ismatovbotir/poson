@@ -55,13 +55,9 @@
                 @endif
             </div>
 
-            <div class="relative mx-auto aspect-square w-full max-w-[380px] md:mr-0 md:ml-auto md:max-w-[520px]" aria-hidden="true">
+            <div class="relative mx-auto aspect-square w-full max-w-[380px] md:mr-0 md:ml-auto md:max-w-[520px]">
                 <div class="absolute inset-[6%_8%_14%_0] grid place-items-center rounded-box-lg border border-line bg-linear-135 from-white to-brand-50 shadow-card">
-                    <svg viewBox="0 0 300 240" class="w-[78%]">
-                        <use href="#p-barcode" x="150" y="10" width="140" height="140" />
-                        <use href="#p-scanner" x="10" y="60" width="180" height="180" />
-                        <path d="M180 100h70" stroke="#ef4444" stroke-width="3" stroke-dasharray="4 5" stroke-linecap="round" />
-                    </svg>
+                    <x-site.hero-scanner class="w-[78%]" />
                 </div>
                 <div class="absolute top-0 right-0 flex items-center gap-3 rounded-box-lg border border-line bg-white px-[18px] py-3.5 shadow-card">
                     <span class="grid size-10 place-items-center rounded-btn bg-brand-50 text-brand-600"><x-site.icon name="shield" /></span>

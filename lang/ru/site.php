@@ -63,6 +63,7 @@ return [
             'badge_warranty_text' => 'Обслуживание в нашем сервисном центре',
             'badge_delivery_title' => 'Надёжная доставка',
             'badge_delivery_text' => 'Бережная упаковка и доставка',
+            'scanner_alt' => 'Ручной 2D-сканер штрихкодов считывает этикетку',
         ],
 
         'categories' => [

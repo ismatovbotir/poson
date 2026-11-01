@@ -63,6 +63,7 @@ return [
             'badge_warranty_text' => 'Oʻz servis markazimizda xizmat',
             'badge_delivery_title' => 'Ishonchli yetkazib berish',
             'badge_delivery_text' => 'Ehtiyotkor qadoqlash va yetkazib berish',
+            'scanner_alt' => 'Qoʻl 2D shtrixkod skaneri yorliqni oʻqimoqda',
         ],
 
         'categories' => [

@@ -63,6 +63,7 @@ return [
             'badge_warranty_text' => 'Serviced at our own service center',
             'badge_delivery_title' => 'Reliable delivery',
             'badge_delivery_text' => 'Careful packing and delivery',
+            'scanner_alt' => 'Handheld 2D barcode scanner reading a label',
         ],
 
         'categories' => [
