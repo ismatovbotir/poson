@@ -58,7 +58,7 @@ it('uses no discount, sale or low-price wording on the public catalog pages', fu
 
     $pages = ["/{$locale}", "/{$locale}/catalog", "/{$locale}/catalog?sort=price_asc", "/{$locale}/search?q=zebra", "/{$locale}/search?q=nothing"];
 
-    foreach (Category::query()->whereNull('parent_id')->pluck('slug') as $slug) {
+    foreach (Category::query()->whereNull('parent_id')->where('is_active', true)->pluck('slug') as $slug) {
         $pages[] = "/{$locale}/catalog/{$slug}";
     }
 

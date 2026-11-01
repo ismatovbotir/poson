@@ -25,13 +25,14 @@ final class DemoSeeding
     }
 
     /**
-     * Production only: the demo products, news and banners must not be (re)created
-     * once they were removed, or when real products exist that are not the seeded demo set.
+     * Production only: the demo news and banners must not be (re)created once
+     * they were removed, or when products exist that ProductsSeeder did not
+     * create (plan 16: the seeded real products do not count).
      */
     public static function blockedInProduction(): bool
     {
         return app()->isProduction()
-            && (DemoContent::wasRemoved() || (DemoContent::record() === null && Product::withTrashed()->exists()));
+            && (DemoContent::wasRemoved() || (DemoContent::record() === null && Product::withTrashed()->whereNotIn('sku', ProductsSeeder::recordedSkus())->exists()));
     }
 
     /**

@@ -100,7 +100,7 @@ it('seeds the software specs from the verified facts only', function () {
 });
 
 it('keeps software copy generic: no prices, no platform or licence claims, no banned wording', function () {
-    $rows = collect(require database_path('seeders/data/products.php'))->where('type', 'software');
+    $rows = collect(require base_path('tests/Fixtures/demo-products.php'))->where('type', 'software');
 
     expect($rows)->toHaveCount(7);
 

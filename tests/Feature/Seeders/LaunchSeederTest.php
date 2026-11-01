@@ -1,8 +1,6 @@
 <?php
 
-use App\Actions\Cart\AddToCart;
 use App\Enums\NewsKind;
-use App\Enums\SaleMode;
 use App\Models\Banner;
 use App\Models\Customer;
 use App\Models\Lead;
@@ -23,14 +21,12 @@ use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoBannersSeeder;
 use Database\Seeders\DemoLeadsSeeder;
 use Database\Seeders\DemoNewsSeeder;
-use Database\Seeders\DemoProductsSeeder;
 use Database\Seeders\DemoSeeding;
 use Database\Seeders\LaunchSeeder;
+use Database\Seeders\ProductsSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 beforeEach(function () {
     Storage::fake('local');
@@ -57,10 +53,13 @@ it('refuses to run DatabaseSeeder in production and seeds nothing', function () 
         ->and(Product::withTrashed()->count())->toBe(0);
 });
 
-it('seeds products, news and banners in production but no leads, customers, quotes or extra users', function () {
+it('seeds the real draft products, news and banners in production but no demo products, leads, customers, quotes or extra users', function () {
     runSeederIn('production', LaunchSeeder::class);
 
-    expect(Product::query()->count())->toBe(count(DemoContent::productSkus()))
+    // Plan 16 S8: the demo products are gone; whatever the data files hold arrives as drafts.
+    expect(Product::query()->where('is_active', true)->count())->toBe(0)
+        ->and(Product::query()->whereIn('sku', DemoContent::productSkus())->count())->toBe(0)
+        ->and(Product::query()->count())->toBe(count(array_unique(array_map(fn (array $row): string => mb_strtoupper($row['sku']), ProductsSeeder::loadRows()))))
         ->and(NewsPost::query()->ofKind(NewsKind::News)->count())->toBe(count(DemoContent::NEWS_SLUGS))
         ->and(Banner::query()->count())->toBe(count(DemoContent::BANNERS))
         ->and(Lead::query()->count())->toBe(0)
@@ -79,7 +78,7 @@ it('keeps the demo opt-in to LaunchSeeder: demo seeders called directly in produ
         ->and(Banner::query()->count())->toBe(0)
         ->and(Lead::query()->count())->toBe(0)
         ->and(Product::query()->count())->toBe(0);
-})->with([DemoProductsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class, DemoLeadsSeeder::class]);
+})->with([DemoNewsSeeder::class, DemoBannersSeeder::class, DemoLeadsSeeder::class]);
 
 it('never seeds demo leads, even inside the opt-in', function () {
     $this->seed(CatalogSeeder::class);
@@ -91,20 +90,13 @@ it('never seeds demo leads, even inside the opt-in', function () {
         ->and(Customer::query()->count())->toBe(0);
 });
 
-it('leaves edited products alone on a second run in production', function () {
+it('keeps the second LaunchSeeder run in production a no-op for users, news and banners', function () {
     runSeederIn('production', LaunchSeeder::class);
-
-    $product = Product::query()->orderBy('id')->firstOrFail();
-    $product->update(['price' => 7_777_700]);
-    $trashed = Product::query()->orderByDesc('id')->firstOrFail();
-    $trashed->delete();
-    $count = Product::withTrashed()->count();
+    $products = Product::withTrashed()->count();
 
     runSeederIn('production', LaunchSeeder::class);
 
-    expect(Product::withTrashed()->count())->toBe($count)
-        ->and($product->fresh()->price)->toBe(7_777_700)
-        ->and($trashed->fresh()->trashed())->toBeTrue()
+    expect(Product::withTrashed()->count())->toBe($products)
         ->and(User::query()->count())->toBe(1)
         ->and(Banner::query()->count())->toBe(count(DemoContent::BANNERS))
         ->and(NewsPost::query()->ofKind(NewsKind::News)->count())->toBe(count(DemoContent::NEWS_SLUGS));
@@ -123,21 +115,6 @@ it('runs with model events on and flushes the site caches at the end', function 
 
     foreach ($keys as $key) {
         expect(Cache::get($key))->not->toBe('stale');
-    }
-});
-
-it('makes every demo product quote-only in production, so none can be added to the cart', function () {
-    config(['site.cart_enabled' => true]);
-    runSeederIn('production', LaunchSeeder::class);
-
-    $products = Product::query()->with('rollTypes')->where('is_active', true)->get();
-
-    expect($products)->not->toBeEmpty()
-        ->and($products->every(fn (Product $product): bool => $product->sale_mode === SaleMode::Quote))->toBeTrue();
-
-    foreach ($products as $product) {
-        expect(fn () => app(AddToCart::class)->handle((string) Str::ulid(), $product->id, $product->rollTypes->first()?->id, max(1, $product->min_qty), 'uz'))
-            ->toThrow(ValidationException::class);
     }
 });
 

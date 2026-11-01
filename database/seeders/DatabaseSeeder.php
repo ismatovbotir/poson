@@ -11,8 +11,8 @@ use RuntimeException;
 /**
  * Local / staging / testing seed: roles and permissions, the catalog base
  * data (categories, attributes, brands), the FAQ, starter pages, draft
- * articles, the demo catalog, news and banners (local / staging only,
- * DemoSeeding) and demo leads with customers (local / staging only,
+ * articles, the real draft products (local / staging only, ProductsSeeder),
+ * demo news and banners (local / staging only, DemoSeeding) and demo leads with customers (local / staging only,
  * DemoLeadsSeeder), plus the first Admin when ADMIN_SEED_LOGIN is set
  * (local / staging) and a non-staff test user (local / testing).
  *
@@ -49,7 +49,12 @@ class DatabaseSeeder extends Seeder
 
         // Demo content: each seeder checks its environment itself (local / staging only).
         if (app()->environment(['local', 'staging'])) {
-            $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
+            $this->call([
+                ProductsSeeder::class,
+                DemoLeadsSeeder::class,
+                DemoNewsSeeder::class,
+                DemoBannersSeeder::class,
+            ]);
         }
 
         // First Admin from config admin.seed_login / seed_password, when set (local and staging).

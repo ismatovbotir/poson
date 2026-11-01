@@ -94,3 +94,37 @@ it('contains no banned price wording in the seeded copy', function () {
     expect($copy)->not->toBe('');
     expectNoBannedWording($copy);
 });
+
+it('is create-only: admin edits survive a re-run and missing rows are inserted (S1)', function () {
+    $this->seed(CatalogSeeder::class);
+
+    $scanners = Category::query()->where('slug', 'scanners')->firstOrFail();
+    $scanners->setTranslation('name', 'uz', 'Admin nomi');
+    $scanners->forceFill(['sort' => 99, 'is_active' => false])->save();
+    $child = Category::query()->where('slug', 'handheld-scanners')->firstOrFail();
+    $child->update(['parent_id' => Category::query()->where('slug', 'pos')->value('id')]);
+    $engine = Attribute::query()->where('code', 'scan_engine')->firstOrFail();
+    $engine->setTranslation('name', 'uz', 'Admin atribut');
+    $engine->forceFill(['sort' => 777, 'is_filterable' => false])->save();
+    $engine->options()->first()->delete();
+    $engine->categories()->updateExistingPivot($scanners->id, ['is_required' => false, 'is_filterable' => false]);
+    Brand::query()->where('slug', 'zebra')->update(['name' => 'Zebra Admin', 'is_active' => false]);
+    Category::query()->where('slug', 'textile-tapes')->delete();
+
+    $this->seed(CatalogSeeder::class);
+
+    $scanners->refresh();
+    $engine->refresh();
+
+    expect($scanners->getTranslation('name', 'uz'))->toBe('Admin nomi')
+        ->and($scanners->sort)->toBe(99)
+        ->and($scanners->is_active)->toBeFalse()
+        ->and($child->fresh()->parent->slug)->toBe('pos')
+        ->and($engine->getTranslation('name', 'uz'))->toBe('Admin atribut')
+        ->and($engine->sort)->toBe(777)
+        ->and($engine->is_filterable)->toBeFalse()
+        ->and($engine->categories()->whereKey($scanners->id)->first()->pivot->is_required)->toBeFalse()
+        ->and($engine->options()->count())->toBe(3)
+        ->and(Brand::query()->where('slug', 'zebra')->first()->only(['name', 'is_active']))->toBe(['name' => 'Zebra Admin', 'is_active' => false])
+        ->and(Category::query()->where('slug', 'textile-tapes')->exists())->toBeTrue();
+});

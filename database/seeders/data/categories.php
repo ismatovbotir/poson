@@ -7,12 +7,16 @@
  * scanners, label-printers, mobile-computers, labels-ribbons, rfid, pos, software.
  * All slugs are unique across the whole tree. Icons are keys of x-site.icon or null.
  *
+ * `is_active` => false (optional, default true) marks categories CatalogSeeder creates inactive
+ * (plan 16 S16: an admin activates them when products are published). Existing rows are never changed.
+ *
  * Uzbek is Latin script; oʻ and gʻ use ʻ (U+02BB), the tutuq belgisi uses ʼ (U+02BC).
  *
  * @return list<array{
  *     slug: string,
  *     icon: string|null,
  *     sort: int,
+ *     is_active?: bool,
  *     name: array{uz: string, ru: string, en: string},
  *     description: array{uz: string, ru: string, en: string},
  *     meta_title: array{uz: string, ru: string, en: string},
@@ -499,6 +503,33 @@ return [
                 ],
                 'children' => [],
             ],
+            [
+                'slug' => 'textile-tapes',
+                'icon' => 'label',
+                'sort' => 5,
+                'is_active' => false,
+                'name' => [
+                    'uz' => 'Tekstil lentalar',
+                    'ru' => 'Текстильные ленты',
+                    'en' => 'Textile tapes',
+                ],
+                'description' => [
+                    'uz' => 'Kiyim-kechak va tekstil mahsulotlariga parvarish va tarkib yorliqlarini bosish uchun tekstil lentalar (satin, neylon). Poson printeringiz va ribbon turiga mos lenta kengligi va materialini tanlaydi.',
+                    'ru' => 'Текстильные ленты (сатин, нейлон) для печати этикеток с составом и уходом, маркировки одежды и текстильных изделий. Poson подберёт ширину и материал ленты под ваш принтер и тип риббона.',
+                    'en' => 'Textile tapes (satin, nylon) for printing care and composition labels on garments and textile goods. Poson selects the tape width and material to suit your printer and ribbon type.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Yorliqlar uchun tekstil lentalar — Poson',
+                    'ru' => 'Текстильные ленты для этикеток — Poson',
+                    'en' => 'Textile tapes for labels — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Kiyim va tekstil yorliqlari uchun satin va neylon lentalar. Printer va ribbonga mos kenglik va material tanlash, ishonchli yetkazib berish.',
+                    'ru' => 'Сатиновые и нейлоновые ленты для этикеток одежды и текстиля. Подбор ширины и материала под принтер и риббон, надёжные поставки.',
+                    'en' => 'Satin and nylon tapes for garment and textile labels. Width and material matched to your printer and ribbon, with reliable supply.',
+                ],
+                'children' => [],
+            ],
         ],
     ],
 
@@ -817,6 +848,33 @@ return [
                 ],
                 'children' => [],
             ],
+            [
+                'slug' => 'price-checkers',
+                'icon' => 'pos',
+                'sort' => 6,
+                'is_active' => false,
+                'name' => [
+                    'uz' => 'Narx tekshirgichlar (prays-chekerlar)',
+                    'ru' => 'Прайс-чекеры',
+                    'en' => 'Price checkers',
+                ],
+                'description' => [
+                    'uz' => 'Doʻkon zalida shtrix-kod boʻyicha tovar narxini koʻrsatadigan qurilmalar (prays-chekerlar). Poson qurilmani doʻkon tarmogʻi va tovarlar bazasiga ulaydi hamda sozlaydi.',
+                    'ru' => 'Устройства для самостоятельной проверки цены товара по штрихкоду в торговом зале (прайс-чекеры). Poson подключит устройство к сети магазина и товарной базе и настроит его.',
+                    'en' => 'Self-service devices that show a product price when its barcode is scanned on the shop floor (price checkers). Poson connects the device to the store network and product database and sets it up.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Narx tekshirgichlar (prays-chekerlar) — Poson',
+                    'ru' => 'Прайс-чекеры для магазина — Poson',
+                    'en' => 'Price checkers for shops — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Doʻkon zali uchun narx tekshirgichlar: shtrix-kod boʻyicha narxni koʻrsatish. Tarmoqqa ulash, sozlash, kafolat va servis.',
+                    'ru' => 'Прайс-чекеры для торгового зала: показ цены по штрихкоду. Подключение к сети, настройка, гарантия и сервис Poson.',
+                    'en' => 'Price checkers for the shop floor: price shown by barcode scan. Network connection, setup, warranty and service by Poson.',
+                ],
+                'children' => [],
+            ],
         ],
     ],
 
@@ -977,6 +1035,90 @@ return [
                     'uz' => 'Skaner, printer va TSD diagnostikasi, kafolatli va kafolatdan keyingi taʼmirlash hamda profilaktika Poson servis markazida. Muddatlar oldindan aytiladi.',
                     'ru' => 'Диагностика, гарантийный и постгарантийный ремонт и профилактика сканеров, принтеров и ТСД в сервисном центре Poson. Сроки ремонта называем заранее.',
                     'en' => 'Diagnostics, warranty and post-warranty repair and preventive maintenance of scanners, printers and mobile computers at the Poson service centre.',
+                ],
+                'children' => [],
+            ],
+        ],
+    ],
+
+    // ─── 9. Accessories & spare parts (plan 16, created inactive) ───────────
+    [
+        'slug' => 'accessories-parts',
+        'icon' => 'pos',
+        'sort' => 9,
+        'is_active' => false,
+        'name' => [
+            'uz' => 'Aksessuarlar va ehtiyot qismlar',
+            'ru' => 'Аксессуары и запчасти',
+            'en' => 'Accessories & spare parts',
+        ],
+        'description' => [
+            'uz' => 'Auto-ID uskunalari uchun aksessuarlar va ehtiyot qismlar: tayanchlar, kabellar, akkumulyatorlar, termik kallaklar va boshqalar. Poson uskunangiz modeliga mosini tanlaydi, kafolat va servis bilan taʼminlaydi.',
+            'ru' => 'Аксессуары и запасные части для Auto-ID оборудования: подставки, кабели, аккумуляторы, термоголовки и другое. Poson подберёт подходящее по модели вашего оборудования, с гарантией и сервисом.',
+            'en' => 'Accessories and spare parts for Auto-ID equipment: stands, cables, batteries, printheads and more. Poson selects what fits your equipment model, backed by warranty and service.',
+        ],
+        'meta_title' => [
+            'uz' => 'Aksessuarlar va ehtiyot qismlar — Poson',
+            'ru' => 'Аксессуары и запчасти — Poson',
+            'en' => 'Accessories and spare parts — Poson',
+        ],
+        'meta_description' => [
+            'uz' => 'Skaner, printer, TSD va kassa uskunalari uchun aksessuarlar va ehtiyot qismlar. Modelga mos tanlash, kafolat va servis.',
+            'ru' => 'Аксессуары и запчасти для сканеров, принтеров, ТСД и кассового оборудования. Подбор по модели, гарантия и сервис Poson.',
+            'en' => 'Accessories and spare parts for scanners, printers, mobile computers and POS equipment. Model-matched selection, warranty and service.',
+        ],
+        'children' => [
+            [
+                'slug' => 'accessories',
+                'icon' => 'pos',
+                'sort' => 1,
+                'is_active' => false,
+                'name' => [
+                    'uz' => 'Aksessuarlar',
+                    'ru' => 'Аксессуары',
+                    'en' => 'Accessories',
+                ],
+                'description' => [
+                    'uz' => 'Skanerlar, printerlar, TSD va POS uskunalari uchun aksessuarlar: tayanchlar, kabellar, adapterlar, akkumulyatorlar va himoya qoplari. Poson uskunangizga mosini tanlaydi.',
+                    'ru' => 'Аксессуары для сканеров, принтеров, ТСД и POS-оборудования: подставки, кабели, адаптеры, аккумуляторы и чехлы. Poson подберёт совместимые с вашим оборудованием.',
+                    'en' => 'Accessories for scanners, printers, mobile computers and POS hardware: stands, cables, adapters, batteries and cases. Poson selects the ones compatible with your equipment.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Uskunalar uchun aksessuarlar — Poson',
+                    'ru' => 'Аксессуары для оборудования — Poson',
+                    'en' => 'Equipment accessories — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Skaner, printer, TSD va kassa uskunalari uchun tayanchlar, kabellar, adapterlar va akkumulyatorlar. Mosini tanlash va ishonchli yetkazib berish.',
+                    'ru' => 'Подставки, кабели, адаптеры и аккумуляторы для сканеров, принтеров, ТСД и кассового оборудования. Подбор совместимых и надёжные поставки.',
+                    'en' => 'Stands, cables, adapters and batteries for scanners, printers, mobile computers and POS equipment. Compatible selection and reliable supply.',
+                ],
+                'children' => [],
+            ],
+            [
+                'slug' => 'spare-parts',
+                'icon' => 'pos',
+                'sort' => 2,
+                'is_active' => false,
+                'name' => [
+                    'uz' => 'Ehtiyot qismlar',
+                    'ru' => 'Запчасти',
+                    'en' => 'Spare parts',
+                ],
+                'description' => [
+                    'uz' => 'Printerlar, skanerlar va kassa uskunalari uchun ehtiyot qismlar: termik kallaklar, valiklar, kesgichlar, platalar. Poson servis markazi qismni modelga moslab tanlaydi va oʻrnatib beradi.',
+                    'ru' => 'Запасные части для принтеров, сканеров и кассового оборудования: термоголовки, валы, ножи, платы. Сервисный центр Poson подберёт деталь по модели и при необходимости установит её.',
+                    'en' => 'Spare parts for printers, scanners and POS equipment: printheads, platen rollers, cutters, boards. The Poson service centre selects the part by model and can install it for you.',
+                ],
+                'meta_title' => [
+                    'uz' => 'Printer va skaner ehtiyot qismlari — Poson',
+                    'ru' => 'Запчасти для принтеров и сканеров — Poson',
+                    'en' => 'Printer and scanner spare parts — Poson',
+                ],
+                'meta_description' => [
+                    'uz' => 'Termik kallak, valik, kesgich va platalar printer va kassa uskunalari uchun. Modelga mos tanlash va servis markazida oʻrnatish.',
+                    'ru' => 'Термоголовки, валы, ножи и платы для принтеров и кассового оборудования. Подбор по модели и установка в сервисном центре.',
+                    'en' => 'Printheads, platen rollers, cutters and boards for printers and POS equipment. Selection by model and installation at the service centre.',
                 ],
                 'children' => [],
             ],

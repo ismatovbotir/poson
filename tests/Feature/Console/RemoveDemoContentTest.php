@@ -14,8 +14,10 @@ beforeEach(function () {
     Storage::fake('public');
     config(['admin.seed_login' => 'owner@poson.test', 'admin.seed_password' => 'fake-Launch-pw-2026']);
 
+    withoutRealProducts();
     app()['env'] = 'production';
     app(LaunchSeeder::class)->setContainer(app())->__invoke();
+    seedRecordedLegacyDemoProducts();
 });
 
 it('removes only the demo products, news and banners', function () {

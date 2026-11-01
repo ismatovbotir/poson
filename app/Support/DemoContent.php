@@ -10,7 +10,7 @@ use Carbon\CarbonImmutable;
  * removed (App\Actions\Maintenance\RemoveDemoContent, `php artisan
  * demo:remove`) before real products go in:
  *
- * - products: the SKUs in database/seeders/data/products.php (DemoProductsSeeder);
+ * - products: the frozen LEGACY_PRODUCT_SKUS (the removed demo products seeder; plan 16);
  * - news: the slugs DemoNewsSeeder creates (kind news);
  * - banners: the uz title + link pairs DemoBannersSeeder creates (banners have no slug).
  *
@@ -44,15 +44,61 @@ final class DemoContent
     ];
 
     /**
-     * Upper-cased SKUs of the demo products.
+     * The 39 legacy demo product SKUs, frozen (plan 16): the demo data file is gone, and
+     * `demo:remove` must never be able to target a real product SKU.
+     *
+     * @var list<string>
+     */
+    public const LEGACY_PRODUCT_SKUS = [
+        'ZEB-DS2208-SR',
+        'HON-1470G',
+        'HON-1472G',
+        'ZEB-DS2278-SR',
+        'HON-7190G',
+        'ZEB-DS9308-SR',
+        'ZEB-ZD421T-203',
+        'TSC-TE210',
+        'GDX-G500',
+        'ZEB-ZT411-203',
+        'ZEB-ZQ320-PLUS',
+        'URV-DT50',
+        'ZEB-TC22',
+        'LBL-DT-58X40-ECO',
+        'LBL-DT-100X150-TOP',
+        'LBL-TT-58X30-PAP',
+        'LBL-TT-100X50-PP',
+        'RBN-WAX-110X300',
+        'RBN-WR-110X450',
+        'RBN-RES-110X300',
+        'PPR-80X80',
+        'PPR-57X40',
+        'ZEB-FX9600-4',
+        'ZEB-RFD40-PREM',
+        'RFID-UHF-100X50',
+        'SUN-V2S',
+        'XPR-XPQ200-LAN',
+        'XPR-XP58IIH',
+        'ATL-CD410',
+        'SW-MOYSKLAD',
+        'SW-OX',
+        'SW-BILLZ',
+        'SW-ALIPOS',
+        'SW-HIPPO',
+        'SW-POSPOINT',
+        'SW-RAHMAT',
+        'SRV-LBLPRN-SETUP',
+        'SRV-SCN-PROG',
+        'SRV-TSD-DIAG',
+    ];
+
+    /**
+     * Upper-cased SKUs of the legacy demo products.
      *
      * @return list<string>
      */
     public static function productSkus(): array
     {
-        $rows = require database_path('seeders/data/products.php');
-
-        return array_values(array_unique(array_map(fn (array $row): string => mb_strtoupper($row['sku']), $rows)));
+        return self::LEGACY_PRODUCT_SKUS;
     }
 
     public const KEY = 'launch_demo_content';

@@ -3,24 +3,19 @@
 use App\Models\Product;
 use App\Models\ProductRelation;
 use Database\Seeders\CatalogSeeder;
-use Database\Seeders\DemoProductsSeeder;
-
-// Demo products seed on local / staging (or through LaunchSeeder, plan 15).
-beforeEach(function () {
-    app()['env'] = 'local';
-});
+use Tests\Support\DemoProductsFixtureSeeder;
 
 /**
  * @return list<array<string, mixed>>
  */
 function demoProductRows(): array
 {
-    return require database_path('seeders/data/products.php');
+    return require base_path('tests/Fixtures/demo-products.php');
 }
 
 it('seeds every demo product through SaveProduct, published and complete unless the data lacks a required spec', function () {
     $this->seed(CatalogSeeder::class);
-    $seeder = app(DemoProductsSeeder::class);
+    $seeder = app(DemoProductsFixtureSeeder::class);
     $seeder->setContainer(app())->__invoke();
 
     $rows = demoProductRows();
@@ -42,7 +37,7 @@ it('seeds every demo product through SaveProduct, published and complete unless 
 });
 
 it('stores the Retail price in tiyin', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    $this->seed([CatalogSeeder::class, DemoProductsFixtureSeeder::class]);
 
     foreach (demoProductRows() as $row) {
         $product = Product::query()->where('sku', mb_strtoupper($row['sku']))->sole();
@@ -53,10 +48,10 @@ it('stores the Retail price in tiyin', function () {
 });
 
 it('is idempotent by SKU', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    $this->seed([CatalogSeeder::class, DemoProductsFixtureSeeder::class]);
     $first = [Product::withTrashed()->count(), ProductRelation::query()->count()];
 
-    $this->seed(DemoProductsSeeder::class);
+    $this->seed(DemoProductsFixtureSeeder::class);
 
     expect([Product::withTrashed()->count(), ProductRelation::query()->count()])->toBe($first);
 });

@@ -83,6 +83,7 @@ return [
             $same('Ethernet'),
             $same('Wi-Fi'),
             $same('LTE'),
+            $same('USB Host'),
         ],
         'categories' => [
             'scanners' => $assign(true, true),
@@ -234,6 +235,7 @@ return [
         'options' => [
             $same('58'),
             $same('80'),
+            $same('56'),
         ],
         'categories' => [
             'receipt-printers' => $assign(true, true),
@@ -285,6 +287,7 @@ return [
         'categories' => [
             'mobile-computers' => $assign(false, true),
             'pos-terminals' => $assign(false, true),
+            'price-checkers' => $assign(false, true),
         ],
     ],
     [
@@ -559,6 +562,74 @@ return [
         'options' => [],
         'categories' => [
             'ribbons' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'tape_width',
+        'name' => ['uz' => 'Lenta kengligi', 'ru' => 'Ширина ленты', 'en' => 'Tape width'],
+        'unit' => 'mm',
+        'type' => 'number',
+        'is_filterable' => true,
+        'sort' => 530,
+        'options' => [],
+        'categories' => [
+            'textile-tapes' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'tape_length',
+        'name' => ['uz' => 'Lenta uzunligi', 'ru' => 'Длина ленты', 'en' => 'Tape length'],
+        'unit' => 'm',
+        'type' => 'number',
+        'is_filterable' => true,
+        'sort' => 540,
+        'options' => [],
+        'categories' => [
+            'textile-tapes' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'tape_material',
+        'name' => ['uz' => 'Lenta materiali', 'ru' => 'Материал ленты', 'en' => 'Tape material'],
+        'unit' => null,
+        'type' => 'select',
+        'is_filterable' => true,
+        'sort' => 550,
+        'options' => [
+            ['uz' => 'Satin', 'ru' => 'Сатин', 'en' => 'Satin'],
+            ['uz' => 'Neylon', 'ru' => 'Нейлон', 'en' => 'Nylon'],
+            ['uz' => 'Silikon', 'ru' => 'Силикон', 'en' => 'Silicone'],
+        ],
+        'categories' => [
+            'textile-tapes' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'tape_color',
+        'name' => ['uz' => 'Lenta rangi', 'ru' => 'Цвет ленты', 'en' => 'Tape colour'],
+        'unit' => null,
+        'type' => 'select',
+        'is_filterable' => true,
+        'sort' => 560,
+        'options' => [
+            ['uz' => 'Oq', 'ru' => 'Белый', 'en' => 'White'],
+            ['uz' => 'Qora', 'ru' => 'Чёрный', 'en' => 'Black'],
+            ['uz' => 'Rangli', 'ru' => 'Цветной', 'en' => 'Coloured'],
+        ],
+        'categories' => [
+            'textile-tapes' => $assign(false, true),
+        ],
+    ],
+    [
+        'code' => 'max_media_width',
+        'name' => ['uz' => 'Tashuvchining maksimal kengligi', 'ru' => 'Максимальная ширина носителя', 'en' => 'Max media width'],
+        'unit' => 'mm',
+        'type' => 'number',
+        'is_filterable' => false,
+        'sort' => 195,
+        'options' => [],
+        'categories' => [
+            'label-printers' => $assign(false, false),
         ],
     ],
     [

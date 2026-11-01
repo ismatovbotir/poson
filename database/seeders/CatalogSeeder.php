@@ -19,9 +19,18 @@ use Illuminate\Support\Facades\DB;
  * data/attributes.php, a starter list of brands and the label roll types
  * from data/roll_types.php (plan 08).
  *
- * Idempotent: categories match by slug, attributes by code, options by
- * their uz value, brands by slug (a brand's website is only set on create),
- * roll types by their labels / core pair (only created). Pivot sort follows the attribute order.
+ * Create-only (plan 16 S1; production data is edited in admin): categories
+ * match by slug, attributes by code, options by their uz value, brands by
+ * slug, roll types by their labels / core pair. A match is left exactly as it
+ * is (name, sort, parent, is_active, filters, pivot flags); only missing rows
+ * are inserted, so re-running never overwrites admin edits and a new category
+ * is attached under its (possibly admin-moved) parent. Categories marked
+ * 'is_active' => false in the data are created inactive. Pivot sort follows
+ * the attribute order for new assignments.
+ *
+ * Known limitation: a row an admin deleted (option, category-attribute pivot,
+ * brand, roll type, category) is created again on the next seed, because the
+ * seeder cannot tell a deletion from a missing row.
  */
 class CatalogSeeder extends Seeder
 {
@@ -34,6 +43,10 @@ class CatalogSeeder extends Seeder
         'Zebra', 'Honeywell', 'Datalogic', 'Urovo', 'Newland', 'Godex', 'TSC', 'Xprinter', 'Sunmi', 'Atol',
         // Software vendors of the demo software products.
         'MoySklad', 'Billz', 'Ox', 'AliPos', 'Hippo', 'Pospoint', 'Rahmat',
+        // Brands of the real product import (plan 16).
+        'Poson', 'Gainscha', 'HPRT', 'Bixolon', 'Henex', 'Mertech', 'Posbank', 'P2C', 'Citaq', 'Sunany', 'Rongta',
+        'Shtrix-Print', 'Jassway', 'EPG', 'Pospole', 'Printronix', 'Argox', 'Asianwell', 'Honorway', 'Netum', 'SPRT',
+        'Afanda', 'BDB', 'Nishon', 'Lenovo', 'POS System',
     ];
 
     /**
@@ -76,18 +89,23 @@ class CatalogSeeder extends Seeder
         $ids = [];
 
         foreach ($nodes as $node) {
-            $category = Category::query()->firstOrNew(['slug' => $node['slug']]);
+            $category = Category::query()->where('slug', $node['slug'])->first();
 
-            foreach (['name', 'description', 'meta_title', 'meta_description'] as $key) {
-                $category->storeTranslations($key, $node[$key] ?? []);
+            if ($category === null) {
+                $category = new Category;
+                $category->slug = $node['slug'];
+
+                foreach (['name', 'description', 'meta_title', 'meta_description'] as $key) {
+                    $category->storeTranslations($key, $node[$key] ?? []);
+                }
+
+                $category->fill([
+                    'parent_id' => $parentId,
+                    'icon' => $node['icon'] ?? null,
+                    'sort' => $node['sort'],
+                    'is_active' => $node['is_active'] ?? true,
+                ])->save();
             }
-
-            $category->fill([
-                'parent_id' => $parentId,
-                'icon' => $node['icon'] ?? null,
-                'sort' => $node['sort'],
-                'is_active' => true,
-            ])->save();
 
             $ids[$category->slug] = $category->id;
             $ids += $this->seedCategories($node['children'] ?? [], $category->id);
@@ -104,27 +122,38 @@ class CatalogSeeder extends Seeder
     {
         foreach (array_values($rows) as $position => $row) {
             $type = AttributeType::from($row['type']);
-            $attribute = Attribute::query()->firstOrNew(['code' => $row['code']]);
-            $attribute->storeTranslations('name', $row['name']);
-            $attribute->fill([
-                'unit' => $row['unit'],
-                'type' => $type,
-                'is_filterable' => $type->canBeFilterable() && $row['is_filterable'],
-                'sort' => $row['sort'],
-            ])->save();
+            $attribute = Attribute::query()->where('code', $row['code'])->first();
+
+            if ($attribute === null) {
+                $attribute = new Attribute;
+                $attribute->code = $row['code'];
+                $attribute->storeTranslations('name', $row['name']);
+                $attribute->fill([
+                    'unit' => $row['unit'],
+                    'type' => $type,
+                    'is_filterable' => $type->canBeFilterable() && $row['is_filterable'],
+                    'sort' => $row['sort'],
+                ])->save();
+            }
 
             $this->seedOptions($attribute, $row['options'] ?? []);
+
+            $assigned = $attribute->categories()->pluck('categories.id')->all();
 
             foreach ($row['categories'] ?? [] as $slug => $flags) {
                 if (! isset($categoryIds[$slug])) {
                     throw new \RuntimeException("Attribute {$row['code']}: unknown category slug {$slug}.");
                 }
 
-                $attribute->categories()->syncWithoutDetaching([$categoryIds[$slug] => [
+                if (in_array($categoryIds[$slug], $assigned, true)) {
+                    continue;
+                }
+
+                $attribute->categories()->attach($categoryIds[$slug], [
                     'is_required' => $flags['is_required'],
                     'is_filterable' => $type->canBeFilterable() && $flags['is_filterable'],
                     'sort' => $position + 1,
-                ]]);
+                ]);
             }
         }
     }
@@ -134,10 +163,16 @@ class CatalogSeeder extends Seeder
      */
     private function seedOptions(Attribute $attribute, array $values): void
     {
-        $existing = $attribute->options()->get()->keyBy(fn (AttributeOption $option): string => mb_strtolower((string) $option->getTranslation('value', 'uz', false)));
+        $existing = $attribute->options()->get()
+            ->map(fn (AttributeOption $option): string => mb_strtolower((string) $option->getTranslation('value', 'uz', false)))
+            ->all();
 
         foreach (array_values($values) as $index => $value) {
-            $option = $existing->get(mb_strtolower($value['uz'])) ?? new AttributeOption(['attribute_id' => $attribute->id]);
+            if (in_array(mb_strtolower($value['uz']), $existing, true)) {
+                continue;
+            }
+
+            $option = new AttributeOption(['attribute_id' => $attribute->id]);
             $option->storeTranslations('value', $value);
             $option->sort = $index + 1;
             $option->save();
