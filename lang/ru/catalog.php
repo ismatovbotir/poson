@@ -30,6 +30,13 @@ return [
         'inch' => ':count дюйм|:count дюйма|:count дюймов',
     ],
 
+    // Generated label diagram, the fallback image of label products (App\Support\Catalog\LabelDiagram).
+    'label_diagram' => [
+        'title' => 'Размер этикетки :size мм',
+        'mm' => 'мм',
+        'caption' => ':count шт. · втулка :core мм',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/рулон, втулка :core мм',

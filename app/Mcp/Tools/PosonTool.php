@@ -42,6 +42,11 @@ abstract class PosonTool extends Tool
     public const PUBLISH_LIMIT_PER_DAY = 5;
 
     /**
+     * Byte cap of the encoded structured result (M2-S2).
+     */
+    public const RESPONSE_CAP_BYTES = 65536;
+
+    /**
      * Record changed by a write (audit subject).
      */
     protected ?Model $subject = null;
@@ -150,6 +155,66 @@ abstract class PosonTool extends Tool
             $this->record($request, $user instanceof User ? $user : null, $status, $publish, $startedAt);
             app()->setLocale($locale);
         }
+    }
+
+    /**
+     * Structured result capped at RESPONSE_CAP_BYTES: the tail of the rows
+     * list is cut and `truncated` is set. Never throws.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    protected function structuredCapped(array $payload, string $rowsKey = 'rows'): ResponseFactory
+    {
+        return Response::structured(self::capPayload($payload, $rowsKey));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public static function capPayload(array $payload, string $rowsKey = 'rows'): array
+    {
+        $payload['truncated'] = false;
+
+        try {
+            $fits = fn (array $data): bool => self::encodedBytes($data) <= self::RESPONSE_CAP_BYTES;
+
+            if ($fits($payload)) {
+                return $payload;
+            }
+
+            $payload['truncated'] = true;
+            $rows = is_array($payload[$rowsKey] ?? null) ? array_values($payload[$rowsKey]) : [];
+            $low = 0;
+            $high = count($rows);
+
+            while ($low < $high) {
+                $middle = intdiv($low + $high + 1, 2);
+
+                if ($fits([...$payload, $rowsKey => array_slice($rows, 0, $middle)])) {
+                    $low = $middle;
+                } else {
+                    $high = $middle - 1;
+                }
+            }
+
+            $payload[$rowsKey] = array_slice($rows, 0, $low);
+
+            if (! $fits($payload)) {
+                return [$rowsKey => [], 'truncated' => true];
+            }
+
+            return $payload;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return [$rowsKey => [], 'truncated' => true];
+        }
+    }
+
+    private static function encodedBytes(mixed $data): int
+    {
+        return strlen((string) json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR));
     }
 
     /**

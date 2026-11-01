@@ -5,6 +5,7 @@ namespace App\Data\Site;
 use App\Enums\ProductBadge;
 use App\Enums\SaleMode;
 use App\Enums\StockStatus;
+use App\Support\Catalog\LabelDiagram;
 use InvalidArgumentException;
 
 /**
@@ -12,7 +13,8 @@ use InvalidArgumentException;
  * name and key-spec line in the current locale, Retail price in tiyin (null =
  * price on request), stock status, sale mode and an optional "hit" / "new"
  * badge. image is a public conversion URL; without one the card draws the
- * sprite symbol "placeholder" (p-scanner, p-printer, ...).
+ * sprite symbol "placeholder" (p-scanner, p-printer, ...), or the generated
+ * label diagram for a label product (diagram, App\Support\Catalog\LabelDiagram).
  *
  * showStock is false for software (no stock badge).
  * pricedPerLabel (plan 08): price is per one label ("12 soʻm / label").
@@ -41,6 +43,7 @@ final readonly class ProductCard
         public array $ctas = [],
         public bool $showStock = true,
         public bool $pricedPerLabel = false,
+        public ?LabelDiagram $diagram = null,
     ) {
         if ($price !== null && $price < 0) {
             throw new InvalidArgumentException('Product price must not be negative.');

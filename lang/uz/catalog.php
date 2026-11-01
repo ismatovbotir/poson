@@ -30,6 +30,13 @@ return [
         'inch' => ':count dyuym',
     ],
 
+    // Generated label diagram, the fallback image of label products (App\Support\Catalog\LabelDiagram).
+    'label_diagram' => [
+        'title' => 'Yorliq oʻlchami :size mm',
+        'mm' => 'mm',
+        'caption' => ':count dona · gilza :core mm',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/rulon, gilza :core mm',

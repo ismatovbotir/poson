@@ -3,7 +3,22 @@
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\Account\GetMyAccess;
+use App\Mcp\Tools\Catalog\GetProduct;
+use App\Mcp\Tools\Catalog\ListBrands;
+use App\Mcp\Tools\Catalog\ListCategories;
+use App\Mcp\Tools\Catalog\SearchCatalog;
+use App\Mcp\Tools\Content\GetPage;
+use App\Mcp\Tools\Content\GetPost;
+use App\Mcp\Tools\Content\ListFaq;
+use App\Mcp\Tools\Content\ListPages;
+use App\Mcp\Tools\Content\ListPosts;
 use App\Mcp\Tools\PosonTool;
+use App\Mcp\Tools\Stats\GetAiBotStats;
+use App\Mcp\Tools\Stats\GetBusinessDashboard;
+use App\Mcp\Tools\Stats\GetOrderStats;
+use App\Mcp\Tools\Stats\GetPaymentsAttention;
+use App\Mcp\Tools\Stats\GetSalesStats;
+use App\Mcp\Tools\Stats\GetTrafficStats;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -35,6 +50,21 @@ class AdminServer extends Server
      */
     public const TOOLS = [
         GetMyAccess::class,
+        GetOrderStats::class,
+        GetPaymentsAttention::class,
+        GetSalesStats::class,
+        GetTrafficStats::class,
+        GetAiBotStats::class,
+        GetBusinessDashboard::class,
+        GetPage::class,
+        GetPost::class,
+        ListFaq::class,
+        ListPages::class,
+        ListPosts::class,
+        GetProduct::class,
+        ListBrands::class,
+        ListCategories::class,
+        SearchCatalog::class,
     ];
 
     protected array $tools = self::TOOLS;

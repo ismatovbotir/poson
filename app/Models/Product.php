@@ -12,6 +12,7 @@ use App\Enums\StockStatus;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
+use App\Support\Catalog\RollPricing;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
@@ -231,6 +232,17 @@ class Product extends Model implements HasMedia
     public function attributeValues(): HasMany
     {
         return $this->hasMany(ProductAttributeValue::class)->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * The label width / height spec values (label diagram, App\Support\Catalog\LabelDiagram).
+     * Eager-load with "labelSizeValues.attribute".
+     *
+     * @return HasMany<ProductAttributeValue, $this>
+     */
+    public function labelSizeValues(): HasMany
+    {
+        return $this->attributeValues()->whereHas('attribute', fn (Builder $attribute) => $attribute->whereIn('code', [RollPricing::WIDTH_CODE, RollPricing::HEIGHT_CODE]));
     }
 
     /**

@@ -18,7 +18,7 @@ it('returns who Claude acts as, without any credential or IP (C24)', function ()
         ->and($content['token']['label'])->toBe('MacBook')
         ->and($content['token']['expires_at'])->toBeNull()
         ->and($content['token']['idle_revoke_at'])->toEndWith('+05:00')
-        ->and($content['tool_groups'])->toBe(['account'])
+        ->and($content['tool_groups'])->toBe(['account', 'stats', 'content', 'catalog'])
         ->and(array_keys($content['token']))->toBe(['label', 'created_at', 'last_used_at', 'idle_revoke_at', 'expires_at']);
 
     $raw = $response->getContent();

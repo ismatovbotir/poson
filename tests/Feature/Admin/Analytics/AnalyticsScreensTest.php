@@ -3,12 +3,14 @@
 use App\Enums\Role;
 use App\Livewire\Admin\Analytics\AiVisibility;
 use App\Livewire\Admin\Analytics\Traffic;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\SiteVisit;
 use App\Models\TrafficDaily;
 use App\Models\TrafficDailyPage;
 use App\Support\Analytics\TrafficRecorder;
+use App\Support\Analytics\TrafficReport;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -247,4 +249,25 @@ it('shows Latin Uzbek month names on the admin screens', function () {
 
     expect($dashboard)->toContain('Oktabr')->not->toContain('октябр')
         ->and($ai)->toContain('Okt')->not->toContain('окт');
+});
+
+it('reports top categories by hits with names loaded in one query', function () {
+    $date = CarbonImmutable::parse(TrafficRecorder::today())->subDay()->toDateString();
+    $a = Category::factory()->create();
+    $b = Category::factory()->create();
+
+    TrafficDailyPage::factory()->create(['date' => $date, 'category_id' => $a->id, 'hits' => 5, 'visitors' => 2]);
+    TrafficDailyPage::factory()->create(['date' => $date, 'category_id' => $b->id, 'hits' => 9, 'visitors' => 4]);
+    TrafficDailyPage::factory()->create(['date' => $date, 'category_id' => $b->id, 'hits' => 1, 'visitors' => 1]);
+    TrafficDailyPage::factory()->create(['date' => $date, 'category_id' => $a->id, 'status' => 404, 'hits' => 99]);
+    TrafficDailyPage::factory()->create(['date' => $date, 'category_id' => null, 'hits' => 99]);
+
+    $rows = (new TrafficReport(7))->topCategories(TrafficDaily::KIND_VISITS, null, 500);
+
+    expect($rows)->toHaveCount(2)
+        ->and($rows[0]['category']->is($b))->toBeTrue()
+        ->and($rows[0]['hits'])->toBe(10)
+        ->and($rows[1]['hits'])->toBe(5);
+
+    expect((new TrafficReport(7))->topCategories(TrafficDaily::KIND_VISITS, null, 1))->toHaveCount(1);
 });

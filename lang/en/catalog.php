@@ -30,6 +30,13 @@ return [
         'inch' => ':count inch|:count inches',
     ],
 
+    // Generated label diagram, the fallback image of label products (App\Support\Catalog\LabelDiagram).
+    'label_diagram' => [
+        'title' => 'Label size :size mm',
+        'mm' => 'mm',
+        'caption' => ':count pcs · core :core mm',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/roll, core :core mm',

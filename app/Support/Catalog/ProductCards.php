@@ -5,6 +5,7 @@ namespace App\Support\Catalog;
 use App\Data\Site\ProductCard;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 /**
  * Maps published products to App\Data\Site\ProductCard for listings (home,
@@ -17,7 +18,8 @@ use App\Models\ProductAttributeValue;
 class ProductCards
 {
     /**
-     * Relations a card reads (strict models forbid lazy loading).
+     * Relations a card reads (strict models forbid lazy loading). The label
+     * size values of label products are added by loadLabelSizes() (fromProducts()).
      * activeRollTypes: whether a label product can go to the cart (ProductCtas, plan 11a).
      *
      * @var list<string>
@@ -64,6 +66,7 @@ class ProductCards
             ctas: ProductCtas::for($product, compact: true),
             showStock: $product->showsStockStatus(),
             pricedPerLabel: $product->isPricedPerLabel(),
+            diagram: $media === null && $product->imageUrl('thumb') === null ? LabelDiagram::for($product) : null,
         );
     }
 
@@ -75,11 +78,34 @@ class ProductCards
     {
         $cards = [];
 
+        static::loadLabelSizes($products);
+
         foreach ($products as $product) {
             $cards[] = static::fromProduct($product);
         }
 
         return $cards;
+    }
+
+    /**
+     * Eager-loads the label size values for the label-priced products without an
+     * image only (no query when there are none; a constant number otherwise).
+     *
+     * @param  iterable<Product>  $products
+     */
+    public static function loadLabelSizes(iterable $products): void
+    {
+        $labels = [];
+
+        foreach ($products as $product) {
+            if ($product->isPricedPerLabel() && $product->relationLoaded('media') && $product->media->isEmpty()) {
+                $labels[] = $product;
+            }
+        }
+
+        if ($labels !== []) {
+            (new EloquentCollection($labels))->loadMissing('labelSizeValues.attribute');
+        }
     }
 
     /**

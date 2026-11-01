@@ -9,12 +9,10 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Lead;
-use App\Models\OrderPayment;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\UzqrTransaction;
+use App\Support\Dashboard\BusinessMetrics;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Computed;
@@ -68,24 +66,24 @@ class Dashboard extends Component
             return [];
         }
 
-        $visible = fn (): Builder => Lead::query()->visibleTo($user);
+        $counts = (new BusinessMetrics($user))->leadCounts();
         $todayStart = now(Lead::TIMEZONE)->startOfDay();
 
         $cards = [
-            'leads_new' => ['inbox', $visible()->where('status', LeadStatus::New->value)->count(), ['tab' => 'all', 'status' => LeadStatus::New->value]],
-            'leads_today' => ['clock', $visible()->where('created_at', '>=', $todayStart->copy()->utc())->count(), ['tab' => 'all', 'from' => $todayStart->format('Y-m-d')]],
-            'leads_unassigned' => ['alert', $visible()->open()->whereNull('manager_id')->count(), ['manager' => 'none']],
-            'leads_mine' => ['users', $visible()->open()->where('manager_id', $user->id)->count(), ['manager' => 'me']],
+            'leads_new' => ['inbox', ['tab' => 'all', 'status' => LeadStatus::New->value]],
+            'leads_today' => ['clock', ['tab' => 'all', 'from' => $todayStart->format('Y-m-d')]],
+            'leads_unassigned' => ['alert', ['manager' => 'none']],
+            'leads_mine' => ['users', ['manager' => 'me']],
         ];
 
         $result = [];
 
-        foreach ($cards as $key => [$icon, $count, $query]) {
+        foreach ($cards as $key => [$icon, $query]) {
             $result[] = [
                 'key' => $key,
                 'label' => __("crm.dashboard.cards.{$key}"),
                 'icon' => $icon,
-                'count' => $count,
+                'count' => $counts[$key],
                 'href' => route('admin.leads.index', $query),
             ];
         }
@@ -142,13 +140,7 @@ class Dashboard extends Component
         /** @var User $user */
         $user = auth()->user();
 
-        if (! $user->can('viewAny', OrderPayment::class)) {
-            return 0;
-        }
-
-        return UzqrTransaction::query()->unresolvedUnmatched()
-            ->when(! $user->can('payments.test'), fn ($query) => $query->whereHas('order', fn ($order) => $order->where('is_test', false)))
-            ->count();
+        return (new BusinessMetrics($user))->uzqrUnmatched();
     }
 
     /**
@@ -177,8 +169,10 @@ class Dashboard extends Component
         $user = auth()->user();
         $cards = [];
 
+        $counts = (new BusinessMetrics($user))->catalogCounts();
+
         foreach (self::CARDS as $key => [$model, $icon]) {
-            if (! $user->can('viewAny', $model)) {
+            if (! isset($counts[$key])) {
                 continue;
             }
 
@@ -186,27 +180,28 @@ class Dashboard extends Component
                 'key' => $key,
                 'label' => __("admin.dashboard.cards.{$key}"),
                 'icon' => $icon,
-                'count' => $model::query()->count(),
+                'count' => $counts[$key],
             ];
         }
 
-        if ($user->can('viewAny', Product::class)) {
-            $products = [
-                // Published = active product in an active category (as on the site).
-                'products_active' => ['box', Product::query()->active()->count(), ['tab' => 'active']],
-                'products_drafts' => ['edit', Product::query()->where('is_active', false)->count(), ['tab' => 'drafts']],
-                'products_incomplete' => ['alert', Product::query()->where('has_missing_specs', true)->count(), ['tab' => 'incomplete']],
-            ];
+        $products = [
+            'products_active' => ['box', ['tab' => 'active']],
+            'products_drafts' => ['edit', ['tab' => 'drafts']],
+            'products_incomplete' => ['alert', ['tab' => 'incomplete']],
+        ];
 
-            foreach ($products as $key => [$icon, $count, $query]) {
-                $cards[] = [
-                    'key' => $key,
-                    'label' => __("admin.dashboard.cards.{$key}"),
-                    'icon' => $icon,
-                    'count' => $count,
-                    'href' => route('admin.products.index', $query),
-                ];
+        foreach ($products as $key => [$icon, $query]) {
+            if (! isset($counts[$key])) {
+                continue;
             }
+
+            $cards[] = [
+                'key' => $key,
+                'label' => __("admin.dashboard.cards.{$key}"),
+                'icon' => $icon,
+                'count' => $counts[$key],
+                'href' => route('admin.products.index', $query),
+            ];
         }
 
         return $cards;

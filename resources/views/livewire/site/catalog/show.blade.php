@@ -36,7 +36,7 @@
     <div class="grid items-start gap-8 md:grid-cols-[1.05fr_0.95fr] md:gap-12">
         {{-- Gallery --}}
         <section
-            class="grid gap-3.5 md:sticky md:top-36 md:grid-cols-[84px_1fr]"
+            @class(['grid gap-3.5 md:sticky md:top-36', 'md:grid-cols-[84px_1fr]' => $images !== [], 'md:grid-cols-1' => $images === []])
             aria-label="{{ __('site.product.gallery') }}"
             x-data="{ active: 0, images: @js($images) }"
         >
@@ -60,6 +60,8 @@
                         fetchpriority="high"
                         class="size-[86%] object-contain"
                     >
+                @elseif ($diagram)
+                    <x-catalog.label-diagram :diagram="$diagram" context="gallery" class="absolute inset-[3%] size-[94%]" />
                 @else
                     <svg viewBox="0 0 120 120" class="size-[62%]" aria-hidden="true" focusable="false"><use href="#{{ $placeholder }}" /></svg>
                 @endif

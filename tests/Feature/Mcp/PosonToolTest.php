@@ -119,6 +119,9 @@ it('answers a server error without exception details and logs no token (C27)', f
         ->and(json_encode(McpCall::query()->sole()->getAttributes()))->not->toContain('SQLSTATE');
 });
 
-it('registers exactly the M1 tool list (snapshot)', function () {
-    expect(collect(AdminServer::TOOLS)->map(fn (string $class) => app($class)->name())->all())->toBe(['get_my_access']);
+it('registers exactly the M1 + M2 tool list (snapshot)', function () {
+    expect(collect(AdminServer::TOOLS)->map(fn (string $class) => app($class)->name())->all())->toBe([
+        'get_my_access', 'get_order_stats', 'get_payments_attention', 'get_sales_stats', 'get_traffic_stats', 'get_ai_bot_stats', 'get_business_dashboard',
+        'get_page', 'get_post', 'list_faq', 'list_pages', 'list_posts', 'get_product', 'list_brands', 'list_categories', 'search_catalog',
+    ]);
 });

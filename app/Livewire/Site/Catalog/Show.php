@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductDocument;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Catalog\LabelDiagram;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductCards;
 use App\Support\Catalog\ProductCtas;
@@ -77,6 +78,9 @@ class Show extends Component
             'attributeValues.option',
             'documents',
         ]);
+        if ($product->isPricedPerLabel()) {
+            $product->load('activeRollTypes');
+        }
         $product->setRelation('keySpecValues', $product->attributeValues->where('is_key', true)->values());
 
         $url = route('site.product', ['product' => $product->slug]);
@@ -87,8 +91,10 @@ class Show extends Component
         $faq = $faqContent->forProduct($product);
         $skipped = $product->attributeSkips()->pluck('attribute_id')->map(fn ($id): int => (int) $id)->all();
 
+        $images = $this->images();
+
         return view('livewire.site.catalog.show', [
-            'images' => $this->images(),
+            'images' => $images,
             'keySpecs' => ProductCards::keySpecs($product),
             'specs' => $this->specs($resolver, $skipped),
             'software' => $product->type === ProductType::Software ? SoftwareSpecs::forProduct($product, $skipped) : [],
@@ -100,6 +106,7 @@ class Show extends Component
             'articles' => NewsCards::articlesFor($product->category_id),
             'breadcrumbs' => $breadcrumbs,
             'categoryName' => CategoryTree::name($product->category_id),
+            'diagram' => $images === [] ? LabelDiagram::for($product) : null,
             'placeholder' => ProductCards::placeholder($product->category_id),
             'brand' => $product->publicBrand(),
             // Sanitized on save already; again on output as defense in depth.
@@ -227,8 +234,10 @@ class Show extends Component
             ->visible()
             ->whereIn('products.id', $links->pluck('related_id')->unique()->all())
             ->with(ProductCards::EAGER_LOADS)
-            ->get()
-            ->keyBy('id');
+            ->get();
+
+        ProductCards::loadLabelSizes($products);
+        $products = $products->keyBy('id');
 
         $sections = [];
 

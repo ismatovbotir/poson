@@ -3,6 +3,7 @@
 namespace App\Support\Analytics;
 
 use App\Enums\TrafficChannel;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\TrafficDaily;
 use Carbon\CarbonImmutable;
@@ -271,6 +272,43 @@ class TrafficReport
                 ->filter(fn (object $row): bool => $products->has((int) $row->product_id))
                 ->map(fn (object $row): array => [
                     'product' => $products[(int) $row->product_id],
+                    'hits' => (int) $row->hits,
+                    'visitors' => (int) $row->visitors,
+                ])
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
+     * Most visited categories in the range (most first); limit is capped at 50.
+     *
+     * @return list<array{category: Category, hits: int, visitors: int}>
+     */
+    public function topCategories(string $kind, ?string $bot = null, int $limit = 10): array
+    {
+        $limit = max(1, min(50, $limit));
+
+        return $this->cached('topCategories', [$kind, $bot, $limit], function () use ($kind, $bot, $limit) {
+            $rows = $this->pages($kind, $bot)
+                ->whereNotNull('category_id')
+                ->where('status', '<', 400)
+                ->select('category_id')
+                ->selectRaw('SUM(hits) AS hits, SUM(visitors) AS visitors')
+                ->groupBy('category_id')
+                ->orderByDesc('hits')
+                ->limit($limit)
+                ->get();
+
+            $categories = Category::query()
+                ->whereKey($rows->pluck('category_id')->all())
+                ->get(['id', 'name', 'slug'])
+                ->keyBy('id');
+
+            return $rows
+                ->filter(fn (object $row): bool => $categories->has((int) $row->category_id))
+                ->map(fn (object $row): array => [
+                    'category' => $categories[(int) $row->category_id],
                     'hits' => (int) $row->hits,
                     'visitors' => (int) $row->visitors,
                 ])
