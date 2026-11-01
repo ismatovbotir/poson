@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Create an active staff account with one role (used by admin:create-user;
+ * Create an active staff account with one role (used by FirstAdminSeeder;
  * input is validated by the caller).
  */
 class CreateStaffUser

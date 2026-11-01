@@ -17,8 +17,8 @@ use RuntimeException;
  * (local / staging) and a non-staff test user (local / testing).
  *
  * Never in production (plan 15 A1): it throws there. Production runs
- * `php artisan db:seed --class=LaunchSeeder --force` instead, and other
- * staff are created with `php artisan admin:create-user`.
+ * `php artisan db:seed --class=LaunchSeeder --force` instead, and there is
+ * no other staff command (Users screen: P4).
  */
 class DatabaseSeeder extends Seeder
 {

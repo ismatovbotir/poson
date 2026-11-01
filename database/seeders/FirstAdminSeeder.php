@@ -17,7 +17,7 @@ use Spatie\Permission\Models\Role as SpatieRole;
  * admin.seed_password (ADMIN_SEED_LOGIN / ADMIN_SEED_PASSWORD; never env()
  * here). Run by LaunchSeeder after the roles exist.
  *
- * - The email is trimmed and lower-cased (like admin:create-user) and must be
+ * - The email is trimmed and lower-cased and must be
  *   valid; the password needs at least 12 characters. Otherwise a
  *   RuntimeException names the setting, never the value, and no user is created.
  * - An existing email changes nothing (no password, role or name change):

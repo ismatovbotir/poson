@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\Route;
 |
 | Loaded in bootstrap/app.php with prefix "admin", name "admin." and the
 | "web" middleware group. There is deliberately no registration route:
-| staff accounts are created with `php artisan admin:create-user`.
+| the first Admin is created by FirstAdminSeeder (ADMIN_SEED_*).
 |
 */
 
