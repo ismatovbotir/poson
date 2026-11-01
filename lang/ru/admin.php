@@ -171,6 +171,12 @@ return [
         'clear_filters' => 'Сбросить фильтры',
     ],
 
+    'icon_picker' => [
+        'choose' => 'Выберите иконку',
+        'search' => 'Поиск иконки по названию',
+        'none' => 'Без иконки',
+    ],
+
     'categories' => [
         'title' => 'Категории',
         'subtitle' => 'Категорий в каталоге: :count',
@@ -248,6 +254,19 @@ return [
             'cat-repair-maintenance' => 'Ремонт и обслуживание',
             'cat-accessory' => 'Аксессуары',
             'cat-spare-part' => 'Запчасти',
+            'cat-label-scale' => 'Весы с печатью этикеток',
+            'cat-platform-scale' => 'Платформенные весы',
+            'cat-pc' => 'Компьютер (ПК)',
+            'cat-server' => 'Сервер',
+            'cat-a4-printer' => 'Принтер A4',
+            'cat-mfp' => 'МФУ',
+            'cat-industrial-fixed-scanner' => 'Промышленный стационарный сканер',
+            'cat-pda' => 'КПК (ТСД с клавиатурой)',
+            'cat-rugged-tablet' => 'Защищённый планшет',
+            'cat-laptop' => 'Ноутбук',
+            'cat-card-printer' => 'Принтер пластиковых карт',
+            'cat-monitor' => 'Сенсорный монитор',
+            'cat-network-switch' => 'Сетевой коммутатор',
         ],
         'attributes' => [
             'title' => 'Характеристики',

@@ -4,6 +4,8 @@
 @endphp
 
 <form wire:submit="save" novalidate>
+    <x-catalog.category-icon-sprite />
+
     <x-admin.page-header :title="$title" :back-href="route('admin.categories.index')" :back-label="__('admin.categories.title')">
         @if ($path)
             <x-slot:breadcrumbs>{{ $path }}</x-slot:breadcrumbs>
@@ -192,7 +194,7 @@
                         <x-admin.select wire:model.live="form.parent_id" :label="__('admin.categories.fields.parent')" :placeholder="__('admin.categories.no_parent')" :options="$this->parentOptions" />
                         <p class="mt-1 text-xs text-slate-500">{{ __('admin.categories.parent_hint', ['max' => \App\Support\Catalog\CategoryTree::MAX_DEPTH]) }}</p>
                     </div>
-                    <x-admin.select wire:model="form.icon" :label="__('admin.categories.fields.icon')" :placeholder="__('admin.categories.no_icon')" :options="collect(\App\Models\Category::ICONS)->mapWithKeys(fn ($icon) => [$icon => __('admin.categories.icons.'.$icon)])->all()" />
+                    <x-admin.icon-picker wire:model="form.icon" :label="__('admin.categories.fields.icon')" :placeholder="__('admin.categories.no_icon')" :options="collect(\App\Models\Category::ICONS)->mapWithKeys(fn ($icon) => [$icon => __('admin.categories.icons.'.$icon)])->all()" />
                     <x-admin.input wire:model="form.sort" type="number" min="0" inputmode="numeric" :label="__('admin.catalog.sort')" :hint="__('admin.catalog.sort_hint')" />
                     <x-admin.toggle wire:model="form.is_active" :label="__('admin.catalog.is_active')" :description="__('admin.categories.is_active_hint')" />
                 </div>

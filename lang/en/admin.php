@@ -171,6 +171,12 @@ return [
         'clear_filters' => 'Clear filters',
     ],
 
+    'icon_picker' => [
+        'choose' => 'Choose an icon',
+        'search' => 'Search icons by name',
+        'none' => 'No icon',
+    ],
+
     'categories' => [
         'title' => 'Categories',
         'subtitle' => 'Categories in the catalog: :count',
@@ -248,6 +254,19 @@ return [
             'cat-repair-maintenance' => 'Repair and maintenance',
             'cat-accessory' => 'Accessories',
             'cat-spare-part' => 'Spare parts',
+            'cat-label-scale' => 'Label-printing scale',
+            'cat-platform-scale' => 'Platform scale',
+            'cat-pc' => 'Computer (PC)',
+            'cat-server' => 'Server',
+            'cat-a4-printer' => 'A4 printer',
+            'cat-mfp' => 'Multifunction printer',
+            'cat-industrial-fixed-scanner' => 'Industrial fixed scanner',
+            'cat-pda' => 'PDA (keypad terminal)',
+            'cat-rugged-tablet' => 'Rugged tablet',
+            'cat-laptop' => 'Laptop',
+            'cat-card-printer' => 'Card printer',
+            'cat-monitor' => 'Touch monitor',
+            'cat-network-switch' => 'Network switch',
         ],
         'attributes' => [
             'title' => 'Attributes',

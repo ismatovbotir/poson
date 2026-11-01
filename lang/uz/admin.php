@@ -171,6 +171,12 @@ return [
         'clear_filters' => 'Filtrlarni tozalash',
     ],
 
+    'icon_picker' => [
+        'choose' => 'Belgini tanlang',
+        'search' => 'Belgi nomi boʻyicha qidirish',
+        'none' => 'Belgisiz',
+    ],
+
     'categories' => [
         'title' => 'Toifalar',
         'subtitle' => 'Katalogdagi toifalar: :count',
@@ -248,6 +254,19 @@ return [
             'cat-repair-maintenance' => 'Taʼmirlash va xizmat koʻrsatish',
             'cat-accessory' => 'Aksessuarlar',
             'cat-spare-part' => 'Ehtiyot qismlar',
+            'cat-label-scale' => 'Yorliq bosadigan tarozi',
+            'cat-platform-scale' => 'Platforma tarozisi',
+            'cat-pc' => 'Kompyuter (PK)',
+            'cat-server' => 'Server',
+            'cat-a4-printer' => 'A4 printer',
+            'cat-mfp' => 'Koʻp funksiyali qurilma (MFU)',
+            'cat-industrial-fixed-scanner' => 'Sanoat statsionar skaneri',
+            'cat-pda' => 'Tugmali TSD (PDA)',
+            'cat-rugged-tablet' => 'Himoyalangan planshet',
+            'cat-laptop' => 'Noutbuk',
+            'cat-card-printer' => 'Plastik karta printeri',
+            'cat-monitor' => 'Sensorli monitor',
+            'cat-network-switch' => 'Tarmoq kommutatori',
         ],
         'attributes' => [
             'title' => 'Xususiyatlar',
