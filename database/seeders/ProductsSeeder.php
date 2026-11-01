@@ -23,6 +23,7 @@ use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Seeders\Concerns\ResolvesProductSeedData;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -42,7 +43,10 @@ use RuntimeException;
  *   restore, no price / activation / translation change);
  * - every created SKU is recorded in the system setting RECORD_KEY, and a
  *   recorded SKU is never created again (a force-deleted product stays gone);
- * - new products are drafts (is_active = false) with Retail price only
+ * - new products are published directly (plan 16 P1, is_active = true; a null price
+ *   means "Request a price", sale_mode quote). A product with missing required specs
+ *   (SaveProduct refuses to activate it, before writing) is created as a draft instead;
+ *   with Retail price only
  *   (soʻm in the data, up to 2 decimals, stored as tiyin; dealer / wholesale are never
  *   stored; a suspicious_price row or a missing price is saved without a
  *   price, never 0; a per-label price that is not whole soʻm is the only one
@@ -99,6 +103,8 @@ class ProductsSeeder extends Seeder
      * Rows to seed instead of the data files (tests).
      *
      * @var list<array<string, mixed>>|null
+     *
+     * @internal Test hook.
      */
     public ?array $rows = null;
 
@@ -212,7 +218,7 @@ class ProductsSeeder extends Seeder
             }
         }
 
-        $this->stats = ['rows' => count($rows), 'created' => 0, 'skipped_existing' => 0, 'skipped_trashed' => 0, 'skipped_recorded' => 0, 'invalid' => 0, 'suspicious_price' => 0, 'without_price' => 0, 'fractional_price' => 0, 'relations' => 0];
+        $this->stats = ['rows' => count($rows), 'created' => 0, 'skipped_existing' => 0, 'skipped_trashed' => 0, 'skipped_recorded' => 0, 'published' => 0, 'drafts' => 0, 'invalid' => 0, 'suspicious_price' => 0, 'without_price' => 0, 'fractional_price' => 0, 'relations' => 0];
         $this->warnings = [];
 
         CategoryTree::flush();
@@ -305,17 +311,28 @@ class ProductsSeeder extends Seeder
                     'stock_status' => StockStatus::from($row['stock_status'] ?? 'on_order'),
                     'warranty_months' => $row['warranty_months'] ?? null,
                     'badge' => null,
-                    'is_active' => false,
+                    'is_active' => true,
                     'is_featured' => false,
                 ];
 
-                try {
-                    $product = $saveProduct->handle(null, $data, $this->specs($sku, $row['specs'] ?? [], $attributes));
-                } catch (ValidationException $exception) {
-                    $this->stats['invalid']++;
-                    Log::warning("ProductsSeeder: {$sku} failed validation on: ".implode(', ', array_keys($exception->errors())));
+                $specs = $this->specs($sku, $row['specs'] ?? [], $attributes);
 
-                    continue;
+                // Plan 16 P1: published directly. SaveProduct refuses to activate a product with missing
+                // required specs (or a label product without a roll type) before it writes anything,
+                // so the fallback is a clean second call as a draft.
+                try {
+                    $product = $saveProduct->handle(null, $data, $specs);
+                    $this->stats['published']++;
+                } catch (ValidationException $exception) {
+                    try {
+                        $product = $saveProduct->handle(null, [...$data, 'is_active' => false], $specs);
+                        $this->stats['drafts']++;
+                    } catch (ValidationException $draftException) {
+                        $this->stats['invalid']++;
+                        Log::warning("ProductsSeeder: {$sku} failed validation on: ".implode(', ', array_keys($draftException->errors())));
+
+                        continue;
+                    }
                 }
 
                 $createdNow[$product->sku] = true;
@@ -340,6 +357,18 @@ class ProductsSeeder extends Seeder
 
         Log::info("ProductsSeeder: {$summary}");
         $this->command?->info("ProductsSeeder: {$summary}");
+    }
+
+    /**
+     * Spec rows of a data row, resolved like on creation (PublishSeededProducts re-applies them).
+     *
+     * @param  array<string, mixed>  $specs
+     * @param  Collection<string, Attribute>  $attributes
+     * @return list<array<string, mixed>>
+     */
+    public function specRows(string $sku, array $specs, $attributes): array
+    {
+        return $this->specs($sku, $specs, $attributes);
     }
 
     /**
@@ -417,7 +446,8 @@ class ProductsSeeder extends Seeder
                     ->exists();
 
                 if (! $exists) {
-                    $addRelation->handle($product, $related, $type);
+                    // The seeder never writes updated_at (plan 16 P5).
+                    Product::withoutTimestamps(fn () => $addRelation->handle($product, $related, $type));
                     $this->stats['relations']++;
                 }
             }

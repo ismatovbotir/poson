@@ -202,6 +202,7 @@ return [
         'checkout' => 'Оформление заказа',
         'indexing' => 'Индексация сайта',
         'mcp' => 'Доступ MCP',
+        'catalog' => 'Каталог',
     ],
 
     'audit_action' => [
@@ -217,6 +218,8 @@ return [
         'closed' => 'Закрыто',
         'granted' => 'Выдано',
         'transferred' => 'Передано',
+        'published' => 'Опубликовано',
+        'unpublished' => 'Возвращено в черновики',
     ],
 
     'price_sync_status' => [

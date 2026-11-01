@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Catalog\ApplyCategoryIcons;
+use App\Actions\Catalog\PublishSeededProducts;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
 use App\Support\Site\BannerDirectory;
@@ -19,8 +21,10 @@ use Illuminate\Database\Seeder;
  * Roles and permissions, the first Admin (FirstAdminSeeder, from
  * ADMIN_SEED_LOGIN / ADMIN_SEED_PASSWORD; an invalid value stops here,
  * before any content), the catalog base data (create-only: existing rows are
- * never changed), the real products as drafts (ProductsSeeder, plan 16:
- * insert-only by SKU), FAQ, starter pages and draft articles, then the demo
+ * never changed), the category icons (ApplyCategoryIcons: only empty or
+ * old default icons), the real products (ProductsSeeder, plan 16:
+ * insert-only by SKU, published directly unless specs are missing; PublishSeededProducts
+ * publishes earlier drafts once), FAQ, starter pages and draft articles, then the demo
  * news and banners (DemoSeeding opt-in for this process only). There are no
  * demo products any more. Never demo leads, customers, quotes or extra
  * users. Every step is idempotent. Run `php artisan demo:remove --force`
@@ -39,10 +43,18 @@ class LaunchSeeder extends Seeder
             FirstAdminSeeder::class,
             CatalogSeeder::class,
             ProductsSeeder::class,
+        ]);
+
+        // Plan 16 P1-P6: publish the seeded drafts once, activate the import categories.
+        app(PublishSeededProducts::class)->handle();
+
+        $this->call([
             FaqSeeder::class,
             PagesSeeder::class,
             ArticlesSeeder::class,
         ]);
+
+        app(ApplyCategoryIcons::class)->handle();
 
         DemoSeeding::allowingProduction(fn () => $this->call([
             DemoNewsSeeder::class,

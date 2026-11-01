@@ -31,6 +31,7 @@ enum SettingsArea: string
     case Checkout = 'checkout';
     case Indexing = 'indexing';
     case Mcp = 'mcp';
+    case Catalog = 'catalog';
 
     public function label(): string
     {
@@ -46,6 +47,7 @@ enum SettingsArea: string
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
             self::Seo, self::Tracking, self::AiBots, self::Indexing => 'seo',
             self::Integrations, self::ApiTokens, self::PriceSync, self::Mcp => 'integrations',
+            self::Catalog => 'system',
             self::Checkout => 'checkout',
         };
     }
@@ -55,6 +57,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog], true);
     }
 }

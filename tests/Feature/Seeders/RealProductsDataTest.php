@@ -174,3 +174,28 @@ it('has no fractional per-label price and no price on suspicious rows (plan 16)'
         expect(array_key_exists('source_url', $row))->toBeFalse("{$file} {$row['sku']}");
     }
 });
+
+it('keeps every category text plain, brand-safe and free of URLs, e-mail and prompt-injection text (P8)', function () {
+    $walk = function (array $nodes) use (&$walk): array {
+        $found = [];
+
+        foreach ($nodes as $node) {
+            $found[] = $node;
+            array_push($found, ...$walk($node['children'] ?? []));
+        }
+
+        return $found;
+    };
+
+    foreach ($walk(require database_path('seeders/data/categories.php')) as $category) {
+        foreach (['name', 'description', 'meta_title', 'meta_description'] as $field) {
+            foreach ((array) ($category[$field] ?? []) as $locale => $text) {
+                $label = "{$category['slug']} {$field}.{$locale}";
+
+                expect(BrandSafeText::violates(strip_tags((string) $text)))->toBeFalse($label)
+                    ->and((string) $text)->not->toMatch('~https?:|www\.|@|\+?\d[\d\s().-]{8,}\d|data:|javascript:|<script|onerror=~i', $label)
+                    ->and(mb_strtolower((string) $text))->not->toMatch('/ignore (all |previous|the above)|assistant|system prompt/', $label);
+            }
+        }
+    }
+});

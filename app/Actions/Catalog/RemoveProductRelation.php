@@ -12,6 +12,8 @@ class RemoveProductRelation
 {
     public function handle(Product $product, int $relationId): void
     {
-        ProductRelation::query()->where('product_id', $product->id)->whereKey($relationId)->delete();
+        if (ProductRelation::query()->where('product_id', $product->id)->whereKey($relationId)->delete() > 0) {
+            $product->touch();
+        }
     }
 }

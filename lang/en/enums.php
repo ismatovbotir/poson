@@ -202,6 +202,7 @@ return [
         'checkout' => 'Checkout',
         'indexing' => 'Site indexing',
         'mcp' => 'MCP access',
+        'catalog' => 'Catalog',
     ],
 
     'audit_action' => [
@@ -217,6 +218,8 @@ return [
         'closed' => 'Closed',
         'granted' => 'Granted',
         'transferred' => 'Transferred',
+        'published' => 'Published',
+        'unpublished' => 'Returned to drafts',
     ],
 
     'price_sync_status' => [

@@ -14,12 +14,12 @@
  * - Assumptions (confirm with Poson):
  *   1. Receipt paper "80*80": the second number is the roll LENGTH in metres (a 20 mm-core
  *      48 g/m2 roll of 80 m is about 77 mm in diameter, which matches the 80 mm class).
- *      The "56" width has no matching `paper_width` option (58/80), so it is left unset.
+ *      The 56 mm width is the `paper_width` option "56" (owner confirmed 2026-11-01).
  *   2. Label `roll_types` are NOT in the 1C names (except sku 56: 5000 pcs). They are assumed
  *      by label height: <=25 mm 40/2000 + 40/1000; <=45 mm 40/1000 + 40/500; <=100 mm 40/500;
  *      taller 25/500 (core mm / labels per roll). Skus 161 and 39 have none (unknown).
- *   3. Ribbon `ink_side` and `core_diameter` are not in the 1C names, so they are omitted and
- *      all ribbons are has_missing_specs = true.
+ *   3. Ribbons: `ink_side` = OUT and `core_diameter` = 25 (1 inch core) for every ribbon, confirmed
+ *      by the owner 2026-11-01; they are complete (has_missing_specs = false).
  *   4. Textile tapes use the tape_* attributes (tape_width, tape_length, tape_material, tape_color).
  *
  * Uzbek is Latin script: oʻ, gʻ use ʻ (U+02BB); the tutuq belgisi uses ʼ (U+02BC).
@@ -496,7 +496,7 @@ $ribbonTexts = [
 
 $ribbon = static fn (array $names, string $group, string $type) => $ribbonTexts[$group] + [
     'name' => $names, 'close' => 'ribbon', 'dim' => 'wl', 'label' => false, 'spec' => 'ribbon',
-    'type' => $type, 'missing' => true, 'ng' => true,
+    'type' => $type, 'ng' => true,
 ];
 
 $WAX = 'Wax (mum)';
@@ -644,13 +644,13 @@ $build = static function (array $r) use ($G, $U, $C, $num, $cut, $html, $coreles
         'pp' => ['label_width' => $key($w), 'label_height' => $key($h), 'label_material' => $key('Polipropilen (PP)')]
             + (($g['removable'] ?? false) ? ['adhesive' => 'Oson olinadigan'] : []),
         'wh' => ['label_width' => $key($w), 'label_height' => $key($h)],
-        'receipt' => $w === 80 ? ['paper_width' => $key('80')] : [],
-        'ribbon' => ['ribbon_type' => $key($g['type']), 'ribbon_width' => $key($w), 'ribbon_length' => $key($h)],
+        'receipt' => in_array($w, [56, 58, 80], true) ? ['paper_width' => $key((string) $w)] : [],
+        'ribbon' => ['ribbon_type' => $key($g['type']), 'ribbon_width' => $key($w), 'ribbon_length' => $key($h), 'ink_side' => 'OUT', 'core_diameter' => '25'],
         'tape' => ['tape_width' => $key($w), 'tape_length' => $key($h), 'tape_material' => $tapeMaterial[$fam] ?? 'Satin']
             + (isset($tapeColor[$fam]) ? ['tape_color' => $tapeColor[$fam]] : []),
     };
 
-    $missing = ($g['missing'] ?? false) || ($g['spec'] === 'receipt' && $w !== 80);
+    $missing = ($g['missing'] ?? false) || ($g['spec'] === 'receipt' && ! in_array($w, [56, 58, 80], true));
 
     $prefix = $shortCode[$fam] ?? strtoupper($fam);
     $model = $prefix.' '.$num($w, 'en').'×'.$num($h, 'en').($grade !== null ? ' '.$grade : '');

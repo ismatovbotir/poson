@@ -1,7 +1,9 @@
 <?php
 
+use App\Actions\Catalog\PublishSeededProducts;
 use App\Enums\NewsKind;
 use App\Models\Banner;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\NewsPost;
@@ -53,11 +55,11 @@ it('refuses to run DatabaseSeeder in production and seeds nothing', function () 
         ->and(Product::withTrashed()->count())->toBe(0);
 });
 
-it('seeds the real draft products, news and banners in production but no demo products, leads, customers, quotes or extra users', function () {
+it('seeds the real products (published unless specs are missing), news and banners in production but no demo products, leads, customers, quotes or extra users', function () {
     runSeederIn('production', LaunchSeeder::class);
 
-    // Plan 16 S8: the demo products are gone; whatever the data files hold arrives as drafts.
-    expect(Product::query()->where('is_active', true)->count())->toBe(0)
+    // Plan 16 S8: the demo products are gone; whatever the data files hold arrives (P1: published unless specs are missing).
+    expect(Product::query()->where('is_active', true)->count())->toBeGreaterThan(0)
         ->and(Product::query()->whereIn('sku', DemoContent::productSkus())->count())->toBe(0)
         ->and(Product::query()->count())->toBe(count(array_unique(array_map(fn (array $row): string => mb_strtoupper($row['sku']), ProductsSeeder::loadRows()))))
         ->and(NewsPost::query()->ofKind(NewsKind::News)->count())->toBe(count(DemoContent::NEWS_SLUGS))
@@ -146,4 +148,25 @@ it('seeds brand-safe demo copy', function () {
     foreach ($texts as $text) {
         expect(BrandSafeText::violates(strip_tags((string) $text)))->toBeFalse();
     }
+});
+
+it('publishes the real products directly and activates the import categories that got products (plan 16 P1, P4)', function () {
+    runSeederIn('production', LaunchSeeder::class);
+
+    $active = Product::query()->where('is_active', true)->count();
+
+    expect($active)->toBeGreaterThan(0)
+        ->and(Product::query()->where('is_active', false)->where('has_missing_specs', false)->where('pricing_unit', 'unit')->count())->toBe(0);
+
+    foreach (PublishSeededProducts::CATEGORY_SLUGS as $slug) {
+        $category = Category::query()->where('slug', $slug)->sole();
+        $hasActive = Product::query()->whereIn('category_id', PublishSeededProducts::subtreeIds($category))->where('is_active', true)->exists();
+
+        expect($category->is_active)->toBe($hasActive, $slug);
+    }
+
+    // A second run changes nothing (run-once marker, insert-only seeder).
+    runSeederIn('production', LaunchSeeder::class);
+
+    expect(Product::query()->where('is_active', true)->count())->toBe($active);
 });

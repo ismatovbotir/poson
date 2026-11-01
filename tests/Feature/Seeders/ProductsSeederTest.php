@@ -43,7 +43,7 @@ function seederRow(string $sku, array $overrides = []): array
         'description' => ['uz' => '<p>Tavsif</p>', 'ru' => '<p>Описание</p>', 'en' => '<p>Description</p>'],
         'meta_title' => ['uz' => 'Sarlavha', 'ru' => 'Заголовок', 'en' => 'Title'],
         'meta_description' => ['uz' => 'Meta', 'ru' => 'Мета', 'en' => 'Meta'],
-        'specs' => ['auto_cutter' => true],
+        'specs' => ['interface' => ['USB'], 'paper_width' => '80'],
         'related' => [],
         'has_missing_specs' => false,
         'suspicious_price' => false,
@@ -63,7 +63,7 @@ function runProductsSeeder(array $rows): ProductsSeeder
     return $seeder;
 }
 
-it('creates drafts with the Retail price only, no internal data and no other price levels (S4)', function () {
+it('publishes directly with the Retail price only, no internal data and no other price levels (P1)', function () {
     $seeder = runProductsSeeder([
         seederRow(' a-1 '),
         seederRow('A-2', ['suspicious_price' => true]),
@@ -75,7 +75,7 @@ it('creates drafts with the Retail price only, no internal data and no other pri
 
     expect($seeder->stats['created'])->toBe(4)
         ->and($seeder->stats['suspicious_price'])->toBe(1)
-        ->and($one->is_active)->toBeFalse()
+        ->and($one->is_active)->toBeTrue()
         ->and($one->is_featured)->toBeFalse()
         ->and($one->badge)->toBeNull()
         ->and($one->price)->toBe(145_000_000)
@@ -87,7 +87,8 @@ it('creates drafts with the Retail price only, no internal data and no other pri
         ->and(Product::query()->where('sku', 'A-2')->value('price'))->toBeNull()
         ->and(Product::query()->where('sku', 'A-3')->value('price'))->toBeNull()
         ->and(Product::query()->where('sku', 'A-4')->value('price'))->toBeNull()
-        ->and(Product::query()->where('is_active', true)->count())->toBe(0);
+        ->and(Product::query()->where('is_active', true)->count())->toBe(4)
+        ->and(Product::query()->where('sku', 'A-3')->sole()->sale_mode->value)->toBe('quote');
 });
 
 it('stores a per-label price as whole soʻm per one label in tiyin and attaches the roll types', function () {
@@ -248,7 +249,7 @@ it('creates the new categories inactive and leaves existing categories as an adm
         ->and(Category::query()->where('slug', 'accessories-parts')->value('parent_id'))->toBeNull();
 });
 
-it('seeds every real data row as a draft with no spec or validation problems', function () {
+it('seeds every real data row, published unless required specs are missing, with no validation problems', function () {
     $rows = ProductsSeeder::loadRows();
     $seeder = app(ProductsSeeder::class);
     $seeder->setContainer(app())->__invoke();
@@ -257,6 +258,32 @@ it('seeds every real data row as a draft with no spec or validation problems', f
         ->and($seeder->stats['invalid'])->toBe(0)
         ->and($seeder->stats['created'])->toBe(count($rows))
         ->and(Product::query()->count())->toBe(count($rows))
-        ->and(Product::query()->where('is_active', true)->count())->toBe(0)
+        ->and(Product::query()->where('is_active', true)->count())->toBe($seeder->stats['published'])
+        ->and(Product::query()->where('is_active', false)->count())->toBe($seeder->stats['drafts'])
+        ->and(Product::query()->where('is_active', false)->where('has_missing_specs', false)->where('pricing_unit', 'unit')->count())->toBe(0)
+        ->and(Product::query()->where('is_active', true)->where('has_missing_specs', true)->count())->toBe(0)
         ->and(Product::query()->whereNull('brand_id')->whereNotNull('model')->count())->toBeLessThanOrEqual(count($rows));
+});
+
+it('creates a product with missing required specs as a clean draft (P1)', function () {
+    runProductsSeeder([seederRow('M-1', ['specs' => []]), seederRow('M-2')]);
+
+    $draft = Product::query()->where('sku', 'M-1')->sole();
+
+    expect($draft->is_active)->toBeFalse()
+        ->and($draft->has_missing_specs)->toBeTrue()
+        ->and(Product::query()->where('sku', 'M-2')->value('is_active'))->toBeTrue()
+        ->and(Product::query()->count())->toBe(2);
+});
+
+it('leaves no partial rows when the publish attempt falls back to a draft, and counts a row that fails twice as invalid (P1)', function () {
+    $seeder = runProductsSeeder([seederRow('PR-1', ['specs' => ['paper_width' => '80']]), seederRow('bad sku!')]);
+
+    expect(Product::query()->count())->toBe(1)
+        ->and(Product::query()->where('sku', 'PR-1')->value('is_active'))->toBeFalsy()
+        ->and(DB::table('product_attribute_values')->count())->toBe(1)
+        ->and($seeder->stats['drafts'])->toBe(1)
+        ->and($seeder->stats['published'])->toBe(0)
+        ->and($seeder->stats['invalid'])->toBe(1)
+        ->and($seeder->stats['created'])->toBe(1);
 });

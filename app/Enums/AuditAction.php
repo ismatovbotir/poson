@@ -29,6 +29,12 @@ enum AuditAction: string
     case Granted = 'granted';
     case Transferred = 'transferred';
 
+    /**
+     * Plan 16: seeded catalog products published / rolled back to drafts in bulk.
+     */
+    case Published = 'published';
+    case Unpublished = 'unpublished';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

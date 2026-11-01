@@ -32,11 +32,16 @@ class AddProductRelation
             throw ValidationException::withMessages(['related' => __('admin.products.relations.errors.duplicate')]);
         }
 
-        return ProductRelation::query()->create([
+        $relation = ProductRelation::query()->create([
             'product_id' => $product->id,
             'related_id' => $related->id,
             'type' => $type,
             'sort' => (int) ProductRelation::query()->where('product_id', $product->id)->where('type', $type)->max('sort') + 1,
         ]);
+
+        // Relations carry no timestamps; touching the product marks it as edited (PublishSeededProducts::isUntouched).
+        $product->touch();
+
+        return $relation;
     }
 }

@@ -202,6 +202,7 @@ return [
         'checkout' => 'Buyurtma rasmiylashtirish',
         'indexing' => 'Saytni indekslash',
         'mcp' => 'MCP kirish',
+        'catalog' => 'Katalog',
     ],
 
     'audit_action' => [
@@ -217,6 +218,8 @@ return [
         'closed' => 'Yopildi',
         'granted' => 'Berildi',
         'transferred' => 'Oʻtkazildi',
+        'published' => 'Eʼlon qilindi',
+        'unpublished' => 'Qoralamaga qaytarildi',
     ],
 
     'price_sync_status' => [

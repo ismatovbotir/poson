@@ -11,6 +11,7 @@ use App\Enums\LeadLostReason;
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
 use App\Enums\LeadType;
+use App\Enums\ProductPricingUnit;
 use App\Enums\QuoteStatus;
 use App\Enums\Role;
 use App\Enums\TrafficChannel;
@@ -56,7 +57,7 @@ class DemoLeadsSeeder extends Seeder
         Contact::factory()->for($baraka)->create(['name' => 'Ilhom Qosimov', 'position' => 'Direktor', 'phone' => '+998935551122']);
         Customer::factory()->individual()->create(['name' => 'Otabek Yuldashev', 'phone' => '+998977000001']);
 
-        $products = Product::query()->where('is_active', true)->orderBy('id')->limit(12)->get(['id', 'sku', 'name']);
+        $products = Product::query()->where('is_active', true)->where('pricing_unit', ProductPricingUnit::Unit)->orderBy('id')->limit(12)->get(['id', 'sku', 'name']);
 
         $rows = [
             ['Bekzod Nazarov', '+998901234567', '“Mega Savdo” MChJ', LeadType::Quote, LeadSource::Site, LeadStatus::New, null, 0, 'Ombor uchun 20 ta TSD va 1C integratsiya kerak.', $mega, TrafficChannel::Search],
