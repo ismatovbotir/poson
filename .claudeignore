@@ -1,0 +1,46 @@
+# Poson — files AI agents should not read (token savers + secrets).
+# NOTE: Claude Code enforces this via permissions.deny in .claude/settings.json.
+# Keep both lists in sync.
+
+# Dependencies (use `composer show` / package.json instead)
+vendor/
+node_modules/
+package-lock.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+auth.json
+storage/*.key
+
+# Build output / generated
+public/build/
+public/hot
+public/storage
+bootstrap/cache/
+_ide_helper.php
+.phpunit.cache/
+.phpunit.result.cache
+
+# Runtime data (logs, cache, compiled views, uploads, test disks)
+storage/logs/
+storage/framework/
+storage/app/
+storage/media-library/
+storage/pail/
+
+# Local DB file
+database/*.sqlite
+
+# Binary / heavy docs
+*.pdf
+.claude/presentations/
+.claude/docs/pm/presentation/
+
+# Other tools / VCS
+.git/
+.cursor/
+.idea/
+.vscode/
+.DS_Store
