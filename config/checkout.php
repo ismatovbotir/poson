@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\Payments\Uzqr\UzqrHold;
+
 /*
 |--------------------------------------------------------------------------
 | Checkout and orders (plan 11 v2)
@@ -46,9 +48,15 @@ return [
 
     // Provider => class implementing App\Support\Orders\Contracts\PaymentHold,
     // asked by Order::hasActiveTransaction(). A provider is never offered
-    // without its hold class (fail closed): 11c adds 'payme', 11d 'click',
-    // 11e 'uzqr' (dynamic UzQR).
-    'payment_holds' => [],
+    // without its hold class (fail closed): 11c adds 'payme', 11d 'click';
+    // 'uzqr' (dynamic UzQR, plan 11e).
+    'payment_holds' => [
+        'uzqr' => UzqrHold::class,
+    ],
+
+    // Most dynamic UzQR invoices open at once (all orders); above it the
+    // public checkout falls back to the static UzQR code (condition 44).
+    'uzqr_max_open' => 200,
 
     // Active online payment holds (plans 11c/11d): Payme state 1 < 12 h, Click prepared < 60 min.
     'holds' => [

@@ -34,6 +34,10 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
  * and "Amount updated" after a reissue. Never the buyer's name, phone,
  * company or tax id (the invoice PDF carries company + tax id). No "I've
  * paid" button: staff confirm against the bank statement.
+ *
+ * Dynamic UzQR (plan 11e): the "Pay with UzQR" Livewire dialog
+ * (Site\Orders\UzqrPayment) is the only goods payment shown; ?pay=uzqr opens
+ * it. Paid only by the bank status call, never by a URL parameter.
  */
 class PublicOrderController extends Controller
 {
@@ -74,6 +78,8 @@ class PublicOrderController extends Controller
                 'canPayOnline' => $paymentOptions->canPayOnline($order),
                 'hasInvoice' => ! $cancelled && GenerateOrderInvoicePdf::hasInvoice($order),
                 'requisites' => $paymentOptions->requisitesComplete(),
+                // ?pay=uzqr (after checkout) only opens the dialog; the QR is created on a click.
+                'autoOpenUzqr' => $request->query('pay') === 'uzqr',
             ])->render();
         } finally {
             app()->setLocale($previous);

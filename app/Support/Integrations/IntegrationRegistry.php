@@ -3,13 +3,14 @@
 namespace App\Support\Integrations;
 
 use App\Enums\PaymentMode;
+use App\Services\Payments\Uzqr\UzqrAuth;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
 /**
  * Every integration value editable in Settings → Integrations (plan 04 S3, §2).
  * Secrets (encrypted in integration_secrets): Telegram bot token and
- * webhook secret, Payme keys, Click secret keys (live and test). Everything else is a
+ * webhook secret, Payme keys, Click secret keys, UzQR API keys (live and test). Everything else is a
  * non-secret value in "settings" (group integrations).
  *
  * App\Support\Secrets resolves each field (non-empty .env > admin value >
@@ -18,7 +19,7 @@ use InvalidArgumentException;
  */
 final class IntegrationRegistry
 {
-    public const GROUPS = ['telegram', 'payme', 'click'];
+    public const GROUPS = ['telegram', 'payme', 'click', 'uzqr'];
 
     /**
      * Telegram chat ID (-100…, a user/group ID) or a public @channel name.
@@ -177,6 +178,12 @@ final class IntegrationRegistry
             new IntegrationField('click.test_service_id', 'click', ['services.click.test_service_id'], 'CLICK_TEST_SERVICE_ID', rules: $digits),
             new IntegrationField('click.test_merchant_user_id', 'click', ['services.click.test_merchant_user_id'], 'CLICK_TEST_MERCHANT_USER_ID', rules: $digits),
             new IntegrationField('click.mode', 'click', ['services.click.mode'], 'CLICK_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymentMode::class)], default: PaymentMode::Test->value, options: array_column(PaymentMode::cases(), 'value')),
+
+            // Dynamic UzQR (plan 11e, conditions 32–34): the website POS. Base URLs are .env-only (config/uzqr.php).
+            new IntegrationField('uzqr.inn', 'uzqr', ['services.uzqr.inn'], 'UZQR_INN', rules: ['string', 'regex:'.UzqrAuth::INN]),
+            new IntegrationField('uzqr.api_key', 'uzqr', ['services.uzqr.api_key'], 'UZQR_API_KEY', secret: true, rules: ['string', 'min:16', 'max:300', 'regex:'.self::API_KEY]),
+            new IntegrationField('uzqr.test_api_key', 'uzqr', ['services.uzqr.test_api_key'], 'UZQR_TEST_API_KEY', secret: true, rules: ['string', 'min:16', 'max:300', 'regex:'.self::API_KEY]),
+            new IntegrationField('uzqr.mode', 'uzqr', ['services.uzqr.mode'], 'UZQR_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymentMode::class)], default: PaymentMode::Test->value, options: array_column(PaymentMode::cases(), 'value')),
         ];
 
         $keyed = [];

@@ -115,6 +115,9 @@
             {{-- Payments (not for the service engineer, condition 30) --}}
             @if ($canPayments)
                 @include('livewire.admin.orders.partials.payments')
+                @if ($order->payment_method === \App\Enums\PaymentMethod::UzqrDynamic || $hasUzqr)
+                    <livewire:admin.orders.uzqr-panel :order-id="$order->id" :key="'uzqr-panel-'.$order->id" />
+                @endif
             @endif
 
             {{-- History --}}

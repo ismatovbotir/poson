@@ -306,6 +306,7 @@ class Show extends Component
             'goodsPayable' => $this->order->payment_status === PaymentStatus::Unpaid && $this->order->payment_method->isManual() && $this->order->status !== OrderStatus::Cancelled,
             'publicUrl' => $canPayments && $this->order->isPublicLinkValid() ? route('orders.public', ['ulid' => $this->order->ulid, 'lang' => $this->order->locale]) : null,
             'payMethods' => PaymentMethod::manual(),
+            'hasUzqr' => $canPayments && $this->order->uzqrTransactions()->exists(),
         ])->title(__('orders.show_title', ['number' => $this->order->number]));
     }
 

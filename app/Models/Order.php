@@ -169,6 +169,16 @@ class Order extends Model
     }
 
     /**
+     * Dynamic UzQR invoices (plan 11e).
+     *
+     * @return HasMany<UzqrTransaction, $this>
+     */
+    public function uzqrTransactions(): HasMany
+    {
+        return $this->hasMany(UzqrTransaction::class)->orderBy('id');
+    }
+
+    /**
      * @return BelongsTo<Customer, $this>
      */
     public function customer(): BelongsTo
@@ -229,10 +239,9 @@ class Order extends Model
 
     /**
      * An online transaction holds the order: asked of every PaymentHold in
-     * config('checkout.payment_holds') (provider => class). Plans 11c
-     * ('payme'), 11d ('click') and 11e ('uzqr', dynamic UzQR) each add their
-     * class there; until then nothing can hold an order, and those providers
-     * are never offered (PaymentOptions::hasHold()).
+     * config('checkout.payment_holds') (provider => class): 'uzqr'
+     * (UzqrHold, plan 11e); 11c ('payme') and 11d ('click') add theirs. A
+     * provider without its hold is never offered (PaymentOptions::hasHold()).
      */
     public function hasActiveTransaction(): bool
     {

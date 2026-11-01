@@ -3,6 +3,9 @@
 namespace App\Actions\Settings;
 
 use App\Models\User;
+use App\Services\Payments\Uzqr\UzqrClient;
+use App\Services\Payments\Uzqr\UzqrConfig;
+use App\Services\Payments\Uzqr\UzqrException;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Integrations\ConnectionTestResult;
@@ -20,7 +23,9 @@ use Throwable;
  * Targets: telegram (getMe), telegram_chat (a test message to the sales /
  * service / finance chat in the telegram.locale language), both through
  * TelegramClient. Payme and Click have no test endpoint: the screen shows
- * their webhook URLs instead.
+ * their webhook URLs instead. uzqr: invoice/create with empty parameters
+ * in the active mode (400 = credentials accepted, 401 / 403 = rejected);
+ * success clears the UzQR auth-failed flag (condition 53, 54).
  *
  * Rate limited to MAX_ATTEMPTS per minute per user; TIMEOUT seconds per
  * request, no retries. Every failure becomes a safe code: exceptions are
@@ -36,7 +41,7 @@ class TestIntegrationConnection
 
     public const TIMEOUT = 5;
 
-    public const TARGETS = ['telegram', 'telegram_chat'];
+    public const TARGETS = ['telegram', 'telegram_chat', 'uzqr'];
 
     public const CHATS = ['sales', 'service', 'finance'];
 
@@ -60,6 +65,7 @@ class TestIntegrationConnection
         $result = match ($target) {
             'telegram' => $this->telegram(),
             'telegram_chat' => $this->telegramChat((string) $chat),
+            'uzqr' => $this->uzqr(),
         };
 
         Log::info('Integration connection test', ['target' => $target, 'chat' => $chat, 'code' => $result->code, 'user_id' => $user->id]);
@@ -120,6 +126,34 @@ class TestIntegrationConnection
         }
 
         return ConnectionTestResult::success('telegram_message_sent');
+    }
+
+    protected function uzqr(): ConnectionTestResult
+    {
+        $config = app(UzqrConfig::class);
+        $mode = $config->activeMode();
+
+        if (! $config->callable($mode)) {
+            return ConnectionTestResult::failure('not_configured');
+        }
+
+        try {
+            app(UzqrClient::class)->forMode($mode, true)->ping();
+        } catch (UzqrException $exception) {
+            return ConnectionTestResult::failure(match ($exception->reason) {
+                UzqrException::AUTH_FAILED => 'unauthorized',
+                UzqrException::BLOCKED => 'forbidden',
+                UzqrException::RATE_LIMITED, UzqrException::BUSY => 'rate_limited',
+                UzqrException::SERVER_ERROR => 'server_error',
+                UzqrException::TIMEOUT => 'timeout',
+                UzqrException::CONNECTION_FAILED => 'connection_failed',
+                default => 'unexpected_response',
+            }, $exception->reason === UzqrException::TIMEOUT ? ['seconds' => (int) config('uzqr.timeouts.interactive', 5)] : []);
+        }
+
+        $config->clearAuthFailed($mode);
+
+        return ConnectionTestResult::success('uzqr_ok', ['mode' => $mode->label()]);
     }
 
     protected function telegramClient(): TelegramClient

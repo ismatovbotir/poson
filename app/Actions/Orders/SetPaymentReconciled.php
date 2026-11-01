@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Tick a manually confirmed payment off against the bank statement, or
  * untick it (security condition 21): payments.reconcile (Admin, authorized
- * by the caller), paid manual payments only; who / when stored on the row
+ * by the caller), paid manual and dynamic UzQR payments only (condition 51); who / when stored on the row
  * and logged in the order history.
  */
 class SetPaymentReconciled
@@ -28,7 +28,7 @@ class SetPaymentReconciled
         DB::transaction(function () use ($payment, $reconciled, $actor): void {
             $payment = OrderPayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
-            if ($payment->status !== OrderPaymentStatus::Paid || ! $payment->isManual()) {
+            if ($payment->status !== OrderPaymentStatus::Paid || ! $payment->isReconcilable()) {
                 throw ValidationException::withMessages(['payment' => __('orders.errors.reconcile_manual_only')]);
             }
 

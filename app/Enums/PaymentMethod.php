@@ -4,10 +4,11 @@ namespace App\Enums;
 
 /**
  * How the customer pays an order (plan 11 v2 §1.3). Guards never key on a
- * concrete case: they ask confirmation(), isOnline() and isPrepaid(), so
- * the reserved uzqr_dynamic (webhook-confirmed UzQR, a later step) slots in.
+ * concrete case: they ask confirmation(), isOnline() and isPrepaid().
  *
  * - payme / click: online, confirmed only by the provider's webhook;
+ * - uzqr_dynamic: a per-order UzQR invoice (plan 11e), confirmed only by a
+ *   server-to-server status call to the bank (no staff mark-paid);
  * - uzqr_static: the company's static UzQR code, exact total, staff confirm
  *   it against the bank statement (reference required);
  * - on_receipt: cash / card / UzQR at handover (channel recorded);
@@ -36,7 +37,7 @@ enum PaymentMethod: string
     }
 
     /**
-     * Paid through a provider's webhook (Payme, Click, later dynamic UzQR).
+     * Confirmed by the provider (Payme / Click webhook, UzQR status call).
      */
     public function isOnline(): bool
     {
@@ -68,11 +69,11 @@ enum PaymentMethod: string
     }
 
     /**
-     * Reserved for a later step: never offered, never accepted.
+     * Reserved for a later step: never offered, never accepted (none since 11e).
      */
     public function isReserved(): bool
     {
-        return $this === self::UzqrDynamic;
+        return false;
     }
 
     /**

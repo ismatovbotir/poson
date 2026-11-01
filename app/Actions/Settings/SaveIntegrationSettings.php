@@ -6,9 +6,12 @@ use App\Enums\AuditAction;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymentMode;
 use App\Enums\SettingsArea;
+use App\Events\Uzqr\UzqrSettingsChanged;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
+use App\Services\Payments\Uzqr\UzqrAuth;
+use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
@@ -83,6 +86,10 @@ class SaveIntegrationSettings
             $errors['click.mode'] = [__('admin.settings.integrations.errors.click_prod_requires_keys')];
         }
 
+        if (array_key_exists('uzqr.mode', $normalized) && ($error = $this->uzqrModeError($normalized)) !== null) {
+            $errors['uzqr.mode'] = [$error];
+        }
+
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);
         }
@@ -135,6 +142,12 @@ class SaveIntegrationSettings
                 DB::afterCommit(fn () => Secrets::flush());
             }
 
+            $uzqrKeys = array_values(array_filter($changed, fn (string $key): bool => str_starts_with($key, 'uzqr.')));
+
+            if ($uzqrKeys !== []) {
+                UzqrSettingsChanged::dispatch($uzqrKeys, $user);
+            }
+
             return $changed;
         });
     }
@@ -156,6 +169,34 @@ class SaveIntegrationSettings
         $value = trim($value);
 
         return $field->lowercase ? strtolower($value) : $value;
+    }
+
+    /**
+     * UzQR mode rules (conditions 33, 34): "prod" only behind the go-live
+     * gate (bank answers B1, B2, B3, B5) with the INN, the live key and a
+     * valid prod base URL; "test" only with a separate https test host.
+     *
+     * @param  array<string, mixed>  $normalized
+     */
+    protected function uzqrModeError(array $normalized): ?string
+    {
+        $config = app(UzqrConfig::class);
+        $mode = $normalized['uzqr.mode'] ?? null;
+        $inn = array_key_exists('uzqr.inn', $normalized) ? $normalized['uzqr.inn'] : Secrets::get('uzqr.inn');
+
+        if ($mode === PaymentMode::Prod->value) {
+            return match (true) {
+                ! $config->goLiveOpen() => __('admin.settings.integrations.errors.uzqr_go_live', ['items' => implode(', ', $config->missingBankAnswers())]),
+                ! UzqrAuth::validInn($inn) || ! Secrets::isConfigured('uzqr.api_key') || $config->baseUrl(PaymentMode::Prod) === null => __('admin.settings.integrations.errors.uzqr_prod_requires_keys'),
+                default => null,
+            };
+        }
+
+        if ($mode === PaymentMode::Test->value && ! $config->testAvailable()) {
+            return __('admin.settings.integrations.errors.uzqr_no_test_host');
+        }
+
+        return null;
     }
 
     /**

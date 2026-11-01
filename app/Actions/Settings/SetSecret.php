@@ -4,6 +4,7 @@ namespace App\Actions\Settings;
 
 use App\Enums\AuditAction;
 use App\Enums\SettingsArea;
+use App\Events\Uzqr\UzqrSettingsChanged;
 use App\Models\IntegrationSecret;
 use App\Models\SettingsAudit;
 use App\Models\User;
@@ -47,6 +48,13 @@ class SetSecret
             throw ValidationException::withMessages(['value' => $validator->errors()->get('value')]);
         }
 
+        // UzQR: the test key must never be the live key (condition 34).
+        $other = ['uzqr.api_key' => 'uzqr.test_api_key', 'uzqr.test_api_key' => 'uzqr.api_key'][$key] ?? null;
+
+        if ($other !== null && is_string($otherValue = Secrets::get($other)) && hash_equals($otherValue, $value)) {
+            throw ValidationException::withMessages(['value' => [__('admin.settings.integrations.errors.uzqr_same_key')]]);
+        }
+
         DB::transaction(function () use ($key, $value, $user, $ip, $action): void {
             IntegrationSecret::query()->updateOrCreate(['key' => $key], [
                 'value' => $value,
@@ -57,6 +65,10 @@ class SetSecret
             SettingsAudit::record(SettingsArea::Integrations, $key, $action, $user, $ip);
 
             DB::afterCommit(fn () => Secrets::flush());
+
+            if (str_starts_with($key, 'uzqr.')) {
+                UzqrSettingsChanged::dispatch([$key], $user);
+            }
         });
     }
 }

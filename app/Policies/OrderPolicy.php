@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\Role;
 use App\Models\Order;
 use App\Models\User;
 
@@ -81,6 +82,47 @@ class OrderPolicy
     public function voidPayment(User $user, Order $order): bool
     {
         return $this->viewPayments($user, $order) && ($user->can('orders.refund') || $user->can('payments.void'));
+    }
+
+    /**
+     * Dynamic UzQR "Check status now" (condition 45): payment viewers (not the service engineer).
+     */
+    public function checkUzqr(User $user, Order $order): bool
+    {
+        return $this->viewPayments($user, $order);
+    }
+
+    /**
+     * Cancel an open UzQR invoice at the bank (condition 39): staff who edit orders.
+     */
+    public function cancelUzqr(User $user, Order $order): bool
+    {
+        return $this->update($user, $order) && $this->viewPayments($user, $order);
+    }
+
+    /**
+     * Resolve an unmatched UzQR payment / confirm its fiscal receipt (conditions 47, 50): Admin only.
+     */
+    public function resolveUzqr(User $user, Order $order): bool
+    {
+        return $this->viewPayments($user, $order) && $user->can('payments.reconcile');
+    }
+
+    /**
+     * Release the hold of an expired UzQR invoice the bank never confirmed
+     * (condition 58): the Admin role explicitly, never a permission grant.
+     */
+    public function releaseUzqrHold(User $user, Order $order): bool
+    {
+        return $user->hasRole(Role::Admin) && $this->viewPayments($user, $order);
+    }
+
+    /**
+     * Show a test UzQR for a TEST order (condition 45): payments.test.
+     */
+    public function testPayUzqr(User $user, Order $order): bool
+    {
+        return $order->is_test && $this->view($user, $order) && $user->can('payments.test');
     }
 
     /**

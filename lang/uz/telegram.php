@@ -61,4 +61,22 @@ return [
         ],
     ],
 
+    'uzqr' => [
+        'unmatched' => ':number buyurtma boʻyicha UzQR toʻlovi olindi, lekin hisoblanmadi',
+        'unmatched_hint' => 'Buyurtma oʻzgartirilmadi. Administrator buyurtma sahifasida qaror qabul qilishi kerak.',
+        'resolved' => ':number buyurtma boʻyicha hisoblanmagan UzQR toʻlovi hal qilindi',
+        'hold_released' => ':number buyurtma boʻyicha UzQR band qilishi olib tashlandi',
+        'hold_released_hint' => 'Buyurtmani yana toʻlash mumkin. Bank eski QR boʻyicha toʻlovni hali qabul qilishi mumkin: u avtomatik ravishda buyurtmaga qoʻllanadi yoki mos kelmagan deb belgilanadi.',
+        'problem' => 'UzQR integratsiyasida muammo',
+        'settings_changed' => 'UzQR sozlamalari oʻzgartirildi',
+        'settings_check' => 'Agar bu oʻzgarishni kutmagan boʻlsangiz, darhol Sozlamalar → Integratsiyalarni tekshiring.',
+        'labels' => [
+            'amount' => 'Summa',
+            'reason' => 'Sabab',
+            'resolution' => 'Qaror',
+            'by' => 'Kim',
+            'order' => 'Buyurtma',
+            'fields' => 'Maydonlar',
+        ],
+    ],
 ];

@@ -135,6 +135,17 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // Payment providers (Payme / Click webhooks, UzQR API calls): method,
+        // path, HTTP code, error code, duration and ids only; never a body,
+        // an Authorization / Auth header, a key, a signature or a QR text.
+        'payments' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/payments.log'),
+            'level' => 'info',
+            'max_files' => 90,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

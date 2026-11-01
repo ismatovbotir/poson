@@ -2,6 +2,7 @@
 
 namespace App\Actions\Orders;
 
+use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,8 @@ class ReleaseStalePaymentHolds
 
         Order::query()
             ->where('payment_status', PaymentStatus::Pending->value)
+            // Dynamic UzQR releases its own orders, only after a bank-confirmed final status (condition 40).
+            ->where('payment_method', '!=', PaymentMethod::UzqrDynamic->value)
             ->orderBy('id')
             ->pluck('id')
             ->each(function (int $id) use (&$released): void {

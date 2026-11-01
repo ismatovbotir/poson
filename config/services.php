@@ -79,4 +79,13 @@ return [
         'mode' => env('CLICK_MODE'),
     ],
 
+    // Dynamic UzQR (plan 11e): merchant STIR / PINFL, API keys of the website
+    // POS (live and test) and the active mode. Base URLs: config/uzqr.php.
+    'uzqr' => [
+        'inn' => env('UZQR_INN'),
+        'api_key' => env('UZQR_API_KEY'),
+        'test_api_key' => env('UZQR_TEST_API_KEY'),
+        'mode' => env('UZQR_MODE'),
+    ],
+
 ];

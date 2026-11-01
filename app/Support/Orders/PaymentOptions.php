@@ -6,6 +6,7 @@ use App\Enums\DeliveryType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentMode;
 use App\Models\Order;
+use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\CompanySettings;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Orders\Contracts\PaymentHold;
@@ -26,7 +27,13 @@ use Illuminate\Support\Facades\Route;
  * - on_receipt: pickup or courier in Kokand only;
  * - bank_transfer: companies and sole proprietors (YaTT), with complete
  *   company requisites (legal name, STIR, bank, MFO, account);
- * - reserved methods (uzqr_dynamic): never.
+ * - uzqr_dynamic (plan 11e): the UzQR mode matches the order (real order:
+ *   prod behind the go-live gate; TEST order: test with a separate test
+ *   host), INN + key + https base URL configured, the UzqrHold registered,
+ *   no auth-failed flag, fewer open invoices than checkout.uzqr_max_open
+ *   and 0 < total ≤ max_online_total. No webhook, APP_URL or IKPU needed;
+ * - forCheckout() (public checkout) hides uzqr_static while uzqr_dynamic
+ *   is offered (static = fallback; staff can still pick it in admin).
  *
  * Until plans 11c/11d register the webhook routes, Payme and Click are
  * never offered.
@@ -41,7 +48,7 @@ class PaymentOptions
         'click' => 'webhooks.click.prepare',
     ];
 
-    public function __construct(protected CheckoutSettings $settings, protected CompanySettings $company) {}
+    public function __construct(protected CheckoutSettings $settings, protected CompanySettings $company, protected UzqrConfig $uzqr) {}
 
     /**
      * Methods allowed for the order, in display order.
@@ -51,6 +58,23 @@ class PaymentOptions
     public function for(PaymentContext $context): array
     {
         return array_values(array_filter(PaymentMethod::available(), fn (PaymentMethod $method): bool => $this->rejection($method, $context) === null));
+    }
+
+    /**
+     * Methods the public checkout offers: as for(), but the static UzQR code
+     * is only a fallback while dynamic UzQR is offered (plan 11e, U3).
+     *
+     * @return list<PaymentMethod>
+     */
+    public function forCheckout(PaymentContext $context): array
+    {
+        $methods = $this->for($context);
+
+        if (in_array(PaymentMethod::UzqrDynamic, $methods, true)) {
+            $methods = array_values(array_filter($methods, fn (PaymentMethod $method): bool => $method !== PaymentMethod::UzqrStatic));
+        }
+
+        return $methods;
     }
 
     /**
@@ -77,6 +101,15 @@ class PaymentOptions
     {
         if ($method->isReserved()) {
             return 'reserved';
+        }
+
+        if ($method === PaymentMethod::UzqrDynamic) {
+            return match (true) {
+                ! $this->uzqr->canStart($context->isTest ? PaymentMode::Test : PaymentMode::Prod) => 'provider',
+                $context->total <= 0 || $context->total > $this->settings->maxOnlineTotal() => 'online_total',
+                $this->uzqr->openCapReached() => 'uzqr_busy',
+                default => null,
+            };
         }
 
         if ($method->isOnline()) {

@@ -34,6 +34,14 @@
         </section>
     @endif
 
+    @if ($this->uzqrUnmatched > 0)
+        <section class="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 sm:flex-row sm:items-center sm:p-5" role="alert" data-uzqr-unmatched-alert>
+            <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-amber-600"><x-admin.icon name="card" /></span>
+            <p class="min-w-0 flex-1 text-sm font-semibold">{{ __('uzqr.admin.unmatched_count', ['count' => $this->uzqrUnmatched]) }}</p>
+            <x-admin.button size="sm" variant="secondary" :href="route('admin.payments.index')" wire:navigate>{{ __('uzqr.admin.attention_title') }}</x-admin.button>
+        </section>
+    @endif
+
     @if ($this->leadCards !== [])
         <section class="mt-4 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-label="{{ __('crm.dashboard.leads_label') }}" data-lead-cards>
             @foreach ($this->leadCards as $card)

@@ -14,6 +14,7 @@ use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Livewire\Forms\Admin\Settings\IntegrationSettingsForm;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
+use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
@@ -53,7 +54,7 @@ class Integrations extends Component
     /**
      * Payment providers with a test / prod mode (plan 11 v2 §1.8).
      */
-    public const PAYMENT_GROUPS = ['payme', 'click'];
+    public const PAYMENT_GROUPS = ['payme', 'click', 'uzqr'];
 
     public IntegrationSettingsForm $form;
 
@@ -119,7 +120,7 @@ class Integrations extends Component
 
         $values = $this->form->valuesFor($group);
 
-        if (in_array($group, self::PAYMENT_GROUPS, true) && $this->switchesToProd($group, $values)) {
+        if (in_array($group, self::PAYMENT_GROUPS, true) && ($this->switchesToProd($group, $values) || $this->switchesUzqrWithOpenInvoices($group, $values))) {
             // Validate first, so the dialog never opens for a value that can't be saved.
             $this->runFormAction(fn (): array => $saveSettings->validate($values), 'form.values.');
 
@@ -127,7 +128,9 @@ class Integrations extends Component
 
             $this->dispatch('confirm',
                 title: __("admin.settings.integrations.{$group}.prod_confirm_title"),
-                body: __("admin.settings.integrations.{$group}.prod_confirm_body").(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
+                body: ($this->switchesToProd($group, $values) ? __("admin.settings.integrations.{$group}.prod_confirm_body") : '')
+                    .($this->switchesUzqrWithOpenInvoices($group, $values) ? ' '.__('admin.settings.integrations.uzqr.open_invoices_confirm', ['count' => app(UzqrConfig::class)->openCount()]) : '')
+                    .(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
                 label: __('admin.settings.integrations.payme.prod_confirm_label'),
                 componentId: $this->getId(),
                 method: 'confirmProd',
@@ -296,6 +299,7 @@ class Integrations extends Component
         return match ($target) {
             'telegram' => 'telegram_bot_token',
             'telegram_chat' => 'telegram_chats_'.$chat,
+            'uzqr' => 'uzqr_connection',
             default => $target,
         };
     }
@@ -323,7 +327,12 @@ class Integrations extends Component
             'sections' => $sections,
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'prodGroups' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => Secrets::get("{$group}.mode") === PaymentMode::Prod->value || data_get($this->form->values, "{$group}.mode") === PaymentMode::Prod->value)),
-            'testKeyMissing' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => (data_get($this->form->values, "{$group}.mode") ?: Secrets::get("{$group}.mode")) === PaymentMode::Test->value && ! Secrets::isConfigured($group === 'payme' ? 'payme.test_key' : 'click.test_secret_key'))),
+            'testKeyMissing' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => (data_get($this->form->values, "{$group}.mode") ?: Secrets::get("{$group}.mode")) === PaymentMode::Test->value && ! Secrets::isConfigured(match ($group) {
+                'payme' => 'payme.test_key',
+                'click' => 'click.test_secret_key',
+                default => 'uzqr.test_api_key',
+            }))),
+            'uzqr' => $this->uzqrState(),
             'webhooksPublic' => IntegrationRegistry::webhooksArePublic(),
             'isProduction' => app()->isProduction(),
             'webhookUrls' => IntegrationRegistry::webhookUrls(),
@@ -351,6 +360,41 @@ class Integrations extends Component
     {
         return ($values["{$group}.mode"] ?? null) === PaymentMode::Prod->value
             && Secrets::get("{$group}.mode") !== PaymentMode::Prod->value;
+    }
+
+    /**
+     * Changing the UzQR mode while invoices are open needs a confirmation:
+     * they keep being polled with their own mode (condition 36).
+     *
+     * @param  array<string, mixed>  $values
+     */
+    protected function switchesUzqrWithOpenInvoices(string $group, array $values): bool
+    {
+        return $group === 'uzqr'
+            && isset($values['uzqr.mode'])
+            && $values['uzqr.mode'] !== (Secrets::get('uzqr.mode') ?? PaymentMode::Test->value)
+            && app(UzqrConfig::class)->openCount() > 0;
+    }
+
+    /**
+     * UzQR panel facts (display-safe: hosts only, no keys).
+     *
+     * @return array{active_mode: PaymentMode, test_available: bool, go_live: bool, missing: list<string>, prod_host: string|null, test_host: string|null, auth_failed: bool, open: int}
+     */
+    protected function uzqrState(): array
+    {
+        $config = app(UzqrConfig::class);
+
+        return [
+            'active_mode' => $config->activeMode(),
+            'test_available' => $config->testAvailable(),
+            'go_live' => $config->goLiveOpen(),
+            'missing' => $config->missingBankAnswers(),
+            'prod_host' => $config->host(PaymentMode::Prod),
+            'test_host' => $config->host(PaymentMode::Test),
+            'auth_failed' => $config->authFailed($config->activeMode()),
+            'open' => $config->openCount(),
+        ];
     }
 
     protected function secretField(string $key): IntegrationField

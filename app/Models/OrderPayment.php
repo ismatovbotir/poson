@@ -137,14 +137,30 @@ class OrderPayment extends Model
     }
 
     /**
-     * Paid manual payments not yet ticked off against the bank statement.
+     * Methods whose payments Admins tick off against the bank statement:
+     * the manual ones and dynamic UzQR (no reconciliation API yet, condition 51).
+     *
+     * @return list<PaymentMethod>
+     */
+    public static function reconcilableMethods(): array
+    {
+        return [...PaymentMethod::manual(), PaymentMethod::UzqrDynamic];
+    }
+
+    public function isReconcilable(): bool
+    {
+        return $this->method !== null && in_array($this->method, static::reconcilableMethods(), true);
+    }
+
+    /**
+     * Paid manual / dynamic UzQR payments not yet ticked off against the bank statement.
      *
      * @param  Builder<self>  $query
      */
     public function scopeUnreconciled(Builder $query): void
     {
         $query->where('status', OrderPaymentStatus::Paid->value)
-            ->whereIn('method', array_map(fn (PaymentMethod $method): string => $method->value, PaymentMethod::manual()))
+            ->whereIn('method', array_map(fn (PaymentMethod $method): string => $method->value, static::reconcilableMethods()))
             ->whereNull('reconciled_at');
     }
 }

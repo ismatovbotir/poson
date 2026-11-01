@@ -296,6 +296,8 @@ return [
         'delivery' => 'Delivery',
         'subtotal' => 'Goods',
         'delivery_separate' => 'Delivery: confirmed by the manager and billed separately.',
+        'delivery_additional_separate' => 'The additional part of delivery is confirmed by the manager and billed separately.',
+        'cancelled' => 'The order is cancelled.',
         'delivery_separate_short' => 'billed separately',
         'how_to_pay' => 'How to pay',
         'paid' => 'The order is paid. Thank you!',

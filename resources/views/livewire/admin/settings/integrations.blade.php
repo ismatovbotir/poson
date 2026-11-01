@@ -2,7 +2,7 @@
     $t = 'admin.settings.integrations';
     // Connection test per secret (Payme / Click have none: webhook URLs instead).
     $tests = ['telegram.bot_token' => 'telegram'];
-    $icons = ['telegram' => 'telegram', 'payme' => 'card', 'click' => 'card'];
+    $icons = ['telegram' => 'telegram', 'payme' => 'card', 'click' => 'card', 'uzqr' => 'card'];
 @endphp
 
 {{-- Settings → Integrations (plan 04b T7). Secrets are write-only: only their status is rendered. --}}
@@ -87,6 +87,10 @@
                             </div>
                         @endif
                     </form>
+                @endif
+
+                @if ($group === 'uzqr')
+                    @include('livewire.admin.settings.integrations.uzqr', ['uzqr' => $uzqr, 'fields' => $fields])
                 @endif
 
                 @if (in_array($group, ['payme', 'click'], true))

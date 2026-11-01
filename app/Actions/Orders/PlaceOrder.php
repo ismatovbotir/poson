@@ -130,7 +130,7 @@ class PlaceOrder
             $ikpuComplete = static::ikpuComplete($priced, $delivery, $this->settings);
             $context = new PaymentContext($input['delivery_type'], $input['buyer_type'], $total, $ikpuComplete);
 
-            if (! $this->paymentOptions->allows($input['payment_method'], $context)) {
+            if (! in_array($input['payment_method'], $this->paymentOptions->forCheckout($context), true)) {
                 throw ValidationException::withMessages(['paymentMethod' => __('checkout.errors.payment_unavailable')]);
             }
 

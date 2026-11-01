@@ -9,8 +9,10 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Lead;
+use App\Models\OrderPayment;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\UzqrTransaction;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -128,6 +130,25 @@ class Dashboard extends Component
         $leads = Lead::query()->whereKey($leadIds)->get(['id', 'name', 'company'])->sortBy(fn (Lead $lead): int => array_search($lead->id, $leadIds, true))->values();
 
         return ['count' => $count, 'leads' => $leads];
+    }
+
+    /**
+     * Unresolved unmatched dynamic UzQR payments (plan 11e, condition 50):
+     * money received that no order took yet; for payment viewers.
+     */
+    #[Computed]
+    public function uzqrUnmatched(): int
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        if (! $user->can('viewAny', OrderPayment::class)) {
+            return 0;
+        }
+
+        return UzqrTransaction::query()->unresolvedUnmatched()
+            ->when(! $user->can('payments.test'), fn ($query) => $query->whereHas('order', fn ($order) => $order->where('is_test', false)))
+            ->count();
     }
 
     /**

@@ -14,8 +14,10 @@
     @elseif ($field->type === \App\Support\Integrations\IntegrationField::TYPE_SELECT)
         <x-admin.select wire:model.live="{{ $model }}" :label="$field->label()" :hint="$hint" :disabled="$state['locked']">
             @foreach ($field->options as $option)
-                <option value="{{ $option }}">{{ match ($field->key) {
-                    'payme.mode', 'click.mode' => \App\Enums\PaymentMode::from($option)->label(),
+                {{-- UzQR: no test option without a separate test host; prod only behind the go-live gate (conditions 33, 34). --}}
+                @continue($field->key === 'uzqr.mode' && $option === 'test' && ! ($uzqr['test_available'] ?? false))
+                <option value="{{ $option }}" @disabled($field->key === 'uzqr.mode' && $option === 'prod' && ! ($uzqr['go_live'] ?? false))>{{ match ($field->key) {
+                    'payme.mode', 'click.mode', 'uzqr.mode' => \App\Enums\PaymentMode::from($option)->label(),
                     'telegram.locale' => __('admin.locale.'.$option),
                     default => $option,
                 } }}</option>

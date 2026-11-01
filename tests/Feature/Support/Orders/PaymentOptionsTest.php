@@ -6,6 +6,7 @@ use App\Enums\DeliveryType;
 use App\Enums\PaymentMethod;
 use App\Enums\Region;
 use App\Models\Quote;
+use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\CompanySettings;
 use App\Support\Orders\CheckoutSettings;
 use App\Support\Orders\DeliveryQuote;
@@ -49,11 +50,11 @@ it('never offers Payme or Click while their webhooks are not built, in test mode
     expect($options->providerReady(PaymentMethod::Payme, false))->toBeFalse()
         ->and($options->providerReady(PaymentMethod::Payme, true))->toBeFalse()
         ->and($options->rejection(PaymentMethod::Payme, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('provider')
-        ->and($options->rejection(PaymentMethod::UzqrDynamic, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('reserved');
+        ->and($options->rejection(PaymentMethod::UzqrDynamic, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('provider');
 });
 
 it('rejects online payment above the online cap and without IKPU once a provider is live', function () {
-    $options = Mockery::mock(PaymentOptions::class, [app(CheckoutSettings::class), app(CompanySettings::class)])->makePartial();
+    $options = Mockery::mock(PaymentOptions::class, [app(CheckoutSettings::class), app(CompanySettings::class), app(UzqrConfig::class)])->makePartial();
     $options->shouldReceive('providerReady')->andReturn(true);
     checkoutSettings(['max_online_total' => 50_000_000]);
 

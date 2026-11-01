@@ -222,6 +222,21 @@ return [
         'rejected' => 'Rejected',
     ],
 
+    'uzqr_transaction_status' => [
+        'creating' => 'Creating',
+        'pending' => 'Waiting for payment',
+        'paid' => 'Paid',
+        'failed' => 'Closed',
+        'expired' => 'Expired',
+        'create_failed' => 'Not created',
+        'released' => 'Hold released',
+    ],
+
+    'uzqr_settlement' => [
+        'settled' => 'Applied',
+        'unmatched' => 'Not applied',
+    ],
+
     'payment_mode' => [
         'test' => 'Test',
         'prod' => 'Live',
@@ -253,10 +268,10 @@ return [
     'payment_method' => [
         'payme' => 'Payme',
         'click' => 'Click',
-        'uzqr_static' => 'UzQR',
+        'uzqr_static' => 'UzQR (static code)',
         'on_receipt' => 'On receipt',
         'bank_transfer' => 'Bank transfer',
-        'uzqr_dynamic' => 'UzQR (online)',
+        'uzqr_dynamic' => 'Pay with UzQR',
     ],
 
     'receipt_channel' => [

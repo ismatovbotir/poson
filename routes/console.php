@@ -63,3 +63,13 @@ Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->w
 */
 
 Schedule::command('orders:release-holds')->everyTenMinutes()->withoutOverlapping(10)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Dynamic UzQR (plan 11e)
+|--------------------------------------------------------------------------
+| The bank has no callbacks: due invoices are checked every minute (backoff
+| by age, expiry handling, stale "creating" rows closed). ≤ 100 per run.
+*/
+
+Schedule::command('uzqr:sync')->everyMinute()->withoutOverlapping(5)->onOneServer();

@@ -48,6 +48,10 @@ class VoidManualPayment
                 throw ValidationException::withMessages(['reason' => __('orders.errors.payment_not_paid')]);
             }
 
+            if ($order->hasActiveTransaction()) {
+                throw ValidationException::withMessages(['reason' => __('orders.errors.lines_locked')]);
+            }
+
             if (! $payment->isManual()) {
                 throw ValidationException::withMessages(['reason' => __('orders.errors.void_webhook')]);
             }

@@ -155,7 +155,12 @@ class Page extends Component
 
         $recordOrder->handle(request(), $this->pageUrl, $this->locale);
 
-        $this->redirect(route('orders.public', ['ulid' => $order->ulid, 'lang' => $this->locale]));
+        $this->redirect(route('orders.public', array_filter([
+            'ulid' => $order->ulid,
+            'lang' => $this->locale,
+            // Dynamic UzQR: /o opens the "Pay with UzQR" dialog (the QR is created only on a click).
+            'pay' => $order->payment_method === PaymentMethod::UzqrDynamic ? 'uzqr' : null,
+        ])));
     }
 
     public function render(CartPricer $pricer, CheckoutSettings $settings, PaymentOptions $paymentOptions): View
@@ -171,7 +176,7 @@ class Page extends Component
         if ($priced !== null && ! $priced->isEmpty()) {
             $this->fingerprint = PlaceOrder::fingerprint($priced, $delivery);
             $total = $priced->subtotal + $delivery->amount;
-            $methods = $paymentOptions->for(new PaymentContext($deliveryType, $buyerType, $total, PlaceOrder::ikpuComplete($priced, $delivery, $settings)));
+            $methods = $paymentOptions->forCheckout(new PaymentContext($deliveryType, $buyerType, $total, PlaceOrder::ikpuComplete($priced, $delivery, $settings)));
 
             if (! in_array(PaymentMethod::tryFrom($this->paymentMethod), $methods, true)) {
                 $this->paymentMethod = $methods !== [] ? $methods[0]->value : '';

@@ -6,6 +6,8 @@
         <x-slot:breadcrumbs>{{ __('menu.groups.sales') }} <span class="text-slate-300">/</span> {{ __('orders.payments.list_title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
+    @include('livewire.admin.payments.partials.uzqr-attention')
+
     <div class="mt-5 flex flex-wrap items-end gap-2">
         <label class="relative min-w-0 flex-1 basis-full sm:basis-auto">
             <span class="sr-only">{{ __('admin.common.search') }}</span>
@@ -48,11 +50,11 @@
                         <td class="whitespace-nowrap px-4 py-3"><a href="{{ route('admin.orders.show', $payment->order_id) }}" wire:navigate class="font-mono font-semibold hover:text-brand-700">{{ $payment->order?->number }}</a>@if ($payment->is_test) <x-admin.badge color="red">TEST</x-admin.badge>@endif</td>
                         <td class="px-4 py-3">{{ $payment->purpose->label() }}</td>
                         <td class="px-4 py-3">{{ $payment->method?->label() ?? __('admin.common.empty_value') }}@if ($payment->receipt_channel)<span class="block text-xs text-slate-500">{{ $payment->receipt_channel->label() }}</span>@endif</td>
-                        <td class="px-4 py-3 font-mono text-xs">{{ $payment->reference ?? __('admin.common.empty_value') }}</td>
+                        <td class="px-4 py-3 font-mono text-xs">{{ $payment->reference ?? $payment->provider_ref ?? __('admin.common.empty_value') }}</td>
                         <td class="px-4 py-3"><x-admin.badge :color="$payment->status->color()">{{ $payment->status->label() }}</x-admin.badge></td>
                         <td class="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums">{{ $money($payment->amount) }}</td>
                         <td class="py-3 pr-5">
-                            @if ($payment->status === \App\Enums\OrderPaymentStatus::Paid && $payment->isManual())
+                            @if ($payment->status === \App\Enums\OrderPaymentStatus::Paid && $payment->isReconcilable())
                                 @if ($payment->reconciled_at)
                                     <span class="text-xs text-emerald-700" data-reconciled>{{ __('orders.payments.reconciled_by', ['name' => $payment->reconciledBy?->name ?? '—', 'date' => $payment->reconciled_at->copy()->setTimezone(\App\Models\Lead::TIMEZONE)->format('d.m.Y')]) }}</span>
                                     @if ($canReconcile)<button type="button" wire:click="setReconciled({{ $payment->id }}, false)" class="block text-xs font-semibold text-slate-500 hover:text-slate-700">{{ __('orders.payments.unreconcile') }}</button>@endif

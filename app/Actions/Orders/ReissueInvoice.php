@@ -26,7 +26,7 @@ class ReissueInvoice
      */
     public function handle(Order $order, ?User $actor, ?int $oldTotal = null): void
     {
-        if ($order->payment_status !== PaymentStatus::Unpaid) {
+        if ($order->payment_status !== PaymentStatus::Unpaid || $order->hasActiveTransaction()) {
             throw ValidationException::withMessages(['invoice' => __('orders.errors.not_unpaid')]);
         }
 

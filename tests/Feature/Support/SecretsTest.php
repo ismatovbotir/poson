@@ -214,5 +214,5 @@ it('declares no AI provider or remove.bg keys any more', function () {
 
     expect($example)->not->toMatch('/^(AI_[A-Z_]+|ANTHROPIC_API_KEY|OPENAI_API_KEY|OPENROUTER_API_KEY|REMOVEBG_API_KEY)=/m')
         ->and(config('services'))->not->toHaveKeys(['anthropic', 'openai', 'openrouter', 'removebg'])
-        ->and(IntegrationRegistry::GROUPS)->toBe(['telegram', 'payme', 'click']);
+        ->and(IntegrationRegistry::GROUPS)->toBe(['telegram', 'payme', 'click', 'uzqr']);
 });

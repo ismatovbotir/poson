@@ -115,7 +115,10 @@
         <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8" aria-labelledby="pay-title" data-payment-instructions="{{ $method->value }}">
             <h2 id="pay-title" class="text-lg font-bold">{{ __('orders.public.how_to_pay') }}</h2>
 
-            @if ($cancelled && $order->payment_status !== \App\Enums\PaymentStatus::Refunded)
+            @if ($method === \App\Enums\PaymentMethod::UzqrDynamic && ! $cancelled && $order->payment_status !== \App\Enums\PaymentStatus::Refunded)
+                {{-- Dynamic UzQR: only this QR for the goods while it is open (condition 41). --}}
+                <livewire:site.orders.uzqr-payment :ulid="$order->ulid" :locale="$locale" :auto-open="$autoOpenUzqr" />
+            @elseif ($cancelled && $order->payment_status !== \App\Enums\PaymentStatus::Refunded)
                 <p class="mt-2 text-sm text-slate-600" data-order-cancelled>{{ __('orders.public.cancelled') }}</p>
             @elseif ($order->payment_status === \App\Enums\PaymentStatus::Paid)
                 <p class="mt-2 text-sm font-semibold text-emerald-700" data-paid>{{ __('orders.public.paid') }}</p>

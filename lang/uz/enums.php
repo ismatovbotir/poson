@@ -222,6 +222,21 @@ return [
         'rejected' => 'Rad etildi',
     ],
 
+    'uzqr_transaction_status' => [
+        'creating' => 'Yaratilmoqda',
+        'pending' => 'Toʻlov kutilmoqda',
+        'paid' => 'Toʻlangan',
+        'failed' => 'Yopilgan',
+        'expired' => 'Muddati tugagan',
+        'create_failed' => 'Yaratilmadi',
+        'released' => 'Band qilish olib tashlandi',
+    ],
+
+    'uzqr_settlement' => [
+        'settled' => 'Hisoblandi',
+        'unmatched' => 'Hisoblanmadi',
+    ],
+
     'payment_mode' => [
         'test' => 'Sinov rejimi',
         'prod' => 'Ishchi rejim',
@@ -253,10 +268,10 @@ return [
     'payment_method' => [
         'payme' => 'Payme',
         'click' => 'Click',
-        'uzqr_static' => 'UzQR',
+        'uzqr_static' => 'UzQR (statik kod)',
         'on_receipt' => 'Olganda toʻlash',
         'bank_transfer' => 'Bank oʻtkazmasi',
-        'uzqr_dynamic' => 'UzQR (onlayn)',
+        'uzqr_dynamic' => 'UzQR orqali toʻlov',
     ],
 
     'receipt_channel' => [

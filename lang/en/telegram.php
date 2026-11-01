@@ -61,4 +61,22 @@ return [
         ],
     ],
 
+    'uzqr' => [
+        'unmatched' => 'UzQR payment for order :number received but not applied',
+        'unmatched_hint' => 'The order was not changed. An Admin must resolve it on the order page.',
+        'resolved' => 'Unmatched UzQR payment for order :number resolved',
+        'hold_released' => 'UzQR hold released for order :number',
+        'hold_released_hint' => 'The order can be paid again. The bank may still take the old QR payment: it will be applied or flagged as unmatched automatically.',
+        'problem' => 'UzQR integration problem',
+        'settings_changed' => 'UzQR settings changed',
+        'settings_check' => 'If you didn’t expect this change, check Settings → Integrations right away.',
+        'labels' => [
+            'amount' => 'Amount',
+            'reason' => 'Reason',
+            'resolution' => 'Decision',
+            'by' => 'By',
+            'order' => 'Order',
+            'fields' => 'Fields',
+        ],
+    ],
 ];

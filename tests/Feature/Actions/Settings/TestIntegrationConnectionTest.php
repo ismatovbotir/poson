@@ -155,7 +155,7 @@ describe('telegram', function () {
 it('rejects the removed AI and remove.bg targets', function (string $target) {
     Http::fake();
 
-    expect(TestIntegrationConnection::TARGETS)->toBe(['telegram', 'telegram_chat'])
+    expect(TestIntegrationConnection::TARGETS)->toBe(['telegram', 'telegram_chat', 'uzqr'])
         ->and(fn () => runConnectionTest($target))->toThrow(InvalidArgumentException::class);
 
     Http::assertNothingSent();

@@ -4,6 +4,7 @@ namespace App\Actions\Settings;
 
 use App\Enums\AuditAction;
 use App\Enums\SettingsArea;
+use App\Events\Uzqr\UzqrSettingsChanged;
 use App\Models\IntegrationSecret;
 use App\Models\SettingsAudit;
 use App\Models\User;
@@ -40,6 +41,10 @@ class ClearSecret
             SettingsAudit::record(SettingsArea::Integrations, $key, AuditAction::Cleared, $user, $ip);
 
             DB::afterCommit(fn () => Secrets::flush());
+
+            if (str_starts_with($key, 'uzqr.')) {
+                UzqrSettingsChanged::dispatch([$key], $user);
+            }
 
             return true;
         });

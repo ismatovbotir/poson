@@ -222,6 +222,21 @@ return [
         'rejected' => 'Отклонён',
     ],
 
+    'uzqr_transaction_status' => [
+        'creating' => 'Создаётся',
+        'pending' => 'Ожидает оплаты',
+        'paid' => 'Оплачен',
+        'failed' => 'Закрыт',
+        'expired' => 'Истёк',
+        'create_failed' => 'Не создан',
+        'released' => 'Удержание снято',
+    ],
+
+    'uzqr_settlement' => [
+        'settled' => 'Зачтён',
+        'unmatched' => 'Не зачтён',
+    ],
+
     'payment_mode' => [
         'test' => 'Тест',
         'prod' => 'Боевой',
@@ -253,10 +268,10 @@ return [
     'payment_method' => [
         'payme' => 'Payme',
         'click' => 'Click',
-        'uzqr_static' => 'UzQR',
+        'uzqr_static' => 'UzQR (статический код)',
         'on_receipt' => 'При получении',
         'bank_transfer' => 'Банковский перевод',
-        'uzqr_dynamic' => 'UzQR (онлайн)',
+        'uzqr_dynamic' => 'Оплата через UzQR',
     ],
 
     'receipt_channel' => [

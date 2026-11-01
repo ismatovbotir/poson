@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Payments;
 
 use App\Actions\Orders\SetPaymentReconciled;
+use App\Actions\Payments\Uzqr\ConfirmUzqrFiscalReceipt;
 use App\Enums\OrderPaymentPurpose;
 use App\Enums\OrderPaymentStatus;
 use App\Enums\PaymentMethod;
@@ -11,6 +12,7 @@ use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Models\Lead;
 use App\Models\OrderPayment;
 use App\Models\User;
+use App\Models\UzqrTransaction;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,6 +28,11 @@ use Throwable;
  * "manually confirmed, not reconciled" filter. Admins tick a paid manual
  * payment off against the bank statement (payments.reconcile, audited in
  * the order history).
+ *
+ * Dynamic UzQR (plan 11e, conditions 47, 50, 51): "UzQR needs attention"
+ * lists unresolved unmatched payments (resolved on the order page) and
+ * settled payments whose fiscal receipt finance hasn't confirmed yet;
+ * Admins (payments.reconcile) tick a receipt off here.
  */
 #[Layout('layouts::admin')]
 class Index extends Component
@@ -86,6 +93,21 @@ class Index extends Component
         }
     }
 
+    /**
+     * Finance confirms the fiscal receipt of a settled UzQR payment (condition 47).
+     */
+    public function confirmReceipt(int $transactionId, ConfirmUzqrFiscalReceipt $confirm): void
+    {
+        $transaction = UzqrTransaction::query()->with('order')->findOrFail($transactionId);
+
+        abort_unless($transaction->order !== null, 404);
+        $this->authorize('resolveUzqr', $transaction->order);
+
+        if ($this->runToastAction(fn () => $confirm->handle($transaction, $this->user()))) {
+            $this->dispatch('toast', title: __('admin.toast.saved'), body: __('uzqr.admin.receipt_confirmed'), type: 'success');
+        }
+    }
+
     public function render(): View
     {
         $user = $this->user();
@@ -108,8 +130,16 @@ class Index extends Component
             ->latest('id')
             ->paginate(self::PER_PAGE);
 
+        $uzqrScope = fn (Builder $query) => $query
+            ->with('order:id,number,is_test')
+            ->whereHas('order', fn (Builder $order) => $order->when(! $user->can('payments.test'), fn (Builder $real) => $real->where('is_test', false)))
+            ->latest('id')
+            ->limit(50);
+
         return view('livewire.admin.payments.index', [
             'payments' => $payments,
+            'uzqrUnmatched' => UzqrTransaction::query()->unresolvedUnmatched()->tap($uzqrScope)->get(),
+            'uzqrReceipts' => UzqrTransaction::query()->receiptRequired()->tap($uzqrScope)->get(),
             'canReconcile' => $user->can('payments.reconcile'),
             'filtering' => $search !== '' || $this->status !== '' || $this->method !== '' || $this->purpose !== '' || $this->unreconciled || $from !== null || $to !== null,
         ])->title(__('orders.payments.list_title'));

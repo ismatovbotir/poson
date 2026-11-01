@@ -296,6 +296,8 @@ return [
         'delivery' => 'Yetkazib berish',
         'subtotal' => 'Mahsulotlar',
         'delivery_separate' => 'Yetkazib berish: menejer tasdiqlaydi va alohida toʻlanadi.',
+        'delivery_additional_separate' => 'Yetkazib berishning qoʻshimcha qismi menejer tasdiqlaydi va alohida toʻlanadi.',
+        'cancelled' => 'Buyurtma bekor qilingan.',
         'delivery_separate_short' => 'alohida toʻlanadi',
         'how_to_pay' => 'Qanday toʻlash mumkin',
         'paid' => 'Buyurtma toʻlangan. Rahmat!',
