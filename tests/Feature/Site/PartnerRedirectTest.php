@@ -18,6 +18,8 @@ const PARTNER_HUMAN_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 const PARTNER_GPTBOT_UA = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot';
 
 beforeEach(function () {
+    // These tests cover the site open for indexing (plan 15: closed by default).
+    openSearchIndexing();
     config(['analytics.enabled' => true]);
 });
 

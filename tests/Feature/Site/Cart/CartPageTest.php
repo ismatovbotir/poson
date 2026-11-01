@@ -80,6 +80,8 @@ describe('route', function () {
     });
 
     it('is disallowed in robots.txt and left out of the sitemap', function () {
+        openSearchIndexing();
+
         $this->get('/robots.txt')->assertSee('Disallow: /*/cart$');
         $this->get('/sitemap.xml')->assertDontSee('/cart');
     });

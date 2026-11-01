@@ -20,6 +20,8 @@ const TRACK_GPTBOT_UA = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); com
 
 beforeEach(function () {
     config(['analytics.enabled' => true]);
+    // The sitemap is a 404 while the site is closed for indexing (plan 15).
+    openSearchIndexing();
 });
 
 /**

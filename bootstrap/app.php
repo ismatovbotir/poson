@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateApiToken;
+use App\Http\Middleware\BlockSearchIndexing;
 use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\LimitJsonBody;
@@ -61,7 +62,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Traffic analytics (plan 04 4c): TrackVisit is global so 404s are seen and crawlers
         // get no session; CaptureAttribution runs inside the session (first-touch attribution).
         $middleware->append(TrackVisit::class);
-        $middleware->web(append: [CaptureAttribution::class]);
+        // Plan 15 C: X-Robots-Tag noindex, nofollow on every web response while the site is closed for indexing.
+        $middleware->web(append: [CaptureAttribution::class, BlockSearchIndexing::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

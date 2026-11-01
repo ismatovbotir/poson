@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\BannerPlacement;
 use App\Models\Banner;
+use App\Support\DemoContent;
 use App\Support\Site\BannerDirectory;
 use GdImage;
 use Illuminate\Database\Seeder;
@@ -11,15 +12,17 @@ use Illuminate\Database\Seeder;
 /**
  * Demo banners for local / staging only (plan 07 7c): two home slider
  * banners with generated placeholder images (GD gradients with shapes, no
- * text: K7) and texts in uz, ru and en. Skipped outside local / staging and
- * when banners already exist. The image conversions run right away (sync),
+ * text: K7) and texts in uz, ru and en. Skipped outside local / staging
+ * (unless LaunchSeeder opts in, DemoSeeding, plan 15) and when banners
+ * already exist. The uz title + link pairs identify the demo banners for
+ * `php artisan demo:remove` (App\Support\DemoContent). The image conversions run right away (sync),
  * so the slider shows without a queue worker.
  */
 class DemoBannersSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment(['local', 'staging']) || Banner::query()->exists()) {
+        if (! DemoSeeding::allowed() || DemoSeeding::blockedInProduction() || Banner::query()->exists()) {
             return;
         }
 
@@ -59,6 +62,8 @@ class DemoBannersSeeder extends Seeder
             ],
         ];
 
+        $ids = [];
+
         try {
             foreach ($banners as $index => $data) {
                 $banner = Banner::query()->create([
@@ -73,11 +78,13 @@ class DemoBannersSeeder extends Seeder
 
                 $this->attach($banner, Banner::DESKTOP, Banner::DESKTOP_WIDTH, Banner::DESKTOP_HEIGHT, $data['colors']);
                 $this->attach($banner, Banner::MOBILE, Banner::MOBILE_WIDTH, Banner::MOBILE_HEIGHT, $data['colors']);
+                $ids[] = $banner->id;
             }
         } finally {
             config(['media-library.queue_connection_name' => $queue]);
         }
 
+        DemoContent::remember('banner_ids', $ids);
         BannerDirectory::flush();
     }
 

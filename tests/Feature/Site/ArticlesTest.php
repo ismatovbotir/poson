@@ -7,6 +7,11 @@ use App\Support\Site\Navigation;
 use App\Support\Site\NewsCards;
 use App\Support\Site\NewsDirectory;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * JSON-LD @types of a page.
  *

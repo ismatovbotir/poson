@@ -14,6 +14,11 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * JSON-LD blocks of one @type.
  *

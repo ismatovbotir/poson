@@ -5,21 +5,20 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
- * Local / testing seed: roles and permissions, the catalog base data
- * (categories, attributes, brands), the FAQ, demo products on local /
- * staging (and demo leads with customers, DemoLeadsSeeder, and demo news,
- * DemoNewsSeeder, and demo home banners, DemoBannersSeeder), plus a non-staff
- * test user.
+ * Local / staging / testing seed: roles and permissions, the catalog base
+ * data (categories, attributes, brands), the FAQ, starter pages, draft
+ * articles, the demo catalog, news and banners (local / staging only,
+ * DemoSeeding) and demo leads with customers (local / staging only,
+ * DemoLeadsSeeder), plus the first Admin when ADMIN_SEED_LOGIN is set
+ * (local / staging) and a non-staff test user (local / testing).
  *
- * Production deploys do not run this seeder; they run
- * `php artisan db:seed --class=RolesAndPermissionsSeeder --force`
- * (and `--class=FaqSeeder` once the categories exist, `--class=PagesSeeder`
- * and `--class=ArticlesSeeder` (draft articles, after the categories) at
- * launch; all idempotent)
- * and create staff with `php artisan admin:create-user`.
+ * Never in production (plan 15 A1): it throws there. Production runs
+ * `php artisan db:seed --class=LaunchSeeder --force` instead, and other
+ * staff are created with `php artisan admin:create-user`.
  */
 class DatabaseSeeder extends Seeder
 {
@@ -27,9 +26,15 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * @throws RuntimeException in production
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new RuntimeException('DatabaseSeeder must not run in production: use `php artisan db:seed --class=LaunchSeeder --force`.');
+        }
+
         $this->call([
             RolesAndPermissionsSeeder::class,
             CatalogSeeder::class,
@@ -42,16 +47,22 @@ class DatabaseSeeder extends Seeder
             ArticlesSeeder::class,
         ]);
 
-        // Demo catalog: local and staging only, never production.
-        //if (app()->environment(['local', 'staging'])) {
-        $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
-        //}
+        // Demo content: each seeder checks its environment itself (local / staging only).
+        if (app()->environment(['local', 'staging'])) {
+            $this->call([DemoProductsSeeder::class, DemoLeadsSeeder::class, DemoNewsSeeder::class, DemoBannersSeeder::class]);
+        }
 
-        //if (app()->environment(['local', 'testing'])) {
-        User::query()->firstOrCreate(
-            ['email' => env('ADMIN_LOGIN')],
-            ['name' => 'Admin', 'password' => Hash::make(env('ADMIN_PASSWORD'))],
-        );
-        //}
+        // First Admin from config admin.seed_login / seed_password, when set (local and staging).
+        if (filled(config('admin.seed_login')) && app()->environment(['local', 'staging'])) {
+            $this->call(FirstAdminSeeder::class);
+        }
+
+        // A non-staff test user (local and testing; it can't open the admin panel).
+        if (app()->environment(['local', 'testing'])) {
+            User::query()->firstOrCreate(
+                ['email' => 'test@example.com'],
+                ['name' => 'Test User', 'password' => Str::random(40)],
+            );
+        }
     }
 }

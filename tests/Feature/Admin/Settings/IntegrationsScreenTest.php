@@ -349,6 +349,7 @@ describe('click mode', function () {
     it('asks for an extra confirmation before switching Click to prod', function () {
         IntegrationSecret::factory()->withValue('click.secret_key', 'fake-click-live-0000')->create();
         Setting::factory()->create(['key' => 'click.service_id', 'group' => 'integrations', 'value' => '12345']);
+        Setting::factory()->create(['key' => 'click.merchant_id', 'group' => 'integrations', 'value' => '11111']);
         Setting::factory()->create(['key' => 'click.merchant_user_id', 'group' => 'integrations', 'value' => '67890']);
         Secrets::flush();
         confirmAdminPassword();

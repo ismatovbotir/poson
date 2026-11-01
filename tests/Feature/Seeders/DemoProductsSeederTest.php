@@ -5,6 +5,11 @@ use App\Models\ProductRelation;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\DemoProductsSeeder;
 
+// Demo products seed on local / staging (or through LaunchSeeder, plan 15).
+beforeEach(function () {
+    app()['env'] = 'local';
+});
+
 /**
  * @return list<array<string, mixed>>
  */

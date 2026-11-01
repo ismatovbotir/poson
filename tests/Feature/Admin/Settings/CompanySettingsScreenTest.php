@@ -170,6 +170,8 @@ describe('saving', function () {
     });
 
     it('saves legal details, social links, hero stats, SEO codes and tracking', function () {
+        confirmAdminPassword();
+
         companyScreen()
             ->set('tab', 'legal')
             ->set('legal.inn', '301 234 567')

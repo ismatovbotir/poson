@@ -23,6 +23,7 @@ beforeEach(function () {
 
 it('saves fees, caps and fiscal codes, audited without values', function () {
     $admin = staffUser();
+    confirmAdminPassword();
 
     Livewire::actingAs($admin)->test(Checkout::class)
         ->set('form.region_fees.samarkand', '150 000')

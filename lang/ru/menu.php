@@ -40,6 +40,7 @@ return [
         'company' => 'Компания',
         'users' => 'Пользователи и роли',
         'checkout' => 'Оформление заказа',
+        'indexing' => 'Индексация',
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
     ],

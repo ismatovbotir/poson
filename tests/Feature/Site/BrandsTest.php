@@ -10,6 +10,11 @@ use App\Support\Site\Sitemap;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * Zebra (2 visible products in two sections, 1 draft), Honeywell (1 visible),
  * Empty (active, only a draft), Hidden (inactive, 1 product), Orphan (in a hidden category).

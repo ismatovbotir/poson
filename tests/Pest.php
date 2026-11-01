@@ -21,6 +21,8 @@ use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Orders\CheckoutSettings;
 use App\Support\Orders\DeliveryQuote;
 use App\Support\Secrets;
+use Database\Seeders\CatalogSeeder;
+use Database\Seeders\DemoProductsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -201,6 +203,37 @@ function postPrices(array|string $body, ?string $token = null, array $server = [
 function priceItem(mixed $code, mixed $retail = 1000, mixed $dealer = null, mixed $wholesale = null): array
 {
     return ['code' => $code, 'retail' => $retail, 'dealer' => $dealer, 'wholesale' => $wholesale];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Launch (plan 15)
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * The catalog base data plus the demo products, seeded as on local
+ * (demo seeders don't run in the testing environment, DemoSeeding).
+ */
+function seedDemoCatalog(): void
+{
+    $environment = app()->environment();
+    app()['env'] = 'local';
+
+    try {
+        test()->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    } finally {
+        app()['env'] = $environment;
+    }
+}
+
+/**
+ * Open the site for search engines and AI crawlers (Settings → Indexing; closed by default).
+ */
+function openSearchIndexing(bool $open = true): void
+{
+    Setting::query()->updateOrCreate(['key' => CompanySettings::INDEXING_KEY], ['group' => 'seo', 'value' => $open]);
+    CompanySettings::flush();
 }
 
 /*

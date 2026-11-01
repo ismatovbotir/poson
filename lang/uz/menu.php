@@ -40,6 +40,7 @@ return [
         'company' => 'Kompaniya',
         'users' => 'Foydalanuvchilar va rollar',
         'checkout' => 'Buyurtma rasmiylashtirish',
+        'indexing' => 'Indekslash',
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
     ],

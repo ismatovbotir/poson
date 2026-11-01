@@ -66,6 +66,9 @@ it('applies a preset, saves the full map and writes an audit without the value',
         ->and($audit->user_id)->toBe($admin->id)
         ->and(json_encode($audit->getAttributes()))->not->toContain('deny');
 
+    // The AI bot groups show while the site is open for indexing (plan 15).
+    openSearchIndexing();
+
     expect($this->get('/robots.txt')->getContent())->toContain("User-agent: GPTBot\nDisallow: /");
 });
 

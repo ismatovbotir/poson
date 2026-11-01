@@ -894,6 +894,22 @@ return [
     ],
 
     'settings' => [
+        'indexing' => [
+            'title' => 'Indexing',
+            'subtitle' => 'Whether search engines and AI crawlers may index the site',
+            'card_title' => 'Search engines and AI crawlers',
+            'card_hint' => 'Keep the site closed until the demo content is removed and real products are in.',
+            'state_open' => 'Open for indexing',
+            'state_closed' => 'Closed for indexing',
+            'label' => 'Allow search engines and AI crawlers to index the site',
+            'help' => 'Closed = hidden from search engines and AI crawlers, still visible to people.',
+            'closed_effect' => 'Closed: every page is marked noindex, nofollow, robots.txt blocks all crawlers, sitemap.xml and llms.txt are not available.',
+            'open_effect' => 'Open: the normal robots.txt, sitemap.xml and llms.txt are served and pages can appear in search results.',
+            'analytics_note' => 'AI bot analytics keep recording in both states.',
+            'password_hint' => 'Saving asks for your password again (valid for 15 minutes).',
+            'audit_title' => 'Recent changes',
+            'audit_empty' => 'No changes yet.',
+        ],
         'company' => [
             'title' => 'Company',
             'subtitle' => 'Contacts, legal details, social links and site settings',

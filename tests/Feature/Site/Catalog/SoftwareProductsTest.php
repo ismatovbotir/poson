@@ -15,7 +15,6 @@ use App\Models\TrafficDailyPage;
 use App\Support\Analytics\TrafficRecorder;
 use App\Support\Catalog\SoftwareSpecs;
 use Database\Seeders\CatalogSeeder;
-use Database\Seeders\DemoProductsSeeder;
 use Livewire\Livewire;
 
 /**
@@ -80,7 +79,7 @@ it('seeds the software attributes on the software category with the agreed filte
 });
 
 it('seeds the software specs from the verified facts only', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
     $sku = fn (string $sku) => Product::query()->where('sku', $sku)->sole();
 
     expect(softwareValues($sku('SW-ALIPOS'), 'modules'))->toBe(['Kassa (POS)', 'Ofitsiant ilovasi', 'Oshxona ekrani va printeri', 'Ombor hisobi', 'Yetkazib berish'])
@@ -121,7 +120,7 @@ it('keeps software copy generic: no prices, no platform or licence claims, no ba
 });
 
 it('shows the software details on the product page with Try and no prices', function (string $locale) {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
     $product = Product::query()->where('sku', 'SW-RAHMAT')->sole();
 
     $html = $this->get("/{$locale}/product/{$product->slug}")->assertOk()->getContent();
@@ -148,7 +147,7 @@ it('shows no software details block for other products', function () {
 });
 
 it('filters the software listing by platform, segment, modules and online cash register', function (string $code, string $value, array $expected) {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
 
     $filter = $code === SoftwareSpecs::ONLINE_CASH_REGISTER ? '1' : (string) softwareOption($code, $value);
     $html = $this->get('/en/catalog/software?'.http_build_query(['f' => [$code => [$filter]]]))->assertOk()->getContent();
@@ -169,7 +168,7 @@ it('filters the software listing by platform, segment, modules and online cash r
 ]);
 
 it('offers the software filters on the software category', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
 
     $html = $this->get('/en/catalog/pos-software')->assertOk()->getContent();
 
@@ -260,7 +259,7 @@ it('shows no stock status for software on cards, the product page and JSON-LD', 
 });
 
 it('shows no availability filter on the software category', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
 
     expect($this->get('/en/catalog/software')->assertOk()->getContent())->not->toContain('wire:key="filter-stock"')
         ->and($this->get('/en/catalog/scanners')->assertOk()->getContent())->toContain('wire:key="filter-stock"');
@@ -299,7 +298,7 @@ it('aggregates partner clicks idempotently', function () {
 });
 
 it('keeps software details out of the spec table and shows only the primary CTA in the sticky bar', function () {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
     $product = Product::query()->where('sku', 'SW-RAHMAT')->sole();
 
     $html = $this->get('/en/product/'.$product->slug)->assertOk()->getContent();

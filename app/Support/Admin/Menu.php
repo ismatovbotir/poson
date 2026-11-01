@@ -4,7 +4,9 @@ namespace App\Support\Admin;
 
 use App\Enums\LeadStatus;
 use App\Enums\Role;
+use App\Enums\SettingsArea;
 use App\Models\Lead;
+use App\Models\Setting;
 use App\Models\User;
 
 /**
@@ -87,6 +89,8 @@ final class Menu
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
                 // Plan 11b: delivery fees, order caps, IKPU, UzQR (Admin).
                 new MenuItem('checkout', 'menu.items.checkout', 'bag', 'admin.settings.checkout', permission: 'settings.checkout'),
+                // Plan 15 C: search indexing switch (Admin: settings.company + settings.integrations).
+                new MenuItem('indexing', 'menu.items.indexing', 'globe', 'admin.settings.indexing', permission: 'settings.integrations', visible: fn (User $user): bool => $user->can('manageArea', [Setting::class, SettingsArea::Indexing])),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', permission: 'settings.integrations'),
                 new MenuItem('api-tokens', 'menu.items.api_tokens', 'shield', 'admin.settings.api-tokens', permission: 'api-tokens.manage'),
             ]),

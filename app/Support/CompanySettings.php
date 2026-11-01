@@ -12,6 +12,7 @@ use App\Support\Site\LlmsTxt;
 use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 use WeakReference;
 
 /**
@@ -34,6 +35,11 @@ class CompanySettings
     public const CACHE_KEY = 'company_settings';
 
     public const MEDIA_CACHE_KEY = 'company_settings_media';
+
+    /**
+     * Settings key of the search indexing switch (group seo, boolean).
+     */
+    public const INDEXING_KEY = 'search_indexing';
 
     /**
      * Lifetime of the cached overrides in seconds.
@@ -487,6 +493,23 @@ class CompanySettings
     }
 
     /**
+     * Whether search engines and AI crawlers may index the site (plan 15 C,
+     * Settings → Indexing). Fails closed: only a stored boolean true opens
+     * it; no row (fresh install), any other value, or a DB / cache error
+     * keeps the site closed. Never falls back to config/company.php.
+     */
+    public function isIndexingOpen(): bool
+    {
+        try {
+            return $this->memo(self::INDEXING_KEY, fn (): bool => ($this->overrides()[self::INDEXING_KEY] ?? null) === true);
+        } catch (Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
+
+    /**
      * Whether a key was saved in admin (a settings row), as opposed to the
      * config/company.php default (placeholders until the client fills them in).
      */
@@ -619,7 +642,7 @@ class CompanySettings
             return $this->overrides = Cache::remember(
                 self::CACHE_KEY,
                 now()->addSeconds(self::CACHE_TTL),
-                fn (): array => Setting::query()->where('group', '!=', 'integrations')->whereNotIn('key', [...array_keys(Setting::MEDIA), ...array_keys(Setting::PRIVATE_MEDIA)])->pluck('value', 'key')->all(),
+                fn (): array => Setting::query()->whereNotIn('group', ['integrations', 'system'])->whereNotIn('key', [...array_keys(Setting::MEDIA), ...array_keys(Setting::PRIVATE_MEDIA)])->pluck('value', 'key')->all(),
             );
         } catch (QueryException $e) {
             report($e);

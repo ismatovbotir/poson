@@ -200,6 +200,7 @@ return [
         'api_tokens' => 'API-токены',
         'price_sync' => 'Синхронизация цен',
         'checkout' => 'Оформление заказа',
+        'indexing' => 'Индексация сайта',
     ],
 
     'audit_action' => [
@@ -211,6 +212,8 @@ return [
         'created' => 'Создано',
         'revoked' => 'Отозвано',
         'unlinked' => 'Отвязано',
+        'opened' => 'Открыто',
+        'closed' => 'Закрыто',
     ],
 
     'price_sync_status' => [

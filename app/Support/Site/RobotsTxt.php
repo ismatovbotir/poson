@@ -16,6 +16,9 @@ use App\Support\CompanySettings;
  * its own "User-agent: <token> / Disallow: /" group after "*"; allowed
  * crawlers simply follow "*" (no empty groups). withGroup() adds further
  * groups without touching the base rules.
+ *
+ * Plan 15 C: while Settings → Indexing is closed (the default) the file is
+ * only "User-agent: * / Disallow: /" (closed()).
  */
 class RobotsTxt
 {
@@ -92,8 +95,21 @@ class RobotsTxt
         return [CanonicalHost::using(fn (): string => route('sitemap'))];
     }
 
+    /**
+     * While the site is closed for indexing (plan 15 C, the default) every
+     * crawler is kept out of everything: no other groups, no Sitemap line.
+     */
+    public function closed(): string
+    {
+        return (new RobotsGroup(['*'], ['/']))->render()."\n";
+    }
+
     public function render(): string
     {
+        if (! ($this->settings ?? app(CompanySettings::class))->isIndexingOpen()) {
+            return $this->closed();
+        }
+
         $blocks = array_map(fn (RobotsGroup $group): string => $group->render(), $this->groups());
         $sitemaps = array_map(fn (string $url): string => "Sitemap: {$url}", $this->sitemaps());
 

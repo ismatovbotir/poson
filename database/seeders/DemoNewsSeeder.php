@@ -7,6 +7,7 @@ use App\Enums\NewsStatus;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
+use App\Support\DemoContent;
 use App\Support\Site\NewsDirectory;
 use Illuminate\Database\Seeder;
 
@@ -14,15 +15,17 @@ use Illuminate\Database\Seeder;
  * Demo news for local / staging only (plan 07 7b), so the news list, the
  * home section, RSS and the admin screens have data: two published posts
  * (one in uz and ru only) and one scheduled for next week, linked to the
- * first demo products and categories. Skipped outside local / staging and
- * when news posts (kind news; seeded articles don't count) already exist.
+ * first demo products and categories. Skipped outside local / staging
+ * (unless LaunchSeeder opts in, DemoSeeding, plan 15) and when news posts
+ * (kind news; seeded articles don't count) already exist. The slugs identify
+ * the demo posts for `php artisan demo:remove` (App\Support\DemoContent).
  * No cover images (upload them in admin).
  */
 class DemoNewsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment(['local', 'staging']) || NewsPost::query()->ofKind(NewsKind::News)->exists()) {
+        if (! DemoSeeding::allowed() || DemoSeeding::blockedInProduction() || NewsPost::query()->ofKind(NewsKind::News)->exists()) {
             return;
         }
 
@@ -92,6 +95,8 @@ class DemoNewsSeeder extends Seeder
             ],
         ];
 
+        $ids = [];
+
         foreach ($posts as $data) {
             $post = NewsPost::query()->create([
                 'slug' => $data['slug'],
@@ -106,7 +111,10 @@ class DemoNewsSeeder extends Seeder
             $post->forceFill(['locales' => $post->translatedLocales(), 'content_updated_at' => $data['published_at']])->save();
             $post->products()->sync($data['products']);
             $post->categories()->sync($data['categories']);
+            $ids[] = $post->id;
         }
+
+        DemoContent::remember('news_ids', $ids);
 
         NewsDirectory::flushAll();
     }

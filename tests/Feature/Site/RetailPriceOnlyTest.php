@@ -4,8 +4,11 @@ use App\Enums\PriceLevel;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\Money;
-use Database\Seeders\CatalogSeeder;
-use Database\Seeders\DemoProductsSeeder;
+
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
 
 /**
  * Brand rule and D14: the public site shows the Retail price only. Dealer and
@@ -51,7 +54,7 @@ it('never exposes Dealer or Wholesale prices on public pages or in the sitemap',
 })->with(['uz', 'ru', 'en']);
 
 it('uses no discount, sale or low-price wording on the public catalog pages', function (string $locale) {
-    $this->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
+    seedDemoCatalog();
 
     $pages = ["/{$locale}", "/{$locale}/catalog", "/{$locale}/catalog?sort=price_asc", "/{$locale}/search?q=zebra", "/{$locale}/search?q=nothing"];
 

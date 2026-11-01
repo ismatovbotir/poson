@@ -13,12 +13,16 @@
     Plan 04: site name and the default OG image come from Settings → Company,
     plus search engine verification metas and the analytics config tag
     (read by resources/js/analytics.js; no inline script).
+    Plan 15: robots is forced to "noindex, nofollow" while Settings → Indexing is closed.
 --}}
 @inject('company', \App\Support\CompanySettings::class)
 @inject('analytics', \App\Support\Site\Analytics::class)
 
 @php
     $plain = fn (mixed $value): string => trim(html_entity_decode(strip_tags($value instanceof \Illuminate\Contracts\Support\Htmlable ? $value->toHtml() : (string) $value), ENT_QUOTES | ENT_HTML5));
+
+    // Plan 15 C: while the site is closed for indexing every page is noindex, nofollow (X-Robots-Tag too: BlockSearchIndexing).
+    $robots = $company->isIndexingOpen() ? $robots : \App\Http\Middleware\BlockSearchIndexing::closed($robots);
 
     $siteName = $company->name();
     $image = $image ?: ($company->ogImageUrl() ?: null);

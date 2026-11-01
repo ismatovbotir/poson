@@ -20,6 +20,7 @@ use App\Models\Product;
 use App\Models\ProductRelation;
 use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
+use App\Support\DemoContent;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -27,8 +28,11 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Demo products for local / staging (plan 03 T15) from data/products.php.
- * Never runs in production. Needs CatalogSeeder first (categories,
- * attributes with options, brands).
+ * Outside local / staging only through LaunchSeeder (DemoSeeding, plan 15):
+ * in production only when no product exists yet (trashed ones included),
+ * and every product is quote-only there. Needs CatalogSeeder first
+ * (categories, attributes with options, brands). The SKUs identify the demo
+ * products for `php artisan demo:remove` (App\Support\DemoContent).
  *
  * Every product goes through SaveProduct, published; a product whose
  * required specs are incomplete in the data (e.g. a licence type confirmed
@@ -55,9 +59,15 @@ class DemoProductsSeeder extends Seeder
 
     public function run(SaveProduct $saveProduct, AddProductRelation $addRelation): void
     {
-        if (app()->isProduction()) {
+        // Plan 15 A2/A3: local / staging, or LaunchSeeder's opt-in; in production
+        // only into an empty catalog (an update by SKU would overwrite edited or
+        // restore deleted products).
+        if (! DemoSeeding::allowed() || (app()->isProduction() && (DemoContent::wasRemoved() || Product::withTrashed()->exists()))) {
             return;
         }
+
+        // Plan 15 A5: in production demo products are quote-only, never sold through the cart.
+        $quoteOnly = app()->isProduction();
 
         CategoryTree::flush();
 
@@ -66,6 +76,8 @@ class DemoProductsSeeder extends Seeder
         $brands = Brand::query()->pluck('id', 'name');
         $attributes = Attribute::query()->with('options')->get()->keyBy('code');
         $rollTypes = RollType::query()->get()->keyBy(fn (RollType $rollType): string => $rollType->labels_per_roll.'@'.$rollType->core_diameter_mm);
+
+        $seededIds = [];
 
         foreach ($rows as $row) {
             $categoryId = $categories[$row['category']] ?? null;
@@ -97,7 +109,7 @@ class DemoProductsSeeder extends Seeder
                 'roll_type_ids' => $this->rollTypeIds($row['sku'], $row['roll_types'] ?? [], $rollTypes),
                 'unit' => ProductUnit::from($row['unit']),
                 'min_qty' => (int) $row['min_qty'],
-                'sale_mode' => SaleMode::from($row['sale_mode']),
+                'sale_mode' => $quoteOnly ? SaleMode::Quote : SaleMode::from($row['sale_mode']),
                 'stock_status' => StockStatus::from($row['stock_status']),
                 'warranty_months' => $row['warranty_months'] ?? null,
                 'badge' => isset($row['badge']) ? ProductBadge::from($row['badge']) : null,
@@ -107,18 +119,20 @@ class DemoProductsSeeder extends Seeder
             $specs = $this->specs($row['sku'], $row['specs'] ?? [], $attributes);
 
             try {
-                $saveProduct->handle($product, $attributesForSave, $specs);
+                $seededIds[] = $saveProduct->handle($product, $attributesForSave, $specs)->id;
             } catch (ValidationException $exception) {
                 if (! array_key_exists('specs', $exception->errors())) {
                     throw $exception;
                 }
 
                 $this->warn($row['sku'], 'required specs incomplete, seeded as a draft');
-                $saveProduct->handle($product, [...$attributesForSave, 'is_active' => false], $specs);
+                $seededIds[] = $saveProduct->handle($product, [...$attributesForSave, 'is_active' => false], $specs)->id;
             }
         }
 
         $this->linkRelations($rows, $addRelation);
+
+        DemoContent::remember('product_ids', $seededIds);
 
         foreach ($this->warnings as $warning) {
             Log::warning("DemoProductsSeeder: {$warning}");

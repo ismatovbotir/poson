@@ -9,7 +9,8 @@ namespace App\Enums;
  * tab (faq_items rows, not settings keys) and is used for access only.
  * ApiTokens (token created / revoked) and PriceSync (a product unlinked
  * from the price API) are audit-only areas of plan 09. Checkout (plan 11b)
- * holds delivery fees, order caps, IKPU and UzQR (Admin, settings.checkout). Audit rows may hold
+ * holds delivery fees, order caps, IKPU and UzQR (Admin, settings.checkout). Indexing (plan 15 C)
+ * is the search indexing switch (key search_indexing, Admin only). Audit rows may hold
  * legacy values no longer listed here (e.g. "ai_prompts"): read them with
  * tryFrom() (SettingsAudit does).
  */
@@ -27,6 +28,7 @@ enum SettingsArea: string
     case ApiTokens = 'api_tokens';
     case PriceSync = 'price_sync';
     case Checkout = 'checkout';
+    case Indexing = 'indexing';
 
     public function label(): string
     {
@@ -40,7 +42,7 @@ enum SettingsArea: string
     {
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
-            self::Seo, self::Tracking, self::AiBots => 'seo',
+            self::Seo, self::Tracking, self::AiBots, self::Indexing => 'seo',
             self::Integrations, self::ApiTokens, self::PriceSync => 'integrations',
             self::Checkout => 'checkout',
         };
@@ -51,6 +53,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing], true);
     }
 }

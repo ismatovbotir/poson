@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 beforeEach(function () {
+    // These tests cover the site open for indexing (plan 15: closed by default).
+    openSearchIndexing();
     // Trusted hosts are static on the Symfony request and may leak from other tests.
     SymfonyRequest::setTrustedHosts([]);
     config(['app.url' => 'https://poson.uz']);

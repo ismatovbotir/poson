@@ -8,6 +8,11 @@ use App\Support\Analytics\BotRegistry;
 use App\Support\CompanySettings;
 use App\Support\Site\AiBotRules;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * The base "*" group, unchanged by the AI bot settings.
  */

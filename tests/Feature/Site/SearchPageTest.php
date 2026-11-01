@@ -25,6 +25,8 @@ function searchFor(string $locale, string $query): string
 }
 
 beforeEach(function () {
+    // These tests cover the site open for indexing (plan 15: closed by default).
+    openSearchIndexing();
     $this->printer = Product::factory()->for(Brand::factory()->create(['name' => 'Godex']))->create([
         'sku' => 'GDX-G500',
         'name' => ['uz' => 'Oʻzbekcha yorliq printeri', 'ru' => 'Принтер этикеток Godex G500', 'en' => 'Godex G500 label printer'],

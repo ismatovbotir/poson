@@ -143,6 +143,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/settings/integrations', Settings\Integrations::class)->name('settings.integrations');
     // Checkout settings (plan 11b): settings.checkout (Admin only): delivery fees, caps, IKPU, UzQR.
     Route::livewire('/settings/checkout', Settings\Checkout::class)->name('settings.checkout');
+    // Search indexing switch (plan 15 C): Admin only (manageArea Indexing) + password re-confirmation for saving.
+    Route::livewire('/settings/indexing', Settings\Indexing::class)->name('settings.indexing');
     // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
 

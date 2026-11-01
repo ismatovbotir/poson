@@ -12,6 +12,11 @@ use App\Support\Money;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * A scanners tree with filterable attributes and four products:
  * A (Zebra, USB + Bluetooth, 1 000 000 soʻm, in stock, range 30 m, wireless, featured),

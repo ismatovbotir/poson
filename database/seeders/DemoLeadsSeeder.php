@@ -40,6 +40,7 @@ class DemoLeadsSeeder extends Seeder
 {
     public function run(): void
     {
+        // Hard check, never DemoSeeding: demo leads are never seeded in production (plan 15 A2).
         if (! app()->environment(['local', 'staging']) || Lead::query()->exists()) {
             return;
         }

@@ -894,6 +894,22 @@ return [
     ],
 
     'settings' => [
+        'indexing' => [
+            'title' => 'Indekslash',
+            'subtitle' => 'Qidiruv tizimlari va AI-kraulerlar saytni indekslay oladimi',
+            'card_title' => 'Qidiruv tizimlari va AI-kraulerlar',
+            'card_hint' => 'Demo kontent oʻchirilib, haqiqiy mahsulotlar qoʻshilmaguncha saytni yopiq saqlang.',
+            'state_open' => 'Indekslash uchun ochiq',
+            'state_closed' => 'Indekslash uchun yopiq',
+            'label' => 'Qidiruv tizimlari va AI-kraulerlarga saytni indekslashga ruxsat berish',
+            'help' => 'Yopiq = qidiruv tizimlari va AI-kraulerlardan yashirin, odamlarga esa koʻrinadi.',
+            'closed_effect' => 'Yopiq: barcha sahifalar noindex, nofollow bilan belgilanadi, robots.txt barcha kraulerlarni toʻsadi, sitemap.xml va llms.txt mavjud emas.',
+            'open_effect' => 'Ochiq: odatiy robots.txt, sitemap.xml va llms.txt beriladi, sahifalar qidiruv natijalarida chiqishi mumkin.',
+            'analytics_note' => 'AI-botlar analitikasi ikkala holatda ham yozib boriladi.',
+            'password_hint' => 'Saqlashda parol qayta soʻraladi (15 daqiqa amal qiladi).',
+            'audit_title' => 'Soʻnggi oʻzgarishlar',
+            'audit_empty' => 'Hozircha oʻzgarishlar yoʻq.',
+        ],
         'company' => [
             'title' => 'Kompaniya',
             'subtitle' => 'Kontaktlar, rekvizitlar, ijtimoiy tarmoqlar va sayt sozlamalari',

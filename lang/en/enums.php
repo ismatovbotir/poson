@@ -200,6 +200,7 @@ return [
         'api_tokens' => 'API tokens',
         'price_sync' => 'Price sync',
         'checkout' => 'Checkout',
+        'indexing' => 'Site indexing',
     ],
 
     'audit_action' => [
@@ -211,6 +212,8 @@ return [
         'created' => 'Created',
         'revoked' => 'Revoked',
         'unlinked' => 'Unlinked',
+        'opened' => 'Opened',
+        'closed' => 'Closed',
     ],
 
     'price_sync_status' => [

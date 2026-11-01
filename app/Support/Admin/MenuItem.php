@@ -4,6 +4,7 @@ namespace App\Support\Admin;
 
 use App\Enums\Role;
 use App\Models\User;
+use Closure;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,7 @@ final readonly class MenuItem
      * @param  list<Role>|null  $roles  Role allow-list for modules that have no permissions yet
      * @param  list<MenuItem>  $children
      * @param  string|null  $active  Route-name pattern for the active state; defaults to "<route prefix>.*" for index routes
+     * @param  Closure(User): bool|null  $visible  Extra visibility check (e.g. a policy ability that needs several permissions)
      */
     public function __construct(
         public string $key,
@@ -30,6 +32,7 @@ final readonly class MenuItem
         public ?array $roles = null,
         public array $children = [],
         public ?string $active = null,
+        public ?Closure $visible = null,
     ) {}
 
     /**
@@ -57,6 +60,10 @@ final readonly class MenuItem
         }
 
         if ($this->roles !== null && ! $user->hasAnyRole(array_map(fn (Role $role): string => $role->value, $this->roles))) {
+            return false;
+        }
+
+        if ($this->visible !== null && ! ($this->visible)($user)) {
             return false;
         }
 
@@ -102,6 +109,6 @@ final readonly class MenuItem
             array_filter($this->children, fn (MenuItem $child): bool => $child->isVisibleTo($user)),
         ));
 
-        return new self($this->key, $this->label, $this->icon, $this->route, $this->permission, $this->roles, $children, $this->active);
+        return new self($this->key, $this->label, $this->icon, $this->route, $this->permission, $this->roles, $children, $this->active, $this->visible);
     }
 }

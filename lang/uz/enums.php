@@ -200,6 +200,7 @@ return [
         'api_tokens' => 'API tokenlar',
         'price_sync' => 'Narxlar sinxronizatsiyasi',
         'checkout' => 'Buyurtma rasmiylashtirish',
+        'indexing' => 'Saytni indekslash',
     ],
 
     'audit_action' => [
@@ -211,6 +212,8 @@ return [
         'created' => 'Yaratildi',
         'revoked' => 'Bekor qilindi',
         'unlinked' => 'Ajratildi',
+        'opened' => 'Ochildi',
+        'closed' => 'Yopildi',
     ],
 
     'price_sync_status' => [

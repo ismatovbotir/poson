@@ -9,6 +9,11 @@ use App\Support\Site\Sitemap;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
+// These tests cover the site open for indexing (plan 15: closed by default).
+beforeEach(function () {
+    openSearchIndexing();
+});
+
 /**
  * @return array<string, list<array{hreflang: string, href: string}>> loc => alternates
  */
