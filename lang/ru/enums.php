@@ -201,6 +201,7 @@ return [
         'price_sync' => 'Синхронизация цен',
         'checkout' => 'Оформление заказа',
         'indexing' => 'Индексация сайта',
+        'mcp' => 'Доступ MCP',
     ],
 
     'audit_action' => [
@@ -214,6 +215,8 @@ return [
         'unlinked' => 'Отвязано',
         'opened' => 'Открыто',
         'closed' => 'Закрыто',
+        'granted' => 'Выдано',
+        'transferred' => 'Передано',
     ],
 
     'price_sync_status' => [
@@ -330,6 +333,46 @@ return [
         'paid' => 'Оплачен',
         'refunded' => 'Возвращён',
         'cancelled' => 'Отменён',
+    ],
+
+    'api_token_type' => [
+        'price_api' => 'API цен',
+        'mcp' => 'MCP',
+    ],
+
+    'mcp_call_status' => [
+        'ok' => 'Успешно',
+        'invalid' => 'Ошибка данных',
+        'denied' => 'Отказано',
+        'rate_limited' => 'Превышен лимит',
+        'error' => 'Ошибка',
+    ],
+
+    'mcp_revoke_reason' => [
+        'admin' => 'Отозван администратором',
+        'revoke_all' => 'Отозван весь доступ MCP',
+        'regenerated' => 'Перевыпущен',
+        'transferred' => 'Доступ передан',
+        'deactivated' => 'Пользователь отключён',
+        'password_changed' => 'Пароль изменён',
+        'role_lost' => 'Снята роль Admin',
+        'idle' => 'Долго не использовался',
+        'never_used' => 'Не использован за 7 дней',
+    ],
+
+    'mcp_deny_reason' => [
+        'revoked_token' => 'Использован отозванный токен',
+        'ip_not_allowed' => 'IP-адрес не разрешён',
+        'token' => 'Нет действующего токена MCP',
+        'token_user' => 'Токен другого пользователя',
+        'inactive' => 'Пользователь отключён',
+        'not_admin' => 'Не Admin',
+        'no_access' => 'Нет доступа MCP',
+        'not_single_holder' => 'Больше одного владельца',
+    ],
+
+    'mcp_auth_type' => [
+        'token' => 'Токен',
     ],
 
 ];

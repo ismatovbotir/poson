@@ -55,6 +55,8 @@ return [
             'sales' => env('TELEGRAM_SALES_CHAT_ID'),
             'service' => env('TELEGRAM_SERVICE_CHAT_ID'),
             'finance' => env('TELEGRAM_FINANCE_CHAT_ID'),
+            // Plan 13: MCP security and activity alerts (CEO / management only).
+            'management' => env('TELEGRAM_MANAGEMENT_CHAT_ID'),
         ],
         'notify_new_leads' => env('TELEGRAM_NOTIFY_NEW_LEADS'),
         'notify_price_sync' => env('TELEGRAM_NOTIFY_PRICE_SYNC'),

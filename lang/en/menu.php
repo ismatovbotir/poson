@@ -43,6 +43,7 @@ return [
         'indexing' => 'Indexing',
         'integrations' => 'Integrations',
         'api_tokens' => 'API tokens',
+        'mcp' => 'MCP access',
     ],
 
     'tabs' => [

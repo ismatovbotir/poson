@@ -3,17 +3,28 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\ApiTokenType;
 use App\Enums\Role;
+use App\Observers\UserObserver;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * mcp_access_granted_at / mcp_access_granted_by (plan 13): the single MCP
+ * holder. Not fillable: set only by App\Actions\Mcp\GrantMcpAccess and
+ * cleared by RevokeMcpAccess.
+ */
 #[Fillable(['name', 'email', 'password', 'locale'])]
 #[Hidden(['password', 'remember_token'])]
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -30,7 +41,42 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'mcp_access_granted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Has the Admin role itself (not through Gate::before): MCP eligibility (C7).
+     */
+    public function isActiveAdmin(): bool
+    {
+        return (bool) $this->is_active && $this->hasRole(Role::Admin);
+    }
+
+    /**
+     * Holds MCP access (plan 13).
+     */
+    public function hasMcpAccess(): bool
+    {
+        return $this->mcp_access_granted_at !== null;
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function mcpAccessGrantedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mcp_access_granted_by');
+    }
+
+    /**
+     * The user's MCP tokens (api_tokens of type mcp).
+     *
+     * @return HasMany<ApiToken, $this>
+     */
+    public function mcpTokens(): HasMany
+    {
+        return $this->hasMany(ApiToken::class)->where('type', ApiTokenType::Mcp);
     }
 
     /**

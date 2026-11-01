@@ -7,6 +7,7 @@ use App\Data\Orders\ManualPaymentData;
 use App\Enums\DeliveryType;
 use App\Enums\Region;
 use App\Enums\Role;
+use App\Models\ApiToken;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Lead;
@@ -17,18 +18,21 @@ use App\Support\Admin\PasswordConfirmation;
 use App\Support\Cart\CartPricer;
 use App\Support\Cart\CartToken;
 use App\Support\CompanySettings;
+use App\Support\DemoContent;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Orders\CheckoutSettings;
 use App\Support\Orders\DeliveryQuote;
 use App\Support\Secrets;
 use Database\Seeders\CatalogSeeder;
-use Database\Seeders\DemoProductsSeeder;
+use Database\Seeders\ProductsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
+use Tests\Support\DemoProductsFixtureSeeder;
 use Tests\TestCase;
 
 /*
@@ -212,19 +216,35 @@ function priceItem(mixed $code, mixed $retail = 1000, mixed $dealer = null, mixe
 */
 
 /**
- * The catalog base data plus the demo products, seeded as on local
- * (demo seeders don't run in the testing environment, DemoSeeding).
+ * The catalog base data plus the 39 fixture products (tests/Fixtures/demo-products.php,
+ * published, rich specs; the former demo products, plan 16).
  */
 function seedDemoCatalog(): void
 {
-    $environment = app()->environment();
-    app()['env'] = 'local';
+    test()->seed([CatalogSeeder::class, DemoProductsFixtureSeeder::class]);
+}
 
-    try {
-        test()->seed([CatalogSeeder::class, DemoProductsSeeder::class]);
-    } finally {
-        app()['env'] = $environment;
-    }
+/**
+ * Make LaunchSeeder / DatabaseSeeder seed no real products (ProductsSeeder gets an empty row set),
+ * so a test does not depend on the content writers' data files (plan 16).
+ */
+function withoutRealProducts(): void
+{
+    app()->bind(ProductsSeeder::class, function (): ProductsSeeder {
+        $seeder = new ProductsSeeder;
+        $seeder->rows = [];
+
+        return $seeder;
+    });
+}
+
+/**
+ * Seed the fixture products and record them as the launch demo products (what the removed demo seeder did).
+ */
+function seedRecordedLegacyDemoProducts(): void
+{
+    app(DemoProductsFixtureSeeder::class)->setContainer(app())->__invoke();
+    DemoContent::remember('product_ids', Product::query()->pluck('id')->all());
 }
 
 /**
@@ -341,4 +361,88 @@ function uzqrUploaded(?User $by = null): void
 function manualPayment(string $method, ?int $amount, ?string $reference = 'PP-000123', ?string $paidOn = null, ?string $channel = null): ManualPaymentData
 {
     return new ManualPaymentData($method, $amount, $paidOn ?? now(Lead::TIMEZONE)->toDateString(), $reference, $channel);
+}
+
+/*
+|--------------------------------------------------------------------------
+| MCP (plan 13)
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * Fake MCP token (never a real one): "posm_" + 48 characters.
+ */
+function fakeMcpTokenValue(string $seed = 'm9K3'): string
+{
+    return 'posm_'.substr(str_repeat($seed, 48), 0, 48);
+}
+
+/**
+ * An active Admin who holds MCP access, with one MCP token for the given plain value.
+ *
+ * @return array{0: User, 1: ApiToken}
+ */
+function mcpHolder(?string $plain = null, array $tokenAttributes = []): array
+{
+    $admin = staffUser(Role::Admin);
+    $admin->forceFill(['mcp_access_granted_at' => now()->subDay()])->saveQuietly();
+
+    $token = ApiToken::factory()->mcp($admin)->withPlainText($plain ?? fakeMcpTokenValue())->create($tokenAttributes);
+
+    return [$admin->fresh(), $token];
+}
+
+/**
+ * JSON-RPC POST to /mcp/admin.
+ *
+ * @param  array<string, mixed>  $params
+ * @param  array<string, string>  $headers
+ */
+function mcpRequest(?string $token, string $method = 'tools/list', array $params = [], array $headers = []): TestResponse
+{
+    return test()->postJson('/mcp/admin', array_filter([
+        'jsonrpc' => '2.0',
+        'id' => 1,
+        'method' => $method,
+        'params' => $params === [] ? null : $params,
+    ], fn ($value) => $value !== null), array_filter([
+        'Authorization' => $token !== null ? 'Bearer '.$token : null,
+        ...$headers,
+    ]));
+}
+
+/**
+ * Call one MCP tool over HTTP.
+ *
+ * @param  array<string, mixed>  $arguments
+ */
+function mcpCallTool(?string $token, string $tool, array $arguments = [], array $headers = []): TestResponse
+{
+    return mcpRequest($token, 'tools/call', ['name' => $tool, 'arguments' => (object) $arguments], $headers);
+}
+
+/**
+ * Telegram bot + management chat configured (fake values) and api.telegram.org faked.
+ */
+function mcpTelegramConfigured(): void
+{
+    freshSecrets([
+        'services.telegram.bot_token' => '123456789:'.str_repeat('M', 35),
+        'services.telegram.chats.management' => '-1009999999999',
+    ]);
+
+    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => []])]);
+}
+
+/**
+ * Texts of the Telegram messages sent to the management chat.
+ *
+ * @return list<string>
+ */
+function mcpAlertTexts(): array
+{
+    return Http::recorded()
+        ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), 'api.telegram.org') && ($pair[0]->data()['chat_id'] ?? null) === '-1009999999999')
+        ->map(fn (array $pair): string => (string) ($pair[0]->data()['text'] ?? ''))
+        ->values()->all();
 }

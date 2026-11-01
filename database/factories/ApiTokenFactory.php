@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ApiTokenType;
 use App\Models\ApiToken;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,6 +26,7 @@ class ApiTokenFactory extends Factory
         $plain = ApiToken::PREFIX.Str::random(ApiToken::PLAIN_LENGTH);
 
         return [
+            'type' => ApiTokenType::PriceApi,
             'name' => '1C '.fake()->word(),
             'token_hash' => ApiToken::hash($plain),
             'token_prefix' => substr($plain, 0, ApiToken::DISPLAY_PREFIX_LENGTH),
@@ -43,6 +45,27 @@ class ApiTokenFactory extends Factory
             'token_hash' => ApiToken::hash($plain),
             'token_prefix' => substr($plain, 0, ApiToken::DISPLAY_PREFIX_LENGTH),
         ]);
+    }
+
+    /**
+     * An MCP token (plan 13) of the given holder (a new user by default).
+     * Use withPlainText(fakeMcpTokenValue()) to get one a test can send.
+     */
+    public function mcp(?User $holder = null): static
+    {
+        return $this->state(function () use ($holder): array {
+            $plain = ApiToken::generatePlainText(ApiTokenType::Mcp);
+
+            return [
+                'type' => ApiTokenType::Mcp,
+                'user_id' => $holder?->id ?? User::factory(),
+                'name' => fake()->randomElement(['Laptop', 'Desktop', 'Claude Code']),
+                'token_hash' => ApiToken::hash($plain),
+                'token_prefix' => substr($plain, 0, ApiToken::DISPLAY_PREFIX_LENGTH),
+                'abilities' => [ApiToken::ABILITY_MCP],
+                'expires_at' => null,
+            ];
+        });
     }
 
     public function revoked(): static

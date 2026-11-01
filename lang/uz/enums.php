@@ -201,6 +201,7 @@ return [
         'price_sync' => 'Narxlar sinxronizatsiyasi',
         'checkout' => 'Buyurtma rasmiylashtirish',
         'indexing' => 'Saytni indekslash',
+        'mcp' => 'MCP kirish',
     ],
 
     'audit_action' => [
@@ -214,6 +215,8 @@ return [
         'unlinked' => 'Ajratildi',
         'opened' => 'Ochildi',
         'closed' => 'Yopildi',
+        'granted' => 'Berildi',
+        'transferred' => 'Oʻtkazildi',
     ],
 
     'price_sync_status' => [
@@ -330,6 +333,46 @@ return [
         'paid' => 'Toʻlangan',
         'refunded' => 'Qaytarilgan',
         'cancelled' => 'Bekor qilingan',
+    ],
+
+    'api_token_type' => [
+        'price_api' => 'Narxlar API',
+        'mcp' => 'MCP',
+    ],
+
+    'mcp_call_status' => [
+        'ok' => 'Muvaffaqiyatli',
+        'invalid' => 'Notoʻgʻri maʼlumot',
+        'denied' => 'Rad etildi',
+        'rate_limited' => 'Limit oshdi',
+        'error' => 'Xato',
+    ],
+
+    'mcp_revoke_reason' => [
+        'admin' => 'Administrator bekor qilgan',
+        'revoke_all' => 'Barcha MCP kirish bekor qilingan',
+        'regenerated' => 'Qayta yaratilgan',
+        'transferred' => 'Kirish oʻtkazilgan',
+        'deactivated' => 'Foydalanuvchi oʻchirilgan',
+        'password_changed' => 'Parol oʻzgartirilgan',
+        'role_lost' => 'Admin roli olib tashlangan',
+        'idle' => 'Uzoq vaqt ishlatilmagan',
+        'never_used' => '7 kun ichida ishlatilmagan',
+    ],
+
+    'mcp_deny_reason' => [
+        'revoked_token' => 'Bekor qilingan token ishlatildi',
+        'ip_not_allowed' => 'IP manzilga ruxsat yoʻq',
+        'token' => 'Amaldagi MCP token yoʻq',
+        'token_user' => 'Boshqa foydalanuvchining tokeni',
+        'inactive' => 'Foydalanuvchi oʻchirilgan',
+        'not_admin' => 'Admin emas',
+        'no_access' => 'MCP kirish yoʻq',
+        'not_single_holder' => 'Bittadan ortiq ega',
+    ],
+
+    'mcp_auth_type' => [
+        'token' => 'Token',
     ],
 
 ];

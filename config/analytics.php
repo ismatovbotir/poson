@@ -100,6 +100,8 @@ return [
         'q/*',
         // Customers' order links (plan 11b).
         'o/*',
+        // Plan 13: the MCP endpoint (machine traffic, bearer tokens; C27).
+        'mcp', 'mcp/*',
     ],
 
     /*

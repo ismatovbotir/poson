@@ -147,6 +147,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/settings/indexing', Settings\Indexing::class)->name('settings.indexing');
     // Price API tokens (plan 09): api-tokens.manage (Admin only) + password re-confirmation for writes.
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
+    // MCP access (plan 13): mcp.manage (Admin only) + password re-confirmation for every write.
+    Route::livewire('/settings/mcp', Settings\McpAccess::class)->name('settings.mcp');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

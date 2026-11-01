@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Settings;
 
 use App\Actions\Api\CreateApiToken;
 use App\Actions\Api\RevokeApiToken;
+use App\Enums\ApiTokenType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\ApiToken;
 use App\Support\Admin\PasswordConfirmation;
@@ -15,7 +16,8 @@ use Livewire\Component;
  * Settings → API tokens (/admin/settings/api-tokens, plan 09): tokens of
  * the price API (1C). api-tokens.manage (Admin only), authorized in boot()
  * and again before each write; creating and revoking need a password
- * confirmation from the last 15 minutes.
+ * confirmation from the last 15 minutes. Only price API tokens (type
+ * price_api) are listed or revocable here (plan 13, C5).
  *
  * The plain token is shown once: it lives only in the protected
  * $revealedToken of the request that created it (rendered into that one
@@ -69,7 +71,7 @@ class ApiTokens extends Component
 
     public function revoke(int $id, RevokeApiToken $revokeToken): void
     {
-        $token = ApiToken::query()->findOrFail($id);
+        $token = ApiToken::query()->ofType(ApiTokenType::PriceApi)->findOrFail($id);
 
         $this->authorize('revoke', $token);
 
@@ -97,7 +99,7 @@ class ApiTokens extends Component
     public function render(): View
     {
         return view('livewire.admin.settings.api-tokens', [
-            'tokens' => ApiToken::query()->with('creator:id,name')->latest('id')->get(),
+            'tokens' => ApiToken::query()->ofType(ApiTokenType::PriceApi)->with('creator:id,name')->latest('id')->get(),
             'revealedToken' => $this->revealedToken,
             'revealedName' => $this->revealedName,
             'passwordConfirmed' => PasswordConfirmation::isRecent(),

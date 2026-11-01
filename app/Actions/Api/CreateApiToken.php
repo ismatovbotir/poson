@@ -2,6 +2,7 @@
 
 namespace App\Actions\Api;
 
+use App\Enums\ApiTokenType;
 use App\Enums\AuditAction;
 use App\Enums\SettingsArea;
 use App\Models\ApiToken;
@@ -10,7 +11,6 @@ use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -50,11 +50,12 @@ class CreateApiToken
 
         $validator->validate();
 
-        $plain = ApiToken::PREFIX.Str::random(ApiToken::PLAIN_LENGTH);
+        $plain = ApiToken::generatePlainText(ApiTokenType::PriceApi);
         $days = $data['expires_in_days'] ?? null;
 
         $token = DB::transaction(function () use ($data, $plain, $days, $user, $ip): ApiToken {
             $token = ApiToken::query()->create([
+                'type' => ApiTokenType::PriceApi,
                 'name' => $data['name'],
                 'token_hash' => ApiToken::hash($plain),
                 'token_prefix' => substr($plain, 0, ApiToken::DISPLAY_PREFIX_LENGTH),

@@ -201,6 +201,7 @@ return [
         'price_sync' => 'Price sync',
         'checkout' => 'Checkout',
         'indexing' => 'Site indexing',
+        'mcp' => 'MCP access',
     ],
 
     'audit_action' => [
@@ -214,6 +215,8 @@ return [
         'unlinked' => 'Unlinked',
         'opened' => 'Opened',
         'closed' => 'Closed',
+        'granted' => 'Granted',
+        'transferred' => 'Transferred',
     ],
 
     'price_sync_status' => [
@@ -330,6 +333,46 @@ return [
         'paid' => 'Paid',
         'refunded' => 'Refunded',
         'cancelled' => 'Cancelled',
+    ],
+
+    'api_token_type' => [
+        'price_api' => 'Price API',
+        'mcp' => 'MCP',
+    ],
+
+    'mcp_call_status' => [
+        'ok' => 'OK',
+        'invalid' => 'Invalid',
+        'denied' => 'Denied',
+        'rate_limited' => 'Rate limited',
+        'error' => 'Error',
+    ],
+
+    'mcp_revoke_reason' => [
+        'admin' => 'Revoked by an Admin',
+        'revoke_all' => 'All MCP access revoked',
+        'regenerated' => 'Regenerated',
+        'transferred' => 'Access transferred',
+        'deactivated' => 'User deactivated',
+        'password_changed' => 'Password changed',
+        'role_lost' => 'Admin role removed',
+        'idle' => 'Unused too long',
+        'never_used' => 'Never used within 7 days',
+    ],
+
+    'mcp_deny_reason' => [
+        'revoked_token' => 'Revoked token used',
+        'ip_not_allowed' => 'IP address not allowed',
+        'token' => 'No valid MCP token',
+        'token_user' => 'Token of another user',
+        'inactive' => 'User deactivated',
+        'not_admin' => 'Not an Admin',
+        'no_access' => 'No MCP access',
+        'not_single_holder' => 'More than one holder',
+    ],
+
+    'mcp_auth_type' => [
+        'token' => 'Token',
     ],
 
 ];

@@ -43,6 +43,7 @@ return [
         'indexing' => 'Индексация',
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
+        'mcp' => 'Доступ MCP',
     ],
 
     'tabs' => [

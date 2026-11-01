@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Actions\Mcp\RecordMcpCall;
+use App\Enums\McpCallStatus;
 use App\Enums\Role;
 use App\Http\Middleware\AuthenticateApiToken;
+use App\Http\Middleware\AuthenticateMcpToken;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
@@ -12,6 +15,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Lead;
+use App\Models\McpCall;
 use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
@@ -118,6 +122,27 @@ class AppServiceProvider extends ServiceProvider
                 'error' => 'rate_limited',
                 'message' => 'Too many requests for this token. Retry later.',
             ], 429, $headers)));
+
+        // MCP (plan 13, C17): 60 requests per minute per IP before the token check,
+        // then 120 per minute per token (a rate_limited mcp_calls row on refusal).
+        RateLimiter::for('mcp-ip', fn (Request $request) => Limit::perMinute(60)
+            ->by('mcp-ip:'.$request->ip())
+            ->response(fn (Request $request, array $headers) => response()->json([
+                'error' => 'rate_limited',
+                'message' => 'Too many requests. Retry later.',
+            ], 429, $headers)));
+
+        RateLimiter::for('mcp', fn (Request $request) => Limit::perMinute(120)
+            ->by('mcp:'.($request->attributes->get(AuthenticateMcpToken::ATTRIBUTE)?->id ?? $request->ip()))
+            ->response(function (Request $request, array $headers) {
+                $token = $request->attributes->get(AuthenticateMcpToken::ATTRIBUTE);
+                app(RecordMcpCall::class)->handle($request->user(), $token, McpCall::REQUEST_TOOL, McpCallStatus::RateLimited, request: $request);
+
+                return response()->json([
+                    'error' => 'rate_limited',
+                    'message' => 'Too many requests for this token. Retry later.',
+                ], 429, $headers);
+            }));
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);

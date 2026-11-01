@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\McpCall;
 use App\Models\PriceSyncLog;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -73,3 +74,17 @@ Schedule::command('orders:release-holds')->everyTenMinutes()->withoutOverlapping
 */
 
 Schedule::command('uzqr:sync')->everyMinute()->withoutOverlapping(5)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| MCP (plan 13), Tashkent time
+|--------------------------------------------------------------------------
+| Daily: revoke MCP tokens unused for their idle days (default 45) or never
+| used within 7 days, and remind about tokens older than 180 days. Hourly:
+| revoke access of users who are no longer active Admins (role events are
+| off). mcp_calls rows older than 365 days are pruned.
+*/
+
+Schedule::command('mcp:revoke-idle')->dailyAt('03:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('mcp:sweep')->hourly()->withoutOverlapping(10)->onOneServer();
+Schedule::command('model:prune', ['--model' => [McpCall::class]])->dailyAt('02:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();

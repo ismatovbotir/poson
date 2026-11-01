@@ -91,6 +91,8 @@ class RolesAndPermissionsSeeder extends Seeder
      *    manual payment), payments.reconcile, payments.test (TEST orders)
      *    and settings.checkout are Admin only. payments.viewAny / view:
      *    Admin + sales manager.
+     *  - mcp.manage (plan 13): Settings → MCP access and the MCP call log;
+     *    Admin only.
      *
      * @return array<string, list<string>>
      */
@@ -176,6 +178,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'payments.void',
             'payments.reconcile',
             'settings.checkout',
+            // Plan 13: Settings → MCP access (single CEO holder, tokens, call log). Admin only.
+            'mcp.manage',
         ];
     }
 

@@ -23,6 +23,12 @@ enum AuditAction: string
     case Opened = 'opened';
     case Closed = 'closed';
 
+    /**
+     * Plan 13: MCP access granted to / transferred to a user.
+     */
+    case Granted = 'granted';
+    case Transferred = 'transferred';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

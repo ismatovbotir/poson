@@ -93,6 +93,8 @@ final class Menu
                 new MenuItem('indexing', 'menu.items.indexing', 'globe', 'admin.settings.indexing', permission: 'settings.integrations', visible: fn (User $user): bool => $user->can('manageArea', [Setting::class, SettingsArea::Indexing])),
                 new MenuItem('integrations', 'menu.items.integrations', 'plug', 'admin.settings.integrations', permission: 'settings.integrations'),
                 new MenuItem('api-tokens', 'menu.items.api_tokens', 'shield', 'admin.settings.api-tokens', permission: 'api-tokens.manage'),
+                // Plan 13: the CEO's Claude connection (single holder, tokens, call log). Admin only.
+                new MenuItem('mcp', 'menu.items.mcp', 'bot', 'admin.settings.mcp', permission: 'mcp.manage'),
             ]),
         ];
     }

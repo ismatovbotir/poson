@@ -43,6 +43,7 @@ return [
         'indexing' => 'Indekslash',
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
+        'mcp' => 'MCP kirish',
     ],
 
     'tabs' => [

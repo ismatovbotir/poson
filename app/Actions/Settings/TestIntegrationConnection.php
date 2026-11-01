@@ -43,7 +43,7 @@ class TestIntegrationConnection
 
     public const TARGETS = ['telegram', 'telegram_chat', 'uzqr'];
 
-    public const CHATS = ['sales', 'service', 'finance'];
+    public const CHATS = ['sales', 'service', 'finance', 'management'];
 
     /**
      * @throws InvalidArgumentException for an unknown target or chat

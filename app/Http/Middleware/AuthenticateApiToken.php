@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\ApiTokenType;
 use App\Models\ApiToken;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,9 @@ use Symfony\Component\HttpFoundation\Response;
  *   the ability → 401 {"error": "unauthenticated"} and a failure hit.
  * - On success the token is in $request->attributes ("api_token");
  *   last_used_at / last_used_ip are written at most once per minute.
+ *
+ * Only price API tokens ("pos_", type price_api) pass: an MCP token never
+ * authenticates here, whatever its abilities (plan 13, C5).
  *
  * Never logs or echoes the token or the Authorization header.
  */
@@ -80,13 +84,13 @@ class AuthenticateApiToken
 
     private function resolve(#[\SensitiveParameter] string $plain, string $ability): ?ApiToken
     {
-        if (! ApiToken::looksValid($plain)) {
+        if (! ApiToken::looksValid($plain, ApiTokenType::PriceApi)) {
             return null;
         }
 
-        $token = ApiToken::findByPlainText($plain);
+        $token = ApiToken::findByPlainText($plain, ApiTokenType::PriceApi);
 
-        if ($token === null || ! $token->isUsable() || ! $token->hasAbility($ability)) {
+        if ($token === null || $token->type !== ApiTokenType::PriceApi || ! $token->isUsable() || ! $token->hasAbility($ability)) {
             return null;
         }
 

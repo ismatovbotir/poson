@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\PriceSync;
 
+use App\Enums\ApiTokenType;
 use App\Enums\PriceSyncStatus;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Models\ApiToken;
@@ -68,7 +69,7 @@ class Index extends Component
     #[Computed]
     public function tokenOptions(): array
     {
-        return ApiToken::query()->orderBy('name')->pluck('name', 'id')->all();
+        return ApiToken::query()->ofType(ApiTokenType::PriceApi)->orderBy('name')->pluck('name', 'id')->all();
     }
 
     public function render(): View

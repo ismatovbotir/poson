@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateApiToken;
+use App\Http\Middleware\AuthenticateMcpToken;
 use App\Http\Middleware\BlockSearchIndexing;
 use App\Http\Middleware\CaptureAttribution;
 use App\Http\Middleware\EnsureStaff;
@@ -38,6 +39,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureStaff::class,
             'admin.locale' => SetAdminLocale::class,
             'api.token' => AuthenticateApiToken::class,
+            // Plan 13 MCP (routes/ai.php). Deliberately NOT in the priority list, so the
+            // route keeps its order: throttle:mcp-ip → mcp.auth → EnsureMcpUser → throttle:mcp.
+            'mcp.auth' => AuthenticateMcpToken::class,
         ]);
 
         // Price API order (plan 09): body size → token → per-token throttle (the
