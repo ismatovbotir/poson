@@ -35,10 +35,16 @@
 
     <div class="grid items-start gap-8 md:grid-cols-[1.05fr_0.95fr] md:gap-12">
         {{-- Gallery --}}
+        @php
+            // The first visible video is the last gallery item (plan 19); all videos are listed in the Video section.
+            $galleryVideo = $videos[0] ?? null;
+            $videoIndex = $galleryVideo === null ? -1 : count($images);
+        @endphp
         <section
-            @class(['grid gap-3.5 md:sticky md:top-36', 'md:grid-cols-[84px_1fr]' => $images !== [], 'md:grid-cols-1' => $images === []])
+            @class(['grid gap-3.5 md:sticky md:top-36', 'md:grid-cols-[84px_1fr]' => $images !== [] || $galleryVideo !== null, 'md:grid-cols-1' => $images === [] && $galleryVideo === null])
             aria-label="{{ __('site.product.gallery') }}"
-            x-data="{ active: 0, images: @js($images) }"
+            x-data="{ active: 0, images: @js($images), videoIndex: @js($videoIndex) }"
+            data-gallery
         >
             <div class="relative grid aspect-square place-items-center overflow-hidden rounded-box-lg border border-line bg-bg-soft md:order-2">
                 @if ($product->badge)
@@ -49,25 +55,34 @@
                     ]) data-badge="{{ $product->badge->value }}">{{ __('site.badges.'.$product->badge->value) }}</span>
                 @endif
 
+                @if ($galleryVideo !== null)
+                    <template x-if="active === videoIndex">
+                        <div class="w-full self-center px-3" data-gallery-video>
+                            <x-site.video-facade :video="$galleryVideo" />
+                        </div>
+                    </template>
+                @endif
+
                 @if ($images !== [])
                     <img
+                        x-show="active !== videoIndex"
                         src="{{ $images[0]['large'] }}"
                         alt="{{ $images[0]['alt'] }}"
-                        x-bind:src="images[active].large"
-                        x-bind:alt="images[active].alt"
+                        x-bind:src="images[active]?.large"
+                        x-bind:alt="images[active]?.alt"
                         width="1200"
                         height="1200"
                         fetchpriority="high"
                         class="size-[86%] object-contain"
                     >
                 @elseif ($diagram)
-                    <x-catalog.label-diagram :diagram="$diagram" context="gallery" class="size-[86%]" />
+                    <x-catalog.label-diagram :diagram="$diagram" context="gallery" class="size-[86%]" x-show="active !== videoIndex" />
                 @else
-                    <svg viewBox="0 0 120 120" class="size-[62%]" aria-hidden="true" focusable="false"><use href="#{{ $placeholder }}" /></svg>
+                    <svg x-show="active !== videoIndex" viewBox="0 0 120 120" class="size-[62%]" aria-hidden="true" focusable="false"><use href="#{{ $placeholder }}" /></svg>
                 @endif
             </div>
 
-            @if (count($images) > 1)
+            @if (count($images) + ($galleryVideo !== null ? 1 : 0) > 1 || ($images === [] && $galleryVideo !== null))
                 <div class="grid grid-cols-4 content-start gap-2.5 md:order-1 md:grid-cols-1">
                     @foreach ($images as $image)
                         <button
@@ -82,6 +97,25 @@
                             <span class="sr-only">{{ __('site.product.image', ['number' => $loop->iteration]) }}</span>
                         </button>
                     @endforeach
+                    @if ($galleryVideo !== null)
+                        <button
+                            type="button"
+                            wire:key="thumb-video"
+                            x-on:click="active = videoIndex"
+                            x-bind:aria-pressed="(active === videoIndex).toString()"
+                            x-bind:class="active === videoIndex ? 'border-brand' : 'border-line'"
+                            class="relative grid aspect-square place-items-center overflow-hidden rounded-box border-[1.5px] border-line bg-bg-soft transition-colors hover:border-brand"
+                            data-gallery-video-thumb
+                        >
+                            @if ($galleryVideo['thumbnail'])
+                                <img src="{{ $galleryVideo['thumbnail'] }}" alt="" width="84" height="84" loading="lazy" class="absolute inset-0 size-full object-cover">
+                            @endif
+                            <span class="relative grid size-8 place-items-center rounded-full bg-ink/80 text-white" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="ml-0.5 size-4" fill="currentColor" focusable="false"><path d="M8 5.5v13a1 1 0 0 0 1.52.85l10.4-6.5a1 1 0 0 0 0-1.7L9.52 4.65A1 1 0 0 0 8 5.5Z" /></svg>
+                            </span>
+                            <span class="sr-only">{{ __('site.videos.gallery_item') }}</span>
+                        </button>
+                    @endif
                 </div>
             @endif
         </section>
@@ -293,6 +327,9 @@
             </div>
         </section>
     @endif
+
+    {{-- Videos (plan 19): after the tabs, before the related articles and the FAQ --}}
+    <x-site.video-section class="mt-12 md:mt-16" id="product-videos" :videos="$videos" />
 
     {{-- Useful articles (decision 2026-10-24): visible articles linked to the product's category, its ancestors or descendants --}}
     @if ($articles !== [])

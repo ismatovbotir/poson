@@ -158,6 +158,13 @@ return [
         'service_engineer' => 'Service engineer',
     ],
 
+    'video_fetch_status' => [
+        'pending' => 'Fetching',
+        'ok' => 'Ready',
+        'unavailable' => 'Unavailable on YouTube',
+        'failed' => 'Fetch failed',
+    ],
+
     'sale_mode' => [
         'cart' => 'Cart',
         'quote' => 'Quote request',

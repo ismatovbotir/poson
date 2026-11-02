@@ -24,6 +24,7 @@ use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\Video;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\Cart\CartToken;
@@ -99,6 +100,8 @@ class AppServiceProvider extends ServiceProvider
             'quote' => Quote::class,
             'setting' => Setting::class,
             'user' => User::class,
+            // Plan 19: YouTube videos (also the subject of MCP calls).
+            'video' => Video::class,
         ]);
 
         // Integration settings and secrets (Settings → Integrations) over config: .env > admin > default.

@@ -158,6 +158,13 @@ return [
         'service_engineer' => 'Сервисный инженер',
     ],
 
+    'video_fetch_status' => [
+        'pending' => 'Загрузка',
+        'ok' => 'Готово',
+        'unavailable' => 'Недоступно на YouTube',
+        'failed' => 'Не удалось загрузить',
+    ],
+
     'sale_mode' => [
         'cart' => 'Корзина',
         'quote' => 'Запрос КП',

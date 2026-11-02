@@ -10,6 +10,7 @@ use App\Support\Catalog\ProductCards;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
+use App\Support\Site\VideoContent;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
@@ -75,7 +76,7 @@ class Show extends Component
         $this->resetPage();
     }
 
-    public function render(StructuredData $structuredData): View
+    public function render(StructuredData $structuredData, VideoContent $videoContent): View
     {
         $brand = $this->brand->load('media');
         $sections = $this->sections();
@@ -115,6 +116,8 @@ class Show extends Component
         $website = $brand->publicWebsite();
         // Meta title / description of this locale (plan 12), else the defaults.
         $metaTitle = trim((string) $brand->getTranslation('meta_title', $locale, false));
+        // Plan 19: the brand's videos on the first page only.
+        $videos = $products->currentPage() === 1 ? $videoContent->forOwner($brand, (string) $brand->name) : [];
         $breadcrumbs = [
             ['label' => __('site.breadcrumbs.home'), 'url' => route('site.home')],
             ['label' => __('site.brands.title'), 'url' => route('site.brands.index')],
@@ -129,10 +132,12 @@ class Show extends Component
             'logo' => $brand->imageUrl('thumb'),
             'description' => $description,
             'website' => $website,
+            'videos' => $videos,
             'websiteHost' => HttpsUrl::host($website),
             'jsonLd' => [
                 StructuredData::toScript($structuredData->brand($brand->name, $url, $logo, $plainDescription, $website)),
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),
+                ...$structuredData->videoScripts($videos, $url),
             ],
         ])
             ->title($metaTitle !== '' ? $metaTitle : __('site.brands.show.seo_title', ['name' => $brand->name]))

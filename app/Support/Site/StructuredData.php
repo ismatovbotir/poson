@@ -5,10 +5,12 @@ namespace App\Support\Site;
 use App\Enums\StockStatus;
 use App\Models\NewsPost;
 use App\Models\Product;
+use App\Models\Video;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
 use App\Support\Settings\SettingsFormat;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -23,6 +25,11 @@ use Illuminate\Support\Str;
  */
 class StructuredData
 {
+    /**
+     * Most VideoObject blocks printed on one page.
+     */
+    public const VIDEO_MARKUP_LIMIT = 5;
+
     public function __construct(protected CompanySettings $company) {}
 
     /**
@@ -454,6 +461,45 @@ class StructuredData
         $text = html_entity_decode(strip_tags(str_replace('<', ' <', $html)), ENT_QUOTES | ENT_HTML5);
 
         return trim((string) preg_replace('/\s+/u', ' ', $text));
+    }
+
+    /**
+     * VideoObject JSON-LD scripts for the videos of a page (plan 19): only
+     * videos with a known publication date (uploadDate is required and never
+     * invented) and a cached local thumbnail, at most VIDEO_MARKUP_LIMIT.
+     *
+     * @param  list<array{title: string, thumbnail: ?string, model: Video}>  $videos
+     * @return list<string>
+     */
+    public function videoScripts(array $videos, string $pageUrl): array
+    {
+        $scripts = [];
+
+        foreach ($videos as $video) {
+            $model = $video['model'];
+
+            if ($model->published_on === null || $video['thumbnail'] === null) {
+                continue;
+            }
+
+            $scripts[] = self::toScript([
+                '@context' => 'https://schema.org',
+                '@type' => 'VideoObject',
+                'name' => $video['title'],
+                'description' => $video['title'],
+                'thumbnailUrl' => [url($video['thumbnail'])],
+                'uploadDate' => Carbon::parse($model->published_on->format('Y-m-d'), 'Asia/Tashkent')->format('Y-m-d\TH:i:sP'),
+                'embedUrl' => $model->seoEmbedUrl(),
+                'contentUrl' => $model->watchUrl(),
+                'url' => $pageUrl,
+            ]);
+
+            if (count($scripts) >= self::VIDEO_MARKUP_LIMIT) {
+                break;
+            }
+        }
+
+        return $scripts;
     }
 
     /**

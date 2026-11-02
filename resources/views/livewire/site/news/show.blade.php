@@ -36,6 +36,8 @@
 
         <div class="{{ $proseClass }}" data-news-body>{!! $body !!}</div>
 
+        <x-site.video-section class="mt-8" id="news-videos" :videos="$videos" />
+
         @if ($categories !== [])
             <section class="mt-8" aria-labelledby="news-categories-title" data-news-categories>
                 <h2 id="news-categories-title" class="mb-3 text-sm font-semibold text-ink-3">{{ $kind->siteText('related_categories') }}</h2>

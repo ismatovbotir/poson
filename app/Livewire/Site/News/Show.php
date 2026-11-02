@@ -12,6 +12,7 @@ use App\Support\HtmlSanitizer;
 use App\Support\LocaleUrl;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
+use App\Support\Site\VideoContent;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -47,7 +48,7 @@ class Show extends Component
         $this->newsPost = $newsPost;
     }
 
-    public function render(StructuredData $structuredData): View
+    public function render(StructuredData $structuredData, VideoContent $videoContent): View
     {
         $post = $this->newsPost->loadMissing('media');
         $locale = app()->getLocale();
@@ -66,6 +67,9 @@ class Show extends Component
             $post->getTranslation('body', $locale, false),
         );
 
+        // Plan 19: videos of the post (one query).
+        $videos = $videoContent->forOwner($post, $title);
+
         LocaleUrl::restrictTo(
             array_values(array_intersect(config('app.supported_locales'), (array) $post->locales)),
             fn (string $other): string => $kind->listUrl($other),
@@ -83,11 +87,13 @@ class Show extends Component
             'coverAlt' => ($post->imageAlts()[$locale] ?? '') ?: $title,
             'products' => $this->products(),
             'categories' => $this->categories(),
+            'videos' => $videos,
             'breadcrumbs' => $breadcrumbs,
             'rssUrl' => $kind === NewsKind::News ? route('site.news.rss') : null,
             'jsonLd' => [
                 StructuredData::toScript($structuredData->newsArticle($post, $title, $url, $description, $cover)),
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),
+                ...$structuredData->videoScripts($videos, $url),
             ],
         ])
             ->title(SeoText::title($post->getTranslation('meta_title', $locale, false), $title))

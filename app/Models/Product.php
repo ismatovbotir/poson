@@ -9,6 +9,7 @@ use App\Enums\ProductType;
 use App\Enums\ProductUnit;
 use App\Enums\SaleMode;
 use App\Enums\StockStatus;
+use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
@@ -99,7 +100,7 @@ use Spatie\Translatable\HasTranslations;
 class Product extends Model implements HasMedia
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, HasTranslations, InteractsWithMedia, SoftDeletes, StoresTranslations;
+    use HasFactory, HasTranslations, HasVideos, InteractsWithMedia, SoftDeletes, StoresTranslations;
 
     /**
      * Columns whose change alone never notifies IndexNow (prices are never

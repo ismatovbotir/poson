@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasCatalogImage;
+use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Site\IndexNow;
@@ -44,7 +45,7 @@ use Spatie\Translatable\HasTranslations;
 class Category extends Model implements HasMedia
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
+    use HasCatalogImage, HasFactory, HasTranslations, HasVideos, StoresTranslations;
 
     /**
      * Columns whose change alone never notifies IndexNow.

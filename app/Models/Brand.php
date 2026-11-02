@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProductType;
 use App\Models\Concerns\HasCatalogImage;
+use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Site\IndexNow;
@@ -39,7 +40,7 @@ use Spatie\Translatable\HasTranslations;
 class Brand extends Model implements HasMedia
 {
     /** @use HasFactory<BrandFactory> */
-    use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
+    use HasCatalogImage, HasFactory, HasTranslations, HasVideos, StoresTranslations;
 
     /**
      * Columns whose change alone never notifies IndexNow.

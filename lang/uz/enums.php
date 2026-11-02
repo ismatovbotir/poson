@@ -158,6 +158,13 @@ return [
         'service_engineer' => 'Servis muhandisi',
     ],
 
+    'video_fetch_status' => [
+        'pending' => 'Yuklanmoqda',
+        'ok' => 'Tayyor',
+        'unavailable' => 'YouTubeʼda mavjud emas',
+        'failed' => 'Yuklab boʻlmadi',
+    ],
+
     'sale_mode' => [
         'cart' => 'Savat',
         'quote' => 'Tijorat taklifi soʻrovi',

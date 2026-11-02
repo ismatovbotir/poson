@@ -6,6 +6,7 @@ use App\Enums\NewsKind;
 use App\Enums\NewsState;
 use App\Enums\NewsStatus;
 use App\Models\Concerns\HasCatalogImage;
+use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Site\IndexNow;
 use App\Support\Site\NewsDirectory;
@@ -56,7 +57,7 @@ use Spatie\Translatable\HasTranslations;
 class NewsPost extends Model implements HasMedia
 {
     /** @use HasFactory<NewsPostFactory> */
-    use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
+    use HasCatalogImage, HasFactory, HasTranslations, HasVideos, StoresTranslations;
 
     /**
      * Columns whose change alone never notifies IndexNow (none: every column is public content).

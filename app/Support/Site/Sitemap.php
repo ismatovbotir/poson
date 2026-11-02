@@ -7,7 +7,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
+use App\Models\Video;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Content\VideoText;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -65,6 +67,13 @@ class Sitemap
      * @var list<array{loc: string, lastmod: ?string, locale: string, type: string}>
      */
     private array $entries = [];
+
+    /**
+     * Visible videos (plan 19) by owner ("morph:id"), loaded once per build.
+     *
+     * @var array<string, list<Video>>
+     */
+    private array $videos = [];
 
     /**
      * Last good document (no TTL, never flushed): served while a rebuild is
@@ -206,6 +215,9 @@ class Sitemap
         $xml->startElement('urlset');
         $xml->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
         $xml->writeAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
+        $xml->writeAttribute('xmlns:video', 'http://www.google.com/schemas/sitemap-video/1.1');
+
+        $this->loadVideos();
 
         $latestProduct = Product::query()->visible()->max('updated_at');
 
@@ -224,6 +236,7 @@ class Sitemap
                 fn (string $locale): string => route('site.catalog.category', ['locale' => $locale, 'category' => $category->slug]),
                 $category->updated_at,
                 type: 'categories',
+                videos: $this->videosOf('category', $category->id),
             );
         }
 
@@ -253,6 +266,7 @@ class Sitemap
                         fn (string $locale): string => route('site.product', ['locale' => $locale, 'product' => $product->slug]),
                         $product->updated_at,
                         type: 'products',
+                        videos: $this->videosOf('product', $product->id),
                     );
                 }
             });
@@ -293,6 +307,7 @@ class Sitemap
                 fn (string $locale): string => route('site.brands.show', ['locale' => $locale, 'brand' => $brand->slug]),
                 $modified[$brand->id],
                 type: 'brands',
+                videos: $this->videosOf('brand', $brand->id),
             );
         }
     }
@@ -338,6 +353,7 @@ class Sitemap
                             $post->contentUpdatedAt(),
                             $locales,
                             $kind === NewsKind::Article ? 'articles' : 'news',
+                            $this->videosOf('news_post', $post->id),
                         );
                     }
                 }
@@ -353,8 +369,9 @@ class Sitemap
      * @param  CarbonInterface|(callable(string): ?CarbonInterface)|null  $lastModified  one date, or one per locale
      * @param  list<string>|null  $locales
      * @param  string  $type  one of TYPES, for the admin counts
+     * @param  list<Video>  $videos  the owner's visible videos (plan 19), written in every locale's <url>
      */
-    private function write(XMLWriter $xml, callable $url, CarbonInterface|callable|null $lastModified = null, ?array $locales = null, string $type = 'other'): void
+    private function write(XMLWriter $xml, callable $url, CarbonInterface|callable|null $lastModified = null, ?array $locales = null, string $type = 'other', array $videos = []): void
     {
         $locales ??= config('app.supported_locales');
         $urls = [];
@@ -384,8 +401,62 @@ class Sitemap
                 $xml->endElement();
             }
 
+            foreach ($videos as $video) {
+                $this->writeVideo($xml, $video, (string) $locale);
+            }
+
             $xml->endElement();
         }
+    }
+
+    /**
+     * Load the visible videos of all owners with one query.
+     */
+    private function loadVideos(): void
+    {
+        $this->videos = [];
+
+        Video::query()->visible()->ordered()->get()->each(function (Video $video): void {
+            $this->videos[$video->videoable_type.':'.$video->videoable_id][] = $video;
+        });
+    }
+
+    /**
+     * @return list<Video>
+     */
+    private function videosOf(string $morph, int $id): array
+    {
+        return $this->videos[$morph.':'.$id] ?? [];
+    }
+
+    /**
+     * One <video:video>. A video without a cached local thumbnail is skipped
+     * (thumbnail_loc is required and must be ours). Title and description are
+     * cleaned again here (valid UTF-8, no control characters) and capped at the
+     * protocol's 100 / 2048 characters; XMLWriter escapes markup.
+     */
+    private function writeVideo(XMLWriter $xml, Video $video, string $locale): void
+    {
+        $thumbnail = $video->thumbnailUrl();
+
+        if ($thumbnail === null) {
+            return;
+        }
+
+        $title = VideoText::clean($video->displayTitle($locale) ?? __('site.videos.fallback_title', [], $locale), 100)
+            ?? __('site.videos.fallback_title', [], $locale);
+
+        $xml->startElement('video:video');
+        $xml->writeElement('video:thumbnail_loc', url($thumbnail));
+        $xml->writeElement('video:title', $title);
+        $xml->writeElement('video:description', $title);
+        $xml->writeElement('video:player_loc', $video->seoEmbedUrl());
+
+        if ($video->published_on !== null) {
+            $xml->writeElement('video:publication_date', $video->published_on->format('Y-m-d'));
+        }
+
+        $xml->endElement();
     }
 
     private function date(mixed $value): ?CarbonInterface

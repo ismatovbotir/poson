@@ -422,4 +422,12 @@ return [
         'subtitle' => 'Delivery, warranty, setup and service',
     ],
 
+    'videos' => [
+        'title' => 'Videos',
+        'play' => 'Play video',
+        'fallback_title' => 'Video',
+        'gallery_item' => 'Video',
+        'watch_on_youtube' => 'Watch on YouTube',
+        'notice' => 'No data goes to YouTube until you press play; afterwards the video loads from YouTube and Google may receive your data.',
+    ],
 ];

@@ -13,6 +13,7 @@ use App\Support\Site\FaqContent;
 use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
+use App\Support\Site\VideoContent;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -199,7 +200,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function render(StructuredData $structuredData, FaqContent $faqContent): View
+    public function render(StructuredData $structuredData, FaqContent $faqContent, VideoContent $videoContent): View
     {
         $query = new CatalogQuery(
             category: $this->category,
@@ -223,6 +224,10 @@ class Index extends Component
         // FAQPage JSON-LD only for the category's own items, on the first page.
         $faq = $this->category !== null ? $faqContent->forCategory($this->category->id) : ['items' => [], 'own' => false];
         $faqMarkup = $faq['own'] && $faq['items'] !== [] && $products->currentPage() === 1;
+        // Plan 19: the category's videos on the first page only.
+        $videos = $this->category !== null && $products->currentPage() === 1
+            ? $videoContent->forOwner($this->category, (string) $this->category->name)
+            : [];
         $currentUrl = $this->category !== null
             ? route('site.catalog.category', ['category' => $this->category->slug])
             : route('site.catalog.index');
@@ -240,6 +245,8 @@ class Index extends Component
             'sorts' => CatalogQuery::SORTS,
             'breadcrumbsJson' => StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $currentUrl)),
             'faq' => $faq['items'],
+            'videos' => $videos,
+            'videoJson' => $structuredData->videoScripts($videos, $currentUrl),
             'articles' => $this->articles,
             'faqJson' => $faqMarkup ? StructuredData::toScript($structuredData->faqPage($faq['items'])) : null,
         ])

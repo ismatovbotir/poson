@@ -85,4 +85,7 @@
             @endif
         </div>
     </section>
+
+    {{-- Videos (plan 19): first page only --}}
+    <x-site.video-section class="mt-12 md:mt-[72px]" id="brand-videos" :videos="$videos" />
 </div>

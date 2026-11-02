@@ -19,6 +19,7 @@ use App\Support\Site\FaqContent;
 use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
+use App\Support\Site\VideoContent;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Locked;
@@ -69,7 +70,7 @@ class Show extends Component
         abort_unless($this->product->exists && $this->product->fresh()?->isVisible(), 404);
     }
 
-    public function render(ProductAttributeResolver $resolver, StructuredData $structuredData, FaqContent $faqContent): View
+    public function render(ProductAttributeResolver $resolver, StructuredData $structuredData, FaqContent $faqContent, VideoContent $videoContent): View
     {
         $product = $this->product->load([
             'brand',
@@ -92,6 +93,8 @@ class Show extends Component
         $skipped = $product->attributeSkips()->pluck('attribute_id')->map(fn ($id): int => (int) $id)->all();
 
         $images = $this->images();
+        // Plan 19: visible videos (one query); the first is also the last gallery item.
+        $videos = $videoContent->forOwner($product, (string) $product->name);
 
         return view('livewire.site.catalog.show', [
             'images' => $images,
@@ -115,10 +118,12 @@ class Show extends Component
             // Plan 08: the price is per one label and the page shows the roll picker.
             'pricedPerLabel' => $product->isPricedPerLabel(),
             'faq' => $faq['items'],
+            'videos' => $videos,
             'jsonLd' => array_values(array_filter([
                 StructuredData::toScript($structuredData->product($product, $url)),
                 StructuredData::toScript($structuredData->breadcrumbs($breadcrumbs, $url)),
                 $faq['own'] && $faq['items'] !== [] ? StructuredData::toScript($structuredData->faqPage($faq['items'])) : null,
+                ...$structuredData->videoScripts($videos, $url),
             ])),
         ])
             ->title(SeoText::title($product->getTranslation('meta_title', app()->getLocale(), false), (string) $product->name))

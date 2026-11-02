@@ -237,6 +237,16 @@
                 @endif
             </section>
 
+            {{-- Videos --}}
+            <section id="s-videos" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
+                @if ($product)
+                    <livewire:admin.videos.video-list :product="$product" :key="'videos-product-'.$product->id" />
+                @else
+                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.videos.title') }}</h2></div>
+                    <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.videos.save_first') }}</p>
+                @endif
+            </section>
+
             {{-- FAQ --}}
             <section id="s-faq" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
                 @if ($product)

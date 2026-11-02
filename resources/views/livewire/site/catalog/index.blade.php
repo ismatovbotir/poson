@@ -22,6 +22,9 @@
         @if ($faqJson)
             <script type="application/ld+json">{!! $faqJson !!}</script>
         @endif
+        @foreach ($videoJson as $block)
+            <script type="application/ld+json">{!! $block !!}</script>
+        @endforeach
     @endpush
 
     <x-site.breadcrumbs :items="$breadcrumbs" />
@@ -238,6 +241,9 @@
             </div>
         </section>
     </div>
+
+    {{-- Videos (plan 19): first page of a category only --}}
+    <x-site.video-section class="mt-12 md:mt-[72px]" id="category-videos" :videos="$videos" />
 
     {{-- Useful articles (decision 2026-10-24): articles linked to this category, its ancestors or its descendants --}}
     @if ($articles !== [])

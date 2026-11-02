@@ -173,13 +173,13 @@ it('drops an unpublished post from the sitemap (flush on the update path)', func
     expect($this->get('/sitemap.xml')->assertOk()->getContent())->not->toContain($post->slug);
 });
 
-it('returns all 20 tools in one tools/list page and guards the page size', function () {
+it('returns all 21 tools in one tools/list page and guards the page size', function () {
     [, $token] = mcpHolder($plain = fakeMcpTokenValue());
 
     $result = mcpRequest($plain)->assertOk()->json('result');
     $defaults = (new ReflectionClass(AdminServer::class))->getDefaultProperties();
 
-    expect($result['tools'])->toHaveCount(20)->and($result)->not->toHaveKey('nextCursor')
+    expect($result['tools'])->toHaveCount(21)->and($result)->not->toHaveKey('nextCursor')
         ->and(count(AdminServer::TOOLS))->toBeLessThanOrEqual($defaults['defaultPaginationLength'])
         ->and(count(AdminServer::TOOLS))->toBeLessThanOrEqual($defaults['maxPaginationLength']);
 });

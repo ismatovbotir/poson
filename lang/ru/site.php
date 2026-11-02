@@ -422,4 +422,12 @@ return [
         'subtitle' => 'Доставка, гарантия, настройка и сервис',
     ],
 
+    'videos' => [
+        'title' => 'Видео',
+        'play' => 'Смотреть видео',
+        'fallback_title' => 'Видео',
+        'gallery_item' => 'Видео',
+        'watch_on_youtube' => 'Смотреть на YouTube',
+        'notice' => 'До нажатия «Смотреть» данные в Google/YouTube не передаются; после — видео грузится с YouTube, и Google может получать данные.',
+    ],
 ];

@@ -422,4 +422,12 @@ return [
         'subtitle' => 'Yetkazib berish, kafolat, sozlash va servis',
     ],
 
+    'videos' => [
+        'title' => 'Videolar',
+        'play' => 'Videoni ijro etish',
+        'fallback_title' => 'Video',
+        'gallery_item' => 'Video',
+        'watch_on_youtube' => 'YouTubeʼda koʻrish',
+        'notice' => 'Video ijro etilgach YouTube serveridan yuklanadi va Google maʼlumot olishi mumkin. Bosilgunga qadar hech narsa yuborilmaydi.',
+    ],
 ];

@@ -4,12 +4,14 @@ use App\Actions\Mcp\CreateMcpFaqDraft;
 use App\Actions\Mcp\CreateMcpPageDraft;
 use App\Actions\Mcp\CreateMcpPost;
 use App\Actions\Mcp\CreateMcpProductDraft;
+use App\Actions\Mcp\CreateMcpVideoDraft;
 use App\Enums\McpCallStatus;
 use App\Enums\NewsStatus;
 use App\Enums\Role;
 use App\Livewire\Admin\Settings\McpAccess;
 use App\Mcp\Servers\AdminServer;
 use App\Mcp\Tools\Catalog\CreateProductDraft;
+use App\Mcp\Tools\Content\AttachVideo;
 use App\Mcp\Tools\Content\CreateFaqDraft;
 use App\Mcp\Tools\Content\CreatePageDraft;
 use App\Mcp\Tools\Content\CreatePost;
@@ -39,7 +41,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Livewire\Livewire;
 
 /**
- * M3 cross-cutting coverage (plan 13 M3d): registration of all 20 tools,
+ * M3 cross-cutting coverage (plan 13 M3d): registration of all 21 tools,
  * create-only invariant (M3-S1), limiter atomicity (S7), audit redaction (S8),
  * generic server errors (S13), no outbound HTTP (S16), abuse cases and the
  * query budget. Per-tool behaviour lives in the CreatePost / CreateFaqDraft /
@@ -62,6 +64,7 @@ function m3WriteTools(): array
         'create_faq_draft' => [CreateFaqDraft::class, CreateMcpFaqDraft::class],
         'create_page_draft' => [CreatePageDraft::class, CreateMcpPageDraft::class],
         'create_product_draft' => [CreateProductDraft::class, CreateMcpProductDraft::class],
+        'attach_video' => [AttachVideo::class, CreateMcpVideoDraft::class],
     ];
 }
 
@@ -86,6 +89,10 @@ function m3Args(string $tool, array $over = []): array
                 'category_id' => (Category::query()->first() ?? Category::factory()->create())->id,
                 'sku' => 'M3-'.$sequence,
                 'name' => ['uz' => 'Shtrix-kod skaneri '.$sequence],
+            ],
+            'attach_video' => [
+                'owner' => 'category:'.(Category::query()->first() ?? Category::factory()->create())->id,
+                'url' => sprintf('vid%08d', $sequence),
             ],
         },
         ...$over,
@@ -143,6 +150,7 @@ function m3Registration(): array
         'create_faq_draft' => $content,
         'create_page_draft' => $content,
         'create_product_draft' => [Role::Admin, Role::ContentManager, Role::ServiceEngineer],
+        'attach_video' => [Role::Admin, Role::ContentManager, Role::ServiceEngineer],
     ];
 }
 
@@ -197,7 +205,7 @@ function m3Damaged(array $before, array $after): array
 // 1. Registration
 // ---------------------------------------------------------------------------
 
-it('lists each of the 20 tools exactly for the roles that hold its permission (S16)', function (string $name, Role $role, bool $allowed) {
+it('lists each of the 21 tools exactly for the roles that hold its permission (S16)', function (string $name, Role $role, bool $allowed) {
     $class = collect(AdminServer::TOOLS)->first(fn (string $class): bool => app($class)->name() === $name);
     $server = AdminServer::actingAs(staffUser($role));
 
@@ -206,13 +214,13 @@ it('lists each of the 20 tools exactly for the roles that hold its permission (S
         : $server->tool($class, [])->assertNotRegistered();
 })->with(m3RegistrationMatrix());
 
-it('keeps all 20 tools in the matrix and in the server list', function () {
+it('keeps all 21 tools in the matrix and in the server list', function () {
     $names = collect(AdminServer::TOOLS)->map(fn (string $class) => app($class)->name())->all();
 
-    expect($names)->toHaveCount(20)->and(array_keys(m3Registration()))->toBe($names);
+    expect($names)->toHaveCount(21)->and(array_keys(m3Registration()))->toBe($names);
 });
 
-it('has exactly four write tools, all create_*, none read-only and none able to edit or unpublish (S16)', function () {
+it('has exactly five write tools, all create_*, none read-only and none able to edit or unpublish (S16)', function () {
     $writes = collect(AdminServer::TOOLS)
         ->filter(fn (string $class): bool => (new ReflectionMethod($class, 'isWrite'))->invoke(app($class)))
         ->map(fn (string $class) => app($class)->name())->values()->all();
@@ -272,7 +280,7 @@ it('lets no token holder without MCP access, with a revoked token or with a non-
         ->and(RateLimiter::attempts('mcp-write:'.$user->id))->toBe(0);
 })->with(['no grant', 'content manager', 'revoked']);
 
-it('lists exactly the 20 tools for the Admin holder over HTTP', function () {
+it('lists exactly the 21 tools for the Admin holder over HTTP', function () {
     mcpHolder($plain = fakeMcpTokenValue());
 
     $names = [];
@@ -301,7 +309,7 @@ it('never loads, locks or edits an existing post, page, FAQ item or product in a
         'Product::withTrashed()->where(\'sku\', $sku)->exists()',
     ];
 
-    expect($files)->toHaveCount(4);
+    expect($files)->toHaveCount(5);
 
     foreach ($files as $file) {
         $code = file_get_contents($file);
@@ -315,9 +323,18 @@ it('never loads, locks or edits an existing post, page, FAQ item or product in a
     }
 });
 
-it('hands a null model to every Save* writer and has no edit action or tool beside the four creators (M3-S1)', function () {
+it('hands a null model to every Save* writer and has no edit action or tool beside the five creators (M3-S1)', function () {
     foreach (glob(app_path('Actions/Mcp/Create*.php')) as $file) {
-        expect(file_get_contents($file))->toMatch('/\$this->save->handle\(\s*(null|\$owner, null),/', basename($file));
+        $code = file_get_contents($file);
+        $pattern = basename($file) === 'CreateMcpVideoDraft.php'
+            ? '/\$this->attach->handle\(\$owner, /'
+            : '/\$this->save->handle\(\s*(null|\$owner, null),/';
+
+        expect($code)->toMatch($pattern, basename($file));
+
+        if (basename($file) === 'CreateMcpVideoDraft.php') {
+            expect($code)->toContain('active: false');
+        }
     }
 
     $names = array_map('basename', [...glob(app_path('Actions/Mcp/*.php')), ...glob(app_path('Mcp/Tools/*/*.php'))]);
@@ -486,7 +503,7 @@ it('lets only one of two racing writes take the last slot at 29/30, across diffe
         ->and(Page::query()->count() + FaqItem::query()->count())->toBe(1);
 });
 
-it('stops the write budget over HTTP across all four write tools, and counts refused calls too (M3-S7)', function () {
+it('stops the write budget over HTTP across all five write tools, and counts refused calls too (M3-S7)', function () {
     [$ceo] = mcpHolder($plain = fakeMcpTokenValue());
     foreach (range(1, PosonTool::WRITE_LIMIT_PER_HOUR - 2) as $_) {
         RateLimiter::increment('mcp-write:'.$ceo->id, 3600);
@@ -495,9 +512,9 @@ it('stops the write budget over HTTP across all four write tools, and counts ref
 
     $results = collect(array_keys(m3WriteTools()))->map(fn (string $tool) => mcpCallTool($plain, $tool, m3Args($tool))->json('result.isError'));
 
-    expect($results->all())->toEqual([null, null, true, true])
-        ->and(RateLimiter::attempts('mcp-write:'.$ceo->id))->toBe(PosonTool::WRITE_LIMIT_PER_HOUR + 2)
-        ->and(McpCall::query()->where('status', McpCallStatus::RateLimited)->count())->toBe(2)
+    expect($results->all())->toEqual([null, null, true, true, true])
+        ->and(RateLimiter::attempts('mcp-write:'.$ceo->id))->toBe(PosonTool::WRITE_LIMIT_PER_HOUR + 3)
+        ->and(McpCall::query()->where('status', McpCallStatus::RateLimited)->count())->toBe(3)
         ->and(Page::query()->count() + Product::query()->count())->toBe(0)
         ->and(NewsPost::query()->count() + FaqItem::query()->count())->toBe(2);
 });
