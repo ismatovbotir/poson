@@ -192,7 +192,6 @@ return [
         'inn_hint' => '9 ta raqam, takrorlanmas',
         'price_level_hint' => 'Shu mijozning tijorat takliflari va buyurtmalari uchun.',
         'price_level_admin_only' => 'Narx darajasini faqat administrator oʻzgartira oladi.',
-        'telegram_id_hint' => 'Telegram bot tomonidan toʻldiriladi.',
         'empty_title' => 'Hozircha mijozlar yoʻq',
         'empty_body' => 'Mijoz qoʻshing yoki murojaatni mijozga aylantiring.',
         'no_results' => 'Hech narsa topilmadi',
@@ -232,7 +231,6 @@ return [
             'manager' => 'Menejer',
             'manager_id' => 'Menejer',
             'price_level' => 'Narx darajasi',
-            'telegram_id' => 'Telegram ID',
             'created_at' => 'Qoʻshilgan',
         ],
         'sections' => [

@@ -2,8 +2,8 @@
     Mobile drawer (below 900px). State: "menuOpen" from the x-data on <body>.
     Focus is trapped while open (x-trap, page made inert, scroll locked);
     Esc, the close button, the backdrop and any link close it.
-    Sections: the catalog (Show all + top-level categories, CatalogMenu; touch
-    screens have no hover menu), then the main nav (Navigation::main()).
+    Sections: one "Catalog" link (the category list lives only behind the
+    header Catalog button), then the main nav (Navigation::main()).
 --}}
 @inject('company', \App\Support\CompanySettings::class)
 
@@ -35,27 +35,16 @@
             </button>
         </div>
 
-        {{-- Categories (no hover menu on touch screens): "Show all", then the top-level categories; Services is in the main nav below. --}}
-        <nav aria-labelledby="site-drawer-catalog">
-            <h3 id="site-drawer-catalog" class="mb-2 text-xs font-semibold tracking-[0.05em] text-ink-3 uppercase">{{ __('site.header.catalog') }}</h3>
-            <ul class="divide-y divide-line border-y border-line" data-drawer-catalog>
-                <li>
-                    <a href="{{ \App\Support\Site\Navigation::catalog() }}" x-on:click="menuOpen = false" class="flex items-center justify-between py-3 font-semibold text-brand-600 hover:text-brand-700">
-                        {{ __('site.header.show_all') }}
-                        <x-site.icon name="arrow" size="size-4" />
-                    </a>
-                </li>
-                @foreach (\App\Support\Site\CatalogMenu::items() as $category)
-                    @continue($category['slug'] === \App\Support\Site\Navigation::SERVICES_SLUG)
-                    <li>
-                        <a href="{{ $category['url'] }}" x-on:click="menuOpen = false" class="flex items-center gap-3 py-2.5 font-medium text-ink hover:text-brand-600">
-                            <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-bg-tint text-brand-600"><x-site.icon :name="$category['icon']" size="size-4" /></span>
-                            <span class="flex-1">{{ $category['label'] }}</span>
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </nav>
+        {{-- Categories live only behind the header Catalog button on phones; the drawer has a single link to the catalog page. --}}
+        <a
+            href="{{ \App\Support\Site\Navigation::catalog() }}"
+            x-on:click="menuOpen = false"
+            data-drawer-catalog-link
+            class="flex items-center justify-between border-y border-line py-3 font-semibold text-brand-600 hover:text-brand-700"
+        >
+            {{ __('site.header.catalog') }}
+            <x-site.icon name="arrow" size="size-4" />
+        </a>
 
         <nav aria-label="{{ __('site.nav.aria_label') }}">
             <ul class="divide-y divide-line border-y border-line">

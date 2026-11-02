@@ -192,7 +192,6 @@ return [
         'inn_hint' => '9 цифр, уникальный',
         'price_level_hint' => 'Для коммерческих предложений и заказов этого клиента.',
         'price_level_admin_only' => 'Уровень цен меняет только администратор.',
-        'telegram_id_hint' => 'Заполняется Telegram-ботом.',
         'empty_title' => 'Клиентов пока нет',
         'empty_body' => 'Добавьте клиента или конвертируйте заявку.',
         'no_results' => 'Ничего не найдено',
@@ -232,7 +231,6 @@ return [
             'manager' => 'Менеджер',
             'manager_id' => 'Менеджер',
             'price_level' => 'Уровень цен',
-            'telegram_id' => 'Telegram ID',
             'created_at' => 'Добавлен',
         ],
         'sections' => [

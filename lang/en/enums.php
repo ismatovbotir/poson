@@ -403,4 +403,52 @@ return [
         'forget_job' => 'Forget failed job',
     ],
 
+    'telegram_user_state' => [
+        'language' => 'Language',
+        'contact' => 'Contact',
+        'name' => 'Name',
+        'company' => 'Company',
+        'inn' => 'TIN',
+        'registered' => 'Registered',
+    ],
+
+    'telegram_direction' => [
+        'in' => 'Incoming',
+        'out' => 'Outgoing',
+    ],
+
+    'telegram_message_status' => [
+        'received' => 'Received',
+        'pending' => 'Pending',
+        'sent' => 'Sent',
+        'failed' => 'Failed',
+    ],
+
+    'telegram_message_kind' => [
+        'text' => 'Text',
+        'photo' => 'Photo',
+        'document' => 'Document',
+        'voice' => 'Voice',
+        'audio' => 'Audio',
+        'video' => 'Video',
+        'video_note' => 'Video note',
+        'animation' => 'Animation',
+        'sticker' => 'Sticker',
+        'location' => 'Location',
+        'contact' => 'Contact',
+        'other' => 'Other',
+    ],
+
+    'telegram_forward_status' => [
+        'pending' => 'Pending',
+        'forwarded' => 'Forwarded',
+        'not_configured' => 'Not configured',
+        'limited' => 'Limited',
+        'failed' => 'Failed',
+    ],
+
+    'conversation_status' => [
+        'open' => 'Open',
+        'closed' => 'Closed',
+    ],
 ];

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A person at a customer (plan 05; screens in 5b).
@@ -38,6 +39,14 @@ class Contact extends Model
         return [
             'is_primary' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<TelegramUser, $this>
+     */
+    public function telegramUsers(): HasMany
+    {
+        return $this->hasMany(TelegramUser::class);
     }
 
     /**

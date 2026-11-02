@@ -141,7 +141,6 @@
                         __('crm.customers.fields.phone') => $customer->phone ? \App\Support\Phone::display($customer->phone) : null,
                         __('crm.customers.fields.email') => $customer->email,
                         __('crm.customers.fields.address') => $customer->address,
-                        __('crm.customers.fields.telegram_id') => $customer->telegram_id,
                         __('crm.customers.fields.created_at') => $when($customer->created_at, 'D MMM YYYY'),
                     ], fn ($value) => filled($value)) as $label => $value)
                         <div class="flex gap-3"><dt class="w-28 shrink-0 text-slate-500">{{ $label }}</dt><dd class="min-w-0 break-words">{{ $value }}</dd></div>

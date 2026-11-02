@@ -192,7 +192,6 @@ return [
         'inn_hint' => '9 digits, unique',
         'price_level_hint' => 'Used for this customer’s quotes and orders.',
         'price_level_admin_only' => 'Only an administrator can change the price level.',
-        'telegram_id_hint' => 'Filled in by the Telegram bot.',
         'empty_title' => 'No customers yet',
         'empty_body' => 'Add a customer or convert a lead.',
         'no_results' => 'Nothing found',
@@ -232,7 +231,6 @@ return [
             'manager' => 'Manager',
             'manager_id' => 'Manager',
             'price_level' => 'Price level',
-            'telegram_id' => 'Telegram ID',
             'created_at' => 'Added',
         ],
         'sections' => [

@@ -175,6 +175,14 @@ class Lead extends Model
     }
 
     /**
+     * @return HasMany<TelegramMessage, $this>
+     */
+    public function telegramMessages(): HasMany
+    {
+        return $this->hasMany(TelegramMessage::class);
+    }
+
+    /**
      * @return MorphMany<Activity, $this>
      */
     public function activities(): MorphMany

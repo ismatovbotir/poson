@@ -46,6 +46,13 @@ class RolesAndPermissionsSeeder extends Seeder
     public const ORDERS_SALES = ['orders.viewAny', 'orders.view', 'orders.create', 'orders.update', 'orders.mark-paid'];
 
     /**
+     * Telegram bot inbox (plan 14 §10): the sales manager works the own and
+     * unassigned conversations, hands them over and bans abusers. inbox-all
+     * and bot (enable, webhook, delete) are Admin only.
+     */
+    public const TELEGRAM_SALES = ['telegram.inbox', 'telegram.reassign', 'telegram.ban'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -103,6 +110,9 @@ class RolesAndPermissionsSeeder extends Seeder
      *  - monitoring.view / monitoring.manage (plan 17): System → Monitoring;
      *    Admin only (also added by the add_monitoring_permissions migration).
      *
+     *  - telegram.* (plan 14): inbox (own + unassigned) / reassign / ban for the
+     *    sales manager; inbox-all and bot Admin only.
+     *
      * @return array<string, list<string>>
      */
     public static function permissionMap(): array
@@ -130,6 +140,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...static::abilities(['quotes'], self::CRUD),
                 ...self::ORDERS_SALES,
                 'payments.viewAny', 'payments.view',
+                ...self::TELEGRAM_SALES,
             ],
 
             Role::ServiceEngineer->value => [
@@ -195,6 +206,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'monitoring.manage',
             // Admin → SEO → Sitemap (Content manager + Admin).
             ...self::SITEMAP,
+            // Plan 14: Telegram bot inbox (also added by the add_telegram_permissions migration).
+            'telegram.inbox',
+            'telegram.inbox-all',
+            'telegram.reassign',
+            'telegram.ban',
+            'telegram.bot',
         ];
     }
 

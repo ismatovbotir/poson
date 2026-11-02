@@ -106,7 +106,7 @@ it('marks the current item with aria-current', function () {
     expect($nav)->toMatch('#data-nav="brands"\s+aria-current="page"#');
 });
 
-it('keeps the categories in the footer catalog column and the mobile drawer', function (string $locale) {
+it('keeps the categories in the footer catalog column and only a Catalog link in the mobile drawer', function (string $locale) {
     $this->seed(CatalogSeeder::class);
     Category::query()->where('slug', 'rfid')->firstOrFail()->update(['is_active' => false]);
     app()->setLocale($locale);
@@ -118,14 +118,16 @@ it('keeps the categories in the footer catalog column and the mobile drawer', fu
 
     $html = $this->get("/{$locale}")->assertOk()->getContent();
     preg_match('#<nav aria-labelledby="footer-catalog">.*?</nav>#s', $html, $column);
-    preg_match('#<ul class="[^"]*" data-drawer-catalog>.*?</ul>#s', $html, $drawer);
+    preg_match('#<div\s+id="site-drawer".*?</nav>#s', $html, $drawer);
+    preg_match('#<a[^>]*data-drawer-catalog-link[^>]*>#s', $drawer[0], $catalogLink);
 
     expect($column[0])->toContain('href="'.url("/{$locale}/catalog/scanners").'"')
         ->toContain('href="'.url("/{$locale}/brands").'"')
         ->not->toContain('/catalog/services')
-        ->and($drawer[0])->toContain('href="'.url("/{$locale}/catalog/scanners").'"')
-        ->toContain('href="'.url("/{$locale}/catalog").'"')
-        ->not->toContain('/catalog/rfid');
+        ->and($catalogLink[0])->toContain('href="'.url("/{$locale}/catalog").'"')
+        ->and($drawer[0])->not->toContain('/catalog/scanners')
+        ->not->toContain($footer[0]['label'])
+        ->not->toContain('data-drawer-catalog>');
 })->with(['uz', 'ru', 'en']);
 
 it('updates the footer catalog when a category changes', function () {
@@ -180,7 +182,7 @@ it('has no duplicate links in the drawer and none of the nav links in the topbar
     NewsPost::factory()->create();
 
     $html = $this->get('/uz')->assertOk()->getContent();
-    preg_match('#<div\s+id="site-drawer".*?</nav>\s*<nav aria-label="[^"]+">.*?</nav>#s', $html, $drawer);
+    preg_match('#<div\s+id="site-drawer".*?<nav aria-label="[^"]+">.*?</nav>#s', $html, $drawer);
     preg_match_all('#href="(http[^"]+)"#', $drawer[0], $links);
     preg_match('#<div class="bg-ink text-\[13px\].*?</div>\s*</div>#s', $html, $topbar);
 

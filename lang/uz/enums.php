@@ -403,4 +403,52 @@ return [
         'forget_job' => 'Xatolikka uchragan vazifani oʻchirish',
     ],
 
+    'telegram_user_state' => [
+        'language' => 'Til tanlash',
+        'contact' => 'Kontakt',
+        'name' => 'Ism',
+        'company' => 'Kompaniya',
+        'inn' => 'STIR',
+        'registered' => 'Roʻyxatdan oʻtgan',
+    ],
+
+    'telegram_direction' => [
+        'in' => 'Kiruvchi',
+        'out' => 'Chiquvchi',
+    ],
+
+    'telegram_message_status' => [
+        'received' => 'Qabul qilingan',
+        'pending' => 'Navbatda',
+        'sent' => 'Yuborilgan',
+        'failed' => 'Xatolik',
+    ],
+
+    'telegram_message_kind' => [
+        'text' => 'Matn',
+        'photo' => 'Rasm',
+        'document' => 'Hujjat',
+        'voice' => 'Ovozli xabar',
+        'audio' => 'Audio',
+        'video' => 'Video',
+        'video_note' => 'Video xabar',
+        'animation' => 'Animatsiya',
+        'sticker' => 'Stiker',
+        'location' => 'Joylashuv',
+        'contact' => 'Kontakt',
+        'other' => 'Boshqa',
+    ],
+
+    'telegram_forward_status' => [
+        'pending' => 'Kutilmoqda',
+        'forwarded' => 'Yuborilgan',
+        'not_configured' => 'Sozlanmagan',
+        'limited' => 'Limitga yetgan',
+        'failed' => 'Xatolik',
+    ],
+
+    'conversation_status' => [
+        'open' => 'Ochiq',
+        'closed' => 'Yopilgan',
+    ],
 ];

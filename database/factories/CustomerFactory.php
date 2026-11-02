@@ -33,7 +33,6 @@ class CustomerFactory extends Factory
             'notes' => null,
             'price_level' => PriceLevel::Retail,
             'manager_id' => null,
-            'telegram_id' => null,
             'locale' => 'uz',
         ];
     }

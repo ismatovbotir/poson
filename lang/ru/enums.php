@@ -403,4 +403,52 @@ return [
         'forget_job' => 'Удаление упавшей задачи',
     ],
 
+    'telegram_user_state' => [
+        'language' => 'Выбор языка',
+        'contact' => 'Контакт',
+        'name' => 'Имя',
+        'company' => 'Компания',
+        'inn' => 'ИНН',
+        'registered' => 'Зарегистрирован',
+    ],
+
+    'telegram_direction' => [
+        'in' => 'Входящее',
+        'out' => 'Исходящее',
+    ],
+
+    'telegram_message_status' => [
+        'received' => 'Получено',
+        'pending' => 'В очереди',
+        'sent' => 'Отправлено',
+        'failed' => 'Ошибка',
+    ],
+
+    'telegram_message_kind' => [
+        'text' => 'Текст',
+        'photo' => 'Фото',
+        'document' => 'Документ',
+        'voice' => 'Голосовое',
+        'audio' => 'Аудио',
+        'video' => 'Видео',
+        'video_note' => 'Видеосообщение',
+        'animation' => 'Анимация',
+        'sticker' => 'Стикер',
+        'location' => 'Геопозиция',
+        'contact' => 'Контакт',
+        'other' => 'Другое',
+    ],
+
+    'telegram_forward_status' => [
+        'pending' => 'Ожидает',
+        'forwarded' => 'Переслано',
+        'not_configured' => 'Не настроено',
+        'limited' => 'Лимит',
+        'failed' => 'Ошибка',
+    ],
+
+    'conversation_status' => [
+        'open' => 'Открыт',
+        'closed' => 'Закрыт',
+    ],
 ];

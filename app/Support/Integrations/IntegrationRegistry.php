@@ -164,6 +164,8 @@ final class IntegrationRegistry
             new IntegrationField('telegram.chats.finance', 'telegram', ['services.telegram.chats.finance'], 'TELEGRAM_FINANCE_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
             // Plan 13 (C26): every MCP alert (tokens, access, new IP / client, idle revoke, publish).
             new IntegrationField('telegram.chats.management', 'telegram', ['services.telegram.chats.management'], 'TELEGRAM_MANAGEMENT_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
+            // Plan 14: optional chat for customer files copied from the bot; falls back to the sales chat.
+            new IntegrationField('telegram.chats.inbox', 'telegram', ['services.telegram.chats.inbox'], 'TELEGRAM_INBOX_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
             // Plan 05c: new-lead alerts on/off and the language of every Telegram message (decision 2026-10-22: Uzbek).
             new IntegrationField('telegram.notify_new_leads', 'telegram', ['services.telegram.notify_new_leads'], 'TELEGRAM_NOTIFY_NEW_LEADS', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
             // Plan 09: finance-chat alert on price API problems (on from launch, decision 2026-10-27).

@@ -18,8 +18,7 @@ use Livewire\Component;
  * Create / edit a customer (plan 05b T5): type, name, INN, phone, email,
  * address, notes, manager (per permission: anyone with
  * customers.update-any, else me / unassigned), price level (Admin only,
- * customers.price-level), contacts repeater with one primary, telegram_id
- * shown read-only.
+ * customers.price-level), contacts repeater with one primary.
  */
 #[Layout('layouts::admin')]
 class Form extends Component

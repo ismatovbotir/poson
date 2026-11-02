@@ -82,13 +82,6 @@
                             <p class="mt-1 text-xs text-slate-500">{{ __('crm.customers.price_level_admin_only') }}</p>
                         </div>
                     @endif
-                    @if ($customer)
-                        <div>
-                            <p class="text-sm font-semibold">{{ __('crm.customers.fields.telegram_id') }}</p>
-                            <p class="mt-1.5 font-mono text-sm text-slate-600" data-telegram-id>{{ $customer->telegram_id ?? __('admin.common.empty_value') }}</p>
-                            <p class="mt-1 text-xs text-slate-500">{{ __('crm.customers.telegram_id_hint') }}</p>
-                        </div>
-                    @endif
                 </div>
             </x-admin.card>
         </aside>

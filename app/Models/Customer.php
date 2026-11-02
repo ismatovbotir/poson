@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CustomerType;
+use App\Enums\LeadSource;
 use App\Enums\PriceLevel;
 use App\Support\Phone;
 use App\Support\Search;
@@ -31,10 +32,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property string|null $notes
  * @property PriceLevel $price_level
  * @property int|null $manager_id
- * @property int|null $telegram_id
+ * @property LeadSource|null $source Channel the customer first came in through; set in code only (never fillable, TG-33).
  * @property string $locale
  */
-#[Fillable(['type', 'name', 'inn', 'phone', 'email', 'address', 'notes', 'price_level', 'manager_id', 'telegram_id', 'locale'])]
+#[Fillable(['type', 'name', 'inn', 'phone', 'email', 'address', 'notes', 'price_level', 'manager_id', 'locale'])]
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
@@ -51,7 +52,7 @@ class Customer extends Model
             'type' => CustomerType::class,
             'price_level' => PriceLevel::class,
             'manager_id' => 'integer',
-            'telegram_id' => 'integer',
+            'source' => LeadSource::class,
         ];
     }
 
@@ -85,6 +86,14 @@ class Customer extends Model
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
+    }
+
+    /**
+     * @return HasMany<TelegramUser, $this>
+     */
+    public function telegramUsers(): HasMany
+    {
+        return $this->hasMany(TelegramUser::class);
     }
 
     /**
