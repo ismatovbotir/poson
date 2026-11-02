@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class SweepMcpAccess extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Revokes MCP access of users who are no longer active Admins, for example after a role change or a blocked account.
+Runs by itself every hour; run it by hand right after removing an Admin if access must end immediately.
+Side effect: revokes MCP tokens. Scheduled hourly.';
+
+    /**
      * Execute the console command.
      */
     public function handle(SweepMcpAccessAction $sweep): int

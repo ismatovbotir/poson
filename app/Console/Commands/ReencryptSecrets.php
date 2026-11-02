@@ -20,6 +20,15 @@ use Illuminate\Console\Command;
 class ReencryptSecrets extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Re-encrypts the integration secrets (Settings → Integrations) with the current APP_KEY.
+Run it once after rotating APP_KEY: put the old key in APP_PREVIOUS_KEYS, deploy, run this command, then remove the old key. It prints counts and key names only, never values.
+Side effect: rewrites the encrypted secret values. Exits with failure if some secrets cannot be decrypted. Manual only, not scheduled.';
+
+    /**
      * Execute the console command.
      */
     public function handle(ReencryptSecretsAction $reencrypt): int

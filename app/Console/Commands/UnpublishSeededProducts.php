@@ -22,6 +22,15 @@ use Illuminate\Console\Command;
 #[Description('Return the untouched seeded products to drafts (rollback of the direct publishing)')]
 class UnpublishSeededProducts extends Command
 {
+    /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Rollback of the direct publishing of seeded products: untouched seeded products go back to drafts and empty import categories become inactive.
+Needs an Admin user id (--user) for the audit trail; in production --force is required. Edited products are left alone.
+Side effect: products disappear from the public site. Manual only, not scheduled.';
+
     public function handle(UnpublishSeededProductsAction $unpublish): int
     {
         $user = $this->option('user') !== null ? User::query()->find((int) $this->option('user')) : null;

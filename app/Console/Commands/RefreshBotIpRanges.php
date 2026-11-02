@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class RefreshBotIpRanges extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Downloads the published IP ranges of known crawlers (search engines and AI bots) into storage/app/bot-ranges.json. They are used to verify crawler hits in the traffic analytics.
+Keeps the previous ranges for any source that fails. Run it once on deploy so verification has ranges before the first night.
+Side effect: outgoing HTTP requests and a file write. Scheduled weekly (Monday).';
+
+    /**
      * Execute the console command.
      */
     public function handle(RefreshBotIpRangesAction $refresh): int

@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class PruneAnalytics extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Deletes raw analytics rows and old aggregates that are past their retention period, and prints the number of rows removed per table.
+Runs by itself every night; run by hand only to free space after changing the retention settings.
+Side effect: permanently deletes old analytics rows. Scheduled nightly.';
+
+    /**
      * Execute the console command.
      */
     public function handle(PruneAnalyticsAction $prune): int

@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Buyruqlar',
+    'subtitle' => 'Konsol buyruqlarining faqat oʻqish uchun roʻyxati: har biri nima qiladi, qachon ishga tushiriladi va qanday rejalashtirilgan.',
+    'search' => 'Buyruqlarni qidirish',
+    'search_placeholder' => 'Nomi, tavsifi yoki yoʻriqnomasi boʻyicha qidirish',
+    'show_framework' => 'Freymvork buyruqlarini koʻrsatish',
+    'show_framework_hint' => 'Laravel va oʻrnatilgan paketlar buyruqlarini qoʻshadi (faqat tavsif).',
+    'count' => 'Buyruqlar: :count',
+    'empty_title' => 'Buyruqlar topilmadi',
+    'empty_body' => 'Qidiruv matnini oʻzgartiring yoki freymvork buyruqlarini koʻrsating.',
+    'details' => 'Batafsil',
+    'usage' => 'Chaqirish',
+    'help' => 'Yoʻriqnoma',
+    'arguments' => 'Argumentlar',
+    'options' => 'Parametrlar',
+    'default' => 'standart',
+    'required' => 'majburiy',
+    'array' => 'takrorlanadi',
+    'scheduled' => 'Jadval boʻyicha',
+    'manual' => 'qoʻlda',
+    'framework' => 'Freymvork',
+    'note' => 'Buyruq nomlari va matnlari inglizcha koʻrsatiladi. Buyruqlar bu yerdan ishga tushirilmaydi; standart qiymatlar faqat statik taʼrifdan olinadi.',
+];

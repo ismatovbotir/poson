@@ -16,6 +16,15 @@ use Illuminate\Console\Command;
 class SyncUzqrInvoices extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Asks the bank for the status of dynamic UzQR invoices that are due, handles expiry, and closes stale rows. Batch size: config uzqr.sweep_batch (default 100).
+The bank has no callbacks, so this is how UzQR payments get confirmed. A manual run is only useful for debugging.
+Side effects: outgoing bank requests and order payment status changes. Scheduled every minute.';
+
+    /**
      * Execute the console command.
      */
     public function handle(SweepUzqrInvoices $sweep): int

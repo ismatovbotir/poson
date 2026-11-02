@@ -18,6 +18,15 @@ use Illuminate\Console\Command;
 class AggregateTraffic extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Rolls the raw site visits and crawler hits of one day up into the daily traffic tables (traffic_daily, traffic_daily_pages). Rewrites that day\'s rows, so it is safe to re-run.
+Run by hand only to rebuild a day, for example `analytics:aggregate 2026-11-01`.
+Scheduled: every 15 minutes for today, and nightly with --yesterday.';
+
+    /**
      * Execute the console command.
      */
     public function handle(AggregateTrafficAction $aggregate): int

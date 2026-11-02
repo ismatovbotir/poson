@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class RevokeIdleMcpTokens extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Revokes MCP tokens that have been idle for too long or were never used, and sends reminders for tokens due for rotation.
+Runs by itself every day; run by hand only after changing the idle-days setting.
+Side effects: tokens stop working and reminders are sent. Scheduled daily.';
+
+    /**
      * Execute the console command.
      */
     public function handle(RevokeIdleMcpTokensAction $revoke): int

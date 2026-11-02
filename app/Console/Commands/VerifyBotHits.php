@@ -18,6 +18,15 @@ use Illuminate\Console\Command;
 class VerifyBotHits extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Verifies crawler hits of the last 3 days (or one given day) against the published IP ranges and reverse DNS, retries undecided IPs, and re-aggregates those days.
+Refreshes stale IP ranges first if needed. Run by hand to re-check a specific day.
+Side effects: DNS lookups, possible range download, analytics rows updated. Scheduled nightly.';
+
+    /**
      * Execute the console command.
      */
     public function handle(VerifyRecentBotHits $verify): int

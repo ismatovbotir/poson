@@ -17,6 +17,15 @@ use Illuminate\Support\Facades\DB;
 #[Description('Read-only: count stored phones where normalizeAny(phone) differs from the stored value (expect 0)')]
 class CheckNormalizedPhones extends Command
 {
+    /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Read-only pre-deploy check: counts stored customer, contact, lead and order phones that the phone normaliser would still change. Expected result is 0 everywhere.
+Run it before deploying a phone-format change. It prints counts and row ids only, never phone numbers, and changes no data.
+Manual only, not scheduled.';
+
     private const TABLES = ['customers', 'contacts', 'leads', 'orders'];
 
     public function handle(): int

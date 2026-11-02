@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class ExpireQuotes extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Marks sent quotes whose valid_until date has passed as expired and adds a history entry to each.
+Runs by itself every night, so a manual run is only needed after a long scheduler outage.
+Side effect: quote statuses change. Scheduled nightly.';
+
+    /**
      * Execute the console command.
      */
     public function handle(ExpireQuotesAction $expire): int

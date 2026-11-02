@@ -16,6 +16,15 @@ use Illuminate\Console\Command;
 class ReleaseStalePaymentHolds extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Sets orders that stayed in the pending payment state after their online payment hold (Payme or Click) ended back to unpaid.
+Runs by itself every 10 minutes; a manual run is only needed after a scheduler outage.
+Side effect: changes order payment statuses. Scheduled every 10 minutes.';
+
+    /**
      * Execute the console command.
      */
     public function handle(ReleaseStalePaymentHoldsAction $release): int

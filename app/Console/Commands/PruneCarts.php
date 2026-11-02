@@ -15,6 +15,15 @@ use Illuminate\Console\Command;
 class PruneCarts extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Deletes empty carts after 1 day, converted carts 1 day after the order, and all other carts after 30 days untouched.
+Runs by itself every night; there is normally no reason to run it by hand.
+Side effect: permanently deletes carts and their items. Scheduled nightly.';
+
+    /**
      * Execute the console command.
      */
     public function handle(PruneCartsAction $prune): int

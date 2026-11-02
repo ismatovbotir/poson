@@ -26,6 +26,15 @@ use Illuminate\Console\Command;
 class RemoveDemoContent extends Command
 {
     /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Deletes the demo products, news posts and banners seeded at launch, before real content goes in. It lists what it would remove first; --dry-run stops there.
+In production --force is required; elsewhere it asks for confirmation. Rows edited after seeding are skipped unless --include-edited is given.
+Side effect: permanently deletes content. Manual only, not scheduled.';
+
+    /**
      * Execute the console command.
      */
     public function handle(RemoveDemoContentAction $remove): int

@@ -47,6 +47,7 @@ return [
         'api_tokens' => 'API tokenlar',
         'mcp' => 'MCP kirish',
         'sitemap' => 'Sayt xaritasi',
+        'commands' => 'Buyruqlar',
         'monitoring' => 'Monitoring',
     ],
 

@@ -47,6 +47,7 @@ return [
         'api_tokens' => 'API-токены',
         'mcp' => 'Доступ MCP',
         'sitemap' => 'Карта сайта',
+        'commands' => 'Команды',
         'monitoring' => 'Мониторинг',
     ],
 

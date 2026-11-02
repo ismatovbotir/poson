@@ -22,6 +22,15 @@ use Throwable;
 #[Description('Notify IndexNow (Bing, Yandex) about added, changed and removed public URLs')]
 class FlushIndexNow extends Command
 {
+    /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'Compares the current sitemap with the snapshot of the last run and queues one batch of added, changed and removed public URLs for IndexNow (Bing, Yandex).
+Does nothing unless IndexNow is active (production, https, enabled, key set). The first run only stores the snapshot.
+Side effect: queues a job that calls the search engines. Scheduled every 5 minutes.';
+
     public function handle(Sitemap $sitemap, RefreshSitemap $refresh): int
     {
         if (! IndexNow::isActive()) {

@@ -56,7 +56,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'seo' => ['sitemap'],
         'telegram' => ['telegram-bot', 'telegram-mini-app', 'telegram-chats'],
         'settings' => ['company', 'users', 'checkout', 'indexing', 'integrations', 'api-tokens', 'mcp'],
-        'system' => ['monitoring'],
+        'system' => ['monitoring', 'commands'],
     ]],
     'sales manager' => [Role::SalesManager, [
         'dashboard' => ['dashboard'],

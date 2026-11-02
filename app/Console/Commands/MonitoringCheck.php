@@ -22,6 +22,15 @@ use Throwable;
 #[Description('Tick the scheduler heartbeat, evaluate problems, send alerts and ping the external check')]
 class MonitoringCheck extends Command
 {
+    /**
+     * The console command help text.
+     *
+     * @var string
+     */
+    protected $help = 'The system monitor: ticks the scheduler heartbeat, stores the schedule snapshot, closes interrupted task runs, evaluates problems, sends Telegram alerts and pings the external check URL.
+Each step is isolated, so one failure does not skip the others. Exits with failure if any step failed.
+Side effects: alerts and pings. Scheduled every minute; do not run it by hand unless debugging.';
+
     public function handle(): int
     {
         $steps = [

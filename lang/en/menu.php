@@ -47,6 +47,7 @@ return [
         'api_tokens' => 'API tokens',
         'mcp' => 'MCP access',
         'sitemap' => 'Sitemap',
+        'commands' => 'Commands',
         'monitoring' => 'Monitoring',
     ],
 

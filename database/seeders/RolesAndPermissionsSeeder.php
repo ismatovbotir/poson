@@ -109,6 +109,7 @@ class RolesAndPermissionsSeeder extends Seeder
      *    Admin only.
      *  - monitoring.view / monitoring.manage (plan 17): System → Monitoring;
      *    Admin only (also added by the add_monitoring_permissions migration).
+     *  - system.commands: System → Commands; Admin only (add_system_commands_permission).
      *
      *  - telegram.* (plan 14): inbox (own + unassigned) / reassign / ban for the
      *    sales manager; inbox-all and bot Admin only.
@@ -204,6 +205,8 @@ class RolesAndPermissionsSeeder extends Seeder
             // Plan 17: Admin → System → Monitoring (view; run tasks, retry / forget failed jobs). Admin only.
             'monitoring.view',
             'monitoring.manage',
+            // Decision 2026-11-02: System → Commands (read-only artisan command list). Admin only.
+            'system.commands',
             // Admin → SEO → Sitemap (Content manager + Admin).
             ...self::SITEMAP,
             // Plan 14: Telegram bot inbox (also added by the add_telegram_permissions migration).

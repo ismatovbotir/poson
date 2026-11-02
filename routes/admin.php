@@ -157,6 +157,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // System → Monitoring (plan 17): monitoring.view / monitoring.manage (Admin only), authorized in the component.
     Route::livewire('/monitoring', System\Monitoring::class)->name('monitoring');
+    // System → Commands (decision 2026-11-02): read-only artisan command list, system.commands (Admin only).
+    Route::livewire('/commands', System\Commands::class)->name('commands');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Commands',
+    'subtitle' => 'Read-only list of the artisan commands: what each one does, when to run it and how it is scheduled.',
+    'search' => 'Search commands',
+    'search_placeholder' => 'Search by name, description or help',
+    'show_framework' => 'Show framework commands',
+    'show_framework_hint' => 'Adds the commands that come with Laravel and installed packages (metadata only).',
+    'count' => ':count command(s)',
+    'empty_title' => 'No commands found',
+    'empty_body' => 'Change the search text or show the framework commands.',
+    'details' => 'Details',
+    'usage' => 'Usage',
+    'help' => 'Help',
+    'arguments' => 'Arguments',
+    'options' => 'Options',
+    'default' => 'default',
+    'required' => 'required',
+    'array' => 'repeatable',
+    'scheduled' => 'Scheduled',
+    'manual' => 'manual',
+    'framework' => 'Framework',
+    'note' => 'Command names and texts are shown in English. Commands are never run from this page; defaults are the static definitions only.',
+];

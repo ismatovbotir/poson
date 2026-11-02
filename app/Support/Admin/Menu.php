@@ -104,6 +104,7 @@ final class Menu
             // Plan 17: scheduler, queue and failed jobs (Admin only).
             new MenuGroup('system', 'menu.groups.system', [
                 new MenuItem('monitoring', 'menu.items.monitoring', 'radar', 'admin.monitoring', permission: 'monitoring.view'),
+                new MenuItem('commands', 'menu.items.commands', 'tool', 'admin.commands', permission: 'system.commands'),
             ]),
         ];
     }
