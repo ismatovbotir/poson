@@ -58,7 +58,7 @@ it('renders the title, description and canonical for the page', function () {
         ->assertSee('<meta name="description" content="'.e(__('site.seo.home.description', [], 'en')).'">', false)
         ->assertSee('<link rel="canonical" href="'.url('/en').'">', false)
         ->assertSee('<meta property="og:locale" content="en_US">', false)
-        ->assertSee('<link rel="icon" type="image/svg+xml" href="'.asset('assets/site/logo.svg').'">', false);
+        ->assertSee('<link rel="icon" type="image/svg+xml" href="'.asset('favicon.svg').'">', false);
 });
 
 it('points x-default to the default locale on every locale', function (string $locale) {

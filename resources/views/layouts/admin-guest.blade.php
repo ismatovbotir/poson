@@ -11,6 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0f172a">
     <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <title>{{ $title ? $title.' · ' : '' }}{{ __('admin.meta.app_name') }}</title>
 
     @fonts
@@ -25,7 +29,7 @@
             <div class="absolute inset-0 opacity-[.07]" style="background-image:repeating-linear-gradient(90deg,#fff 0 2px,transparent 2px 9px,#fff 9px 10px,transparent 10px 16px,#fff 16px 19px,transparent 19px 24px)" aria-hidden="true"></div>
             <div class="absolute -right-32 -top-32 size-[28rem] rounded-full bg-brand-500/25 blur-3xl" aria-hidden="true"></div>
             <div class="relative flex h-full flex-col justify-between p-12">
-                <div class="flex items-center gap-3"><x-admin.logo size="size-10" /><span class="text-2xl font-extrabold tracking-tight text-white">poson<span class="text-brand-400">.uz</span></span></div>
+                <img src="{{ asset('assets/site/logo-light.svg') }}" alt="{{ __('admin.meta.app_name') }}" width="149" height="40" class="h-10 w-auto">
                 <div>
                     <p class="max-w-md text-3xl font-bold leading-tight tracking-tight text-white">{{ __('admin.auth.tagline') }}</p>
                     <ul class="mt-8 space-y-3 text-slate-300">
@@ -40,7 +44,7 @@
 
         <div class="flex flex-col px-5 py-6 sm:px-10">
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 lg:invisible"><x-admin.logo size="size-9" /><span class="text-xl font-extrabold tracking-tight">poson<span class="text-brand-500">.uz</span></span></div>
+                <img src="{{ asset('assets/site/logo.svg') }}" alt="" aria-hidden="true" width="149" height="40" class="h-9 w-auto lg:invisible">
                 <x-admin.locale-switch variant="segmented" />
             </div>
 

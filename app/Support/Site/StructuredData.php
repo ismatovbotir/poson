@@ -43,7 +43,7 @@ class StructuredData
             '@id' => $url.'#organization',
             'name' => $this->company->name(),
             'url' => $url,
-            'logo' => $this->company->logoUrl() ?: asset('assets/site/logo.svg'),
+            'logo' => $this->company->logoUrl() ?: asset('icon-512.png'),
             'description' => __('site.meta.description'),
         ];
 
@@ -94,7 +94,7 @@ class StructuredData
             '@id' => $url.'#localbusiness',
             'name' => $this->company->name(),
             'url' => $url,
-            'image' => $this->company->ogImageUrl() ?: ($this->company->logoUrl() ?: asset('assets/site/logo.svg')),
+            'image' => $this->company->ogImageUrl() ?: ($this->company->logoUrl() ?: asset('icon-512.png')),
             'parentOrganization' => ['@id' => $url.'#organization'],
             'address' => $this->postalAddress(),
         ];
@@ -373,7 +373,7 @@ class StructuredData
             '@id' => $this->homeUrl().'#organization',
             'name' => $this->company->name(),
             'url' => $this->homeUrl(),
-            'logo' => ['@type' => 'ImageObject', 'url' => $this->company->logoUrl() ?: asset('assets/site/logo.svg')],
+            'logo' => ['@type' => 'ImageObject', 'url' => $this->company->logoUrl() ?: asset('icon-512.png')],
         ];
 
         $data = [

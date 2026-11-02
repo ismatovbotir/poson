@@ -25,7 +25,7 @@
     $robots = $company->isIndexingOpen() ? $robots : \App\Http\Middleware\BlockSearchIndexing::closed($robots);
 
     $siteName = $company->name();
-    $image = $image ?: ($company->ogImageUrl() ?: null);
+    $image = $image ?: ($company->ogImageUrl() ?: asset('og-image.png'));
     $verification = $company->verification();
     $analyticsJson = $analytics->json();
     $pageTitle = $plain($title);
@@ -81,5 +81,9 @@
     <meta name="poson-analytics" content='{{ $analyticsJson }}'>
 @endif
 
-<link rel="icon" type="image/svg+xml" href="{{ asset('assets/site/logo.svg') }}">
-<meta name="theme-color" content="#1f9d55">
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+<link rel="manifest" href="{{ asset('site.webmanifest') }}">
+<meta name="theme-color" content="#06343b">

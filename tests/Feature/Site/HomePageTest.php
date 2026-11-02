@@ -173,7 +173,7 @@ it('adds valid Organization JSON-LD to the head', function () {
         ->and($organization['@context'])->toBe('https://schema.org')
         ->and($organization['name'])->toBe('Poson')
         ->and($organization['url'])->toBe(url('/ru'))
-        ->and($organization['logo'])->toBe(asset('assets/site/logo.svg'))
+        ->and($organization['logo'])->toBe(asset('icon-512.png'))
         ->and($organization['telephone'])->toBe($company->phone())
         ->and($organization['email'])->toBe($company->email())
         ->and($organization['address']['@type'])->toBe('PostalAddress')

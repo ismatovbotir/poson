@@ -24,6 +24,12 @@
     AddOutputFilterByType DEFLATE font/ttf font/otf application/vnd.ms-fontobject
 </IfModule>
 
+# ---- MIME types ---------------------------------------------------------------
+
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
 # ---- Browser caching (HTML pages are left to Laravel: no-cache) -------------
 
 <IfModule mod_headers.c>
@@ -35,6 +41,11 @@
     # Images and fonts: 7 days
     <FilesMatch "\.(jpe?g|png|webp|avif|gif|svg|ico|woff2?)$">
         Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+
+    # Web app manifest: 1 day
+    <FilesMatch "\.webmanifest$">
+        Header set Cache-Control "public, max-age=86400"
     </FilesMatch>
 
     Header always set X-Content-Type-Options "nosniff"
