@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Api\SyncPrices;
 use App\Actions\Mcp\RecordMcpCall;
 use App\Enums\McpCallStatus;
 use App\Enums\Role;
@@ -116,7 +117,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('order-pay', fn (Request $request) => Limit::perMinute(10)->by('order-pay:'.$request->ip()));
 
         // Price API (plan 09): 30 batches per minute per token (after AuthenticateApiToken).
-        RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(30)
+        RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(SyncPrices::RATE_PER_MINUTE)
             ->by('price-api:'.($request->attributes->get(AuthenticateApiToken::ATTRIBUTE)?->id ?? $request->ip()))
             ->response(fn (Request $request, array $headers) => response()->json([
                 'error' => 'rate_limited',

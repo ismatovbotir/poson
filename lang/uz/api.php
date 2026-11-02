@@ -111,7 +111,8 @@ return [
     'errors' => [
         'item_not_object' => 'Pozitsiya obyekt emas',
         'code_required' => 'Kod yoʻq',
-        'code_not_string' => 'Kod satr emas',
+        'code_not_string' => 'Kod butun son ham, satr ham emas',
+        'code_invalid' => 'Kod nol, manfiy yoki kasr son',
         'code_too_long' => 'Kod 64 belgidan uzun',
         'retail_required' => 'Chakana narx yoʻq',
         'retail_not_integer' => 'Chakana narx butun son emas',

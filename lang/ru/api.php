@@ -111,7 +111,8 @@ return [
     'errors' => [
         'item_not_object' => 'Позиция не является объектом',
         'code_required' => 'Нет кода',
-        'code_not_string' => 'Код не строка',
+        'code_not_string' => 'Код не целое число и не строка',
+        'code_invalid' => 'Код равен нулю, отрицателен или дробный',
         'code_too_long' => 'Код длиннее 64 символов',
         'retail_required' => 'Нет розничной цены',
         'retail_not_integer' => 'Розничная цена не целое число',

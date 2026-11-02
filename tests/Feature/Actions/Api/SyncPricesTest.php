@@ -88,7 +88,12 @@ it('validates each item on its own', function (mixed $item, array $errors) {
     'missing wholesale key' => [['code' => 'X', 'retail' => 10, 'dealer' => null], ['wholesale_required']],
     'missing code' => [['retail' => 10, 'dealer' => null, 'wholesale' => null], ['code_required']],
     'blank code' => [priceItem('   ', 10), ['code_required']],
-    'numeric code' => [priceItem(12345, 10), ['code_not_string']],
+    'bool code' => [priceItem(true, 10), ['code_not_string']],
+    'null code' => [priceItem(null, 10), ['code_not_string']],
+    'zero code' => [priceItem(0, 10), ['code_invalid']],
+    'zeros string code' => [priceItem('000', 10), ['code_invalid']],
+    'negative code' => [priceItem(-5, 10), ['code_invalid']],
+    'float code' => [priceItem(258.5, 10), ['code_invalid']],
     'long code' => [priceItem(str_repeat('A', 65), 10), ['code_too_long']],
     'not an object' => [['X', 10], ['item_not_object']],
     'empty array' => [[], ['item_not_object']],
@@ -335,4 +340,56 @@ it('locks the matched rows in SKU order inside a retried transaction', function 
 
     expect($select['bindings'])->toBe(['A-1', 'B-2'])
         ->and($select['query'])->toContain('order by "sku"');
+});
+
+it('matches an integer 1C code and its zero-padded string to the same product', function () {
+    $product = Product::factory()->create(['sku' => '258', 'price' => 1_00]);
+
+    $body = syncPrices([priceItem(258, 10)]);
+    expect($body['items'][0])->toBe(['code' => '258', 'status' => 'updated']);
+
+    $body = syncPrices([priceItem('00258', 10)]);
+    expect($body['items'][0])->toBe(['code' => '258', 'status' => 'unchanged'])
+        ->and($product->fresh()->price)->toBe(10_00);
+});
+
+it('counts duplicates on the normalized code', function () {
+    Product::factory()->create(['sku' => '258', 'price' => 1_00]);
+
+    $body = syncPrices([priceItem(258, 10), priceItem('00258', 20)]);
+
+    expect($body['items'][0])->toBe(['code' => '258', 'status' => 'invalid', 'errors' => ['duplicate_code']])
+        ->and($body['items'][1]['errors'])->toBe(['duplicate_code']);
+});
+
+it('keeps every digit of a huge integer code and rejects it as too long', function () {
+    $digits = str_repeat('9', 70);
+
+    $body = postPrices('{"items":[{"code":'.$digits.',"retail":10,"dealer":null,"wholesale":null}]}', $this->plain)->assertOk()->json();
+
+    expect($body['items'][0]['errors'])->toBe(['code_too_long']);
+});
+
+it('keeps full-width digits and decimals off the digit path, and trims and upper-cases other strings', function () {
+    Product::factory()->create(['sku' => '258', 'price' => 1_00]);
+    Product::factory()->create(['sku' => 'ABC', 'price' => 1_00]);
+
+    $items = syncPrices([priceItem('１２３', 10), priceItem("258\n", 10), priceItem('258.0', 10), priceItem(' abc ', 10)])['items'];
+
+    expect($items[0]['status'])->toBe('unknown')
+        ->and($items[1])->toBe(['code' => '258', 'status' => 'updated'])
+        ->and($items[2])->toBe(['code' => '258.0', 'status' => 'unknown'])
+        ->and($items[3])->toBe(['code' => 'ABC', 'status' => 'updated']);
+});
+
+it('rejects a code written as a JSON float, even a whole one', function (string $number) {
+    $body = postPrices('{"items":[{"code":'.$number.',"retail":10,"dealer":null,"wholesale":null}]}', $this->plain)->assertOk()->json();
+
+    expect($body['items'][0]['errors'])->toBe(['code_invalid']);
+})->with(['258.0', '2.58e2']);
+
+it('matches a long zero-padded string code to the product sku', function () {
+    Product::factory()->create(['sku' => '258', 'price' => 1_00]);
+
+    expect(syncPrices([priceItem('000000000258', 10)])['items'][0])->toBe(['code' => '258', 'status' => 'updated']);
 });

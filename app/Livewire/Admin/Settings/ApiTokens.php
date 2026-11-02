@@ -8,6 +8,7 @@ use App\Enums\ApiTokenType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\ApiToken;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\Api\PriceApiDocs;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -106,7 +107,7 @@ class ApiTokens extends Component
             'expiryOptions' => collect(CreateApiToken::EXPIRY_DAYS)->mapWithKeys(fn (?int $days): array => [
                 (string) $days => __('api.tokens.expiry.'.($days ?? 'never')),
             ])->all(),
-            'endpoint' => rtrim((string) config('app.url'), '/').route('api.v1.prices', absolute: false),
+            'endpoint' => PriceApiDocs::endpoint(),
         ])->title(__('api.tokens.title'));
     }
 

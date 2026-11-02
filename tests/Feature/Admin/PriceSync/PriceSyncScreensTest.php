@@ -73,7 +73,7 @@ it('shows a batch with the per-item table and the unknown codes', function () {
     $product = Product::factory()->create(['sku' => 'ZD421', 'price' => 100_00]);
     ApiToken::factory()->withPlainText($plain = fakeApiTokenValue())->create(['name' => '1C office']);
 
-    postPrices(['items' => [priceItem('ZD421', 1_250_000, 1_200_000, null), priceItem('NOPE-7', 1), priceItem('BAD', 0)]], $plain)->assertOk();
+    postPrices(['items' => [priceItem('ZD421', 1_250_000, 1_200_000, null), priceItem('NOPE-7', 1), priceItem('BAD', 0), priceItem(0, 5)]], $plain)->assertOk();
     $log = PriceSyncLog::query()->sole();
 
     $html = $this->get(route('admin.price-sync.show', $log))->assertOk()->getContent();
@@ -84,6 +84,7 @@ it('shows a batch with the per-item table and the unknown codes', function () {
         ->toContain('NOPE-7')
         ->toContain('retail_out_of_range')
         ->toContain(e(__('api.errors.retail_out_of_range')))
+        ->toContain(e(__('api.errors.code_invalid')))
         ->toContain(route('admin.products.edit', $product))
         ->toContain(Money::format(1_250_000_00))
         ->toContain('data-item-status="updated"')

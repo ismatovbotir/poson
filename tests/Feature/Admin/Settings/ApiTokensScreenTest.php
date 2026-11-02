@@ -1,13 +1,19 @@
 <?php
 
+use App\Actions\Api\SyncPrices;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
+use App\Http\Middleware\AuthenticateApiToken;
+use App\Http\Middleware\LimitJsonBody;
 use App\Livewire\Admin\Settings\ApiTokens;
 use App\Models\ApiToken;
 use App\Models\SettingsAudit;
+use App\Support\Api\PriceApiDocs;
+use Illuminate\Http\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
 it('is for admins only', function (Role $role, int $status) {
@@ -134,4 +140,47 @@ it('revokes a token with a password confirmation and an audit row', function () 
 it('shows the menu item to admins only', function () {
     $this->actingAs(staffUser())->get(route('admin.dashboard'))->assertSee(route('admin.settings.api-tokens'), false);
     $this->actingAs(staffUser(Role::ContentManager))->get(route('admin.dashboard'))->assertDontSee(route('admin.settings.api-tokens'), false);
+});
+
+it('shows the static "How to use the API" panel to admins with real limits and placeholder token only', function () {
+    $token = ApiToken::factory()->withPlainText($plain = fakeApiTokenValue())->create();
+
+    $html = $this->actingAs(staffUser())->get(route('admin.settings.api-tokens'))->assertOk()
+        ->assertSee(__('admin.api_tokens.docs.title'))->getContent();
+    $panel = substr($html, strpos($html, 'data-api-docs>'));
+
+    expect($panel)->toContain(PriceApiDocs::PLACEHOLDER_TOKEN)
+        ->toContain('data-api-docs-block="request"')->toContain('data-api-docs-block="curl"')
+        ->toContain(__('admin.api_tokens.docs.l_items', ['count' => SyncPrices::MAX_ITEMS]))
+        ->toContain(__('admin.api_tokens.docs.l_body', ['kb' => intdiv(LimitJsonBody::MAX_BYTES, 1024)]))
+        ->toContain(__('admin.api_tokens.docs.l_rate', ['count' => SyncPrices::RATE_PER_MINUTE]))
+        ->toContain(__('admin.api_tokens.docs.l_failures', ['count' => AuthenticateApiToken::MAX_FAILURES]))
+        ->not->toContain($plain)
+        ->not->toContain($token->token_prefix)
+        ->not->toContain($token->token_hash);
+});
+
+it('builds the docs endpoint from config, not from the request host', function () {
+    config(['app.url' => 'https://poson.example']);
+
+    $html = $this->actingAs(staffUser())
+        ->withHeaders(['X-Forwarded-Host' => 'evil.test', 'Host' => 'evil.test'])
+        ->get(route('admin.settings.api-tokens'))->getContent();
+    expect($html)->toContain('data-api-docs>');
+    $panel = substr($html, strpos($html, 'data-api-docs>'));
+
+    expect($panel)->toContain('https://poson.example/api/v1/prices')->not->toContain('evil.test');
+});
+
+it('displays the rate limit the price-api limiter really enforces', function () {
+    $limit = RateLimiter::limiter('price-api')(Request::create('/api/v1/prices', 'POST'));
+
+    expect($limit->maxAttempts)->toBe(SyncPrices::RATE_PER_MINUTE)
+        ->and(PriceApiDocs::limits()['per_minute'])->toBe($limit->maxAttempts);
+});
+
+it('shows integer 1C product codes in the docs examples and the code_invalid error', function () {
+    $html = $this->actingAs(staffUser())->get(route('admin.settings.api-tokens'))->assertOk()->getContent();
+
+    expect($html)->toContain('&quot;code&quot;: 258')->toContain('code_invalid');
 });

@@ -111,7 +111,8 @@ return [
     'errors' => [
         'item_not_object' => 'Item is not an object',
         'code_required' => 'Code is missing',
-        'code_not_string' => 'Code is not a string',
+        'code_not_string' => 'Code is not an integer or a string',
+        'code_invalid' => 'Code is zero, negative or a decimal number',
         'code_too_long' => 'Code is longer than 64 characters',
         'retail_required' => 'Retail price is missing',
         'retail_not_integer' => 'Retail price is not a whole number',

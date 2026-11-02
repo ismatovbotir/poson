@@ -21,8 +21,10 @@ use Throwable;
  * 1 to MAX_ITEMS items, otherwise the whole batch is rejected (logged, 422).
  *
  * Every item is checked on its own (errors are machine codes):
- * - code: string, trimmed + upper-cased, 1–CODE_MAX characters; matched to
- *   products.sku, soft-deleted products included;
+ * - code: the 1C product code. A JSON integer >= 1 (or a digit string; leading
+ *   zeros ignored, never cast to int) or any other string (trimmed, upper-cased);
+ *   0, negatives and floats are code_invalid; other types code_not_string; 1–CODE_MAX
+ *   characters after normalization; matched to products.sku, soft-deleted included;
  * - retail: JSON integer, 1..MAX_SOM soʻm (no floats, strings or booleans);
  * - dealer / wholesale: the key must be present; an integer 1..MAX_SOM, or
  *   null / 0 = no price at that level (stored null, falls back to Retail;
@@ -47,6 +49,11 @@ use Throwable;
 class SyncPrices
 {
     public const MAX_ITEMS = 100;
+
+    /**
+     * Requests per minute per token (the price-api rate limiter).
+     */
+    public const RATE_PER_MINUTE = 30;
 
     /**
      * Largest price in whole soʻm (just under 10^15; × 100 stays within SaveProduct::MAX_PRICE).
@@ -206,18 +213,16 @@ class SyncPrices
         $code = null;
         $rawCode = $raw['code'] ?? null;
 
-        if (! is_string($rawCode) && $rawCode !== null) {
+        if (! array_key_exists('code', $raw)) {
+            $errors[] = 'code_required';
+        } elseif (is_int($rawCode) && $rawCode >= 1) {
+            $code = $this->checkedCode((string) $rawCode, $errors);
+        } elseif (is_int($rawCode) || is_float($rawCode)) {
+            $errors[] = 'code_invalid';
+        } elseif (! is_string($rawCode)) {
             $errors[] = 'code_not_string';
         } else {
-            $normalized = mb_strtoupper(trim((string) $rawCode));
-
-            if ($normalized === '') {
-                $errors[] = 'code_required';
-            } elseif (mb_strlen($normalized) > self::CODE_MAX) {
-                $errors[] = 'code_too_long';
-            } else {
-                $code = $normalized;
-            }
+            $code = $this->checkedCode($this->normalizeCode($rawCode), $errors);
         }
 
         $prices = [];
@@ -227,6 +232,41 @@ class SyncPrices
         }
 
         return ['code' => $code, 'errors' => $errors, 'prices' => $prices];
+    }
+
+    /**
+     * Digits only (ASCII): leading zeros dropped, never cast to int (keeps every digit);
+     * anything else: trimmed and upper-cased. '' = nothing usable; '0' marks an all-zero code.
+     */
+    private function normalizeCode(string $value): string
+    {
+        $value = trim($value);
+
+        if (preg_match('/^\d+$/D', $value) === 1) {
+            $stripped = ltrim($value, '0');
+
+            return $stripped === '' ? "\0zero" : $stripped;
+        }
+
+        return mb_strtoupper($value);
+    }
+
+    /**
+     * @param  list<string>  $errors
+     */
+    private function checkedCode(string $normalized, array &$errors): ?string
+    {
+        if ($normalized === "\0zero") {
+            $errors[] = 'code_invalid';
+        } elseif ($normalized === '') {
+            $errors[] = 'code_required';
+        } elseif (mb_strlen($normalized) > self::CODE_MAX) {
+            $errors[] = 'code_too_long';
+        } else {
+            return $normalized;
+        }
+
+        return null;
     }
 
     /**
