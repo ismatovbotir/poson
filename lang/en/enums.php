@@ -378,4 +378,22 @@ return [
         'token' => 'Token',
     ],
 
+    'task_run_status' => [
+        'running' => 'Running',
+        'success' => 'Success',
+        'failed' => 'Failed',
+        'skipped' => 'Skipped',
+    ],
+
+    'task_run_trigger' => [
+        'schedule' => 'Schedule',
+        'manual' => 'Manual',
+    ],
+
+    'monitoring_action' => [
+        'run_task' => 'Run a task',
+        'retry_job' => 'Retry failed job',
+        'forget_job' => 'Forget failed job',
+    ],
+
 ];

@@ -28,6 +28,8 @@ use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\Cart\CartToken;
 use App\Support\CompanySettings;
+use App\Support\Monitoring\CronWatchdog;
+use App\Support\Monitoring\RunRecorder;
 use App\Support\Secrets;
 use App\Support\Site\BannerDirectory;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -104,6 +106,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Long-running workers pick up integration changes before the next job.
         Queue::before(fn () => Secrets::reapplyIfStale());
+        Event::subscribe(RunRecorder::class);
+        CronWatchdog::register();
 
         // No overlay while config:cache / optimize run (DB secrets must never reach the config cache file).
         Event::listen(fn (CommandStarting $event) => Secrets::suspendForCommand($event->command, starting: true));

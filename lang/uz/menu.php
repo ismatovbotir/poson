@@ -14,6 +14,7 @@ return [
         'seo' => 'SEO',
         'telegram' => 'Telegram',
         'settings' => 'Sozlamalar',
+        'system' => 'Tizim',
     ],
 
     'items' => [
@@ -46,6 +47,7 @@ return [
         'api_tokens' => 'API tokenlar',
         'mcp' => 'MCP kirish',
         'sitemap' => 'Sayt xaritasi',
+        'monitoring' => 'Monitoring',
     ],
 
     'tabs' => [

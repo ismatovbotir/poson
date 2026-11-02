@@ -1137,12 +1137,14 @@ return [
                 'payme' => 'Payme',
                 'click' => 'Click',
                 'uzqr' => 'UzQR (dinamik)',
+                'monitoring' => 'Monitoring',
             ],
             'descriptions' => [
                 'telegram' => 'Yangi murojaatlar, buyurtmalar va toʻlovlarni jamoa chatlariga yuboradigan bot.',
                 'payme' => 'Buyurtmalarni onlayn toʻlash uchun Payme merchant sozlamalari.',
                 'click' => 'Buyurtmalarni onlayn toʻlash uchun Click SHOP API sozlamalari.',
                 'uzqr' => 'Dinamik UzQR: har bir buyurtma uchun alohida QR kod, toʻlovni bank avtomatik tasdiqlaydi. Server manzillarini dasturchi .env da belgilaydi.',
+                'monitoring' => 'Ixtiyoriy tashqi tekshiruv (healthchecks.io): server butunlay ishlamay qolsa xabar beradi.',
             ],
             'fields' => [
                 'telegram_bot_token' => 'Bot tokeni',
@@ -1170,6 +1172,7 @@ return [
                 'uzqr_api_key' => 'Ishchi API kalit',
                 'uzqr_test_api_key' => 'Sinov API kaliti',
                 'uzqr_mode' => 'Rejim',
+                'monitoring_ping_url' => 'Ping URL',
             ],
             'hints' => [
                 'telegram_bot_token' => '@BotFather beradi, koʻrinishi 123456789:AA….',
@@ -1197,6 +1200,7 @@ return [
                 'uzqr_api_key' => 'UzQR shaxsiy kabineti → POS sozlamalari → sayt uchun alohida POS API kaliti.',
                 'uzqr_test_api_key' => 'Bank sinov muhitining API kaliti; ishchi kalitdan farq qilishi kerak.',
                 'uzqr_mode' => 'Sinov rejimi QR kodlarni faqat TEST buyurtmalar uchun yaratadi; Ishchi rejim xaridorlar uchun va bank javoblari yozilmaguncha bloklangan.',
+                'monitoring_ping_url' => 'healthchecks.io tekshiruvingiz manzili, https://hc-ping.com/<id>. Monitor har daqiqada chaqiradi.',
             ],
             'errors' => [
                 'secret_format' => 'Qiymat bu maydon uchun toʻgʻri koʻrinmaydi. Toʻliq va boʻsh joysiz nusxalanganini tekshiring.',
@@ -1225,6 +1229,9 @@ return [
                 'prod_confirm_title' => 'Click ishchi rejimga oʻtkazilsinmi?',
                 'prod_confirm_body' => 'Mijozlar ishchi Click xizmati orqali haqiqiy pul toʻlaydi.',
                 'test_key_missing' => 'Sinov rejimi yoqilgan, lekin sinov maxfiy kaliti saqlanmagan: kiritilmaguncha sinov toʻlovlari oʻtmaydi.',
+            ],
+            'monitoring' => [
+                'ping_url_invalid' => 'Ping URL hc-ping.com yoki healthchecks.io dagi https manzil boʻlishi kerak.',
             ],
             'uzqr' => [
                 'prod_confirm_title' => 'UzQR ni ishchi rejimga oʻtkazasizmi?',

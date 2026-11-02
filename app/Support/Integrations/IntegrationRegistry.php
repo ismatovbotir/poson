@@ -4,6 +4,7 @@ namespace App\Support\Integrations;
 
 use App\Enums\PaymentMode;
 use App\Services\Payments\Uzqr\UzqrAuth;
+use App\Support\Monitoring\PingUrlRule;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
@@ -19,7 +20,7 @@ use InvalidArgumentException;
  */
 final class IntegrationRegistry
 {
-    public const GROUPS = ['telegram', 'payme', 'click', 'uzqr'];
+    public const GROUPS = ['telegram', 'payme', 'click', 'uzqr', 'monitoring'];
 
     /**
      * Telegram chat ID (-100…, a user/group ID) or a public @channel name.
@@ -186,6 +187,9 @@ final class IntegrationRegistry
             new IntegrationField('uzqr.api_key', 'uzqr', ['services.uzqr.api_key'], 'UZQR_API_KEY', secret: true, rules: ['string', 'min:16', 'max:300', 'regex:'.self::API_KEY]),
             new IntegrationField('uzqr.test_api_key', 'uzqr', ['services.uzqr.test_api_key'], 'UZQR_TEST_API_KEY', secret: true, rules: ['string', 'min:16', 'max:300', 'regex:'.self::API_KEY]),
             new IntegrationField('uzqr.mode', 'uzqr', ['services.uzqr.mode'], 'UZQR_MODE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::enum(PaymentMode::class)], default: PaymentMode::Test->value, options: array_column(PaymentMode::cases(), 'value')),
+
+            // Plan 17 (MON-S6): healthchecks.io ping URL, https and an allowed host only.
+            new IntegrationField('monitoring.ping_url', 'monitoring', ['services.monitoring.ping_url'], 'MONITORING_PING_URL', secret: true, rules: ['string', 'max:300', new PingUrlRule]),
         ];
 
         $keyed = [];

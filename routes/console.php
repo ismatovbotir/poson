@@ -1,7 +1,11 @@
 <?php
 
+use App\Jobs\RecordWorkerHeartbeat;
 use App\Models\McpCall;
+use App\Models\MonitoringAction;
 use App\Models\PriceSyncLog;
+use App\Models\ScheduledTaskRun;
+use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -88,3 +92,29 @@ Schedule::command('uzqr:sync')->everyMinute()->withoutOverlapping(5)->onOneServe
 Schedule::command('mcp:revoke-idle')->dailyAt('03:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 Schedule::command('mcp:sweep')->hourly()->withoutOverlapping(10)->onOneServer();
 Schedule::command('model:prune', ['--model' => [McpCall::class]])->dailyAt('02:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Monitoring (plan 17)
+|--------------------------------------------------------------------------
+| Worker heartbeat every minute (a queue worker must pick it up). Run
+| history (14 days) and the admin audit (365 days) are pruned daily.
+| No event may use runInBackground(): RunRecorder needs the start and end
+| events in the same process (guarded by a test).
+*/
+
+Schedule::command('monitoring:check')->everyMinute()->withoutOverlapping(5)->onOneServer();
+Schedule::job(new RecordWorkerHeartbeat)->everyMinute();
+Schedule::command('model:prune', ['--model' => [ScheduledTaskRun::class, MonitoringAction::class]])->dailyAt('02:50')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+| Keep the last output of every command (overwritten each run, never
+| appended; stays in storage/logs) so RunRecorder can store the redacted
+| tail of a failed run (MON-S11). Must stay the last statement here.
+*/
+
+foreach (Schedule::events() as $scheduledEvent) {
+    if (! $scheduledEvent instanceof CallbackEvent && in_array($scheduledEvent->output, ['/dev/null', 'NUL'], true)) {
+        $scheduledEvent->storeOutput();
+    }
+}

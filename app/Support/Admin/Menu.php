@@ -100,6 +100,11 @@ final class Menu
                 // Plan 13: the CEO's Claude connection (single holder, tokens, call log). Admin only.
                 new MenuItem('mcp', 'menu.items.mcp', 'bot', 'admin.settings.mcp', permission: 'mcp.manage'),
             ]),
+
+            // Plan 17: scheduler, queue and failed jobs (Admin only).
+            new MenuGroup('system', 'menu.groups.system', [
+                new MenuItem('monitoring', 'menu.items.monitoring', 'radar', 'admin.monitoring', permission: 'monitoring.view'),
+            ]),
         ];
     }
 

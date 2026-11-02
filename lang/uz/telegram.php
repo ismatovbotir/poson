@@ -117,4 +117,29 @@ return [
         'post_hint' => 'Agar buni kutmagan boʻlsangiz, materialni Sozlamalar → MCP kirish → Chaqiruvlar jurnali boʻlimida eʼlondan oling.',
         'open' => 'MCP kirishni ochish',
     ],
+
+    'monitoring' => [
+        'events' => [
+            'cron_dead' => 'Rejalashtiruvchi ishlamayapti',
+            'task_failed' => 'Rejali vazifa xatolik bilan tugadi',
+            'queue_stuck' => 'Navbat qotib qoldi',
+            'worker_silent' => 'Navbat ishlovchisi jim',
+        ],
+        'recovered' => [
+            'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
+            'task_failed' => 'Rejali vazifa yana ishlayapti',
+            'queue_stuck' => 'Navbat yana yuryapti',
+            'worker_silent' => 'Navbat ishlovchisi qaytdi',
+        ],
+        'labels' => [
+            'task' => 'Vazifa',
+            'at' => 'Vaqt',
+            'exit_code' => 'Chiqish kodi',
+            'error' => 'Xatolik',
+            'age' => 'Daqiqa',
+            'pending' => 'Navbatdagi vazifalar',
+        ],
+        'reminder' => 'Muammo hali bartaraf etilmagan.',
+        'open' => 'Monitoringni ochish',
+    ],
 ];

@@ -90,4 +90,9 @@ return [
         'mode' => env('UZQR_MODE'),
     ],
 
+    // Plan 17: optional external dead man's switch (healthchecks.io), a secret.
+    'monitoring' => [
+        'ping_url' => env('MONITORING_PING_URL'),
+    ],
+
 ];

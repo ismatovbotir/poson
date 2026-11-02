@@ -100,6 +100,8 @@ class RolesAndPermissionsSeeder extends Seeder
      *    sitemap.xml and rebuild it); Content manager + Admin.
      *  - mcp.manage (plan 13): Settings → MCP access and the MCP call log;
      *    Admin only.
+     *  - monitoring.view / monitoring.manage (plan 17): System → Monitoring;
+     *    Admin only (also added by the add_monitoring_permissions migration).
      *
      * @return array<string, list<string>>
      */
@@ -188,6 +190,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.checkout',
             // Plan 13: Settings → MCP access (single CEO holder, tokens, call log). Admin only.
             'mcp.manage',
+            // Plan 17: Admin → System → Monitoring (view; run tasks, retry / forget failed jobs). Admin only.
+            'monitoring.view',
+            'monitoring.manage',
             // Admin → SEO → Sitemap (Content manager + Admin).
             ...self::SITEMAP,
         ];

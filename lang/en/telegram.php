@@ -117,4 +117,29 @@ return [
         'post_hint' => 'If you didn’t expect this, unpublish the post in Settings → MCP access → Call log.',
         'open' => 'Open MCP access',
     ],
+
+    'monitoring' => [
+        'events' => [
+            'cron_dead' => 'Scheduler is not running',
+            'task_failed' => 'Scheduled task failed',
+            'queue_stuck' => 'Queue is stuck',
+            'worker_silent' => 'Queue worker is silent',
+        ],
+        'recovered' => [
+            'cron_dead' => 'Scheduler is running again',
+            'task_failed' => 'Scheduled task works again',
+            'queue_stuck' => 'Queue is moving again',
+            'worker_silent' => 'Queue worker is back',
+        ],
+        'labels' => [
+            'task' => 'Task',
+            'at' => 'Time',
+            'exit_code' => 'Exit code',
+            'error' => 'Error',
+            'age' => 'Minutes',
+            'pending' => 'Waiting jobs',
+        ],
+        'reminder' => 'Still not resolved.',
+        'open' => 'Open monitoring',
+    ],
 ];

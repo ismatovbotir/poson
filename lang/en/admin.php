@@ -1137,12 +1137,14 @@ return [
                 'payme' => 'Payme',
                 'click' => 'Click',
                 'uzqr' => 'UzQR (dynamic)',
+                'monitoring' => 'Monitoring',
             ],
             'descriptions' => [
                 'telegram' => 'The bot that sends new leads, orders and payments to the team chats.',
                 'payme' => 'Payme merchant settings for online payment of orders.',
                 'click' => 'Click SHOP API settings for online payment of orders.',
                 'uzqr' => 'Dynamic UzQR: a QR code made for each order, confirmed by the bank automatically. Server addresses are set by the developer in .env.',
+                'monitoring' => 'Optional external check (healthchecks.io) that tells you when the whole server is down.',
             ],
             'fields' => [
                 'telegram_bot_token' => 'Bot token',
@@ -1170,6 +1172,7 @@ return [
                 'uzqr_api_key' => 'Live API key',
                 'uzqr_test_api_key' => 'Test API key',
                 'uzqr_mode' => 'Mode',
+                'monitoring_ping_url' => 'Ping URL',
             ],
             'hints' => [
                 'telegram_bot_token' => 'From @BotFather, looks like 123456789:AA….',
@@ -1197,6 +1200,7 @@ return [
                 'uzqr_api_key' => 'UzQR merchant cabinet → POS settings → API key of the separate website POS.',
                 'uzqr_test_api_key' => 'API key of the bank test environment; must differ from the live key.',
                 'uzqr_mode' => 'Test creates QR codes only for TEST orders; Live is for customers and stays locked until the bank answers are recorded.',
+                'monitoring_ping_url' => 'Your healthchecks.io check URL, https://hc-ping.com/<id>. Called every minute by the monitor.',
             ],
             'errors' => [
                 'secret_format' => 'This doesn’t look like a valid value for this field. Check that it was copied completely, without spaces.',
@@ -1225,6 +1229,9 @@ return [
                 'prod_confirm_title' => 'Switch Click to live mode?',
                 'prod_confirm_body' => 'Customers will pay real money through the live Click service.',
                 'test_key_missing' => 'Test mode is on but no test secret key is saved: sandbox payments will fail until it is entered.',
+            ],
+            'monitoring' => [
+                'ping_url_invalid' => 'The ping URL must be an https address on hc-ping.com or healthchecks.io.',
             ],
             'uzqr' => [
                 'prod_confirm_title' => 'Switch UzQR to live mode?',

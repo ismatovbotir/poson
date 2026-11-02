@@ -14,6 +14,7 @@ return [
         'seo' => 'SEO',
         'telegram' => 'Telegram',
         'settings' => 'Настройки',
+        'system' => 'Система',
     ],
 
     'items' => [
@@ -46,6 +47,7 @@ return [
         'api_tokens' => 'API-токены',
         'mcp' => 'Доступ MCP',
         'sitemap' => 'Карта сайта',
+        'monitoring' => 'Мониторинг',
     ],
 
     'tabs' => [

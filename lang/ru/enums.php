@@ -378,4 +378,22 @@ return [
         'token' => 'Токен',
     ],
 
+    'task_run_status' => [
+        'running' => 'Выполняется',
+        'success' => 'Успешно',
+        'failed' => 'Ошибка',
+        'skipped' => 'Пропущено',
+    ],
+
+    'task_run_trigger' => [
+        'schedule' => 'По расписанию',
+        'manual' => 'Вручную',
+    ],
+
+    'monitoring_action' => [
+        'run_task' => 'Запуск задачи',
+        'retry_job' => 'Повтор упавшей задачи',
+        'forget_job' => 'Удаление упавшей задачи',
+    ],
+
 ];

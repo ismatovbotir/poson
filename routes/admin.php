@@ -27,6 +27,7 @@ use App\Livewire\Admin\Quotes;
 use App\Livewire\Admin\RollTypes;
 use App\Livewire\Admin\Seo;
 use App\Livewire\Admin\Settings;
+use App\Livewire\Admin\System;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -153,6 +154,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // SEO → Sitemap: sitemap.view / sitemap.refresh (Admin + Content manager).
     Route::livewire('/sitemap', Seo\Sitemap::class)->name('sitemap');
+
+    // System → Monitoring (plan 17): monitoring.view / monitoring.manage (Admin only), authorized in the component.
+    Route::livewire('/monitoring', System\Monitoring::class)->name('monitoring');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

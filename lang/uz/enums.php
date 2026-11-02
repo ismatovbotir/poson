@@ -378,4 +378,22 @@ return [
         'token' => 'Token',
     ],
 
+    'task_run_status' => [
+        'running' => 'Bajarilmoqda',
+        'success' => 'Muvaffaqiyatli',
+        'failed' => 'Xatolik',
+        'skipped' => 'Oʻtkazib yuborildi',
+    ],
+
+    'task_run_trigger' => [
+        'schedule' => 'Jadval boʻyicha',
+        'manual' => 'Qoʻlda',
+    ],
+
+    'monitoring_action' => [
+        'run_task' => 'Vazifani ishga tushirish',
+        'retry_job' => 'Xatolikka uchragan vazifani qayta urinish',
+        'forget_job' => 'Xatolikka uchragan vazifani oʻchirish',
+    ],
+
 ];
