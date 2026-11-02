@@ -59,6 +59,14 @@ abstract class PosonTool extends Tool
     protected ?array $before = null;
 
     /**
+     * Set by run() right after a committed Published save (a draft fallback
+     * or a failure before the save leaves it false). Only then is the call
+     * logged as a publish (M3-S8), whatever happens later in the request, so
+     * Unpublish always finds the row; the publish limiter still counts the intent.
+     */
+    protected bool $published = false;
+
+    /**
      * Permission the user needs (null = any MCP holder).
      */
     abstract protected function permission(): ?string;
@@ -115,6 +123,7 @@ abstract class PosonTool extends Tool
 
         $this->subject = null;
         $this->before = null;
+        $this->published = false;
         $status = McpCallStatus::Error;
         $publish = false;
         $user = $request->user();
@@ -132,6 +141,10 @@ abstract class PosonTool extends Tool
                 $status = McpCallStatus::RateLimited;
 
                 return Response::error($limited);
+            }
+
+            if ($this->isWrite()) {
+                $this->rejectUnknownArguments($request);
             }
 
             if ($this->rules() !== []) {
@@ -152,7 +165,7 @@ abstract class PosonTool extends Tool
 
             return Response::error('The tool failed because of a server error. The call was logged; try again later or tell the site administrator.');
         } finally {
-            $this->record($request, $user instanceof User ? $user : null, $status, $publish, $startedAt);
+            $this->record($request, $user instanceof User ? $user : null, $status, $startedAt);
             app()->setLocale($locale);
         }
     }
@@ -232,20 +245,35 @@ abstract class PosonTool extends Tool
             $limits[] = ['mcp-publish:'.$user->id, self::PUBLISH_LIMIT_PER_DAY, 86400];
         }
 
-        foreach ($limits as [$key, $max]) {
-            if (RateLimiter::tooManyAttempts($key, $max)) {
+        // Atomic: increment first, then compare, so parallel calls can't both pass at the limit (M3-S7).
+        foreach ($limits as [$key, $max, $decay]) {
+            if (RateLimiter::increment($key, $decay) > $max) {
                 return 'Rate limit reached. Retry after '.RateLimiter::availableIn($key).' seconds.';
             }
-        }
-
-        foreach ($limits as [$key, , $decay]) {
-            RateLimiter::hit($key, $decay);
         }
 
         return null;
     }
 
-    private function record(Request $request, ?User $user, McpCallStatus $status, bool $publish, int|float $startedAt): void
+    /**
+     * A write tool accepts only the arguments named in rules() (M3-S2). The
+     * message lists the allowed names and never echoes what was sent (M3-S13).
+     */
+    private function rejectUnknownArguments(Request $request): void
+    {
+        $allowed = array_values(array_unique(array_map(
+            fn (string $key): string => explode('.', $key)[0],
+            array_keys($this->rules()),
+        )));
+
+        if (array_diff(array_keys($request->all()), $allowed) !== []) {
+            throw ValidationException::withMessages([
+                'arguments' => 'Unknown argument. Allowed arguments: '.implode(', ', $allowed).'.',
+            ]);
+        }
+    }
+
+    private function record(Request $request, ?User $user, McpCallStatus $status, int|float $startedAt): void
     {
         try {
             $token = request()->attributes->get(AuthenticateMcpToken::ATTRIBUTE);
@@ -258,7 +286,7 @@ abstract class PosonTool extends Tool
                 $request->all(),
                 (int) round((hrtime(true) - $startedAt) / 1_000_000),
                 isWrite: $this->isWrite(),
-                isPublish: $publish && $status === McpCallStatus::Ok,
+                isPublish: $this->published,
                 subject: $this->subject,
                 before: $this->before,
             );

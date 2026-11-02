@@ -2,13 +2,11 @@
 
 namespace App\Mcp\Tools\Content;
 
+use App\Mcp\Support\FaqOwner;
 use App\Mcp\Support\Presenters\ContentPresenter;
 use App\Mcp\Support\Presenters\Texts;
 use App\Mcp\Tools\PosonTool;
-use App\Models\Category;
 use App\Models\FaqItem;
-use App\Models\Page;
-use App\Models\Product;
 use App\Models\User;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Model;
@@ -53,27 +51,18 @@ class ListFaq extends PosonTool
     protected function rules(): array
     {
         return [
-            'owner' => ['nullable', 'string', 'max:30', 'regex:/^(general|(category|product|page):[0-9]{1,10})$/'],
+            'owner' => ['nullable', 'string', 'max:30', 'regex:'.FaqOwner::PATTERN],
             'active' => ['nullable', 'boolean'],
         ];
     }
 
     protected function run(Request $request, User $user): Response|ResponseFactory
     {
-        $spec = is_string($request->get('owner')) && $request->get('owner') !== '' ? $request->get('owner') : 'general';
-        $owner = null;
+        $spec = FaqOwner::spec($request->get('owner'));
+        $owner = FaqOwner::model($spec);
 
-        if ($spec !== 'general') {
-            [$type, $id] = explode(':', $spec);
-            $owner = match ($type) {
-                'category' => Category::query()->find((int) $id),
-                'product' => Product::query()->find((int) $id),
-                default => Page::query()->find((int) $id),
-            };
-
-            if (! $owner instanceof Model) {
-                return Response::error(self::NOT_FOUND);
-            }
+        if ($spec !== FaqOwner::GENERAL && ! $owner instanceof Model) {
+            return Response::error(self::NOT_FOUND);
         }
 
         if (! Gate::forUser($user)->allows('viewAny', [FaqItem::class, $owner])) {

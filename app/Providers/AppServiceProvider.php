@@ -15,6 +15,7 @@ use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\FaqItem;
 use App\Models\Lead;
 use App\Models\McpCall;
 use App\Models\Order;
@@ -84,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
             'brand' => Brand::class,
             'category' => Category::class,
             'customer' => Customer::class,
+            'faq_item' => FaqItem::class,
             'lead' => Lead::class,
             // Plan 07 content: news posts (7b), banners (7c).
             'news_post' => 'App\Models\NewsPost',

@@ -4,7 +4,7 @@ namespace App\Livewire\Forms\Admin\News;
 
 use App\Enums\NewsStatus;
 use App\Models\NewsPost;
-use App\Rules\BrandSafeText;
+use App\Support\Content\NewsPostRules;
 use App\Support\Slug;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -33,7 +33,7 @@ class NewsPostForm extends Form
     /**
      * Most related products / categories per post.
      */
-    public const MAX_RELATED = 20;
+    public const MAX_RELATED = NewsPostRules::MAX_RELATED;
 
     /** @var array<string, string> */
     public array $title = ['uz' => '', 'ru' => '', 'en' => ''];
@@ -102,19 +102,9 @@ class NewsPostForm extends Form
     protected function rules(): array
     {
         return [
-            'title.uz' => ['required', 'string', 'max:255', new BrandSafeText],
-            'title.ru' => ['nullable', 'string', 'max:255', new BrandSafeText],
-            'title.en' => ['nullable', 'string', 'max:255', new BrandSafeText],
-            'excerpt.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
-            'body.*' => ['nullable', 'string', 'max:'.NewsPost::BODY_MAX],
-            'meta_title.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
-            'meta_description.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
+            ...NewsPostRules::rules(),
             'status' => ['required', Rule::enum(NewsStatus::class)],
             'published_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX],
-            'product_ids' => ['array', 'max:'.self::MAX_RELATED],
-            'product_ids.*' => ['integer', 'distinct', Rule::exists('products', 'id')->whereNull('deleted_at')],
-            'category_ids' => ['array', 'max:'.self::MAX_RELATED],
-            'category_ids.*' => ['integer', 'distinct', Rule::exists('categories', 'id')],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'image_alt.*' => ['nullable', 'string', 'max:255'],
         ];

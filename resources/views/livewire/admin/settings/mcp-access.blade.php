@@ -208,6 +208,9 @@
                                             @if ($call->before !== null)
                                                 <x-admin.button variant="ghost" size="sm" icon="eye" wire:click="showBefore({{ $call->id }})" data-view-before="{{ $call->id }}">{{ __($t.'.calls.view_before') }}</x-admin.button>
                                             @endif
+                                            @if ($call->is_publish && in_array($call->id, $livePostCallIds, true))
+                                                <x-admin.button variant="ghost" size="sm" icon="restore" wire:click="unpublish({{ $call->id }})" wire:confirm="{{ __($t.'.calls.unpublish_confirm') }}" data-unpublish="{{ $call->id }}">{{ __($t.'.calls.unpublish') }}</x-admin.button>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

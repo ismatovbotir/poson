@@ -4,10 +4,13 @@ namespace App\Support\Mcp;
 
 use App\Enums\McpRevokeReason;
 use App\Jobs\SendTelegramMessage;
+use App\Mcp\Support\UntrustedText;
 use App\Models\ApiToken;
+use App\Models\NewsPost;
 use App\Models\User;
 use App\Services\Telegram\TelegramClient;
 use App\Support\Secrets;
+use App\Support\Site\CanonicalHost;
 use App\Support\Telegram\TelegramLocale;
 use App\Support\Telegram\TelegramMessage;
 use Throwable;
@@ -118,6 +121,46 @@ final class McpAlerts
         ]);
     }
 
+    /**
+     * Claude published (or scheduled) a post. Event, title, URLs and staff
+     * name only: no email, IP, User-Agent or body (M3-S15).
+     */
+    public static function postPublished(NewsPost $post, User $user, bool $scheduled): void
+    {
+        self::send($scheduled ? 'post_scheduled' : 'post_published', self::postValues($post, $user), 'post_hint');
+    }
+
+    public static function postUnpublished(NewsPost $post, User $by): void
+    {
+        self::send('post_unpublished', self::postValues($post, $by), 'post_hint');
+    }
+
+    /**
+     * @return array<string, string|null>
+     */
+    private static function postValues(NewsPost $post, User $staff): array
+    {
+        $title = (string) UntrustedText::clean($post->getTranslation('title', 'uz', false) ?: $post->title, 200);
+
+        return [
+            'title' => $title,
+            'public_url' => self::httpsUrl(fn (): string => $post->url('uz')),
+            'admin_url' => self::httpsUrl(fn (): string => route($post->kind->adminRoute('edit'), $post)),
+            'by' => $staff->name,
+        ];
+    }
+
+    /**
+     * @param  callable(): string  $build
+     */
+    private static function httpsUrl(callable $build): ?string
+    {
+        // Always APP_URL (this may run from a queue worker or the console).
+        $url = CanonicalHost::using($build);
+
+        return strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https' && filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
+    }
+
     private static function security(string $event, ApiToken $token, ?string $ip, ?string $userAgent): void
     {
         $token->loadMissing('user');
@@ -138,10 +181,10 @@ final class McpAlerts
     /**
      * @param  array<string, string|null>  $values  label key => value (null rows are left out)
      */
-    private static function send(string $event, array $values): void
+    private static function send(string $event, array $values, string $hint = 'hint'): void
     {
         try {
-            self::dispatch($event, $values);
+            self::dispatch($event, $values, $hint);
         } catch (Throwable $exception) {
             // An alert must never break the request or the admin action it reports.
             report($exception);
@@ -151,7 +194,7 @@ final class McpAlerts
     /**
      * @param  array<string, string|null>  $values
      */
-    private static function dispatch(string $event, array $values): void
+    private static function dispatch(string $event, array $values, string $hint): void
     {
         $locale = TelegramLocale::current();
 
@@ -165,7 +208,7 @@ final class McpAlerts
             $lines[] = e(__('telegram.mcp.labels.'.$label, [], $locale)).': '.e($value);
         }
 
-        $lines[] = e(__('telegram.mcp.hint', [], $locale));
+        $lines[] = e(__('telegram.mcp.'.$hint, [], $locale));
 
         $buttons = TelegramMessage::adminButton(route('admin.settings.mcp', absolute: false), __('telegram.mcp.open', [], $locale));
 

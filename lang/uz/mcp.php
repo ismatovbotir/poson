@@ -125,6 +125,10 @@ return [
         'request' => 'Soʻrov rad etildi',
         'write' => 'oʻzgarish',
         'publish' => 'eʼlon qilish',
+        'unpublish' => 'Eʼlondan olish',
+        'unpublish_confirm' => 'Material saytdan olinsinmi? U qoralamaga aylanadi; admin panelda tahrirlab, qayta eʼlon qilish mumkin.',
+        'unpublish_done' => '«:title» eʼlondan olindi (endi qoralama).',
+        'unpublish_unavailable' => 'Bu materialni bu yerdan eʼlondan olib boʻlmaydi.',
         'last_7_days' => 'Soʻnggi 7 kunda chaqiruvlar: :count',
     ],
 

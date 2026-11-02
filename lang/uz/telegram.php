@@ -95,6 +95,9 @@ return [
             'revoked_used' => 'Kimdir bekor qilingan MCP tokenni ishlatdi',
             'ip_blocked' => 'MCP token ruxsat etilmagan manzildan ishlatildi',
             'rotation' => 'MCP tokenni almashtirish vaqti keldi',
+            'post_published' => 'Claude materialni eʼlon qildi',
+            'post_scheduled' => 'Claude materialni eʼlon qilishni rejalashtirdi',
+            'post_unpublished' => 'Claude eʼlon qilgan material eʼlondan olindi',
         ],
         'labels' => [
             'holder' => 'Egasi',
@@ -106,8 +109,12 @@ return [
             'ip' => 'IP',
             'client' => 'Mijoz dasturi',
             'days' => 'Yoshi, kun',
+            'title' => 'Sarlavha',
+            'public_url' => 'Saytdagi sahifa',
+            'admin_url' => 'Admin paneldagi sahifa',
         ],
         'hint' => 'Agar buni kutmagan boʻlsangiz, darhol Sozlamalar → MCP kirish boʻlimida kirishni bekor qiling.',
+        'post_hint' => 'Agar buni kutmagan boʻlsangiz, materialni Sozlamalar → MCP kirish → Chaqiruvlar jurnali boʻlimida eʼlondan oling.',
         'open' => 'MCP kirishni ochish',
     ],
 ];

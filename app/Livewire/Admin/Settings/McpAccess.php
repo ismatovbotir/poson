@@ -7,18 +7,22 @@ use App\Actions\Mcp\GrantMcpAccess;
 use App\Actions\Mcp\RevokeAllMcpAccess;
 use App\Actions\Mcp\RevokeMcpAccess;
 use App\Actions\Mcp\RevokeMcpToken;
+use App\Actions\Mcp\UnpublishMcpPost;
 use App\Actions\Mcp\UpdateMcpTokenSettings;
 use App\Enums\ApiTokenType;
 use App\Enums\McpCallStatus;
 use App\Enums\McpRevokeReason;
+use App\Enums\NewsStatus;
 use App\Enums\Role;
 use App\Models\ApiToken;
 use App\Models\McpCall;
+use App\Models\NewsPost;
 use App\Models\User;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Mcp\McpAlerts;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -257,6 +261,26 @@ class McpAccess extends Component
         $this->viewingCallId = $call->id;
     }
 
+    /**
+     * Take a post Claude published back to draft (M3-S9). The call is
+     * re-fetched and re-checked server-side by the action; a missing or
+     * not-allowed call gives the same generic message.
+     */
+    public function unpublish(int $callId, UnpublishMcpPost $unpublish): void
+    {
+        if (! $this->authorizeWrite()) {
+            return;
+        }
+
+        $post = $this->runAction(fn () => $unpublish->handle($callId, auth()->user(), request()->ip()));
+
+        if ($post === null) {
+            return;
+        }
+
+        $this->dispatch('toast', title: __('admin.toast.done'), body: __('mcp.calls.unpublish_done', ['title' => $post->title]), type: 'success');
+    }
+
     public function closeBefore(): void
     {
         $this->viewingCallId = null;
@@ -287,7 +311,8 @@ class McpAccess extends Component
             'activeTokens' => $activeTokens,
             'revokedTokens' => $revokedTokens,
             'maxTokens' => GenerateMcpToken::MAX_ACTIVE,
-            'calls' => $this->tab === 'calls' ? $this->callsQuery()->paginate(25) : null,
+            'calls' => $calls = $this->tab === 'calls' ? $this->callsQuery()->paginate(25) : null,
+            'livePostCallIds' => $calls === null ? [] : $this->livePostCallIds($calls->getCollection()),
             'callTools' => $this->tab === 'calls' ? McpCall::query()->distinct()->orderBy('tool')->pluck('tool')->all() : [],
             'callsLast7Days' => McpCall::query()->where('created_at', '>=', now()->subDays(7))->count(),
             'viewingCall' => $this->viewingCallId ? McpCall::query()->whereNotNull('before')->find($this->viewingCallId) : null,
@@ -300,6 +325,38 @@ class McpAccess extends Component
             'managementConfigured' => McpAlerts::isConfigured(),
             'isProduction' => app()->isProduction(),
         ])->title(__('mcp.title'));
+    }
+
+    /**
+     * Ids of the publish rows of this page whose post is still live
+     * (published or scheduled) and not changed by staff since the call
+     * (same rule as UnpublishMcpPost): only those get the Unpublish button.
+     * One query.
+     *
+     * @param  Collection<int, McpCall>  $calls
+     * @return list<int>
+     */
+    protected function livePostCallIds(Collection $calls): array
+    {
+        $publishCalls = $calls->filter(fn (McpCall $call): bool => $call->is_publish
+            && $call->tool === UnpublishMcpPost::TOOL
+            && $call->subject_type === (new NewsPost)->getMorphClass()
+            && $call->subject_id !== null);
+
+        if ($publishCalls->isEmpty()) {
+            return [];
+        }
+
+        $posts = NewsPost::query()->whereIn('id', $publishCalls->pluck('subject_id')->unique())
+            ->where('status', NewsStatus::Published->value)->get(['id', 'updated_at'])->keyBy('id');
+
+        return $publishCalls
+            ->filter(function (McpCall $call) use ($posts): bool {
+                $post = $posts->get($call->subject_id);
+
+                return $post !== null && ! $post->updated_at->greaterThan($call->created_at->copy()->addSeconds(UnpublishMcpPost::EDIT_GRACE_SECONDS));
+            })
+            ->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
     }
 
     /**

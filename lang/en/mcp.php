@@ -125,6 +125,10 @@ return [
         'request' => 'Request refused',
         'write' => 'change',
         'publish' => 'publish',
+        'unpublish' => 'Unpublish',
+        'unpublish_confirm' => 'Take this post off the site? It becomes a draft; you can edit and publish it again in the admin panel.',
+        'unpublish_done' => '“:title” is unpublished (now a draft).',
+        'unpublish_unavailable' => 'This post can’t be unpublished from here.',
         'last_7_days' => ':count call(s) in the last 7 days',
     ],
 

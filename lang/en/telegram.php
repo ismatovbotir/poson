@@ -95,6 +95,9 @@ return [
             'revoked_used' => 'Someone used a revoked MCP token',
             'ip_blocked' => 'MCP token used from an address that isn’t allowed',
             'rotation' => 'MCP token is due for rotation',
+            'post_published' => 'Claude published a post',
+            'post_scheduled' => 'Claude scheduled a post',
+            'post_unpublished' => 'A post published by Claude was unpublished',
         ],
         'labels' => [
             'holder' => 'Holder',
@@ -106,8 +109,12 @@ return [
             'ip' => 'IP',
             'client' => 'Client',
             'days' => 'Age, days',
+            'title' => 'Title',
+            'public_url' => 'Public page',
+            'admin_url' => 'Admin page',
         ],
         'hint' => 'If you didn’t expect this, revoke MCP access in Settings → MCP access right away.',
+        'post_hint' => 'If you didn’t expect this, unpublish the post in Settings → MCP access → Call log.',
         'open' => 'Open MCP access',
     ],
 ];

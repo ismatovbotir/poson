@@ -7,6 +7,7 @@ use App\Enums\McpCallStatus;
 use App\Models\McpCall;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @extends Factory<McpCall>
@@ -49,5 +50,20 @@ class McpCallFactory extends Factory
     public function write(array $before = ['title' => ['uz' => 'Eski sarlavha']]): static
     {
         return $this->state(fn (): array => ['tool' => 'update_post', 'is_write' => true, 'before' => $before]);
+    }
+
+    /**
+     * A successful create_post call that published (or scheduled) the given post.
+     */
+    public function publishOf(Model $post): static
+    {
+        return $this->state(fn (): array => [
+            'tool' => 'create_post',
+            'is_write' => true,
+            'is_publish' => true,
+            'status' => McpCallStatus::Ok,
+            'subject_type' => $post->getMorphClass(),
+            'subject_id' => $post->getKey(),
+        ]);
     }
 }
