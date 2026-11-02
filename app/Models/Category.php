@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\IndexNow;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\CategoryFactory;
@@ -44,6 +45,13 @@ class Category extends Model implements HasMedia
 {
     /** @use HasFactory<CategoryFactory> */
     use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
+
+    /**
+     * Columns whose change alone never notifies IndexNow.
+     *
+     * @var list<string>
+     */
+    public const INDEXNOW_IGNORED = ['sort'];
 
     /**
      * Icon names of x-site.icon offered in the admin icon select.
@@ -106,7 +114,8 @@ class Category extends Model implements HasMedia
 
     protected static function booted(): void
     {
-        $flush = function (): void {
+        $flush = function (Category $category): void {
+            IndexNow::record($category);
             CategoryTree::flush();
             DB::afterCommit(function (): void {
                 CategoryTree::flush();

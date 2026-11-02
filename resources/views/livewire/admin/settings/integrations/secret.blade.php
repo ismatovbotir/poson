@@ -3,6 +3,9 @@
     $t = 'admin.settings.integrations';
     $key = $field->key;
     $id = $field->langKey();
+    // Generated secrets: the Telegram webhook secret and the IndexNow key (own texts and action).
+    $generateLang = $key === 'indexnow.key' ? 'indexnow' : 'telegram';
+    $generateMethod = $key === 'indexnow.key' ? 'generateIndexNowKey' : 'generateWebhookSecret';
 @endphp
 
 {{-- One secret: status only (never the value), write-only Replace input, Clear, Test. --}}
@@ -55,7 +58,7 @@
 
     <div class="mt-3 flex flex-wrap items-center gap-2">
         @if ($test)
-            <x-admin.button variant="soft" size="sm" icon="plug" wire:click="test('{{ $test }}')" loading="test" :disabled="! $state['configured']" data-test="{{ $test }}">{{ __($t.'.test.button') }}</x-admin.button>
+            <x-admin.button variant="soft" size="sm" icon="plug" wire:click="test('{{ $test }}')" loading="test" :disabled="! $state['configured'] || ($test === 'indexnow' && ! ($indexnow['active'] ?? false))" data-test="{{ $test }}">{{ __($t.'.test.button') }}</x-admin.button>
         @endif
 
         @if ($field->generated && ! $state['locked'])
@@ -64,12 +67,12 @@
                 size="sm"
                 icon="restore"
                 x-on:click="$dispatch('confirm', {
-                    title: {{ \Illuminate\Support\Js::from(__($t.'.telegram.generate_title')) }},
-                    body: {{ \Illuminate\Support\Js::from(__($t.'.telegram.generate_body')) }},
-                    label: {{ \Illuminate\Support\Js::from(__($t.'.telegram.generate')) }},
-                    component: $wire.$id, method: 'generateWebhookSecret',
+                    title: {{ \Illuminate\Support\Js::from(__($t.'.'.$generateLang.'.generate_title')) }},
+                    body: {{ \Illuminate\Support\Js::from(__($t.'.'.$generateLang.'.generate_body')) }},
+                    label: {{ \Illuminate\Support\Js::from(__($t.'.'.$generateLang.'.generate')) }},
+                    component: $wire.$id, method: '{{ $generateMethod }}',
                 })"
-            >{{ __($t.'.telegram.generate') }}</x-admin.button>
+            >{{ __($t.'.'.$generateLang.'.generate') }}</x-admin.button>
         @endif
 
         @if (! $state['locked'] && ($state['source'] === \App\Enums\IntegrationSource::Db || $state['unreadable']))

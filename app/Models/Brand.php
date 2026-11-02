@@ -6,6 +6,7 @@ use App\Enums\ProductType;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\HttpsUrl;
+use App\Support\Site\IndexNow;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\BrandFactory;
@@ -41,6 +42,13 @@ class Brand extends Model implements HasMedia
     use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
 
     /**
+     * Columns whose change alone never notifies IndexNow.
+     *
+     * @var list<string>
+     */
+    public const INDEXNOW_IGNORED = ['sort'];
+
+    /**
      * SEO meta lengths (plan 12): the brand form and SaveBrand enforce them.
      */
     public const META_TITLE_MAX = 60;
@@ -54,10 +62,14 @@ class Brand extends Model implements HasMedia
 
     protected static function booted(): void
     {
-        $flush = fn () => DB::afterCommit(function (): void {
-            Sitemap::flush();
-            LlmsTxt::flush();
-        });
+        $flush = function (Brand $brand): void {
+            IndexNow::record($brand);
+
+            DB::afterCommit(function (): void {
+                Sitemap::flush();
+                LlmsTxt::flush();
+            });
+        };
 
         static::saved($flush);
         static::deleted($flush);

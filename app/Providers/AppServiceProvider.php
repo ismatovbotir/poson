@@ -115,6 +115,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Customers' quote links (plan 06): separate per-IP budgets for the page and the PDF.
         RateLimiter::for('sitemap', fn (Request $request) => Limit::perMinute(60)->by('sitemap:'.$request->ip()));
+        // Plan 18: the IndexNow key file, 30 per minute per IP.
+        RateLimiter::for('indexnow-key', fn (Request $request) => Limit::perMinute(30)->by('indexnow-key:'.$request->ip()));
         RateLimiter::for('quote-page', fn (Request $request) => Limit::perMinute(60)->by('quote-page:'.$request->ip()));
         RateLimiter::for('quote-pdf', fn (Request $request) => Limit::perMinute(10)->by('quote-pdf:'.$request->ip()));
 

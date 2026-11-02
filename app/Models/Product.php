@@ -13,6 +13,7 @@ use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\RollPricing;
+use App\Support\Site\IndexNow;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
@@ -100,6 +101,14 @@ class Product extends Model implements HasMedia
     /** @use HasFactory<ProductFactory> */
     use HasFactory, HasTranslations, InteractsWithMedia, SoftDeletes, StoresTranslations;
 
+    /**
+     * Columns whose change alone never notifies IndexNow (prices are never
+     * public-URL changes; the rest is internal).
+     *
+     * @var list<string>
+     */
+    public const INDEXNOW_IGNORED = ['price', 'price_dealer', 'price_wholesale', 'price_synced_at', 'price_sync_log_id', 'sort', 'is_featured', 'search_text', 'has_missing_specs'];
+
     public const IMAGES = 'images';
 
     /**
@@ -124,10 +133,14 @@ class Product extends Model implements HasMedia
      */
     protected static function booted(): void
     {
-        $flush = fn () => DB::afterCommit(function (): void {
-            Sitemap::flush();
-            LlmsTxt::flush();
-        });
+        $flush = function (Product $product): void {
+            IndexNow::record($product);
+
+            DB::afterCommit(function (): void {
+                Sitemap::flush();
+                LlmsTxt::flush();
+            });
+        };
 
         static::saved($flush);
         static::deleted($flush);

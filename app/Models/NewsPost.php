@@ -7,6 +7,7 @@ use App\Enums\NewsState;
 use App\Enums\NewsStatus;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
+use App\Support\Site\IndexNow;
 use App\Support\Site\NewsDirectory;
 use App\Support\Site\StructuredData;
 use Database\Factories\NewsPostFactory;
@@ -58,6 +59,13 @@ class NewsPost extends Model implements HasMedia
     use HasCatalogImage, HasFactory, HasTranslations, StoresTranslations;
 
     /**
+     * Columns whose change alone never notifies IndexNow (none: every column is public content).
+     *
+     * @var list<string>
+     */
+    public const INDEXNOW_IGNORED = [];
+
+    /**
      * Time zone of the admin date input and of the dates shown on the site.
      */
     public const TIMEZONE = 'Asia/Tashkent';
@@ -87,7 +95,8 @@ class NewsPost extends Model implements HasMedia
             $post->locales = $post->translatedLocales();
         });
 
-        $flush = function (): void {
+        $flush = function (NewsPost $post): void {
+            IndexNow::record($post);
             NewsDirectory::flush();
             DB::afterCommit(fn () => NewsDirectory::flushAll());
         };

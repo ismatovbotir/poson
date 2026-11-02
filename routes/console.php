@@ -108,6 +108,17 @@ Schedule::job(new RecordWorkerHeartbeat)->everyMinute();
 Schedule::command('model:prune', ['--model' => [ScheduledTaskRun::class, MonitoringAction::class]])->dailyAt('02:50')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
+|--------------------------------------------------------------------------
+| IndexNow (plan 18)
+|--------------------------------------------------------------------------
+| Every 5 minutes: sitemap diff + changed records go to Bing / Yandex as one
+| queued batch. Does nothing unless IndexNow is active (production, https,
+| enabled, key, indexing open). No runInBackground() (RunRecorder rule).
+*/
+
+Schedule::command('indexnow:flush')->everyFiveMinutes()->withoutOverlapping(10)->onOneServer();
+
+/*
 | Keep the last output of every command (overwritten each run, never
 | appended; stays in storage/logs) so RunRecorder can store the redacted
 | tail of a failed run (MON-S11). Must stay the last statement here.

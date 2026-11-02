@@ -20,7 +20,7 @@ use InvalidArgumentException;
  */
 final class IntegrationRegistry
 {
-    public const GROUPS = ['telegram', 'payme', 'click', 'uzqr', 'monitoring'];
+    public const GROUPS = ['telegram', 'payme', 'click', 'uzqr', 'monitoring', 'indexnow'];
 
     /**
      * Telegram chat ID (-100…, a user/group ID) or a public @channel name.
@@ -46,6 +46,11 @@ final class IntegrationRegistry
      * Generic API key: printable ASCII without spaces.
      */
     public const API_KEY = '/^[\x21-\x7E]+$/';
+
+    /**
+     * IndexNow key (plan 18): 32–128 of A–Z, a–z, 0–9 and "-" (the protocol's own rule).
+     */
+    public const INDEXNOW_KEY = '/^[A-Za-z0-9-]{32,128}$/';
 
     /**
      * @var array<string, IntegrationField>|null
@@ -190,6 +195,10 @@ final class IntegrationRegistry
 
             // Plan 17 (MON-S6): healthchecks.io ping URL, https and an allowed host only.
             new IntegrationField('monitoring.ping_url', 'monitoring', ['services.monitoring.ping_url'], 'MONITORING_PING_URL', secret: true, rules: ['string', 'max:300', new PingUrlRule]),
+
+            // Plan 18: IndexNow (Bing / Yandex). The key is public by protocol design (served at /{key}.txt) but stored like any secret.
+            new IntegrationField('indexnow.key', 'indexnow', ['services.indexnow.key'], 'INDEXNOW_KEY', secret: true, rules: ['string', 'regex:'.self::INDEXNOW_KEY], generated: true),
+            new IntegrationField('indexnow.enabled', 'indexnow', ['services.indexnow.enabled'], 'INDEXNOW_ENABLED', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: false),
         ];
 
         $keyed = [];

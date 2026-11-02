@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Settings;
 
 use App\Actions\Settings\ClearSecret;
+use App\Actions\Settings\GenerateIndexNowKey;
 use App\Actions\Settings\GenerateWebhookSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
@@ -16,9 +17,11 @@ use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\CompanySettings;
 use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
+use App\Support\Site\IndexNow;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
@@ -263,6 +266,33 @@ class Integrations extends Component
     }
 
     /**
+     * New IndexNow key (called from the confirm dialog). The old key URL
+     * stops answering at once; the new value is never shown.
+     */
+    public function generateIndexNowKey(GenerateIndexNowKey $generate): void
+    {
+        $this->resetSecretInputs();
+
+        $this->authorize('manageIntegrations', Setting::class);
+
+        if (! $this->ensurePasswordConfirmed()) {
+            return;
+        }
+
+        if (Secrets::source(GenerateIndexNowKey::KEY) === IntegrationSource::Env) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.settings.integrations.locked_hint', ['env' => IntegrationRegistry::field(GenerateIndexNowKey::KEY)->env]), type: 'error');
+
+            return;
+        }
+
+        $generate->handle(auth()->user(), request()->ip());
+
+        unset($this->testResults['indexnow_key']);
+
+        $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.indexnow.generated'), type: 'success');
+    }
+
+    /**
      * Test the saved (effective) value: telegram, telegram_chat + chat.
      */
     public function test(string $target, TestIntegrationConnection $tester, ?string $chat = null): void
@@ -300,6 +330,7 @@ class Integrations extends Component
             'telegram' => 'telegram_bot_token',
             'telegram_chat' => 'telegram_chats_'.$chat,
             'uzqr' => 'uzqr_connection',
+            'indexnow' => 'indexnow_key',
             default => $target,
         };
     }
@@ -333,6 +364,7 @@ class Integrations extends Component
                 default => 'uzqr.test_api_key',
             }))),
             'uzqr' => $this->uzqrState(),
+            'indexnow' => $this->indexNowState(),
             'webhooksPublic' => IntegrationRegistry::webhooksArePublic(),
             'isProduction' => app()->isProduction(),
             'webhookUrls' => IntegrationRegistry::webhookUrls(),
@@ -374,6 +406,28 @@ class Integrations extends Component
             && isset($values['uzqr.mode'])
             && $values['uzqr.mode'] !== (Secrets::get('uzqr.mode') ?? PaymentMode::Test->value)
             && app(UzqrConfig::class)->openCount() > 0;
+    }
+
+    /**
+     * IndexNow panel facts (display-safe: counts, the masked key URL, the
+     * result log without URLs).
+     *
+     * @return array{active: bool, production: bool, public: bool, open: bool, key_url: string|null, log: list<array{at: string, urls: int, status: string, code: string}>, pending: int, backlog: int}
+     */
+    protected function indexNowState(): array
+    {
+        $hint = Secrets::hint('indexnow.key');
+
+        return [
+            'active' => IndexNow::isActive(),
+            'production' => app()->isProduction(),
+            'public' => IntegrationRegistry::webhooksArePublic(),
+            'open' => app(CompanySettings::class)->isIndexingOpen(),
+            'key_url' => $hint === null ? null : rtrim((string) config('app.url'), '/').'/••••'.$hint.'.txt',
+            'log' => IndexNow::entries(),
+            'pending' => IndexNow::pendingCount(),
+            'backlog' => count(IndexNow::backlog()),
+        ];
     }
 
     /**

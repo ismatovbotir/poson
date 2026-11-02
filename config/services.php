@@ -95,4 +95,10 @@ return [
         'ping_url' => env('MONITORING_PING_URL'),
     ],
 
+    // Plan 18: IndexNow. Read through App\Support\Secrets (the key is a secret).
+    'indexnow' => [
+        'key' => env('INDEXNOW_KEY'),
+        'enabled' => env('INDEXNOW_ENABLED'),
+    ],
+
 ];

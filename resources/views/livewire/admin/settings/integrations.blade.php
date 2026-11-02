@@ -1,8 +1,8 @@
 @php
     $t = 'admin.settings.integrations';
     // Connection test per secret (Payme / Click have none: webhook URLs instead).
-    $tests = ['telegram.bot_token' => 'telegram'];
-    $icons = ['telegram' => 'telegram', 'payme' => 'card', 'click' => 'card', 'uzqr' => 'card', 'monitoring' => 'radar'];
+    $tests = ['telegram.bot_token' => 'telegram', 'indexnow.key' => 'indexnow'];
+    $icons = ['telegram' => 'telegram', 'payme' => 'card', 'click' => 'card', 'uzqr' => 'card', 'monitoring' => 'radar', 'indexnow' => 'globe'];
 @endphp
 
 {{-- Settings → Integrations (plan 04b T7). Secrets are write-only: only their status is rendered. --}}
@@ -87,6 +87,10 @@
                             </div>
                         @endif
                     </form>
+                @endif
+
+                @if ($group === 'indexnow')
+                    @include('livewire.admin.settings.integrations.indexnow', ['indexnow' => $indexnow])
                 @endif
 
                 @if ($group === 'uzqr')

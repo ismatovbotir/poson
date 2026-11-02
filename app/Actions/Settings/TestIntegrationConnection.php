@@ -10,7 +10,10 @@ use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Integrations\ConnectionTestResult;
 use App\Support\Secrets;
+use App\Support\Site\CanonicalHost;
+use App\Support\Site\IndexNow;
 use App\Support\Telegram\TelegramLocale;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use InvalidArgumentException;
@@ -41,7 +44,7 @@ class TestIntegrationConnection
 
     public const TIMEOUT = 5;
 
-    public const TARGETS = ['telegram', 'telegram_chat', 'uzqr'];
+    public const TARGETS = ['telegram', 'telegram_chat', 'uzqr', 'indexnow'];
 
     public const CHATS = ['sales', 'service', 'finance', 'management'];
 
@@ -66,6 +69,7 @@ class TestIntegrationConnection
             'telegram' => $this->telegram(),
             'telegram_chat' => $this->telegramChat((string) $chat),
             'uzqr' => $this->uzqr(),
+            'indexnow' => $this->indexnow(),
         };
 
         Log::info('Integration connection test', ['target' => $target, 'chat' => $chat, 'code' => $result->code, 'user_id' => $user->id]);
@@ -154,6 +158,37 @@ class TestIntegrationConnection
         $config->clearAuthFailed($mode);
 
         return ConnectionTestResult::success('uzqr_ok', ['mode' => $mode->label()]);
+    }
+
+    /**
+     * Submits the three home pages (a harmless re-notification) with the real
+     * key. Never calls out while IndexNow is inactive. The result carries the
+     * status code and the URL count only.
+     */
+    protected function indexnow(): ConnectionTestResult
+    {
+        if (! IndexNow::isActive()) {
+            return ConnectionTestResult::failure('indexnow_inactive');
+        }
+
+        $urls = CanonicalHost::using(fn (): array => array_map(
+            fn (string $locale): string => route('site.home', ['locale' => $locale]),
+            array_values(array_filter((array) config('app.supported_locales'), is_string(...))),
+        ));
+
+        try {
+            $status = IndexNow::send($urls)->status();
+        } catch (ConnectionException $exception) {
+            return $this->failed('connection_failed', $exception);
+        }
+
+        return match (true) {
+            in_array($status, [200, 202], true) => ConnectionTestResult::success('indexnow_ok', ['status' => $status, 'count' => count($urls)]),
+            $status === 429 => ConnectionTestResult::failure('rate_limited'),
+            $status === 403 => ConnectionTestResult::failure('indexnow_key_rejected'),
+            $status >= 500 => ConnectionTestResult::failure('server_error'),
+            default => ConnectionTestResult::failure('indexnow_rejected', ['status' => $status]),
+        };
     }
 
     protected function telegramClient(): TelegramClient

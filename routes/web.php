@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\IndexNowKeyController;
 use App\Http\Controllers\RedirectToLocale;
 use App\Http\Controllers\Site\DownloadProductDocumentController;
 use App\Http\Controllers\Site\LlmsController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Site\PublicOrderController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
+use App\Http\Middleware\CaptureAttribution;
 use App\Livewire\Site\Articles;
 use App\Livewire\Site\Brands;
 use App\Livewire\Site\Cart;
@@ -18,7 +20,12 @@ use App\Livewire\Site\Home;
 use App\Livewire\Site\News;
 use App\Livewire\Site\Pages;
 use App\Livewire\Site\Search;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', RedirectToLocale::class)->name('site.root');
 
@@ -26,6 +33,14 @@ Route::get('/', RedirectToLocale::class)->name('site.root');
 Route::get('/sitemap.xml', SitemapController::class)->middleware('throttle:sitemap')->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
+
+// Plan 18: the IndexNow key file. Loose pattern on purpose: a wrong key or length gets the same 404 as a
+// disabled feature (the controller decides). No session / cookie middleware, so the 200 carries no Set-Cookie.
+Route::get('/{indexnowKey}.txt', IndexNowKeyController::class)
+    ->where('indexnowKey', '[A-Za-z0-9-]{1,200}')
+    ->middleware('throttle:indexnow-key')
+    ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, CaptureAttribution::class])
+    ->name('indexnow.key');
 
 // Plan 06: the customer's quote link (no login, unguessable ULID, noindex, throttled).
 Route::get('/q/{ulid}', [PublicQuoteController::class, 'show'])->whereUlid('ulid')->middleware('throttle:quote-page')->name('quotes.public');
