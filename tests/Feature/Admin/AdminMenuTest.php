@@ -53,6 +53,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'catalog' => [...$catalogItems, 'price-sync'],
         'service' => ['service-requests', 'repairs'],
         'content' => ['pages', 'news', 'articles', 'banners'],
+        'seo' => ['sitemap'],
         'telegram' => ['telegram-bot', 'telegram-mini-app', 'telegram-chats'],
         'settings' => ['company', 'users', 'checkout', 'indexing', 'integrations', 'api-tokens', 'mcp'],
     ]],
@@ -73,6 +74,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'dashboard' => ['dashboard'],
         'catalog' => $catalogItems,
         'content' => ['pages', 'news', 'articles', 'banners'],
+        'seo' => ['sitemap'],
     ]],
 ]);
 

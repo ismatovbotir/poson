@@ -5,6 +5,7 @@ namespace App\Actions\Catalog;
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Site\LlmsTxt;
+use App\Support\Site\Sitemap;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -42,6 +43,7 @@ class ReorderCategory
         CategoryTree::flush();
         DB::afterCommit(function (): void {
             CategoryTree::flush();
+            Sitemap::flush();
             LlmsTxt::flush();
         });
     }

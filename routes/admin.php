@@ -25,6 +25,7 @@ use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
 use App\Livewire\Admin\RollTypes;
+use App\Livewire\Admin\Seo;
 use App\Livewire\Admin\Settings;
 use Illuminate\Support\Facades\Route;
 
@@ -149,6 +150,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/settings/api-tokens', Settings\ApiTokens::class)->name('settings.api-tokens');
     // MCP access (plan 13): mcp.manage (Admin only) + password re-confirmation for every write.
     Route::livewire('/settings/mcp', Settings\McpAccess::class)->name('settings.mcp');
+
+    // SEO → Sitemap: sitemap.view / sitemap.refresh (Admin + Content manager).
+    Route::livewire('/sitemap', Seo\Sitemap::class)->name('sitemap');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

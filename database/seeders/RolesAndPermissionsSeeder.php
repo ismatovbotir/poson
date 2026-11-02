@@ -36,6 +36,11 @@ class RolesAndPermissionsSeeder extends Seeder
     public const CONTENT = ['pages', 'news', 'banners'];
 
     /**
+     * SEO → Sitemap: Content manager and Admin only.
+     */
+    public const SITEMAP = ['sitemap.view', 'sitemap.refresh'];
+
+    /**
      * Orders (plan 11 v2 §8): what the sales manager may do; Admin also refunds.
      */
     public const ORDERS_SALES = ['orders.viewAny', 'orders.view', 'orders.create', 'orders.update', 'orders.mark-paid'];
@@ -91,6 +96,8 @@ class RolesAndPermissionsSeeder extends Seeder
      *    manual payment), payments.reconcile, payments.test (TEST orders)
      *    and settings.checkout are Admin only. payments.viewAny / view:
      *    Admin + sales manager.
+     *  - sitemap.view / sitemap.refresh: Admin → SEO → Sitemap (view the cached
+     *    sitemap.xml and rebuild it); Content manager + Admin.
      *  - mcp.manage (plan 13): Settings → MCP access and the MCP call log;
      *    Admin only.
      *
@@ -110,6 +117,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...static::abilities($catalog, self::CRUD),
                 ...static::abilities(self::CONTENT, self::CRUD),
                 'products.manage-services',
+                ...self::SITEMAP,
             ],
 
             Role::SalesManager->value => [
@@ -180,6 +188,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.checkout',
             // Plan 13: Settings → MCP access (single CEO holder, tokens, call log). Admin only.
             'mcp.manage',
+            // Admin → SEO → Sitemap (Content manager + Admin).
+            ...self::SITEMAP,
         ];
     }
 

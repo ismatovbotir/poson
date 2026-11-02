@@ -25,9 +25,10 @@ return [
     'news_per_page' => 12,
 
     /*
-    | Minutes /sitemap.xml stays cached (flushed on catalog saves).
+    | Minutes /sitemap.xml stays cached (one week; flushed by every catalog,
+    | page and news save, or by the admin Refresh button).
     */
-    'sitemap_cache_minutes' => 60,
+    'sitemap_cache_minutes' => 10080,
 
     /*
     | Render the analytics tag (GA4 / Metrika, Settings → Company → Tracking)

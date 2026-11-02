@@ -11,6 +11,8 @@ use App\Support\Catalog\CategoryTree;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use XMLWriter;
 
 /**
@@ -26,7 +28,7 @@ use XMLWriter;
  * Every URL is built on APP_URL (CanonicalHost), never on the request host,
  * so the cached document can't carry a foreign Host header.
  *
- * Cached for config('site.sitemap_cache_minutes'), never past the next
+ * Cached for config('site.sitemap_cache_minutes') (one week), never past the next
  * scheduled news post (NewsDirectory::ttl()); Product, Category, Brand, Page and
  * NewsPost flush it after their save or delete commits. Prices never appear here.
  *
@@ -38,22 +40,166 @@ class Sitemap
 {
     public const CACHE_KEY = 'site.sitemap';
 
+    /**
+     * The URL list for the admin preview, stored right after (and with the
+     * same lifetime as) the document under CACHE_KEY.
+     */
+    public const URLS_KEY = 'site.sitemap.urls';
+
+    /**
+     * Global build lock: two builds never run at once (public cold start and
+     * the admin refresh share it).
+     */
+    public const BUILD_LOCK = 'site.sitemap.build';
+
+    public const LOCK_SECONDS = 120;
+
+    /**
+     * URL types counted in the admin status line.
+     *
+     * @var list<string>
+     */
+    public const TYPES = ['products', 'categories', 'brands', 'pages', 'news', 'articles', 'other'];
+
+    /**
+     * @var list<array{loc: string, lastmod: ?string, locale: string, type: string}>
+     */
+    private array $entries = [];
+
+    /**
+     * Last good document (no TTL, never flushed): served while a rebuild is
+     * running or after a flush, so a cold cache never makes a request wait.
+     */
+    public const LAST_KEY = 'site.sitemap.last';
+
+    /**
+     * Bumped by every flush(); a build that started before a flush is not
+     * stored (it may carry the old catalog state).
+     */
+    public const VERSION_KEY = 'site.sitemap.version';
+
     public static function flush(): void
     {
+        Cache::forever(self::VERSION_KEY, (string) Str::uuid());
         Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::URLS_KEY);
     }
 
+    /**
+     * The cached document. A cold cache is built by the request that gets the
+     * global lock; the others get the last good copy at once, or a 503 with
+     * Retry-After when there is none yet. Nobody waits.
+     */
     public function xml(): string
     {
-        return Cache::remember(
-            self::CACHE_KEY,
-            NewsDirectory::ttl((int) config('site.sitemap_cache_minutes', 60) * 60),
-            fn (): string => CanonicalHost::using(fn (): string => $this->build()),
-        );
+        if ($payload = $this->payload()) {
+            return $payload['xml'];
+        }
+
+        $lock = Cache::lock(self::BUILD_LOCK, self::LOCK_SECONDS);
+
+        if ($lock->get()) {
+            try {
+                return $this->payload()['xml'] ?? $this->store($this->generate())['xml'];
+            } finally {
+                $lock->release();
+            }
+        }
+
+        $last = Cache::get(self::LAST_KEY);
+
+        if (is_array($last) && is_string($last['xml'] ?? null)) {
+            return $last['xml'];
+        }
+
+        throw new ServiceUnavailableHttpException(5);
+    }
+
+    /**
+     * The stored document with its meta, or null when nothing (valid) is cached.
+     *
+     * @return array{xml: string, generated_at: string, expires_at: string, counts: array<string, int>}|null
+     */
+    public function payload(): ?array
+    {
+        $payload = Cache::get(self::CACHE_KEY);
+
+        return is_array($payload) && is_string($payload['xml'] ?? null) && is_string($payload['generated_at'] ?? null) && is_string($payload['expires_at'] ?? null) && is_array($payload['counts'] ?? null)
+            ? $payload
+            : null;
+    }
+
+    /**
+     * The URLs of the stored document (preview), or null when not generated.
+     *
+     * @return list<array{loc: string, lastmod: ?string, locale: string, type: string}>|null
+     */
+    public function urls(): ?array
+    {
+        if ($this->payload() === null) {
+            return null;
+        }
+
+        $urls = Cache::get(self::URLS_KEY);
+
+        return is_array($urls) ? $urls : null;
+    }
+
+    /**
+     * Build the document on APP_URL (never the request host) and collect its
+     * URL list and counts per type. Doesn't touch the cache.
+     *
+     * @return array{xml: string, urls: list<array{loc: string, lastmod: ?string, locale: string, type: string}>, counts: array<string, int>, version: string}
+     */
+    public function generate(): array
+    {
+        $version = (string) Cache::get(self::VERSION_KEY, '0');
+
+        return CanonicalHost::using(function () use ($version): array {
+            $xml = $this->build();
+            $counts = array_fill_keys(self::TYPES, 0);
+
+            foreach ($this->entries as $entry) {
+                $counts[$entry['type']]++;
+            }
+
+            return ['xml' => $xml, 'urls' => $this->entries, 'counts' => $counts, 'version' => $version];
+        });
+    }
+
+    /**
+     * Put a generated document into the cache: the URL list first, then the
+     * document with its meta (one value), both with the same lifetime, then the
+     * last-good copy. Nothing is written when a flush happened since generate()
+     * started (the document may be stale); the payload is still returned so the
+     * caller can serve it once.
+     *
+     * @param  array{xml: string, urls: list<array{loc: string, lastmod: ?string, locale: string, type: string}>, counts: array<string, int>, version?: string}  $generated
+     * @return array{xml: string, generated_at: string, expires_at: string, counts: array<string, int>}
+     */
+    public function store(array $generated): array
+    {
+        $expiresAt = NewsDirectory::ttl((int) config('site.sitemap_cache_minutes', 10080) * 60);
+        $payload = [
+            'xml' => $generated['xml'],
+            'generated_at' => now()->toIso8601String(),
+            'expires_at' => $expiresAt->toIso8601String(),
+            'counts' => $generated['counts'],
+        ];
+
+        if (($generated['version'] ?? (string) Cache::get(self::VERSION_KEY, '0')) === (string) Cache::get(self::VERSION_KEY, '0')) {
+            Cache::put(self::URLS_KEY, $generated['urls'], $expiresAt);
+            Cache::put(self::CACHE_KEY, $payload, $expiresAt);
+            Cache::forever(self::LAST_KEY, $payload);
+        }
+
+        return $payload;
     }
 
     public function build(): string
     {
+        $this->entries = [];
+
         $xml = new XMLWriter;
         $xml->openMemory();
         $xml->startDocument('1.0', 'UTF-8');
@@ -77,6 +223,7 @@ class Sitemap
                 $xml,
                 fn (string $locale): string => route('site.catalog.category', ['locale' => $locale, 'category' => $category->slug]),
                 $category->updated_at,
+                type: 'categories',
             );
         }
 
@@ -88,6 +235,7 @@ class Sitemap
                 $xml,
                 fn (string $locale): string => route('site.page', ['locale' => $locale, 'page' => $page['slug']]),
                 $this->date($page['modified_at'] ?? null),
+                type: 'pages',
             );
         }
 
@@ -104,6 +252,7 @@ class Sitemap
                         $xml,
                         fn (string $locale): string => route('site.product', ['locale' => $locale, 'product' => $product->slug]),
                         $product->updated_at,
+                        type: 'products',
                     );
                 }
             });
@@ -143,6 +292,7 @@ class Sitemap
                 $xml,
                 fn (string $locale): string => route('site.brands.show', ['locale' => $locale, 'brand' => $brand->slug]),
                 $modified[$brand->id],
+                type: 'brands',
             );
         }
     }
@@ -187,6 +337,7 @@ class Sitemap
                             fn (string $locale): string => $kind->url($post->slug, $locale),
                             $post->contentUpdatedAt(),
                             $locales,
+                            $kind === NewsKind::Article ? 'articles' : 'news',
                         );
                     }
                 }
@@ -201,8 +352,9 @@ class Sitemap
      * @param  callable(string): string  $url
      * @param  CarbonInterface|(callable(string): ?CarbonInterface)|null  $lastModified  one date, or one per locale
      * @param  list<string>|null  $locales
+     * @param  string  $type  one of TYPES, for the admin counts
      */
-    private function write(XMLWriter $xml, callable $url, CarbonInterface|callable|null $lastModified = null, ?array $locales = null): void
+    private function write(XMLWriter $xml, callable $url, CarbonInterface|callable|null $lastModified = null, ?array $locales = null, string $type = 'other'): void
     {
         $locales ??= config('app.supported_locales');
         $urls = [];
@@ -221,6 +373,8 @@ class Sitemap
             if ($modified !== null) {
                 $xml->writeElement('lastmod', $modified->toAtomString());
             }
+
+            $this->entries[] = ['loc' => $loc, 'lastmod' => $modified?->toAtomString(), 'locale' => (string) $locale, 'type' => $type];
 
             foreach ([...$urls, 'x-default' => $default] as $hreflang => $href) {
                 $xml->startElement('xhtml:link');

@@ -108,6 +108,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(fn (CommandFinished $event) => Secrets::suspendForCommand($event->command, starting: false));
 
         // Customers' quote links (plan 06): separate per-IP budgets for the page and the PDF.
+        RateLimiter::for('sitemap', fn (Request $request) => Limit::perMinute(60)->by('sitemap:'.$request->ip()));
         RateLimiter::for('quote-page', fn (Request $request) => Limit::perMinute(60)->by('quote-page:'.$request->ip()));
         RateLimiter::for('quote-pdf', fn (Request $request) => Limit::perMinute(10)->by('quote-pdf:'.$request->ip()));
 

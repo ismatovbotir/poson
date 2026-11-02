@@ -11,6 +11,7 @@ return [
         'catalog' => 'Katalog',
         'service' => 'Servis',
         'content' => 'Kontent',
+        'seo' => 'SEO',
         'telegram' => 'Telegram',
         'settings' => 'Sozlamalar',
     ],
@@ -44,6 +45,7 @@ return [
         'integrations' => 'Integratsiyalar',
         'api_tokens' => 'API tokenlar',
         'mcp' => 'MCP kirish',
+        'sitemap' => 'Sayt xaritasi',
     ],
 
     'tabs' => [

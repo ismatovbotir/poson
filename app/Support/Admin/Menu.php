@@ -78,6 +78,10 @@ final class Menu
                 new MenuItem('banners', 'menu.items.banners', 'image', 'admin.banners.index', permission: 'banners.viewAny'),
             ]),
 
+            new MenuGroup('seo', 'menu.groups.seo', [
+                new MenuItem('sitemap', 'menu.items.sitemap', 'globe', 'admin.sitemap', permission: 'sitemap.view'),
+            ]),
+
             new MenuGroup('telegram', 'menu.groups.telegram', [
                 new MenuItem('telegram-bot', 'menu.items.telegram_bot', 'bot', 'admin.telegram.bot', roles: $admin),
                 new MenuItem('telegram-mini-app', 'menu.items.telegram_mini_app', 'smartphone', 'admin.telegram.mini-app', roles: $admin),

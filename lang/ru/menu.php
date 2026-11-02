@@ -11,6 +11,7 @@ return [
         'catalog' => 'Каталог',
         'service' => 'Сервис',
         'content' => 'Контент',
+        'seo' => 'SEO',
         'telegram' => 'Telegram',
         'settings' => 'Настройки',
     ],
@@ -44,6 +45,7 @@ return [
         'integrations' => 'Интеграции',
         'api_tokens' => 'API-токены',
         'mcp' => 'Доступ MCP',
+        'sitemap' => 'Карта сайта',
     ],
 
     'tabs' => [

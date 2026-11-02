@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', RedirectToLocale::class)->name('site.root');
 
 // Crawler files (no locale prefix).
-Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/sitemap.xml', SitemapController::class)->middleware('throttle:sitemap')->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
 
