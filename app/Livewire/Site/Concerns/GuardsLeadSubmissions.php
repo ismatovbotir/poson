@@ -4,6 +4,7 @@ namespace App\Livewire\Site\Concerns;
 
 use App\Livewire\Site\LeadForm;
 use App\Support\Analytics\Attribution;
+use App\Support\ForeignPhoneLimit;
 use Illuminate\Support\Facades\RateLimiter;
 
 /**
@@ -26,6 +27,22 @@ trait GuardsLeadSubmissions
         // Count first, then compare: concurrent requests can't slip past the limit.
         return $this->limitExceeded('site-lead:'.sha1((string) request()->ip()), LeadForm::RATE_LIMIT, LeadForm::RATE_LIMIT_SECONDS)
             || $this->limitExceeded('site-lead-phone:'.sha1($phone), LeadForm::PHONE_LIMIT, LeadForm::PHONE_LIMIT_SECONDS);
+    }
+
+    /**
+     * TG-43, run LAST (after validation, the IP / phone limiters and the
+     * other cheap checks): bots are skipped entirely, otherwise a foreign
+     * number counts against the global hourly cap; true (with a form error) when over it.
+     */
+    protected function foreignPhoneCapExceeded(string $phone): bool
+    {
+        if ($this->looksLikeBot() || ! ForeignPhoneLimit::exceeded($phone)) {
+            return false;
+        }
+
+        $this->addError('form', __('validation.foreign_phone_limit'));
+
+        return true;
     }
 
     /**

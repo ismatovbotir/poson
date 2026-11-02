@@ -98,8 +98,8 @@
                         <fieldset class="py-[18px]" wire:key="filter-brand">
                             <legend class="mb-3 text-sm font-bold">{{ __('site.catalog.brand') }}</legend>
                             @foreach ($facets['brands'] as $item)
-                                <label class="flex cursor-pointer items-center gap-2.5 py-[5px] text-sm text-ink-2" wire:key="filter-brand-{{ $item['slug'] }}">
-                                    <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) wire:click="toggleBrand(@js($item['slug']))">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-brand-{{ $item['slug'] }}">
+                                    <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) @disabled($item['disabled']) wire:click="toggleBrand(@js($item['slug']))">
                                     <span>{{ $item['name'] }}</span>
                                     <em class="ml-auto text-xs text-ink-3 not-italic">{{ $item['count'] }}</em>
                                 </label>
@@ -109,20 +109,36 @@
 
                     {{-- Attributes of the category --}}
                     @foreach ($facets['attributes'] as $facet)
-                        <fieldset class="py-[18px]" wire:key="filter-attr-{{ $facet['code'] }}" data-filter="{{ $facet['code'] }}">
-                            <legend class="mb-3 text-sm font-bold">{{ $facet['name'] }}@if ($facet['unit'] && ! $facet['type']->hasOptions()), {{ $facet['unit'] }}@endif</legend>
+                        <fieldset class="relative py-[18px]" wire:key="filter-attr-{{ $facet['code'] }}" data-filter="{{ $facet['code'] }}">
+                            <legend @class(['mb-3 text-sm font-bold', 'w-full pr-32' => $facet['switchable'] && $facet['selected'] >= 2])>{{ $facet['name'] }}@if ($facet['unit'] && ! $facet['type']->hasOptions()), {{ $facet['unit'] }}@endif</legend>
+
+                            @if ($facet['switchable'] && $facet['selected'] >= 2)
+                                <div class="absolute right-0 top-3 inline-flex rounded-full border border-line bg-white p-0.5 text-xs font-semibold" role="group" aria-label="{{ __('site.catalog.match_label') }}" data-match-switch="{{ $facet['code'] }}">
+                                    @foreach (['all', 'any'] as $mode)
+                                        <button
+                                            type="button"
+                                            wire:click="setMatchMode(@js($facet['code']), @js($mode))"
+                                            aria-pressed="{{ $facet['mode'] === $mode ? 'true' : 'false' }}"
+                                            aria-describedby="match-{{ $facet['code'] }}-{{ $mode }}-hint"
+                                            class="rounded-full px-3 py-1 {{ $facet['mode'] === $mode ? 'bg-brand-600 text-white' : 'text-ink-2 hover:text-brand-600' }}"
+                                        >{{ __('site.catalog.match_'.$mode) }}</button>
+                                        <span id="match-{{ $facet['code'] }}-{{ $mode }}-hint" class="sr-only">{{ __('site.catalog.match_'.$mode.'_hint') }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
 
                             @if ($facet['type']->hasOptions())
                                 @foreach ($facet['options'] as $option)
-                                    <label class="flex cursor-pointer items-center gap-2.5 py-[5px] text-sm text-ink-2" wire:key="filter-{{ $facet['code'] }}-{{ $option['id'] }}">
-                                        <input type="checkbox" class="{{ $checkClass }}" @checked($option['checked']) wire:click="toggleValue(@js($facet['code']), '{{ $option['id'] }}')">
+                                    @php($disabled = ($option['disabled'] ?? false) || (! $option['checked'] && $facet['selected'] >= \App\Support\Catalog\CatalogQuery::MAX_OPTIONS))
+                                    <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $disabled ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-{{ $facet['code'] }}-{{ $option['id'] }}">
+                                        <input type="checkbox" class="{{ $checkClass }}" @checked($option['checked']) @disabled($disabled) wire:click="toggleValue(@js($facet['code']), '{{ $option['id'] }}')">
                                         <span>{{ $option['label'] }}</span>
                                         <em class="ml-auto text-xs text-ink-3 not-italic">{{ $option['count'] }}</em>
                                     </label>
                                 @endforeach
                             @elseif ($facet['type'] === \App\Enums\AttributeType::Boolean)
-                                <label class="flex cursor-pointer items-center gap-2.5 py-[5px] text-sm text-ink-2">
-                                    <input type="checkbox" class="{{ $checkClass }}" @checked($facet['checked']) wire:click="toggleValue(@js($facet['code']), '1')">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $facet['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}">
+                                    <input type="checkbox" class="{{ $checkClass }}" @checked($facet['checked']) @disabled($facet['disabled']) wire:click="toggleValue(@js($facet['code']), '1')">
                                     <span>{{ __('site.product.yes') }}</span>
                                     <em class="ml-auto text-xs text-ink-3 not-italic">{{ $facet['count'] }}</em>
                                 </label>
@@ -143,8 +159,8 @@
                         <fieldset class="py-[18px]" wire:key="filter-stock">
                             <legend class="mb-3 text-sm font-bold">{{ __('site.catalog.stock') }}</legend>
                             @foreach ($facets['stock'] as $item)
-                                <label class="flex cursor-pointer items-center gap-2.5 py-[5px] text-sm text-ink-2" wire:key="filter-stock-{{ $item['value'] }}">
-                                    <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) wire:click="toggleStock(@js($item['value']))">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-stock-{{ $item['value'] }}">
+                                    <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) @disabled($item['disabled']) wire:click="toggleStock(@js($item['value']))">
                                     <span>{{ $item['label'] }}</span>
                                     <em class="ml-auto text-xs text-ink-3 not-italic">{{ $item['count'] }}</em>
                                 </label>

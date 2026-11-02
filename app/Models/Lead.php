@@ -281,7 +281,7 @@ class Lead extends Model
      */
     public function scopeMatchingPhone(Builder $query, ?string $phone): void
     {
-        $normalized = Phone::normalize($phone);
+        $normalized = Phone::normalizeAny($phone);
 
         $normalized === null ? $query->whereRaw('1 = 0') : $query->where('leads.phone', $normalized);
     }

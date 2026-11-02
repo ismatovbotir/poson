@@ -148,7 +148,7 @@
                 <dl class="mt-4 space-y-2.5 text-sm">
                     @if ($order->tin)<div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.tin') }}</dt><dd class="font-mono" data-tin>{{ $order->tin }}</dd></div>@endif
                     <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.name') }}</dt><dd class="text-right">{{ $order->name }}</dd></div>
-                    <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.phone') }}</dt><dd><a href="tel:{{ $order->phone }}" class="font-medium text-brand-700">{{ \App\Support\Phone::display($order->phone) }}</a></dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.phone') }}</dt><dd><a href="tel:{{ $order->phone }}" class="font-medium text-brand-700">{{ \App\Support\Phone::display($order->phone) }}</a> <x-admin.foreign-phone :phone="$order->phone" /></dd></div>
                     @if ($order->customer)
                         <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.customer') }}</dt><dd class="text-right">
                             @if ($canViewCustomer)<a href="{{ route('admin.customers.show', $order->customer) }}" wire:navigate class="font-semibold text-brand-700 hover:underline">{{ $order->customer->name }}</a>@else{{ $order->customer->name }}@endif

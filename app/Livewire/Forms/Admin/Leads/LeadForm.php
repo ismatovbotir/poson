@@ -10,7 +10,7 @@ use App\Enums\LeadSource;
 use App\Enums\LeadType;
 use App\Models\Lead;
 use App\Models\User;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Money;
 use App\Support\Phone;
 use Closure;
@@ -98,7 +98,7 @@ class LeadForm extends Form
             // Only the types the form offers (the user's types; never checkout by hand).
             'type' => ['required', Rule::in(array_map(fn (LeadType $type): string => $type->value, $this->component->typeOptions))],
             'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'company' => ['nullable', 'string', 'max:160'],
             'inn' => ['nullable', 'digits:9'],

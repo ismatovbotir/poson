@@ -30,11 +30,29 @@ use Illuminate\Support\Facades\DB;
  * - f[code][min|max]      bounds of a number attribute
  * - sort                  popular | price_asc | price_desc | new
  *
- * Values of one attribute (or brand, or stock) are OR-ed; different
- * attributes and filters are AND-ed. Attribute filters exist only on a
- * category listing: the attributes the category or its ancestors assign
- * with is_filterable (never text). Facet counts come from the listing's
- * base set (no filters applied); options without products are hidden.
+ * - m[code]=all|any       visitor override of a multiselect attribute's match
+ *                         mode ("all" = the product has every ticked option,
+ *                         "any" = at least one). Honoured only when the
+ *                         attribute's filter_match_switch is on; absent,
+ *                         garbage or equal to the admin default
+ *                         (attributes.filter_match, default "all") = the default
+ *
+ * Values of one brand / stock / select group are OR-ed; a multiselect group
+ * is AND-ed ("all", default) or OR-ed ("any"); different attributes and
+ * filters are AND-ed. Attribute filters exist only on a category listing:
+ * the attributes the category or its ancestors assign with is_filterable
+ * (never text). Caps (extras dropped silently): MAX_OPTIONS ticked options
+ * per attribute, MAX_ATTRIBUTE_FILTERS filter attributes per request; m is
+ * sanitized to filterable multiselect attributes with the switch on.
+ *
+ * Facet counts follow the other active filters (faceted search): a group's
+ * counts are the products matching every filter except that group's own.
+ * Select, boolean, brand and stock groups exclude only themselves; a
+ * multiselect group with ticks keeps its own ticks (a refinement: "all" =
+ * products that would match with this option added, "any" = products if the
+ * option were added to the selection). Options with no match stay visible but
+ * disabled, ticked ones never; options absent from the listing are hidden.
+ * Queries per group are grouped, so they don't grow with the ticked options.
  *
  * Brand rule: only the Retail price ("price") is filtered, sorted and shown.
  */
@@ -48,6 +66,20 @@ class CatalogQuery
      * Longest accepted list per parameter (keeps queries bounded).
      */
     private const MAX_VALUES = 50;
+
+    /**
+     * Longest option list applied per attribute filter.
+     */
+    public const MAX_OPTIONS = 8;
+
+    /**
+     * Most attribute filters applied in one request.
+     */
+    public const MAX_ATTRIBUTE_FILTERS = 12;
+
+    public const MODE_ALL = 'all';
+
+    public const MODE_ANY = 'any';
 
     /** @var list<string> */
     public readonly array $brandSlugs;
@@ -68,10 +100,17 @@ class CatalogQuery
      */
     private array $rawAttributeFilters;
 
+    /**
+     * Raw m[code] input (match modes), sanitized on use.
+     *
+     * @var array<mixed>
+     */
+    private array $rawMatchModes;
+
     /** @var array<string, ResolvedAttribute>|null */
     private ?array $filterable = null;
 
-    /** @var array<string, array{attribute: Attribute, options: list<int>, min: ?string, max: ?string, flag: bool}>|null */
+    /** @var array<string, array{attribute: Attribute, options: list<int>, min: ?string, max: ?string, flag: bool, mode: string}>|null */
     private ?array $attributeFilters = null;
 
     /** @var array<string, int>|null slug => id */
@@ -86,6 +125,7 @@ class CatalogQuery
         mixed $attributeFilters = [],
         mixed $sort = self::DEFAULT_SORT,
         private ?ProductAttributeResolver $resolver = null,
+        mixed $matchModes = [],
     ) {
         // Inputs are cut to MAX_VALUES before any work on them.
         $this->brandSlugs = array_values(array_unique(array_filter(
@@ -101,6 +141,7 @@ class CatalogQuery
         $this->priceMin = static::wholeSums($priceMin);
         $this->priceMax = static::wholeSums($priceMax);
         $this->rawAttributeFilters = array_slice(is_array($attributeFilters) ? $attributeFilters : [], 0, self::MAX_VALUES, true);
+        $this->rawMatchModes = array_slice(is_array($matchModes) ? $matchModes : [], 0, self::MAX_VALUES, true);
         $this->sort = is_string($sort) && in_array($sort, self::SORTS, true) ? $sort : self::DEFAULT_SORT;
         $this->resolver ??= app(ProductAttributeResolver::class);
     }
@@ -146,21 +187,23 @@ class CatalogQuery
     }
 
     /**
-     * The listing with every filter applied.
+     * The listing with every filter applied (except the attribute filter
+     * $exceptCode, or the "brand" / "stock" group named by $exceptGroup; used by
+     * the facet counts of that group).
      *
      * @return Builder<Product>
      */
-    public function filteredQuery(): Builder
+    public function filteredQuery(?string $exceptCode = null, ?string $exceptGroup = null): Builder
     {
         $query = $this->baseQuery();
 
         // Unknown slugs are ignored, like other invalid filter values.
-        if ($this->brandIds() !== []) {
+        if ($exceptGroup !== 'brand' && $this->brandIds() !== []) {
             $query->whereIn('products.brand_id', array_values($this->brandIds()));
         }
 
         // Software has no stock status on the site: the filter applies to the other products only.
-        if ($this->stock !== []) {
+        if ($exceptGroup !== 'stock' && $this->stock !== []) {
             $query->where(fn (Builder $stock) => $stock
                 ->where('products.type', ProductType::Software->value)
                 ->orWhereIn('products.stock_status', array_map(fn (StockStatus $status): string => $status->value, $this->stock)));
@@ -174,7 +217,24 @@ class CatalogQuery
             $query->where('products.price', '<=', $this->priceMax * 100);
         }
 
-        foreach ($this->attributeFilters() as $filter) {
+        foreach ($this->attributeFilters() as $code => $filter) {
+            if ($code === $exceptCode) {
+                continue;
+            }
+
+            // Multiselect "all": one bound EXISTS per ticked option.
+            if ($filter['attribute']->type === AttributeType::Multiselect && $filter['mode'] === self::MODE_ALL) {
+                foreach ($filter['options'] as $optionId) {
+                    $query->whereExists(fn (QueryBuilder $values) => $values->selectRaw('1')
+                        ->from('product_attribute_values')
+                        ->whereColumn('product_attribute_values.product_id', 'products.id')
+                        ->where('product_attribute_values.attribute_id', $filter['attribute']->id)
+                        ->where('product_attribute_values.attribute_option_id', $optionId));
+                }
+
+                continue;
+            }
+
             $query->whereExists(function (QueryBuilder $values) use ($filter): void {
                 $values->selectRaw('1')
                     ->from('product_attribute_values')
@@ -242,7 +302,7 @@ class CatalogQuery
     /**
      * Valid attribute filters from f[...], by code.
      *
-     * @return array<string, array{attribute: Attribute, options: list<int>, min: ?string, max: ?string, flag: bool}>
+     * @return array<string, array{attribute: Attribute, options: list<int>, min: ?string, max: ?string, flag: bool, mode: string}>
      */
     public function attributeFilters(): array
     {
@@ -260,7 +320,7 @@ class CatalogQuery
             }
 
             $attribute = $row->attribute;
-            $filter = ['attribute' => $attribute, 'options' => [], 'min' => null, 'max' => null, 'flag' => false];
+            $filter = ['attribute' => $attribute, 'options' => [], 'min' => null, 'max' => null, 'flag' => false, 'mode' => self::MODE_ALL];
 
             if ($attribute->type->hasOptions()) {
                 $known = $attribute->options->pluck('id')->all();
@@ -268,9 +328,14 @@ class CatalogQuery
                     array_map(fn (mixed $id): int => is_scalar($id) && ctype_digit((string) $id) ? (int) $id : 0, static::bounded($input)),
                     fn (int $id): bool => in_array($id, $known, true),
                 )));
+                $filter['options'] = array_slice($filter['options'], 0, self::MAX_OPTIONS);
 
                 if ($filter['options'] === []) {
                     continue;
+                }
+
+                if ($attribute->type === AttributeType::Multiselect) {
+                    $filter['mode'] = $this->matchModes()[$code] ?? static::defaultMode($attribute);
                 }
             } elseif ($attribute->type === AttributeType::Boolean) {
                 if (! in_array('1', array_map(fn (mixed $value): string => is_scalar($value) ? (string) $value : '', static::bounded($input)), true)) {
@@ -288,9 +353,49 @@ class CatalogQuery
             }
 
             $this->attributeFilters[$code] = $filter;
+
+            if (count($this->attributeFilters) >= self::MAX_ATTRIBUTE_FILTERS) {
+                break;
+            }
         }
 
         return $this->attributeFilters;
+    }
+
+    /**
+     * The admin's default match mode of an attribute (multiselect only; "all" otherwise).
+     */
+    public static function defaultMode(Attribute $attribute): string
+    {
+        return $attribute->type === AttributeType::Multiselect ? $attribute->filter_match->value : self::MODE_ALL;
+    }
+
+    /**
+     * Sanitized m[code] overrides of the admin default: only filterable
+     * Multiselect attributes whose switch is on, only exactly "all" / "any",
+     * and only a value that differs from the default (the rest is dropped).
+     *
+     * @return array<string, string>
+     */
+    public function matchModes(): array
+    {
+        $modes = [];
+
+        foreach ($this->rawMatchModes as $code => $mode) {
+            $attribute = is_string($code) ? ($this->filterableAttributes()[$code]->attribute ?? null) : null;
+
+            if ($attribute === null
+                || $attribute->type !== AttributeType::Multiselect
+                || ! $attribute->filter_match_switch
+                || ! in_array($mode, [self::MODE_ALL, self::MODE_ANY], true)
+                || $mode === static::defaultMode($attribute)) {
+                continue;
+            }
+
+            $modes[$code] = $mode;
+        }
+
+        return $modes;
     }
 
     /**
@@ -406,12 +511,21 @@ class CatalogQuery
             };
         }
 
+        $modes = [];
+
+        foreach ($this->attributeFilters() as $code => $filter) {
+            if (isset($this->matchModes()[$code])) {
+                $modes[$code] = $filter['mode'];
+            }
+        }
+
         return array_filter([
             'brand' => array_keys($this->brandIds()),
             'stock' => array_map(fn (StockStatus $status): string => $status->value, $this->stock),
             'price_min' => $this->priceMin,
             'price_max' => $this->priceMax,
             'f' => $attributes,
+            'm' => $modes,
             'sort' => $this->sort !== self::DEFAULT_SORT ? $this->sort : null,
         ], fn (mixed $value): bool => $value !== null && $value !== []);
     }
@@ -449,6 +563,12 @@ class CatalogQuery
         }
 
         $selected = $this->brandIds();
+        $linked = $this->filteredQuery(exceptGroup: 'brand')
+            ->whereNotNull('products.brand_id')
+            ->groupBy('products.brand_id')
+            ->selectRaw('products.brand_id as brand_id, count(*) as aggregate')
+            ->toBase()
+            ->pluck('aggregate', 'brand_id');
 
         return Brand::query()
             ->active()
@@ -459,8 +579,9 @@ class CatalogQuery
             ->map(fn (Brand $brand): array => [
                 'slug' => $brand->slug,
                 'name' => $brand->name,
-                'count' => (int) $counts[$brand->id],
+                'count' => (int) ($linked[$brand->id] ?? 0),
                 'checked' => isset($selected[$brand->slug]),
+                'disabled' => (int) ($linked[$brand->id] ?? 0) === 0 && ! isset($selected[$brand->slug]),
             ])
             ->values()
             ->all();
@@ -480,17 +601,26 @@ class CatalogQuery
             ->toBase()
             ->pluck('aggregate', 'stock_status');
 
+        $linked = $this->filteredQuery(exceptGroup: 'stock')
+            ->where('products.type', '!=', ProductType::Software->value)
+            ->groupBy('products.stock_status')
+            ->selectRaw('products.stock_status as stock_status, count(*) as aggregate')
+            ->toBase()
+            ->pluck('aggregate', 'stock_status');
+
         $facet = [];
 
         foreach (StockStatus::cases() as $status) {
-            $count = (int) ($counts[$status->value] ?? 0);
+            if ((int) ($counts[$status->value] ?? 0) > 0) {
+                $count = (int) ($linked[$status->value] ?? 0);
+                $checked = in_array($status, $this->stock, true);
 
-            if ($count > 0) {
                 $facet[] = [
                     'value' => $status->value,
                     'label' => __('site.stock.'.$status->value),
                     'count' => $count,
-                    'checked' => in_array($status, $this->stock, true),
+                    'checked' => $checked,
+                    'disabled' => $count === 0 && ! $checked,
                 ];
             }
         }
@@ -556,6 +686,7 @@ class CatalogQuery
 
         $active = $this->attributeFilters();
         $facets = [];
+        $linkedCounts = $this->linkedOptionCounts();
 
         foreach ($rows as $code => $row) {
             $attribute = $row->attribute;
@@ -572,31 +703,43 @@ class CatalogQuery
                 'checked' => $filter !== null && $filter['flag'],
                 'from' => $filter['min'] ?? null,
                 'to' => $filter['max'] ?? null,
+                'mode' => $filter['mode'] ?? static::defaultMode($attribute),
+                'selected' => count($filter['options'] ?? []),
+                'disabled' => false,
+                'switchable' => $attribute->type === AttributeType::Multiselect && $attribute->filter_match_switch,
             ];
 
             if ($attribute->type->hasOptions()) {
                 foreach ($attribute->options as $option) {
-                    $count = (int) ($optionCounts[$option->id] ?? 0);
-
-                    if ($count > 0) {
-                        $facet['options'][] = [
-                            'id' => $option->id,
-                            'label' => (string) $option->value,
-                            'count' => $count,
-                            'checked' => in_array($option->id, $filter['options'] ?? [], true),
-                        ];
+                    // Options absent from the listing are hidden; the others follow the match mode.
+                    if ((int) ($optionCounts[$option->id] ?? 0) === 0) {
+                        continue;
                     }
+
+                    $checked = in_array($option->id, $filter['options'] ?? [], true);
+                    $count = isset($linkedCounts[$code])
+                        ? (int) ($linkedCounts[$code]['map'][$option->id] ?? ($checked ? 0 : $linkedCounts[$code]['default']))
+                        : (int) $optionCounts[$option->id];
+
+                    $facet['options'][] = [
+                        'id' => $option->id,
+                        'label' => (string) $option->value,
+                        'count' => $count,
+                        'checked' => $checked,
+                        'disabled' => $count === 0 && ! $checked,
+                    ];
                 }
 
                 if ($facet['options'] === []) {
                     continue;
                 }
             } elseif ($attribute->type === AttributeType::Boolean) {
-                $facet['count'] = (int) ($flags[$attribute->id] ?? 0);
-
-                if ($facet['count'] === 0) {
+                if ((int) ($flags[$attribute->id] ?? 0) === 0) {
                     continue;
                 }
+
+                $facet['count'] = (int) ($linkedCounts[$code]['flag'] ?? 0);
+                $facet['disabled'] = $facet['count'] === 0 && ! $facet['checked'];
             } else {
                 $range = $ranges->get($attribute->id);
 
@@ -612,6 +755,92 @@ class CatalogQuery
         }
 
         return $facets;
+    }
+
+    /**
+     * Option counts of the multiselect attributes that have ticked options,
+     * following the match mode (constant queries per attribute, whatever the
+     * number of ticked options):
+     * - all: products matching every filter (all ticked options + this option);
+     * - any: products matching the other filters that have the ticked options
+     *   or this option.
+     *
+     * @return array<string, array{map: array<int, int>, default: int, flag?: int}> code => option counts and the count of an option no other product has
+     */
+    private function linkedOptionCounts(): array
+    {
+        $counts = [];
+
+        foreach ($this->filterableAttributes() as $code => $row) {
+            $filter = $this->attributeFilters()[$code] ?? null;
+            $attributeId = $row->attribute->id;
+
+            if ($row->attribute->type === AttributeType::Boolean) {
+                $flagged = DB::table('product_attribute_values')
+                    ->where('attribute_id', $attributeId)
+                    ->where('value_bool', true)
+                    ->whereIn('product_id', $this->filteredQuery($code)->select('products.id')->toBase())
+                    ->distinct()
+                    ->count('product_id');
+                $counts[$code] = ['map' => [], 'default' => 0, 'flag' => $flagged];
+
+                continue;
+            }
+
+            if (! $row->attribute->type->hasOptions()) {
+                continue;
+            }
+
+            $values = fn () => DB::table('product_attribute_values')
+                ->where('product_attribute_values.attribute_id', $attributeId)
+                ->whereNotNull('product_attribute_values.attribute_option_id')
+                ->groupBy('product_attribute_values.attribute_option_id')
+                ->selectRaw('product_attribute_values.attribute_option_id as option_id, count(distinct product_attribute_values.product_id) as aggregate');
+
+            // Nothing ticked here (or a select, OR-ed): products matching every other filter.
+            if ($filter === null || $row->attribute->type === AttributeType::Select) {
+                $counts[$code] = [
+                    'map' => $values()
+                        ->whereIn('product_attribute_values.product_id', $this->filteredQuery($code)->select('products.id')->toBase())
+                        ->pluck('aggregate', 'option_id')
+                        ->map(fn ($count): int => (int) $count)
+                        ->all(),
+                    'default' => 0,
+                ];
+
+                continue;
+            }
+
+            if ($filter['mode'] === self::MODE_ALL) {
+                $counts[$code] = [
+                    'map' => $values()
+                        ->whereIn('product_attribute_values.product_id', $this->filteredQuery()->select('products.id')->toBase())
+                        ->pluck('aggregate', 'option_id')
+                        ->map(fn ($count): int => (int) $count)
+                        ->all(),
+                    'default' => 0,
+                ];
+
+                continue;
+            }
+
+            $anyIds = $this->filteredQuery()->select('products.id')->toBase();
+            $anyTotal = (clone $anyIds)->count();
+
+            $map = $values()
+                ->whereIn('product_attribute_values.product_id', $this->filteredQuery($code)->select('products.id')->toBase())
+                ->where(fn (QueryBuilder $scope) => $scope
+                    ->whereIn('product_attribute_values.attribute_option_id', $filter['options'])
+                    ->orWhereNotIn('product_attribute_values.product_id', $anyIds))
+                ->pluck('aggregate', 'option_id')
+                ->map(fn ($count, $optionId): int => (int) $count + (in_array((int) $optionId, $filter['options'], true) ? 0 : $anyTotal))
+                ->all();
+
+            // An option no other product has still adds the "any" matches of the ticked ones.
+            $counts[$code] = ['map' => $map, 'default' => $anyTotal];
+        }
+
+        return $counts;
     }
 
     /**

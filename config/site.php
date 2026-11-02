@@ -15,6 +15,26 @@ return [
     'cart_enabled' => (bool) env('SITE_CART_ENABLED', false),
 
     /*
+    | Foreign (non-+998) phone numbers on the public forms: lead form, cart
+    | quote and checkout (plan 14 v2 §20, TG-44 kill switch). false = the
+    | public entry points accept Uzbek numbers only; admin CRM and the bot
+    | are unaffected.
+    */
+    'foreign_phones_enabled' => filter_var(env('SITE_FOREIGN_PHONES_ENABLED', true), FILTER_VALIDATE_BOOL),
+
+    /*
+    | TG-43: public submissions with a non-Uzbek phone accepted per hour
+    | across lead form, cart quote and checkout (limiter "site-foreign-phone").
+    | Over the cap: the same validation error, one management alert per hour.
+    */
+    'foreign_phone_limit_per_hour' => (int) env('SITE_FOREIGN_PHONE_LIMIT_PER_HOUR', 30),
+
+    /*
+    | TG-41: country codes never accepted (non-geographic and premium).
+    */
+    'reserved_phone_prefixes' => ['800', '808', '870', '878', '881', '882', '883', '888', '979', '991'],
+
+    /*
     | Products per page on catalog listings and search results.
     */
     'per_page' => 24,

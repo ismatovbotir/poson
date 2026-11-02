@@ -2,12 +2,14 @@
 
 use App\Actions\Catalog\CreateAttributeOption;
 use App\Enums\AttributeType;
+use App\Enums\FilterMatch;
 use App\Enums\Role;
 use App\Livewire\Admin\Attributes\Form;
 use App\Livewire\Admin\Attributes\Index;
 use App\Models\Attribute;
 use App\Models\AttributeOption;
 use App\Models\Category;
+use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 
 describe('index', function () {
@@ -181,4 +183,73 @@ describe('authorization', function () {
 
         expect($attribute->fresh())->not->toBeNull();
     })->with(catalogViewOnlyRoles());
+});
+
+describe('filter match setting', function () {
+    it('defaults existing and new attributes to all with the switch on', function () {
+        $attribute = Attribute::factory()->multiselect()->create()->fresh();
+
+        expect($attribute->filter_match)->toBe(FilterMatch::All)
+            ->and($attribute->filter_match_switch)->toBeTrue();
+    });
+
+    it('saves the match mode and the switch of a multiselect attribute', function (Role $role) {
+        $attribute = Attribute::factory()->multiselect(['USB', 'LAN'])->create();
+
+        Livewire::actingAs(staffUser($role))
+            ->test(Form::class, ['attribute' => $attribute])
+            ->assertSee(__('admin.attributes.fields.filter_match'))
+            ->set('form.filter_match', 'any')
+            ->set('form.filter_match_switch', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($attribute->fresh())->filter_match->toBe(FilterMatch::Any)->filter_match_switch->toBeFalse();
+    })->with(catalogWriterRoles());
+
+    it('does not render the setting for other types', function () {
+        Livewire::actingAs(staffUser())
+            ->test(Form::class, ['attribute' => Attribute::factory()->select()->create()])
+            ->assertDontSee(__('admin.attributes.fields.filter_match'));
+    });
+
+    it('validates the mode and forces the defaults on non-multiselect types', function () {
+        $select = Attribute::factory()->select(['A', 'B'])->create();
+
+        Livewire::actingAs(staffUser())
+            ->test(Form::class, ['attribute' => $select])
+            ->set('form.filter_match', 'bogus')
+            ->call('save')
+            ->assertHasErrors(['form.filter_match']);
+
+        // A tampered payload on a Select attribute is accepted as input but stored as the defaults.
+        Livewire::actingAs(staffUser())
+            ->test(Form::class, ['attribute' => $select])
+            ->set('form.filter_match', 'any')
+            ->set('form.filter_match_switch', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($select->fresh())->filter_match->toBe(FilterMatch::All)->filter_match_switch->toBeTrue();
+    });
+
+    it('forbids view-only roles to change it', function (Role $role) {
+        $attribute = Attribute::factory()->multiselect()->create();
+
+        Livewire::actingAs(staffUser($role))
+            ->test(Form::class, ['attribute' => $attribute])
+            ->set('form.filter_match', 'any')
+            ->call('save')
+            ->assertForbidden();
+
+        expect($attribute->fresh()->filter_match)->toBe(FilterMatch::All);
+    })->with(catalogViewOnlyRoles());
+
+    it('is not writable through MCP', function () {
+        foreach (['app/Mcp', 'app/Actions/Mcp'] as $dir) {
+            foreach (File::allFiles(base_path($dir)) as $file) {
+                expect(file_get_contents($file->getPathname()))->not->toContain('filter_match');
+            }
+        }
+    });
 });

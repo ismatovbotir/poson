@@ -81,7 +81,7 @@
                         </td>
                         <td class="max-w-[16rem] px-4 py-3">
                             <span class="block truncate font-medium">{{ $order->company_name ?: $order->name }}</span>
-                            <span class="block truncate text-xs text-slate-500">{{ \App\Support\Phone::display($order->phone) }}</span>
+                            <span class="block truncate text-xs text-slate-500">{{ \App\Support\Phone::display($order->phone) }} <x-admin.foreign-phone :phone="$order->phone" /></span>
                         </td>
                         <td class="px-4 py-3">@include('livewire.admin.orders.partials.badges', ['order' => $order])</td>
                         <td class="hidden px-4 py-3 text-slate-600 xl:table-cell">{{ $order->payment_method->label() }}</td>

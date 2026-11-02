@@ -11,10 +11,11 @@ use App\Enums\PaymentMethod;
 use App\Enums\Region;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Cart;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartPricer;
 use App\Support\Cart\CartToken;
+use App\Support\ForeignPhoneLimit;
 use App\Support\Orders\CheckoutSettings;
 use App\Support\Orders\DeliveryQuote;
 use App\Support\Orders\PaymentContext;
@@ -108,7 +109,7 @@ class Page extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
             'paymentMethod' => ['required', 'string', 'max:20'],
         ], [], [
             'name' => __('checkout.fields.name'),
@@ -130,7 +131,17 @@ class Page extends Component
             return;
         }
 
-        if ($this->checkoutLimitExceeded((string) Phone::normalize($this->phone))) {
+        if ($this->checkoutLimitExceeded((string) Phone::normalizeAny($this->phone))) {
+            return;
+        }
+
+        // TG-43: the foreign-phone cap is checked here without counting and counted only after
+        // PlaceOrder succeeded, so a rejected submission or a re-priced retry never uses the budget.
+        $normalizedPhone = Phone::normalizeAny($this->phone);
+
+        if (ForeignPhoneLimit::reached($normalizedPhone)) {
+            $this->addError('form', __('validation.foreign_phone_limit'));
+
             return;
         }
 
@@ -152,6 +163,8 @@ class Page extends Component
             attribution: $this->attribution,
             trafficChannel: Attribution::channel($this->attribution)->value,
         ));
+
+        ForeignPhoneLimit::record($normalizedPhone);
 
         $recordOrder->handle(request(), $this->pageUrl, $this->locale);
 

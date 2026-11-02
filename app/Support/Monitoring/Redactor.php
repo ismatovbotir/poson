@@ -18,7 +18,7 @@ use Throwable;
  *     looks like;
  *  4. bot token, text after "(Connection:" / "SQL:" (SQLSTATE stays),
  *     base_path() → "~", Auth headers, Bearer/Basic, key=value secrets,
- *     query strings, emails, phone numbers, long hex/base64 runs, 7+ digit
+ *     query strings, emails, phone numbers (any country), long hex/base64 runs, 7+ digit
  *     runs;
  *  5. mb_substr to the limit.
  */
@@ -53,6 +53,9 @@ final class Redactor
         $text = (string) preg_replace('/\b([\w.-]*(?:password|passwd|secret|token|key|sign\w*|auth\w*)[\w.-]*)=("[^"]*"|\'[^\']*\'|[^\s&,;]*)/i', '$1='.self::MASK, $text);
         $text = (string) preg_replace('/\?[^\s"\'<>]*=[^\s"\'<>]*/', '?[query]', $text);
         $text = (string) preg_replace('/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/', '[email]', $text);
+        // TG-46: any international number: "+" then 8-15 digits, separators allowed.
+        // The 00 form must not follow a digit (linear: one class repeated, no nesting).
+        $text = (string) preg_replace('/(?:\+|(?<!\d)00)(?:[ ().-]*\d){8,15}/', '[phone]', $text);
         $text = (string) preg_replace('/\+?998(?:[ ().-]*\d){9}/', '[phone]', $text);
         $text = (string) preg_replace('/\b[A-Fa-f0-9]{24,}\b/', '[hash]', $text);
         $text = (string) preg_replace('/(?=[A-Za-z0-9+_-]*\d)(?=[A-Za-z0-9+_-]*[A-Za-z])[A-Za-z0-9+_-]{24,}={0,2}/', '[hash]', $text);

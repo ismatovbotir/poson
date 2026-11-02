@@ -24,7 +24,7 @@ class FindCustomerMatches
     {
         $matches = [];
         $inn = trim((string) $inn);
-        $phone = Phone::normalize($phone);
+        $phone = Phone::normalizeAny($phone);
 
         if (preg_match('/^\d{9}$/', $inn)) {
             foreach (Customer::query()->with('manager:id,name')->where('inn', $inn)->get() as $customer) {

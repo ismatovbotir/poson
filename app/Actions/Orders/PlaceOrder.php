@@ -17,7 +17,7 @@ use App\Events\Orders\OrderPlaced;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartPricer;
 use App\Support\Cart\PricedCart;
@@ -41,7 +41,7 @@ use Illuminate\Validation\ValidationException;
  * Place an order from the visitor's cart (plan 11 v2 §1, security
  * conditions 4, 6, 7, 11, 12, 18, 19).
  *
- * 1. Validate the typed fields (enums with tryFrom, UzPhone, STIR / PINFL
+ * 1. Validate the typed fields (enums with tryFrom, phone (any country), STIR / PINFL
  *    per buyer type, Kokand address confirmation, string lengths).
  * 2. In one short transaction: lock the cart row. A cart already converted
  *    returns its order (idempotent: a double submit gets the same ULID).
@@ -214,7 +214,7 @@ class PlaceOrder
             'paymentMethod' => $data->paymentMethod,
         ], [
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
             'buyerType' => ['required', Rule::enum(BuyerType::class)],
             'companyName' => [$buyerType?->isBusiness() ? 'required' : 'nullable', 'string', 'max:160'],
             'tin' => [$buyerType?->isBusiness() ? 'required' : 'nullable', 'string', 'max:14'],
@@ -257,7 +257,7 @@ class PlaceOrder
 
         return [
             'name' => mb_substr(trim($data->name), 0, 120),
-            'phone' => (string) Phone::normalize($data->phone),
+            'phone' => (string) Phone::normalizeAny($data->phone),
             'buyer_type' => $buyerType,
             'company_name' => $buyerType->isBusiness() ? mb_substr(trim($data->companyName), 0, 160) : null,
             'tin' => $buyerType->isBusiness() ? $tin : null,

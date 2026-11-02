@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\IntegrationSecret;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Monitoring\PingUrl;
 use Illuminate\Support\Facades\Http;

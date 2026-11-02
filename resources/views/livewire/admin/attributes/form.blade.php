@@ -96,6 +96,22 @@
                         <p class="mt-1 text-xs text-slate-500">{{ $typeLocked ? __('admin.attributes.type_locked') : __('admin.attributes.type_hint') }}</p>
                     </div>
                     <x-admin.toggle wire:model="form.is_filterable" :label="__('admin.attributes.fields.is_filterable')" :description="$type->canBeFilterable() ? __('admin.attributes.filterable_hint') : __('admin.attributes.text_not_filterable')" :disabled="! $type->canBeFilterable()" />
+                    @if ($type === \App\Enums\AttributeType::Multiselect)
+                        <fieldset class="space-y-2" data-section="filter-match">
+                            <legend class="text-sm font-medium text-slate-700">{{ __('admin.attributes.fields.filter_match') }}</legend>
+                            <div class="flex gap-4">
+                                @foreach (\App\Enums\FilterMatch::cases() as $match)
+                                    <label class="inline-flex items-center gap-2 text-sm">
+                                        <input type="radio" wire:model="form.filter_match" value="{{ $match->value }}" class="size-4 accent-brand-600" @disabled(! $canSave)>
+                                        {{ $match->label() }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-xs text-slate-500">{{ __('admin.attributes.filter_match_hint') }}</p>
+                            <x-admin.field-error name="form.filter_match" />
+                        </fieldset>
+                        <x-admin.toggle wire:model="form.filter_match_switch" :label="__('admin.attributes.fields.filter_match_switch')" :description="__('admin.attributes.filter_match_switch_hint')" />
+                    @endif
                     <x-admin.input wire:model="form.sort" type="number" min="0" inputmode="numeric" :label="__('admin.catalog.sort')" :hint="__('admin.catalog.sort_hint')" />
                 </div>
             </x-admin.card>

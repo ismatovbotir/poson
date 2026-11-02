@@ -2,6 +2,11 @@
 
 return [
 
+    'filter_match' => [
+        'all' => 'Hammasi',
+        'any' => 'Biri',
+    ],
+
     'attribute_type' => [
         'text' => 'Matn',
         'number' => 'Raqam',

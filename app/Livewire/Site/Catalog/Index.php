@@ -3,6 +3,7 @@
 namespace App\Livewire\Site\Catalog;
 
 use App\Data\Site\NewsCard;
+use App\Enums\AttributeType;
 use App\Models\Category;
 use App\Support\Catalog\CatalogQuery;
 use App\Support\Catalog\CategoryTree;
@@ -42,7 +43,7 @@ class Index extends Component
     /**
      * @var list<string>
      */
-    public const FILTERS = ['brand', 'stock', 'priceMin', 'priceMax', 'f'];
+    public const FILTERS = ['brand', 'stock', 'priceMin', 'priceMax', 'f', 'modes'];
 
     #[Locked]
     public ?Category $category = null;
@@ -85,6 +86,14 @@ class Index extends Component
      */
     #[Url(except: [])]
     public mixed $f = [];
+
+    /**
+     * Match mode override of multiselect filters: m[code]=all|any (absent = the attribute's default).
+     *
+     * @var array<string, string>
+     */
+    #[Url(as: 'm', except: [])]
+    public mixed $modes = [];
 
     #[Url(except: CatalogQuery::DEFAULT_SORT)]
     public mixed $sort = CatalogQuery::DEFAULT_SORT;
@@ -135,6 +144,9 @@ class Index extends Component
         }
 
         $this->f = is_array($this->f) ? array_slice($this->f, 0, 50, true) : [];
+        $this->modes = is_array($this->modes)
+            ? array_filter(array_slice($this->modes, 0, 50, true), fn (mixed $mode, mixed $code): bool => is_string($code) && in_array($mode, [CatalogQuery::MODE_ALL, CatalogQuery::MODE_ANY], true), ARRAY_FILTER_USE_BOTH)
+            : [];
         $this->sort = is_string($this->sort) && in_array($this->sort, CatalogQuery::SORTS, true) ? $this->sort : CatalogQuery::DEFAULT_SORT;
     }
 
@@ -159,7 +171,14 @@ class Index extends Component
     {
         $this->normalize();
         $current = is_array($this->f[$code] ?? null) ? $this->f[$code] : [];
-        $values = $this->toggle(array_values(array_filter($current, 'is_scalar')), $value);
+        $current = array_values(array_filter($current, 'is_scalar'));
+
+        // A 9th option in one attribute is refused (the same cap CatalogQuery applies).
+        if (count($current) >= CatalogQuery::MAX_OPTIONS && ! in_array($value, array_map('strval', $current), true)) {
+            return;
+        }
+
+        $values = $this->toggle($current, $value);
 
         $filters = $this->f;
 
@@ -170,6 +189,35 @@ class Index extends Component
         }
 
         $this->f = $filters;
+
+        // The switch exists for two or more ticked options only.
+        if (count($values) < 2) {
+            $this->forgetMode($code);
+        }
+
+        $this->resetPage();
+    }
+
+    /**
+     * Set the match mode of a multiselect filter (when its switch is on).
+     */
+    public function setMatchMode(string $code, string $mode): void
+    {
+        $this->normalize();
+
+        $probe = new CatalogQuery(category: $this->category);
+        $attribute = $probe->filterableAttributes()[$code]->attribute ?? null;
+
+        if ($attribute === null || $attribute->type !== AttributeType::Multiselect || ! $attribute->filter_match_switch) {
+            return;
+        }
+
+        // The URL only carries a deviation from the admin default.
+        if (! in_array($mode, [CatalogQuery::MODE_ALL, CatalogQuery::MODE_ANY], true) || $mode === CatalogQuery::defaultMode($attribute)) {
+            $this->forgetMode($code);
+        } else {
+            $this->modes = [...$this->modes, $code => $mode];
+        }
 
         $this->resetPage();
     }
@@ -210,6 +258,7 @@ class Index extends Component
             priceMax: $this->priceMax,
             attributeFilters: $this->f,
             sort: $this->sort,
+            matchModes: $this->modes,
         );
 
         $products = $query->paginate((int) config('site.per_page', 24))
@@ -363,5 +412,13 @@ class Index extends Component
         $filters = $this->f;
         unset($filters[$code]);
         $this->f = $filters;
+        $this->forgetMode($code);
+    }
+
+    private function forgetMode(string $code): void
+    {
+        $modes = is_array($this->modes) ? $this->modes : [];
+        unset($modes[$code]);
+        $this->modes = $modes;
     }
 }

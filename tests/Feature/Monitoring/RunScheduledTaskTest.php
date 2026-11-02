@@ -5,8 +5,11 @@ use App\Enums\TaskRunTrigger;
 use App\Jobs\RunScheduledTask;
 use App\Models\ScheduledTaskRun;
 use App\Models\User;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\EventMutex;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Support\Facades\Exceptions;
 
 beforeEach(function () {
     $this->ran = 0;
@@ -72,19 +75,19 @@ it('records a throwing task as failed with a redacted error', function () {
 
 it('records skipped when it loses the mutex race, even with a stale exit code', function () {
     $event = collect(app(Schedule::class)->events())->first(fn ($e) => $e->description === 'test:manual');
-    $event->mutex = new class implements Illuminate\Console\Scheduling\EventMutex
+    $event->mutex = new class implements EventMutex
     {
-        public function create(Illuminate\Console\Scheduling\Event $event): bool
+        public function create(Event $event): bool
         {
             return false;
         }
 
-        public function exists(Illuminate\Console\Scheduling\Event $event): bool
+        public function exists(Event $event): bool
         {
             return false;
         }
 
-        public function forget(Illuminate\Console\Scheduling\Event $event): void {}
+        public function forget(Event $event): void {}
     };
     $event->exitCode = 1;
 
@@ -99,11 +102,11 @@ it('records skipped when it loses the mutex race, even with a stale exit code', 
 
 it('records skipped with not_scheduled and reports when the task left the schedule', function () {
     config(['monitoring.manual_tasks' => ['test:manual', 'test:gone']]);
-    Illuminate\Support\Facades\Exceptions::fake();
+    Exceptions::fake();
 
     (new RunScheduledTask('test:gone', null))->handle();
 
     $run = ScheduledTaskRun::query()->sole();
     expect($run->status)->toBe(TaskRunStatus::Skipped)->and($run->error)->toBe('not_scheduled');
-    Illuminate\Support\Facades\Exceptions::assertReported(RuntimeException::class);
+    Exceptions::assertReported(RuntimeException::class);
 });

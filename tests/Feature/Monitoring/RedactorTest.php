@@ -111,3 +111,13 @@ it('replaces mail, redis and previous app key secrets and their escaped forms', 
     expect($out)->not->toContain('smtp')->not->toContain('fake-redis')->not->toContain('FAKEPREVIOUS')
         ->and($out)->toBe('a [redacted] b [redacted] c [redacted] d [redacted] e [redacted] f [redacted]');
 });
+
+it('masks international phone numbers of any country', function (string $input) {
+    $out = Redactor::clean("Failed for {$input} today");
+
+    expect($out)->toContain('[phone]')->not->toContain(preg_replace('/\D/', '', substr($input, 3, 6)));
+})->with(['+7 916 123-45-67', '+44 20 7946 0958', '+1 (202) 555-0143', '+998 90 123 45 67', '+998901234567', '+49-30-1234-5678']);
+
+it('keeps short numbers after a plus and plain text untouched', function () {
+    expect(Redactor::clean('Retry +5 in 3 seconds, code +1234'))->toBe('Retry +5 in 3 seconds, code +1234');
+});

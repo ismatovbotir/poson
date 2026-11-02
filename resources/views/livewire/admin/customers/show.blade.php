@@ -138,7 +138,7 @@
                 <dl class="space-y-2 text-sm" data-requisites>
                     @foreach (array_filter([
                         __('crm.customers.fields.inn') => $customer->inn,
-                        __('crm.customers.fields.phone') => $customer->phone ? \App\Support\Phone::display($customer->phone) : null,
+                        __('crm.customers.fields.phone') => $customer->phone ? \App\Support\Phone::display($customer->phone).(\App\Support\Phone::isForeign($customer->phone) ? ' · '.__('admin.common.foreign_phone') : '') : null,
                         __('crm.customers.fields.email') => $customer->email,
                         __('crm.customers.fields.address') => $customer->address,
                         __('crm.customers.fields.created_at') => $when($customer->created_at, 'D MMM YYYY'),
@@ -165,7 +165,7 @@
                                 <p class="flex items-center gap-2 text-sm font-semibold">{{ $contact->name }}@if ($contact->is_primary)<x-admin.badge color="brand">{{ __('crm.customers.contacts.primary') }}</x-admin.badge>@endif</p>
                                 @if ($contact->position)<p class="text-xs text-slate-500">{{ $contact->position }}</p>@endif
                                 <div class="mt-1.5 flex flex-wrap gap-2 text-sm">
-                                    @if ($contact->phone)<a href="tel:{{ $contact->phone }}" class="inline-flex items-center gap-1.5 text-brand-700 hover:underline"><x-admin.icon name="phone" size="size-4" />{{ \App\Support\Phone::display($contact->phone) }}</a>@endif
+                                    @if ($contact->phone)<a href="tel:{{ $contact->phone }}" class="inline-flex items-center gap-1.5 text-brand-700 hover:underline"><x-admin.icon name="phone" size="size-4" />{{ \App\Support\Phone::display($contact->phone) }}</a><x-admin.foreign-phone :phone="$contact->phone" />@endif
                                     @if ($contact->email)<a href="mailto:{{ $contact->email }}" class="inline-flex items-center gap-1.5 text-sky-700 hover:underline"><x-admin.icon name="mail" size="size-4" />{{ $contact->email }}</a>@endif
                                     @if ($contact->telegram)<span class="inline-flex items-center gap-1.5 text-slate-600"><x-admin.icon name="telegram" size="size-4" />{{ $contact->telegram }}</span>@endif
                                 </div>

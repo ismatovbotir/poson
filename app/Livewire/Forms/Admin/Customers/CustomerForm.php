@@ -8,7 +8,7 @@ use App\Data\Customers\CustomerData;
 use App\Enums\CustomerType;
 use App\Enums\PriceLevel;
 use App\Models\Customer;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Phone;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
@@ -105,7 +105,7 @@ class CustomerForm extends Form
             'type' => ['required', Rule::enum(CustomerType::class)],
             'name' => ['required', 'string', 'max:255'],
             'inn' => ['nullable', 'digits:9'],
-            'phone' => ['nullable', 'string', 'max:32', new UzPhone],
+            'phone' => ['nullable', 'string', 'max:32', new PhoneNumber],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'notes' => ['nullable', 'string', 'max:5000'],
@@ -117,7 +117,7 @@ class CustomerForm extends Form
             'contacts.*.id' => ['nullable', 'integer'],
             'contacts.*.name' => ['required', 'string', 'max:255'],
             'contacts.*.position' => ['nullable', 'string', 'max:255'],
-            'contacts.*.phone' => ['nullable', 'string', 'max:32', new UzPhone],
+            'contacts.*.phone' => ['nullable', 'string', 'max:32', new PhoneNumber],
             'contacts.*.email' => ['nullable', 'string', 'email', 'max:255'],
             'contacts.*.telegram' => ['nullable', 'string', 'max:64'],
         ];

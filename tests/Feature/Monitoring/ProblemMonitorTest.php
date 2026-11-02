@@ -7,8 +7,8 @@ use App\Support\Monitoring\Heartbeat;
 use App\Support\Monitoring\InterruptedRuns;
 use App\Support\Monitoring\MonitoredTasks;
 use App\Support\Monitoring\ProblemMonitor;
-use Illuminate\Support\Facades\DB;
 use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 const MON_CHAT = '-1009999999999';

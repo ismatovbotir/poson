@@ -3,11 +3,24 @@
 namespace App\Support;
 
 /**
- * Uzbek phone numbers: normalized to E.164 "+998XXXXXXXXX".
+ * Phone numbers. Uzbek ones are normalized to E.164 "+998XXXXXXXXX"
+ * (normalize()); numbers of any country to "+<digits>" (normalizeAny(),
+ * plan 14 v2 §8 / §20, decision 2026-11-02).
  */
 class Phone
 {
     public const COUNTRY_CODE = '998';
+
+    /**
+     * Uzbek operator / area codes (first two digits of the 9-digit national number).
+     * A "+" number of exactly 9 digits starting with one of them is a mistyped
+     * Uzbek number ("+90 123 45 67"), never a foreign one.
+     */
+    private const UZ_NATIONAL_PREFIXES = [
+        '33', '50', '55', '61', '62', '65', '66', '67', '69',
+        '70', '71', '72', '73', '74', '75', '76', '77', '78', '79',
+        '88', '90', '91', '93', '94', '95', '97', '98', '99',
+    ];
 
     /**
      * Normalize "90 123 45 67", "(90) 123-45-67", "998901234567", "+998 90 123 45 67"
@@ -45,14 +58,90 @@ class Phone
     }
 
     /**
-     * Human format "+998 (90) 123-45-67". Invalid input is returned unchanged.
+     * Any country (TG-28): the Uzbek forms exactly as normalize() gives them,
+     * otherwise only an explicit international number: one leading "+" or "00",
+     * 8-15 digits, first digit 1-9, never a result starting with 998 (a
+     * malformed Uzbek number stays invalid instead of becoming "foreign").
+     * Input without + / 00 that is not Uzbek is ambiguous and returns null.
+     */
+    public static function normalizeAny(?string $phone): ?string
+    {
+        $uzbek = self::normalize($phone);
+
+        if ($uzbek !== null || $phone === null) {
+            return $uzbek;
+        }
+
+        $phone = trim($phone);
+
+        if ($phone === '' || ! preg_match('/^\+?[\d\s().\-]+$/', $phone)) {
+            return null;
+        }
+
+        $digits = (string) preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($phone, '+')) {
+            // digits as typed after the plus
+        } elseif (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        } else {
+            return null;
+        }
+
+        if (! preg_match('/^[1-9]\d{7,14}$/', $digits) || str_starts_with($digits, self::COUNTRY_CODE)) {
+            return null;
+        }
+
+        if (strlen($digits) === 9 && in_array(substr($digits, 0, 2), self::UZ_NATIONAL_PREFIXES, true)) {
+            return null;
+        }
+
+        return '+'.$digits;
+    }
+
+    /**
+     * Whether the number is an Uzbek (+998) one, in any input format.
+     */
+    public static function isUzbek(?string $phone): bool
+    {
+        return self::normalize($phone) !== null;
+    }
+
+    /**
+     * Whether the number is valid but not Uzbek (marker "non-UZ" in staff alerts and screens).
+     */
+    public static function isForeign(?string $phone): bool
+    {
+        $any = self::normalizeAny($phone);
+
+        // normalizeAny() never returns a foreign +998 result, so +998 here means Uzbek.
+        return $any !== null && ! str_starts_with($any, '+'.self::COUNTRY_CODE);
+    }
+
+    /**
+     * Non-geographic and premium country codes that are never accepted (TG-41; config site.reserved_phone_prefixes).
+     */
+    public static function isReserved(string $normalized): bool
+    {
+        foreach ((array) config('site.reserved_phone_prefixes', []) as $prefix) {
+            if (str_starts_with($normalized, '+'.$prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Human format "+998 (90) 123-45-67"; other countries "+<digits>" (no grouping).
+     * Invalid input is returned unchanged.
      */
     public static function display(?string $phone): string
     {
         $normalized = static::normalize($phone);
 
         if ($normalized === null) {
-            return (string) $phone;
+            return static::normalizeAny($phone) ?? (string) $phone;
         }
 
         return sprintf(

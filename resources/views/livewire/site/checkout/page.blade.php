@@ -68,6 +68,7 @@
                         <div class="grid gap-1.5">
                             <label for="checkout-phone" class="text-sm font-semibold">{{ __('checkout.fields.phone') }} <span class="text-danger" aria-hidden="true">*</span></label>
                             <input id="checkout-phone" type="tel" inputmode="tel" wire:model="phone" autocomplete="tel" maxlength="32" placeholder="{{ __('site.lead_form.phone_placeholder') }}" aria-required="true" @error('phone') aria-invalid="true" @enderror class="{{ $field('phone') }}">
+                            <p class="text-xs text-slate-500">{{ __('site.lead_form.phone_hint') }}</p>
                             @error('phone')<p class="text-sm text-danger">{{ $message }}</p>@enderror
                         </div>
                         @if ($buyerTypeEnum->isBusiness())

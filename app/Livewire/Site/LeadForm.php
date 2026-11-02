@@ -10,7 +10,7 @@ use App\Livewire\Site\Catalog\RollPicker;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Product;
 use App\Models\RollType;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Catalog\RollPricing;
 use App\Support\NumberFormat;
@@ -169,7 +169,7 @@ class LeadForm extends Component
     {
         return [
             'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
             'company' => ['nullable', 'string', 'max:160'],
             'message' => ['nullable', 'string', 'max:1000'],
         ];
@@ -203,7 +203,7 @@ class LeadForm extends Component
     public function submit(SubmitSiteLead $submitSiteLead, RecordConversion $recordConversion): void
     {
         $validated = $this->validate();
-        $phone = Phone::normalize($validated['phone']);
+        $phone = Phone::normalizeAny($validated['phone']);
 
         // A quote for a product that left the site in the meantime: say so instead of sending a quote without it.
         $product = $this->productId !== null ? $this->publishedProduct($this->productId) : null;
@@ -225,6 +225,10 @@ class LeadForm extends Component
         if ($sendsRoll && ($error = $this->rollError($product)) !== null) {
             $this->addError('form', $error);
 
+            return;
+        }
+
+        if ($this->foreignPhoneCapExceeded($phone)) {
             return;
         }
 

@@ -50,14 +50,14 @@ it('requires a name and a phone', function () {
         ->assertSet('sent', false);
 });
 
-it('rejects a phone that is not an Uzbek number', function (string $phone) {
+it('rejects a phone that is not a valid number', function (string $phone) {
     $this->mock(SubmitSiteLead::class)->shouldNotReceive('handle');
 
     filledLeadForm(['phone' => $phone])
         ->call('submit')
         ->assertHasErrors(['phone'])
-        ->assertSee(__('validation.uz_phone', ['attribute' => __('site.lead_form.attributes.phone')]));
-})->with(['+998 00 000 00 00', '12345', '+7 912 345 67 89']);
+        ->assertSee(__('validation.phone_any', ['attribute' => __('site.lead_form.attributes.phone')]));
+})->with(['+998 00 000 00 00', '12345', '8 916 1234567', '+888 1234 5678']);
 
 it('limits the message to 1000 characters', function () {
     filledLeadForm(['message' => str_repeat('a', 1001)])

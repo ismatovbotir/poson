@@ -2,6 +2,11 @@
 
 return [
 
+    'filter_match' => [
+        'all' => 'Все',
+        'any' => 'Любой',
+    ],
+
     'attribute_type' => [
         'text' => 'Текст',
         'number' => 'Число',

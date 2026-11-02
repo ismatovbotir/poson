@@ -50,7 +50,7 @@ final class OrderMessage
                     .($more > 0 ? ' '.e(__('telegram.lead.more_items', ['count' => $more])) : '');
             }
 
-            $lines[] = self::line('contact', $order->name.' · '.Phone::display($order->phone));
+            $lines[] = self::line('contact', $order->name.' · '.Phone::display($order->phone).(Phone::isForeign($order->phone) ? ' · '.__('telegram.order.foreign_phone') : ''));
 
             if (filled($order->company_name)) {
                 $lines[] = self::line('company', (string) $order->company_name);

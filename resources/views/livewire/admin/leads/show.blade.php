@@ -143,6 +143,7 @@
                 @if ($lead->company)<p class="text-sm text-slate-500">{{ $lead->company }}@if ($lead->inn) · {{ __('crm.leads.fields.inn') }} {{ $lead->inn }}@endif</p>@endif
                 <div class="mt-3 flex flex-wrap gap-2">
                     <a href="tel:{{ $lead->phone }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-brand-50 px-3 text-sm font-semibold text-brand-700 hover:bg-brand-100"><x-admin.icon name="phone" size="size-4" />{{ \App\Support\Phone::display($lead->phone) }}</a>
+                    <x-admin.foreign-phone :phone="$lead->phone" />
                     @if ($lead->email)
                         <a href="mailto:{{ $lead->email }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-sky-50 px-3 text-sm font-semibold text-sky-700 hover:bg-sky-100"><x-admin.icon name="mail" size="size-4" />{{ $lead->email }}</a>
                     @endif

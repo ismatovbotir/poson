@@ -9,7 +9,7 @@ use App\Enums\DeliveryType;
 use App\Enums\Region;
 use App\Enums\Role;
 use App\Models\User;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Orders\TaxId;
 use App\Support\Phone;
 use Illuminate\Support\Facades\Validator;
@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Validation of the buyer and delivery fields staff type on an order
- * (enums with tryFrom, UzPhone, STIR / PINFL per buyer type, lengths).
+ * (enums with tryFrom, phone (any country), STIR / PINFL per buyer type, lengths).
  */
 trait ValidatesOrderFields
 {
@@ -42,7 +42,7 @@ trait ValidatesOrderFields
             'staff_note' => trim($data->staffNote),
         ], [
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber],
             'buyer_type' => ['required', Rule::enum(BuyerType::class)],
             'company_name' => [$buyerType?->isBusiness() ? 'required' : 'nullable', 'string', 'max:160'],
             'tin' => [$buyerType?->isBusiness() ? 'required' : 'nullable', 'string', 'max:14'],
@@ -78,7 +78,7 @@ trait ValidatesOrderFields
 
         return [
             'name' => mb_substr(trim($data->name), 0, 120),
-            'phone' => (string) Phone::normalize($data->phone),
+            'phone' => (string) Phone::normalizeAny($data->phone),
             'buyer_type' => $buyerType,
             'company_name' => $buyerType->isBusiness() ? mb_substr(trim($data->companyName), 0, 160) : null,
             'tin' => $buyerType->isBusiness() ? $tin : null,

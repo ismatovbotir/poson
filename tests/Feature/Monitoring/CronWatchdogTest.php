@@ -2,6 +2,7 @@
 
 use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\Heartbeat;
+use App\Support\Monitoring\ProblemMonitor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -85,7 +86,7 @@ it('treats a scheduler that never ticked as dead only after the grace period', f
     freshSecrets(['services.telegram.bot_token' => '123456789:'.str_repeat('M', 35), 'services.telegram.chats.management' => '-1009999999999']);
     Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => []])]);
 
-    $monitor = new App\Support\Monitoring\ProblemMonitor;
+    $monitor = new ProblemMonitor;
     $monitor->evaluateCronDead();
     $this->travel(9)->minutes();
     $monitor->evaluateCronDead();
@@ -103,9 +104,9 @@ it('never raises the never-ticked alarm in local development', function () {
     Http::fake();
     $this->app['env'] = 'local';
 
-    (new App\Support\Monitoring\ProblemMonitor)->evaluateCronDead();
+    (new ProblemMonitor)->evaluateCronDead();
     $this->travel(60)->minutes();
-    (new App\Support\Monitoring\ProblemMonitor)->evaluateCronDead();
+    (new ProblemMonitor)->evaluateCronDead();
 
     Http::assertNothingSent();
 });

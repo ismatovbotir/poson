@@ -114,7 +114,7 @@
                     <tr wire:key="lead-row-{{ $lead->id }}" class="hover:bg-slate-50/70" data-lead="{{ $lead->id }}">
                         <td class="max-w-[16rem] py-3 pl-5 pr-4">
                             <a href="{{ route('admin.leads.show', $lead) }}" wire:navigate class="block truncate font-semibold hover:text-brand-700">{{ $lead->company ?: $lead->name }}</a>
-                            <span class="block truncate text-xs text-slate-500"><span class="font-mono">{{ $lead->reference() }}</span> · {{ $lead->company ? $lead->name : \App\Support\Phone::display($lead->phone) }}</span>
+                            <span class="block truncate text-xs text-slate-500"><span class="font-mono">{{ $lead->reference() }}</span> · {{ $lead->company ? $lead->name : \App\Support\Phone::display($lead->phone) }} <x-admin.foreign-phone :phone="$lead->phone" /></span>
                         </td>
                         <td class="max-w-xs truncate px-4 py-3 text-slate-600">@include('livewire.admin.leads.partials.need', ['lead' => $lead])</td>
                         <td class="px-4 py-3"><span class="flex flex-wrap gap-1">@include('livewire.admin.leads.partials.badges', ['lead' => $lead])</span></td>

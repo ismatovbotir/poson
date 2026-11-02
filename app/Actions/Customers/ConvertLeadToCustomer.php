@@ -110,7 +110,7 @@ class ConvertLeadToCustomer
      */
     private function addLeadContact(Customer $customer, Lead $lead): ?Contact
     {
-        $phone = Phone::normalize($lead->phone);
+        $phone = Phone::normalizeAny($lead->phone);
 
         if ($phone === null || $customer->phone === $phone || Contact::query()->where('customer_id', $customer->id)->where('phone', $phone)->exists()) {
             return null;

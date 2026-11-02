@@ -300,7 +300,7 @@ describe('quote for the cart', function () {
             ->and($cart->items()->count())->toBe(3);
     });
 
-    it('applies the lead form checks: honeypot, fill time, Uzbek phone', function (Closure $submit, bool $sent) {
+    it('applies the lead form checks: honeypot, fill time, phone', function (Closure $submit, bool $sent) {
         $cart = visitorCart();
         CartItem::factory()->for($cart)->create();
 
@@ -311,7 +311,7 @@ describe('quote for the cart', function () {
     })->with([
         'honeypot' => [fn () => filledCartQuote(['fax_ext' => 'spam'])->call('requestQuote'), true],
         'too fast' => [fn () => Livewire::test(Page::class)->set('name', 'Aziz')->set('phone', '90 123 45 67')->call('requestQuote'), true],
-        'foreign phone' => [fn () => filledCartQuote(['phone' => '+7 912 345 67 89'])->call('requestQuote')->assertHasErrors('phone'), false],
+        'phone without country code' => [fn () => filledCartQuote(['phone' => '8 912 3456789'])->call('requestQuote')->assertHasErrors('phone'), false],
         'no name' => [fn () => filledCartQuote(['name' => ''])->call('requestQuote')->assertHasErrors('name'), false],
     ]);
 

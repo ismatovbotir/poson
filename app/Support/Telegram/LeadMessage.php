@@ -72,7 +72,7 @@ final readonly class LeadMessage
                 .($more > 0 ? ' '.e(__('telegram.lead.more_items', ['count' => $more])) : '');
         }
 
-        $lines[] = self::line('contact', $lead->name.' · '.Phone::display($lead->phone));
+        $lines[] = self::line('contact', $lead->name.' · '.Phone::display($lead->phone).(Phone::isForeign($lead->phone) ? ' · '.__('telegram.lead.foreign_phone') : ''));
 
         if (filled($lead->company)) {
             $lines[] = self::line('company', (string) $lead->company);

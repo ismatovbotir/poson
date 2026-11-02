@@ -39,10 +39,10 @@ class UpdateLead
      */
     public function handle(Lead $lead, LeadData $data): Lead
     {
-        $phone = Phone::normalize($data->phone);
+        $phone = Phone::normalizeAny($data->phone);
 
         if ($phone === null) {
-            throw ValidationException::withMessages(['phone' => __('validation.uz_phone', ['attribute' => __('crm.leads.fields.phone')])]);
+            throw ValidationException::withMessages(['phone' => __('validation.phone_any', ['attribute' => __('crm.leads.fields.phone')])]);
         }
 
         return DB::transaction(function () use ($lead, $data, $phone): Lead {

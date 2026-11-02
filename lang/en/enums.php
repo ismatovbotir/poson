@@ -2,6 +2,11 @@
 
 return [
 
+    'filter_match' => [
+        'all' => 'All',
+        'any' => 'Any',
+    ],
+
     'attribute_type' => [
         'text' => 'Text',
         'number' => 'Number',

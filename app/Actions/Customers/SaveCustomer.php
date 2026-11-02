@@ -48,7 +48,7 @@ class SaveCustomer
         $name = trim($data->name);
         $inn = CreateLead::clean($data->inn, 32);
         $phone = CreateLead::clean($data->phone, 32);
-        $normalizedPhone = $phone !== null ? Phone::normalize($phone) : null;
+        $normalizedPhone = $phone !== null ? Phone::normalizeAny($phone) : null;
 
         if ($name === '') {
             $errors['name'] = __('validation.required', ['attribute' => __('crm.customers.fields.name')]);
@@ -61,7 +61,7 @@ class SaveCustomer
         }
 
         if ($phone !== null && $normalizedPhone === null) {
-            $errors['phone'] = __('validation.uz_phone', ['attribute' => __('crm.customers.fields.phone')]);
+            $errors['phone'] = __('validation.phone_any', ['attribute' => __('crm.customers.fields.phone')]);
         }
 
         $priceLevel = $customer->exists ? $customer->price_level : PriceLevel::Retail;
@@ -239,14 +239,14 @@ class SaveCustomer
 
             $name = trim($contact->name);
             $phone = CreateLead::clean($contact->phone, 32);
-            $normalized = $phone !== null ? Phone::normalize($phone) : null;
+            $normalized = $phone !== null ? Phone::normalizeAny($phone) : null;
 
             if ($name === '') {
                 $errors["contacts.{$index}.name"] = __('validation.required', ['attribute' => __('crm.customers.contacts.name')]);
             }
 
             if ($phone !== null && $normalized === null) {
-                $errors["contacts.{$index}.phone"] = __('validation.uz_phone', ['attribute' => __('crm.customers.contacts.phone')]);
+                $errors["contacts.{$index}.phone"] = __('validation.phone_any', ['attribute' => __('crm.customers.contacts.phone')]);
             }
 
             $rows[] = [

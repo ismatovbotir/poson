@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AttributeType;
+use App\Enums\FilterMatch;
 use App\Models\Concerns\StoresTranslations;
 use Database\Factories\AttributeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -22,13 +23,22 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $unit
  * @property AttributeType $type
  * @property bool $is_filterable
+ * @property FilterMatch $filter_match
+ * @property bool $filter_match_switch
  * @property int $sort
  */
-#[Fillable(['code', 'name', 'unit', 'type', 'is_filterable', 'sort'])]
+#[Fillable(['code', 'name', 'unit', 'type', 'is_filterable', 'filter_match', 'filter_match_switch', 'sort'])]
 class Attribute extends Model
 {
     /** @use HasFactory<AttributeFactory> */
     use HasFactory, HasTranslations, StoresTranslations;
+
+    /**
+     * Same as the column defaults, so a new model has them before it is reloaded.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = ['filter_match' => 'all', 'filter_match_switch' => true];
 
     /**
      * @var list<string>
@@ -45,6 +55,8 @@ class Attribute extends Model
         return [
             'type' => AttributeType::class,
             'is_filterable' => 'boolean',
+            'filter_match' => FilterMatch::class,
+            'filter_match_switch' => 'boolean',
             'sort' => 'integer',
         ];
     }

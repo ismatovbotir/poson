@@ -11,7 +11,7 @@ use App\Enums\LeadType;
 use App\Livewire\Site\Cart\Concerns\AddsToCart;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Cart;
-use App\Rules\UzPhone;
+use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartLineKey;
 use App\Support\Cart\CartPricer;
@@ -148,7 +148,7 @@ class Page extends Component
     {
         return [
             'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new UzPhone],
+            'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
             'company' => ['nullable', 'string', 'max:160'],
             'message' => ['nullable', 'string', 'max:1000'],
         ];
@@ -173,7 +173,7 @@ class Page extends Component
     public function requestQuote(ConvertCartToLead $convertCart, RecordConversion $recordConversion): void
     {
         $validated = $this->validate();
-        $phone = Phone::normalize($validated['phone']);
+        $phone = Phone::normalizeAny($validated['phone']);
         $cart = $this->cart();
 
         if ($cart === null) {
@@ -183,6 +183,17 @@ class Page extends Component
         }
 
         if ($this->leadLimitsExceeded((string) $phone)) {
+            return;
+        }
+
+        // Nothing to quote: refuse before the foreign-phone cap is touched.
+        if (app(CartPricer::class)->price($cart)->quotableLines() === []) {
+            $this->addError('form', __('checkout.cart.errors.nothing_to_quote'));
+
+            return;
+        }
+
+        if ($this->foreignPhoneCapExceeded((string) $phone)) {
             return;
         }
 

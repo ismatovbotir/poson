@@ -131,12 +131,12 @@ it('filters by brand, stock and Retail price range', function (array $query, arr
     'brand AND stock' => [['brand' => ['zebra'], 'stock' => ['in_stock']], ['Alpha en', 'Charlie en']],
 ]);
 
-it('filters by attributes: OR within an attribute, AND across attributes', function () {
+it('filters by attributes: OR within an attribute (mode any), AND across attributes', function () {
     $fixture = listingFixture();
     $get = fn (array $query, string $slug = 'scanners'): array => listedNames($this->get(listingUrl('en', $slug, $query))->assertOk()->getContent());
 
     expect($get(['f' => ['interface' => [$fixture['usb']->id]]]))->toEqualCanonicalizing(['Alpha en', 'Bravo en'])
-        ->and($get(['f' => ['interface' => [$fixture['usb']->id, $fixture['rs232']->id]]]))->toEqualCanonicalizing(['Alpha en', 'Bravo en', 'Charlie en'])
+        ->and($get(['f' => ['interface' => [$fixture['usb']->id, $fixture['rs232']->id]], 'm' => ['interface' => 'any']]))->toEqualCanonicalizing(['Alpha en', 'Bravo en', 'Charlie en'])
         ->and($get(['f' => ['interface' => [$fixture['bluetooth']->id]]]))->toBe(['Alpha en'])
         ->and($get(['f' => ['interface' => [$fixture['usb']->id], 'range' => ['min' => '20']]], 'handheld'))->toBe(['Alpha en'])
         ->and($get(['f' => ['range' => ['max' => '15']]], 'handheld'))->toBe(['Bravo en'])
@@ -145,7 +145,7 @@ it('filters by attributes: OR within an attribute, AND across attributes', funct
         ->and($get(['f' => ['range' => ['min' => '20']]]))->toEqualCanonicalizing(['Alpha en', 'Bravo en', 'Charlie en']);
 });
 
-it('offers only filterable attributes of the category and its ancestors, with base-set counts', function () {
+it('offers only filterable attributes of the category and its ancestors, with counts that follow the other filters', function () {
     $fixture = listingFixture();
 
     $root = $this->get(listingUrl('en', 'scanners'))->assertOk()->getContent();
@@ -167,9 +167,9 @@ it('offers only filterable attributes of the category and its ancestors, with ba
         ->toMatch('#RS232</span>\s*<em[^>]*>1</em>#')
         ->not->toContain('Wi-Fi');
 
-    // Counts come from the unfiltered base set, also with a brand filter on.
+    // Counts follow the other active filters: only Honeywell's B has USB.
     preg_match('#data-filter="interface".*?</fieldset>#s', $child, $childInterface);
-    expect($childInterface[0])->toMatch('#USB</span>\s*<em[^>]*>2</em>#');
+    expect($childInterface[0])->toMatch('#USB</span>\s*<em[^>]*>1</em>#');
 });
 
 it('sorts by popularity, Retail price (price on request last) and newness', function (string $sort, array $expected) {

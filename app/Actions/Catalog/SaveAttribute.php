@@ -3,6 +3,7 @@
 namespace App\Actions\Catalog;
 
 use App\Enums\AttributeType;
+use App\Enums\FilterMatch;
 use App\Models\Attribute;
 use App\Models\AttributeOption;
 use App\Models\CategoryAttribute;
@@ -14,6 +15,8 @@ use Illuminate\Validation\ValidationException;
  *
  * - The type is locked once products have values for the attribute.
  * - Text attributes are never filters (also on existing category assignments).
+ * - filter_match / filter_match_switch apply to multiselect only; other types
+ *   are forced to the defaults (all, switch on).
  * - Options (select / multiselect only) follow the given list: rows with an
  *   id are updated, new rows go through CreateAttributeOption (dedupe on uz),
  *   options missing from the list go through DeleteAttributeOption. Other
@@ -27,7 +30,7 @@ class SaveAttribute
     ) {}
 
     /**
-     * @param  array{code: string, name: array<string, string|null>, unit: string|null, type: AttributeType, is_filterable: bool, sort: int|null}  $data
+     * @param  array{code: string, name: array<string, string|null>, unit: string|null, type: AttributeType, is_filterable: bool, sort: int|null, filter_match?: FilterMatch, filter_match_switch?: bool}  $data
      * @param  list<array{id: int|null, value: array<string, string|null>}>  $options
      *
      * @throws ValidationException
@@ -52,6 +55,8 @@ class SaveAttribute
                 'unit' => filled($data['unit']) ? trim((string) $data['unit']) : null,
                 'type' => $type,
                 'is_filterable' => $type->canBeFilterable() && $data['is_filterable'],
+                'filter_match' => $type === AttributeType::Multiselect ? ($data['filter_match'] ?? FilterMatch::All) : FilterMatch::All,
+                'filter_match_switch' => $type === AttributeType::Multiselect ? ($data['filter_match_switch'] ?? true) : true,
                 'sort' => $data['sort'] ?? (int) Attribute::query()->max('sort') + 10,
             ])->save();
 

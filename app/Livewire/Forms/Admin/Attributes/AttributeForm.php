@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms\Admin\Attributes;
 
 use App\Enums\AttributeType;
+use App\Enums\FilterMatch;
 use App\Models\Attribute;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
@@ -24,6 +25,10 @@ class AttributeForm extends Form
 
     public bool $is_filterable = true;
 
+    public string $filter_match = 'all';
+
+    public bool $filter_match_switch = true;
+
     public string $sort = '';
 
     /**
@@ -42,6 +47,8 @@ class AttributeForm extends Form
         $this->unit = (string) $attribute->unit;
         $this->type = $attribute->type->value;
         $this->is_filterable = $attribute->is_filterable;
+        $this->filter_match = $attribute->filter_match->value;
+        $this->filter_match_switch = $attribute->filter_match_switch;
         $this->sort = (string) $attribute->sort;
         $this->options = $attribute->options
             ->map(fn ($option): array => ['id' => $option->id, 'value' => $this->locales($option->getTranslations('value'))])
@@ -92,6 +99,8 @@ class AttributeForm extends Form
             'unit' => ['nullable', 'string', 'max:16'],
             'type' => ['required', Rule::enum(AttributeType::class)],
             'is_filterable' => ['boolean'],
+            'filter_match' => ['required', Rule::enum(FilterMatch::class)],
+            'filter_match_switch' => ['boolean'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'options' => [$hasOptions ? 'required' : 'nullable', 'array', 'max:500'],
             'options.*.id' => ['nullable', 'integer'],
@@ -122,6 +131,7 @@ class AttributeForm extends Form
             'code' => __('admin.attributes.fields.code'),
             'unit' => __('admin.attributes.fields.unit'),
             'type' => __('admin.attributes.fields.type'),
+            'filter_match' => __('admin.attributes.fields.filter_match'),
             'sort' => __('admin.catalog.sort'),
             'options' => __('admin.attributes.options.title'),
         ];
@@ -138,7 +148,7 @@ class AttributeForm extends Form
     /**
      * Input for SaveAttribute.
      *
-     * @return array{code: string, name: array<string, string>, unit: string|null, type: AttributeType, is_filterable: bool, sort: int|null}
+     * @return array{code: string, name: array<string, string>, unit: string|null, type: AttributeType, is_filterable: bool, sort: int|null, filter_match: FilterMatch, filter_match_switch: bool}
      */
     public function attributeData(): array
     {
@@ -148,6 +158,8 @@ class AttributeForm extends Form
             'unit' => filled($this->unit) ? $this->unit : null,
             'type' => $this->typeEnum(),
             'is_filterable' => $this->is_filterable,
+            'filter_match' => FilterMatch::tryFrom($this->filter_match) ?? FilterMatch::All,
+            'filter_match_switch' => $this->filter_match_switch,
             'sort' => filled($this->sort) ? (int) $this->sort : null,
         ];
     }

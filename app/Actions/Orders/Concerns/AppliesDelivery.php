@@ -3,9 +3,9 @@
 namespace App\Actions\Orders\Concerns;
 
 use App\Enums\DeliveryPricing;
+use App\Enums\DeliveryType;
 use App\Enums\OrderPaymentPurpose;
 use App\Enums\OrderPaymentStatus;
-use App\Enums\DeliveryType;
 use App\Enums\Region;
 use App\Models\Order;
 use App\Models\OrderPayment;

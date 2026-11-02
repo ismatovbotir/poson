@@ -1,6 +1,10 @@
 <?php
 
 use App\Jobs\RecordWorkerHeartbeat;
+use App\Jobs\SendTelegramMessage;
+use App\Listeners\NotifyFinanceOfPriceSyncIssues;
+use App\Listeners\SendLeadToTelegram;
+use App\Listeners\SendTelegramAlerts;
 
 return [
 
@@ -55,10 +59,10 @@ return [
     */
 
     'retry_classes' => [
-        \App\Jobs\SendTelegramMessage::class,
-        \App\Listeners\SendTelegramAlerts::class,
-        \App\Listeners\SendLeadToTelegram::class,
-        \App\Listeners\NotifyFinanceOfPriceSyncIssues::class,
+        SendTelegramMessage::class,
+        SendTelegramAlerts::class,
+        SendLeadToTelegram::class,
+        NotifyFinanceOfPriceSyncIssues::class,
     ],
 
     /*

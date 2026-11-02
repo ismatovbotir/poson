@@ -162,7 +162,7 @@ class Form extends Component
     #[Computed]
     public function duplicates(): array
     {
-        $phone = Phone::normalize($this->form->phone);
+        $phone = Phone::normalizeAny($this->form->phone);
 
         if ($phone === null) {
             return ['visible' => new Collection, 'hidden' => false];
@@ -187,7 +187,7 @@ class Form extends Component
     #[Computed]
     public function matchedCustomer(): ?Customer
     {
-        $phone = Phone::normalize($this->form->phone);
+        $phone = Phone::normalizeAny($this->form->phone);
 
         if ($phone === null || ! $this->user()->can('viewAny', Customer::class)) {
             return null;

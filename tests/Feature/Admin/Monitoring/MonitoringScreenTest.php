@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Monitoring\ForgetFailedJobs;
+use App\Actions\Monitoring\MonitoringActionException;
 use App\Actions\Monitoring\RetryFailedJobs;
 use App\Actions\Monitoring\RunTaskNow;
 use App\Enums\Role;
@@ -11,11 +12,13 @@ use App\Models\ScheduledTaskRun;
 use App\Support\Admin\Menu;
 use App\Support\Monitoring\Heartbeat;
 use App\Support\Monitoring\MonitoredTasks;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -161,9 +164,9 @@ it('refuses writes to a user without monitoring.manage', function () {
     $sales = staffUser(Role::SalesManager);
     confirmAdminPassword();
 
-    expect(fn () => app(RunTaskNow::class)->handle($sales, 'quotes:expire'))->toThrow(Illuminate\Auth\Access\AuthorizationException::class);
-    expect(fn () => app(ForgetFailedJobs::class)->handle($sales, [(string) Str::uuid()]))->toThrow(Illuminate\Auth\Access\AuthorizationException::class);
-    expect(fn () => app(RetryFailedJobs::class)->handle($sales, [(string) Str::uuid()]))->toThrow(Illuminate\Auth\Access\AuthorizationException::class);
+    expect(fn () => app(RunTaskNow::class)->handle($sales, 'quotes:expire'))->toThrow(AuthorizationException::class);
+    expect(fn () => app(ForgetFailedJobs::class)->handle($sales, [(string) Str::uuid()]))->toThrow(AuthorizationException::class);
+    expect(fn () => app(RetryFailedJobs::class)->handle($sales, [(string) Str::uuid()]))->toThrow(AuthorizationException::class);
 });
 
 it('queues an allow-listed task on the monitoring queue and audits it', function () {
@@ -191,7 +194,7 @@ it('rejects tampered and blocked task keys', function (string $key) {
     'payment sync' => ['uzqr:sync'],
     'extra option' => ['quotes:expire --x'],
     'shell trick' => ['quotes:expire;id'],
-    'prune' => ["model:prune --model=App\\Models\\McpCall"],
+    'prune' => ['model:prune --model=App\\Models\\McpCall'],
     'blocked idle revoke' => ['mcp:revoke-idle'],
     'unknown' => ['nope:nothing'],
     'empty' => [''],
@@ -215,7 +218,7 @@ it('applies a cooldown per task and a rate limit per user', function () {
     $action = app(RunTaskNow::class);
 
     $action->handle($admin, 'quotes:expire');
-    expect(fn () => $action->handle($admin, 'quotes:expire'))->toThrow(App\Actions\Monitoring\MonitoringActionException::class);
+    expect(fn () => $action->handle($admin, 'quotes:expire'))->toThrow(MonitoringActionException::class);
     Queue::assertPushed(RunScheduledTask::class, 1);
 
     foreach (['mcp:sweep', 'analytics:aggregate', 'analytics:verify-bots', 'analytics:refresh-bot-ranges'] as $key) {
@@ -227,7 +230,7 @@ it('applies a cooldown per task and a rate limit per user', function () {
     $thrown = null;
     try {
         $action->handle($admin, 'quotes:expire');
-    } catch (App\Actions\Monitoring\MonitoringActionException $e) {
+    } catch (MonitoringActionException $e) {
         $thrown = $e->reason;
     }
 
@@ -264,7 +267,7 @@ it('retries nothing for all, a range, an unknown uuid or a mixed list', function
 
     $ids = array_map(fn ($id) => $id === 'REAL' ? $real : $id, $ids);
 
-    expect(fn () => app(RetryFailedJobs::class)->handle($admin, $ids))->toThrow(App\Actions\Monitoring\MonitoringActionException::class);
+    expect(fn () => app(RetryFailedJobs::class)->handle($admin, $ids))->toThrow(MonitoringActionException::class);
     expect(DB::table('failed_jobs')->count())->toBe(1)->and(DB::table('jobs')->count())->toBe(0)->and(MonitoringAction::query()->count())->toBe(0);
 })->with([
     'all' => [['all']],
@@ -292,7 +295,7 @@ it('refuses more than 50 ids', function () {
     [$admin] = adminScreen();
     $ids = array_map(fn () => (string) Str::uuid(), range(1, 51));
 
-    expect(fn () => app(ForgetFailedJobs::class)->handle($admin, $ids))->toThrow(App\Actions\Monitoring\MonitoringActionException::class);
+    expect(fn () => app(ForgetFailedJobs::class)->handle($admin, $ids))->toThrow(MonitoringActionException::class);
     expect(MonitoringAction::query()->count())->toBe(0);
 });
 
@@ -304,7 +307,7 @@ it('limits retry and forget calls to 10 per window per user', function () {
         app(ForgetFailedJobs::class)->handle($admin, [failedJob()]);
     }
 
-    expect(fn () => app(ForgetFailedJobs::class)->handle($admin, [failedJob()]))->toThrow(App\Actions\Monitoring\MonitoringActionException::class)
+    expect(fn () => app(ForgetFailedJobs::class)->handle($admin, [failedJob()]))->toThrow(MonitoringActionException::class)
         ->and(DB::table('failed_jobs')->count())->toBe(1);
 });
 
@@ -333,7 +336,7 @@ it('says already queued and writes no audit when a run is still queued', functio
 
 it('releases the queued mark when the job finishes', function () {
     config(['monitoring.manual_tasks' => ['test:manual']]);
-    Illuminate\Support\Facades\Schedule::call(fn () => null)->name('test:manual');
+    Schedule::call(fn () => null)->name('test:manual');
     Cache::put(RunTaskNow::QUEUED_KEY.md5('test:manual'), 1, 600);
 
     (new RunScheduledTask('test:manual', null))->handle();
@@ -353,7 +356,7 @@ it('warns when the queue retry_after is not above the run-now timeout', function
 it('writes the audit row even when the retry call fails afterwards', function () {
     $uuid = failedJob();
     [$admin] = adminScreen();
-    Illuminate\Support\Facades\Artisan::shouldReceive('call')->andThrow(new RuntimeException('boom'));
+    Artisan::shouldReceive('call')->andThrow(new RuntimeException('boom'));
 
     expect(fn () => app(RetryFailedJobs::class)->handle($admin, [$uuid]))->toThrow(RuntimeException::class);
     expect(MonitoringAction::query()->count())->toBe(1);
