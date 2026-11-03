@@ -8,6 +8,7 @@ use App\Actions\Settings\GenerateWebhookSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
 use App\Actions\Settings\TestIntegrationConnection;
+use App\Actions\Telegram\ConfigureTelegramWebhook;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymentMode;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
@@ -244,7 +245,7 @@ class Integrations extends Component
     /**
      * New Telegram webhook secret (called from the confirm dialog).
      */
-    public function generateWebhookSecret(GenerateWebhookSecret $generate): void
+    public function generateWebhookSecret(GenerateWebhookSecret $generate, ConfigureTelegramWebhook $configureWebhook): void
     {
         $this->resetSecretInputs();
 
@@ -263,6 +264,11 @@ class Integrations extends Component
         $generate->handle(auth()->user(), request()->ip());
 
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.telegram.webhook_generated'), type: 'success');
+
+        // Plan 14 v2 condition 1: re-register the webhook with the new (committed) secret; failure is a warning, never an exception.
+        if ($configureWebhook->afterSecretGenerated(auth()->user(), request()->ip()) === ConfigureTelegramWebhook::FAILED) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.telegram_bot.flash.webhook_reset_failed'), type: 'error');
+        }
     }
 
     /**

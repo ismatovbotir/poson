@@ -11,6 +11,8 @@ return [
 
     'units' => ['ms' => 'ms', 'min' => 'min'],
 
+    'telegram_problem_open' => 'Open the bot page',
+
     'cards' => [
         'cron' => 'Scheduler (cron)',
         'worker' => 'Queue worker',

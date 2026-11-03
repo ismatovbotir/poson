@@ -215,6 +215,7 @@ return [
         'indexing' => 'Индексация сайта',
         'mcp' => 'Доступ MCP',
         'catalog' => 'Каталог',
+        'telegram_bot' => 'Telegram-бот',
     ],
 
     'audit_action' => [
@@ -232,6 +233,10 @@ return [
         'transferred' => 'Передано',
         'published' => 'Опубликовано',
         'unpublished' => 'Возвращено в черновики',
+        'webhook_set' => 'Вебхук установлен',
+        'webhook_deleted' => 'Вебхук удалён',
+        'enabled' => 'Включено',
+        'disabled' => 'Выключено',
     ],
 
     'price_sync_status' => [

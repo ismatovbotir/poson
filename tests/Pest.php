@@ -446,3 +446,80 @@ function mcpAlertTexts(): array
         ->map(fn (array $pair): string => (string) ($pair[0]->data()['text'] ?? ''))
         ->values()->all();
 }
+
+/*
+| Plan 14 v2 B2: Telegram bot helpers (fake token and secret, never real ones).
+*/
+
+const TG_BOT_TOKEN = '123456789:AAFakeTokenForTestsOnly_0123456789abc';
+
+const TG_WEBHOOK_SECRET = 'test-webhook-secret-0123456789-abcdefghijklmnop';
+
+const TG_MANAGEMENT_CHAT = '-1008888888888';
+
+/**
+ * Bot token, webhook secret, sales + management chats configured, APP_URL https.
+ *
+ * @param  array<string, string|null>  $overrides  config path => value
+ */
+function telegramBotConfigured(array $overrides = []): void
+{
+    config(['app.url' => 'https://poson.example.uz']);
+
+    freshSecrets(array_merge([
+        'services.telegram.bot_token' => TG_BOT_TOKEN,
+        'services.telegram.webhook_secret' => TG_WEBHOOK_SECRET,
+        'services.telegram.chats.sales' => '-1001111111111',
+        'services.telegram.chats.management' => TG_MANAGEMENT_CHAT,
+    ], $overrides));
+}
+
+/**
+ * A private-chat text message update from a person.
+ *
+ * @param  array<string, mixed>  $message  Merged into the message
+ * @return array<string, mixed>
+ */
+function telegramPrivateUpdate(int $updateId, array $message = [], int $userId = 5550001): array
+{
+    return [
+        'update_id' => $updateId,
+        'message' => array_merge([
+            'message_id' => 10 + $updateId,
+            'date' => now()->unix(),
+            'from' => ['id' => $userId, 'is_bot' => false, 'first_name' => 'Ali', 'language_code' => 'uz'],
+            'chat' => ['id' => $userId, 'type' => 'private', 'first_name' => 'Ali'],
+            'text' => 'Salom',
+        ], $message),
+    ];
+}
+
+/**
+ * POST an update to the webhook with the configured (or a given) secret.
+ *
+ * @param  array<string, mixed>|string  $body
+ */
+function postTelegramUpdate(array|string $body, ?string $secret = TG_WEBHOOK_SECRET): TestResponse
+{
+    $content = is_string($body) ? $body : json_encode($body);
+    $server = ['CONTENT_TYPE' => 'application/json'];
+
+    if ($secret !== null) {
+        $server['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] = $secret;
+    }
+
+    return test()->call('POST', route('api.telegram.webhook'), [], [], [], $server, $content);
+}
+
+/**
+ * Bot API calls recorded by Http::fake(), keyed by method name.
+ *
+ * @return list<array{method: string, data: array<string, mixed>}>
+ */
+function telegramApiCalls(): array
+{
+    return Http::recorded()
+        ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), 'api.telegram.org'))
+        ->map(fn (array $pair): array => ['method' => basename(parse_url($pair[0]->url(), PHP_URL_PATH)), 'data' => $pair[0]->data()])
+        ->values()->all();
+}

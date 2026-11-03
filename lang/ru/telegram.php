@@ -127,12 +127,16 @@ return [
             'queue_stuck' => 'Очередь застряла',
             'worker_silent' => 'Обработчик очереди молчит',
             'foreign_phone_cap' => 'Превышен часовой лимит иностранных номеров на сайте',
+            'telegram_webhook' => 'Проблема с вебхуком Telegram-бота',
+            'telegram_token' => 'Telegram не принимает токен бота (401)',
         ],
         'recovered' => [
             'cron_dead' => 'Планировщик снова работает',
             'task_failed' => 'Плановая задача снова работает',
             'queue_stuck' => 'Очередь снова идёт',
             'worker_silent' => 'Обработчик очереди вернулся',
+            'telegram_webhook' => 'Вебхук Telegram-бота снова работает',
+            'telegram_token' => 'Telegram снова принимает токен бота',
         ],
         'labels' => [
             'task' => 'Задача',
@@ -142,8 +146,23 @@ return [
             'age' => 'Минут',
             'pending' => 'Задач в очереди',
             'limit' => 'Лимит в час',
+            'issue' => 'Проблема',
+        ],
+        // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
+        'webhook_issues' => [
+            'url_mismatch' => 'вебхук указывает на другой адрес или не установлен',
+            'url_unexpected' => 'бот выключен, но вебхук указывает на неизвестный адрес (возможна утечка токена)',
+            'delivery_errors' => 'ошибки доставки за последние 15 минут',
+            'backlog' => 'ожидают больше 100 обновлений',
         ],
         'reminder' => 'Проблема всё ещё не устранена.',
         'open' => 'Открыть мониторинг',
+    ],
+
+    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
+    'bot_commands' => [
+        'start' => 'Начать и зарегистрироваться',
+        'language' => 'Сменить язык',
+        'help' => 'Помощь и контакты',
     ],
 ];

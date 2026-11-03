@@ -136,6 +136,9 @@ class AppServiceProvider extends ServiceProvider
                 'message' => 'Too many requests for this token. Retry later.',
             ], 429, $headers)));
 
+        // Telegram webhook (plan 14 v2): 600 updates per minute in total, one constant key (condition 2).
+        RateLimiter::for('telegram-webhook', fn (Request $request) => Limit::perMinute(600)->by('telegram-webhook'));
+
         // MCP (plan 13, C17): 60 requests per minute per IP before the token check,
         // then 120 per minute per token (a rate_limited mcp_calls row on refusal).
         RateLimiter::for('mcp-ip', fn (Request $request) => Limit::perMinute(60)

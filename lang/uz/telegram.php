@@ -127,12 +127,16 @@ return [
             'queue_stuck' => 'Navbat qotib qoldi',
             'worker_silent' => 'Navbat ishlovchisi jim',
             'foreign_phone_cap' => 'Xorijiy raqamlar soatlik limiti oshdi',
+            'telegram_webhook' => 'Telegram bot webhookida muammo',
+            'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',
         ],
         'recovered' => [
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
             'task_failed' => 'Rejali vazifa yana ishlayapti',
             'queue_stuck' => 'Navbat yana yuryapti',
             'worker_silent' => 'Navbat ishlovchisi qaytdi',
+            'telegram_webhook' => 'Telegram bot webhooki yana ishlayapti',
+            'telegram_token' => 'Telegram bot tokenini yana qabul qilmoqda',
         ],
         'labels' => [
             'task' => 'Vazifa',
@@ -142,8 +146,23 @@ return [
             'age' => 'Daqiqa',
             'pending' => 'Navbatdagi vazifalar',
             'limit' => 'Soatlik limit',
+            'issue' => 'Muammo',
+        ],
+        // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
+        'webhook_issues' => [
+            'url_mismatch' => 'webhook boshqa manzilga yoʻnaltirilgan yoki oʻrnatilmagan',
+            'url_unexpected' => 'bot oʻchirilgan, lekin webhook nomaʼlum manzilga yoʻnaltirilgan (token sizib chiqqan boʻlishi mumkin)',
+            'delivery_errors' => 'oxirgi 15 daqiqada yetkazish xatolari',
+            'backlog' => '100 dan ortiq yangilanish kutmoqda',
         ],
         'reminder' => 'Muammo hali bartaraf etilmagan.',
         'open' => 'Monitoringni ochish',
+    ],
+
+    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
+    'bot_commands' => [
+        'start' => 'Boshlash va roʻyxatdan oʻtish',
+        'language' => 'Tilni oʻzgartirish',
+        'help' => 'Yordam va aloqa',
     ],
 ];

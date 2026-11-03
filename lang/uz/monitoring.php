@@ -11,6 +11,8 @@ return [
 
     'units' => ['ms' => 'ms', 'min' => 'daq'],
 
+    'telegram_problem_open' => 'Bot sahifasini ochish',
+
     'cards' => [
         'cron' => 'Rejalashtiruvchi (cron)',
         'worker' => 'Navbat ishlovchisi',

@@ -10,6 +10,7 @@ use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackVisit;
 use App\Http\Middleware\TrustProxies;
+use App\Http\Middleware\VerifyTelegramSecret;
 use App\Support\Site\CanonicalHost;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -48,6 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // throttle key needs the token; ThrottleRequests is otherwise sorted first).
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: AuthenticateApiToken::class);
         $middleware->prependToPriorityList(before: AuthenticateApiToken::class, prepend: LimitJsonBody::class);
+        // Telegram webhook (plan 14 v2, condition 2): body size → secret → throttle.
+        $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: VerifyTelegramSecret::class);
 
         // Only the admin panel has authentication.
         $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.login'));

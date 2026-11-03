@@ -28,6 +28,7 @@ use App\Livewire\Admin\RollTypes;
 use App\Livewire\Admin\Seo;
 use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\System;
+use App\Livewire\Admin\Telegram;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -159,6 +160,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/monitoring', System\Monitoring::class)->name('monitoring');
     // System → Commands (decision 2026-11-02): read-only artisan command list, system.commands (Admin only).
     Route::livewire('/commands', System\Commands::class)->name('commands');
+
+    // Telegram bot page (plan 14 v2 §9): telegram.bot (Admin only), password re-confirmation on every write.
+    Route::livewire('/telegram/bot', Telegram\Bot::class)->name('telegram.bot');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

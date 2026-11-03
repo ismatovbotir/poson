@@ -35,6 +35,14 @@ enum AuditAction: string
     case Published = 'published';
     case Unpublished = 'unpublished';
 
+    /**
+     * Plan 14 v2 B2: Telegram bot page (webhook set / deleted, bot enabled / disabled).
+     */
+    case WebhookSet = 'webhook_set';
+    case WebhookDeleted = 'webhook_deleted';
+    case Enabled = 'enabled';
+    case Disabled = 'disabled';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

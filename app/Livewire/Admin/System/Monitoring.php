@@ -6,6 +6,7 @@ use App\Actions\Monitoring\ForgetFailedJobs;
 use App\Actions\Monitoring\MonitoringActionException;
 use App\Actions\Monitoring\RetryFailedJobs;
 use App\Actions\Monitoring\RunTaskNow;
+use App\Actions\Telegram\CheckTelegramWebhook;
 use App\Jobs\RunScheduledTask;
 use App\Models\MonitoringState;
 use App\Models\ScheduledTaskRun;
@@ -219,6 +220,8 @@ class Monitoring extends Component
             'retryAfter' => (int) config('queue.connections.database.retry_after'),
             'retryAfterTooLow' => config('queue.default') === 'database' && (int) config('queue.connections.database.retry_after') <= RunScheduledTask::TIMEOUT,
             'telegramConfigured' => MonitoringAlerts::isConfigured(),
+            // Plan 14 v2 L4: open Telegram bot problems (a revoked token can't deliver its own alert).
+            'telegramProblems' => CheckTelegramWebhook::openProblems(),
             'pingConfigured' => PingUrl::isConfigured(),
             'canManage' => auth()->user()->can('monitoring.manage'),
             'passwordConfirmed' => PasswordConfirmation::isRecent(),

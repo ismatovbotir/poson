@@ -215,6 +215,7 @@ return [
         'indexing' => 'Saytni indekslash',
         'mcp' => 'MCP kirish',
         'catalog' => 'Katalog',
+        'telegram_bot' => 'Telegram bot',
     ],
 
     'audit_action' => [
@@ -232,6 +233,10 @@ return [
         'transferred' => 'Oʻtkazildi',
         'published' => 'Eʼlon qilindi',
         'unpublished' => 'Qoralamaga qaytarildi',
+        'webhook_set' => 'Webhook oʻrnatildi',
+        'webhook_deleted' => 'Webhook oʻchirildi',
+        'enabled' => 'Yoqildi',
+        'disabled' => 'Oʻchirildi',
     ],
 
     'price_sync_status' => [

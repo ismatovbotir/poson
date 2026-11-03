@@ -141,10 +141,14 @@ final class ProblemMonitor
     }
 
     /**
+     * Track one problem's state and alert (first detection, hourly reminder,
+     * recovered). Public for other monitors with their own checks
+     * (plan 14 v2: telegram:check-webhook); $key must be unique (problem:*).
+     *
      * @param  array<string, scalar|null>  $values
      * @param  array<string, scalar|null>  $recoveredValues
      */
-    private function track(string $key, bool $problem, string $event, array $values, array $recoveredValues = []): void
+    public function track(string $key, bool $problem, string $event, array $values, array $recoveredValues = []): void
     {
         $state = MonitoringState::query()->find($key);
 

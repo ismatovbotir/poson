@@ -24,6 +24,13 @@
         </p>
     @endif
 
+    @foreach ($telegramProblems as $event => $since)
+        <p wire:key="telegram-problem-{{ $event }}" class="mt-4 flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert" data-telegram-problem="{{ $event }}">
+            <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />
+            <span>{{ __('telegram.monitoring.events.'.$event) }} · {{ $when($since) }}. @can('telegram.bot')<a href="{{ route('admin.telegram.bot') }}" wire:navigate class="font-semibold underline">{{ __($t.'.telegram_problem_open') }}</a>@endcan</span>
+        </p>
+    @endforeach
+
     {{-- Cards --}}
     <dl class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4" data-card="cron">

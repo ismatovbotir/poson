@@ -127,12 +127,16 @@ return [
             'queue_stuck' => 'Queue is stuck',
             'worker_silent' => 'Queue worker is silent',
             'foreign_phone_cap' => 'Hourly limit of foreign phone numbers on the site reached',
+            'telegram_webhook' => 'Telegram bot webhook problem',
+            'telegram_token' => 'Telegram refuses the bot token (401)',
         ],
         'recovered' => [
             'cron_dead' => 'Scheduler is running again',
             'task_failed' => 'Scheduled task works again',
             'queue_stuck' => 'Queue is moving again',
             'worker_silent' => 'Queue worker is back',
+            'telegram_webhook' => 'Telegram bot webhook works again',
+            'telegram_token' => 'Telegram accepts the bot token again',
         ],
         'labels' => [
             'task' => 'Task',
@@ -142,8 +146,23 @@ return [
             'age' => 'Minutes',
             'pending' => 'Waiting jobs',
             'limit' => 'Limit per hour',
+            'issue' => 'Problem',
+        ],
+        // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
+        'webhook_issues' => [
+            'url_mismatch' => 'webhook points to another address or is not set',
+            'url_unexpected' => 'bot is disabled but the webhook points to an unknown address (token may have leaked)',
+            'delivery_errors' => 'delivery errors in the last 15 minutes',
+            'backlog' => 'more than 100 updates waiting',
         ],
         'reminder' => 'Still not resolved.',
         'open' => 'Open monitoring',
+    ],
+
+    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
+    'bot_commands' => [
+        'start' => 'Start and register',
+        'language' => 'Change language',
+        'help' => 'Help and contacts',
     ],
 ];

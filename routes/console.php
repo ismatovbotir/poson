@@ -119,6 +119,16 @@ Schedule::command('model:prune', ['--model' => [ScheduledTaskRun::class, Monitor
 Schedule::command('indexnow:flush')->everyFiveMinutes()->withoutOverlapping(10)->onOneServer();
 
 /*
+|--------------------------------------------------------------------------
+| Telegram bot (plan 14 v2, TG-38)
+|--------------------------------------------------------------------------
+| Every 15 minutes: webhook health (URL, delivery errors, backlog, token)
+| with alerts to the management chat. Short HTTP timeout inside (5 s).
+*/
+
+Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverlapping(5)->onOneServer();
+
+/*
 | Keep the last output of every command (overwritten each run, never
 | appended; stays in storage/logs) so RunRecorder can store the redacted
 | tail of a failed run (MON-S11). Must stay the last statement here.

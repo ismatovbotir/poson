@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\SyncPricesController;
+use App\Http\Controllers\Webhooks\TelegramWebhookController;
 use App\Http\Middleware\LimitJsonBody;
+use App\Http\Middleware\VerifyTelegramSecret;
 use App\Models\ApiToken;
 use Illuminate\Support\Facades\Route;
 
@@ -22,3 +24,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->middleware([LimitJsonBody::class, 'api.token:'.ApiToken::ABILITY_PRICES_WRITE, 'throttle:price-api'])
         ->name('prices');
 });
+
+/*
+| Telegram bot webhook (plan 14 v2 §9, conditions 2–3). Order: body size
+| (413) → secret header (401) → 600/min constant-key throttle. Always 200
+| after the secret check. Path fixed: ConfigureTelegramWebhook::PATH.
+*/
+
+Route::post('/telegram/webhook', TelegramWebhookController::class)
+    ->middleware([LimitJsonBody::class, VerifyTelegramSecret::class, 'throttle:telegram-webhook'])
+    ->name('api.telegram.webhook');

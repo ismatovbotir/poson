@@ -11,7 +11,9 @@ namespace App\Enums;
  * from the price API) are audit-only areas of plan 09. Checkout (plan 11b)
  * holds delivery fees, order caps, IKPU and UzQR (Admin, settings.checkout). Indexing (plan 15 C)
  * is the search indexing switch (key search_indexing, Admin only). Mcp (plan 13) is audit-only:
- * MCP access granted / transferred / revoked and MCP tokens generated / revoked (never a value). Audit rows may hold
+ * MCP access granted / transferred / revoked and MCP tokens generated / revoked (never a value). TelegramBot
+ * (plan 14 v2 B2, Admin, telegram.bot) holds the bot kill switch (telegram.bot_enabled) and audits the bot
+ * page's webhook and command writes. Audit rows may hold
  * legacy values no longer listed here (e.g. "ai_prompts"): read them with
  * tryFrom() (SettingsAudit does).
  */
@@ -32,6 +34,7 @@ enum SettingsArea: string
     case Indexing = 'indexing';
     case Mcp = 'mcp';
     case Catalog = 'catalog';
+    case TelegramBot = 'telegram_bot';
 
     public function label(): string
     {
@@ -48,6 +51,7 @@ enum SettingsArea: string
             self::Seo, self::Tracking, self::AiBots, self::Indexing => 'seo',
             self::Integrations, self::ApiTokens, self::PriceSync, self::Mcp => 'integrations',
             self::Catalog => 'system',
+            self::TelegramBot => 'telegram',
             self::Checkout => 'checkout',
         };
     }
@@ -57,6 +61,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot], true);
     }
 }

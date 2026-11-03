@@ -215,6 +215,7 @@ return [
         'indexing' => 'Site indexing',
         'mcp' => 'MCP access',
         'catalog' => 'Catalog',
+        'telegram_bot' => 'Telegram bot',
     ],
 
     'audit_action' => [
@@ -232,6 +233,10 @@ return [
         'transferred' => 'Transferred',
         'published' => 'Published',
         'unpublished' => 'Returned to drafts',
+        'webhook_set' => 'Webhook set',
+        'webhook_deleted' => 'Webhook deleted',
+        'enabled' => 'Enabled',
+        'disabled' => 'Disabled',
     ],
 
     'price_sync_status' => [

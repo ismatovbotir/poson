@@ -11,6 +11,8 @@ return [
 
     'units' => ['ms' => 'мс', 'min' => 'мин'],
 
+    'telegram_problem_open' => 'Открыть страницу бота',
+
     'cards' => [
         'cron' => 'Планировщик (cron)',
         'worker' => 'Обработчик очереди',
