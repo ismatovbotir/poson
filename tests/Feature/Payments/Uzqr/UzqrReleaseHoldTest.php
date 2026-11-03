@@ -82,20 +82,20 @@ function bankAnswers(mixed $cancel, mixed $status): void
     ]);
 }
 
-it('decides eligibility only for expired, unconfirmed rows 24 h past expiry and checked since (57)', function (array $attributes, bool $releasable) {
-    expect(releasableUzqr($attributes)->isReleasable())->toBe($releasable);
+it('decides eligibility only for expired, unconfirmed rows 24 h past expiry and checked since (57)', function (Closure $attributes, bool $releasable) {
+    expect(releasableUzqr($attributes())->isReleasable())->toBe($releasable);
 })->with([
-    'eligible' => [[], true],
-    'expired only 23 h ago' => [['expires_at' => now()->subHours(23)], false],
-    'last checked before expiry + 24 h' => [['last_checked_at' => now()->subHours(2)], false],
-    'never checked' => [['last_checked_at' => null], false],
-    'bank-confirmed (closed)' => [['closed_at' => now()], false],
-    'pending' => [['status' => UzqrTransactionStatus::Pending], false],
-    'creating' => [['status' => UzqrTransactionStatus::Creating], false],
-    'paid' => [['status' => UzqrTransactionStatus::Paid, 'settlement' => UzqrSettlement::Settled], false],
-    'unmatched' => [['settlement' => UzqrSettlement::Unmatched], false],
-    'no invoice id' => [['invoice_id' => null], false],
-    'already released' => [['status' => UzqrTransactionStatus::Released], false],
+    'eligible' => [fn () => [], true],
+    'expired only 23 h ago' => [fn () => ['expires_at' => now()->subHours(23)], false],
+    'last checked before expiry + 24 h' => [fn () => ['last_checked_at' => now()->subHours(2)], false],
+    'never checked' => [fn () => ['last_checked_at' => null], false],
+    'bank-confirmed (closed)' => [fn () => ['closed_at' => now()], false],
+    'pending' => [fn () => ['status' => UzqrTransactionStatus::Pending], false],
+    'creating' => [fn () => ['status' => UzqrTransactionStatus::Creating], false],
+    'paid' => [fn () => ['status' => UzqrTransactionStatus::Paid, 'settlement' => UzqrSettlement::Settled], false],
+    'unmatched' => [fn () => ['settlement' => UzqrSettlement::Unmatched], false],
+    'no invoice id' => [fn () => ['invoice_id' => null], false],
+    'already released' => [fn () => ['status' => UzqrTransactionStatus::Released], false],
 ]);
 
 it('shows "Release hold" to an Admin only and only once eligible (67)', function () {
