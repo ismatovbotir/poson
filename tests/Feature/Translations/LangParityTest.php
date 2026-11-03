@@ -85,7 +85,8 @@ it('writes uz in Latin script with the ʻ okina', function (string $file) {
             continue;
         }
 
-        if (preg_match('/\p{Cyrillic}/u', $value) && "{$file}.{$key}" !== 'site.locale.ru') {
+        // Language pickers name each language in its own script.
+        if (preg_match('/\p{Cyrillic}/u', $value) && ! in_array("{$file}.{$key}", ['site.locale.ru', 'telegram_bot.language.prompt', 'telegram_bot.language.buttons.ru'], true)) {
             $problems[] = "uz.{$file}.{$key} contains Cyrillic: {$value}";
         }
 

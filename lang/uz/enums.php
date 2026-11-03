@@ -430,6 +430,7 @@ return [
     'telegram_message_status' => [
         'received' => 'Qabul qilingan',
         'pending' => 'Navbatda',
+        'sending' => 'Yuborilmoqda',
         'sent' => 'Yuborilgan',
         'failed' => 'Xatolik',
     ],

@@ -9,6 +9,7 @@ enum TelegramMessageStatus: string
 {
     case Received = 'received';
     case Pending = 'pending';
+    case Sending = 'sending';
     case Sent = 'sent';
     case Failed = 'failed';
 

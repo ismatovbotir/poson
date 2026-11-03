@@ -22,11 +22,20 @@ final class PasswordConfirmation
         return (int) config('admin.password_confirm_timeout', 900);
     }
 
+    /**
+     * A confirmation within the timeout; a timestamp in the future never counts.
+     */
     public static function isRecent(): bool
     {
         $confirmedAt = session(self::SESSION_KEY);
 
-        return is_numeric($confirmedAt) && Date::now()->unix() - (int) $confirmedAt < self::timeout();
+        if (! is_numeric($confirmedAt)) {
+            return false;
+        }
+
+        $now = Date::now()->unix();
+
+        return (int) $confirmedAt <= $now && $now - (int) $confirmedAt < self::timeout();
     }
 
     /**
@@ -36,7 +45,7 @@ final class PasswordConfirmation
     {
         $confirmedAt = session(self::SESSION_KEY);
 
-        return is_numeric($confirmedAt) ? max(0, self::timeout() - (Date::now()->unix() - (int) $confirmedAt)) : 0;
+        return self::isRecent() ? max(0, self::timeout() - (Date::now()->unix() - (int) $confirmedAt)) : 0;
     }
 
     public static function confirm(): void

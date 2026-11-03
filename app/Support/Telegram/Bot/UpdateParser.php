@@ -165,7 +165,7 @@ final readonly class UpdateParser
             ...self::chatAndSender($message['chat'] ?? null, $callback['from'] ?? null),
             messageId: is_int($message['message_id'] ?? null) ? $message['message_id'] : null,
             callbackQueryId: self::string($callback['id'] ?? null, 64),
-            callbackData: self::string($callback['data'] ?? null, self::CALLBACK_DATA_LIMIT),
+            callbackData: self::rawCallbackData($callback['data'] ?? null),
         );
     }
 
@@ -245,6 +245,16 @@ final readonly class UpdateParser
         }
 
         return $params;
+    }
+
+    /**
+     * Callback data exactly as sent (not trimmed or cleaned, so the strict
+     * allow-list sees tampering such as a trailing newline); null when it is
+     * not a string or longer than Telegram's 64 bytes.
+     */
+    private static function rawCallbackData(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' && strlen($value) <= self::CALLBACK_DATA_LIMIT ? $value : null;
     }
 
     /**

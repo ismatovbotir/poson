@@ -129,6 +129,7 @@ return [
             'foreign_phone_cap' => 'Xorijiy raqamlar soatlik limiti oshdi',
             'telegram_webhook' => 'Telegram bot webhookida muammo',
             'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',
+            'telegram_customer_cap' => 'Telegram botdan yangi mijozlar soatlik limiti oshdi (roʻyxatdan oʻtganlar CRMga bogʻlanmadi)',
         ],
         'recovered' => [
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',

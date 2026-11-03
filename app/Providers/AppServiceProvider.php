@@ -23,6 +23,7 @@ use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
 use App\Models\Setting;
+use App\Models\TelegramUser;
 use App\Models\User;
 use App\Models\Video;
 use App\Support\Analytics\DnsResolver;
@@ -99,6 +100,8 @@ class AppServiceProvider extends ServiceProvider
             'product' => Product::class,
             'quote' => Quote::class,
             'setting' => Setting::class,
+            // Plan 14 v2 B3: bot conversations (registration / CRM link history).
+            'telegram_user' => TelegramUser::class,
             'user' => User::class,
             // Plan 19: YouTube videos (also the subject of MCP calls).
             'video' => Video::class,

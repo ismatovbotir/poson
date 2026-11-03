@@ -271,6 +271,8 @@ it('hides the API url and token from the exception of a failed call, for every k
 // 11. Tampered Livewire state cannot enable the bot while a checklist item fails.
 it('refuses to enable after the locked checklist and webhook state were tampered with', function () {
     abuseTelegramWebhookAt('https://attacker.example/hook');
+    // Only the webhook item fails: the privacy page is ready.
+    Page::factory()->create(['slug' => 'privacy', 'is_active' => true, 'needs_review' => false]);
     confirmAdminPassword();
     Setting::query()->create(['key' => BotSwitch::KEY, 'group' => 'telegram', 'value' => false]);
     $component = Livewire::actingAs(staffUser())->test(Bot::class);
@@ -326,6 +328,7 @@ it('changes nothing for an admin whose password confirmation is missing, stale o
     'never confirmed' => [null],
     'stale' => [-3600],
     '20 minutes ago' => [-1200],
+    '10 minutes in the future' => [600],
 ]);
 
 // 13. Production never polls.

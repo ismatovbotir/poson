@@ -430,6 +430,7 @@ return [
     'telegram_message_status' => [
         'received' => 'Получено',
         'pending' => 'В очереди',
+        'sending' => 'Отправляется',
         'sent' => 'Отправлено',
         'failed' => 'Ошибка',
     ],

@@ -129,6 +129,7 @@ return [
             'foreign_phone_cap' => 'Hourly limit of foreign phone numbers on the site reached',
             'telegram_webhook' => 'Telegram bot webhook problem',
             'telegram_token' => 'Telegram refuses the bot token (401)',
+            'telegram_customer_cap' => 'Hourly limit of new customers from the Telegram bot reached (registrations stay unlinked)',
         ],
         'recovered' => [
             'cron_dead' => 'Scheduler is running again',

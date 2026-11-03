@@ -430,6 +430,7 @@ return [
     'telegram_message_status' => [
         'received' => 'Received',
         'pending' => 'Pending',
+        'sending' => 'Sending',
         'sent' => 'Sent',
         'failed' => 'Failed',
     ],

@@ -58,6 +58,19 @@ it('falls back to the dashboard for an intended URL outside the admin', function
     'admin look-alike' => ['http://localhost/administrator'],
 ]);
 
+it('never treats a confirmation timestamp in the future as recent', function (int $secondsAhead) {
+    session()->put(PasswordConfirmation::SESSION_KEY, now()->addSeconds($secondsAhead)->unix());
+
+    expect(PasswordConfirmation::isRecent())->toBeFalse()
+        ->and(PasswordConfirmation::secondsLeft())->toBe(0);
+})->with(['one second ahead' => [1], 'a year ahead' => [31_536_000]]);
+
+it('treats a confirmation made right now as recent', function () {
+    session()->put(PasswordConfirmation::SESSION_KEY, now()->unix());
+
+    expect(PasswordConfirmation::isRecent())->toBeTrue();
+});
+
 it('rejects a wrong password and does not confirm', function () {
     confirmWith(passwordUser(), 'wrong-password')
         ->assertHasErrors('password')

@@ -129,6 +129,7 @@ return [
             'foreign_phone_cap' => 'Превышен часовой лимит иностранных номеров на сайте',
             'telegram_webhook' => 'Проблема с вебхуком Telegram-бота',
             'telegram_token' => 'Telegram не принимает токен бота (401)',
+            'telegram_customer_cap' => 'Превышен часовой лимит новых клиентов из Telegram-бота (регистрации не привязаны к CRM)',
         ],
         'recovered' => [
             'cron_dead' => 'Планировщик снова работает',
