@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Gate;
  * Authorizes "view" for the actor and updates exactly the given row, so it can
  * never touch another thread. Provisional owner rule: only the assigned manager
  * (or anyone, while the thread is unassigned) clears the counter; an Admin or
- * other viewer of someone else's thread leaves it unchanged. Returns whether
- * anything changed.
+ * other viewer of someone else's thread leaves it unchanged. No UPDATE when the
+ * counter is already 0, since this runs on every poll. Returns whether anything changed.
  */
 class MarkConversationRead
 {
@@ -21,7 +21,7 @@ class MarkConversationRead
     {
         Gate::forUser($actor)->authorize('view', $conversation);
 
-        if ($conversation->manager_id !== null && $conversation->manager_id !== $actor->id) {
+        if ($conversation->unread_count === 0 || ($conversation->manager_id !== null && $conversation->manager_id !== $actor->id)) {
             return false;
         }
 

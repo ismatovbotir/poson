@@ -58,6 +58,8 @@ class ResendTelegramMessage
                 ->update(['status' => TelegramMessageStatus::Pending, 'error_code' => null, 'updated_at' => now()]);
 
             if ($changed !== 1) {
+                $this->replies->releaseLimit($actor);
+
                 return false;
             }
 

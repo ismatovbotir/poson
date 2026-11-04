@@ -89,6 +89,7 @@ return [
         'retry' => 'Try again',
         'resend' => 'Send again',
         'duplicate_warning' => 'The customer may already have this message. Sending again can deliver it twice. Continue?',
+        'only_author' => 'Only :name or an Admin can send this again.',
     ],
     'refused' => [
         'unregistered' => 'This visitor has not finished registration, so this is not available.',
@@ -99,7 +100,9 @@ return [
         'invalid_text' => 'The message is empty or too long.',
         'taken' => 'Another manager has taken this conversation.',
         'not_retryable' => 'This message cannot be sent again.',
-        'forward_not_retryable' => 'This file cannot be retried now. Try again in a minute.',
+        'forward_not_retryable' => 'This file does not need a retry right now.',
+        'busy' => 'This file was just retried. Try again in a minute.',
+        'too_many_actions' => 'Too many actions. Try again later.',
         'invalid_target' => 'This manager is not available for chats.',
         'no_customer' => 'This chat is not linked to a customer.',
         'invalid_customer' => 'This customer is not available.',
@@ -108,6 +111,7 @@ return [
     'toasts' => [
         'reply_queued' => 'The reply is queued for delivery.',
         'resent' => 'The message is queued for delivery again.',
+        'no_change' => 'Nothing changed.',
         'forward_retried' => 'The file is queued for copying again.',
         'assigned' => 'The chat is assigned.',
         'taken' => 'The chat is now yours.',
@@ -150,6 +154,12 @@ return [
         'link' => 'Link',
         'relink' => 'Change link',
         'relink_confirm' => 'Change the link? The verification will be cleared.',
+        'hidden' => 'Hidden',
+        'phone_signal' => [
+            'matches' => 'Phone matches the customer or contact',
+            'no_match' => 'Phone does not match the customer or contact',
+            'anonymous' => 'Anonymous Telegram number (+888), cannot be checked',
+        ],
     ],
     'forward_retry' => 'Try again',
     'forward_lines' => [
@@ -159,6 +169,20 @@ return [
         'not_configured' => 'not copied, the chat is not set up',
         'limited' => 'not copied, the limit is reached',
         'failed' => 'not copied, error',
+    ],
+    'history' => [
+        'title' => 'History',
+        'empty' => 'No actions yet.',
+        'someone' => 'Someone',
+        'first_reply' => ':actor took the chat by replying',
+        'assign' => ':actor assigned the chat to :target',
+        'take' => ':actor took the chat',
+        'closed' => ':actor closed the chat',
+        'reopened' => ':actor reopened the chat',
+        'link' => ':actor linked the chat to a customer',
+        'verify_link' => ':actor verified the link',
+        'ban' => ':actor banned the customer',
+        'unban' => ':actor lifted the ban',
     ],
 
 ];

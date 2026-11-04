@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Telegram\HandleTelegramUpdate;
+use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\RetryForward;
 use App\Actions\Telegram\StoreInboundMessage;
 use App\Actions\Telegram\TelegramUpdateFailed;
@@ -792,7 +793,7 @@ it('case 21: refuses a retry before touching the queue, the cap marker or the pe
     if ($forbidden) {
         expect(fn () => app(RetryForward::class)->handle($actor, $row))->toThrow(AuthorizationException::class);
     } else {
-        expect(app(RetryForward::class)->handle($actor, $row))->toBeFalse();
+        expect(fn () => app(RetryForward::class)->handle($actor, $row))->toThrow(InboxRefused::class);
     }
 
     Bus::assertNotDispatched(ForwardTelegramMedia::class);
@@ -816,7 +817,7 @@ it('case 22: never copies twice when a retry starts from a stale failed model', 
     $stale = $row->fresh();
     $stale->forward_status = TelegramForwardStatus::Failed;
 
-    app(RetryForward::class)->handle($admin, $stale);
+    expect(fn () => app(RetryForward::class)->handle($admin, $stale))->toThrow(InboxRefused::class);
 
     expect(iabCalls('copyMessage'))->toBe([])
         ->and(iabCalls('sendMessage', IAB_SALES_CHAT))->toBe([])

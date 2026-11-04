@@ -8,6 +8,8 @@ use App\Enums\ActivityType;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
+use App\Livewire\Admin\Settings\Integrations;
+use App\Livewire\Admin\Telegram\Bot;
 use App\Livewire\Admin\Telegram\Chats\Index;
 use App\Livewire\Admin\Telegram\Chats\Show;
 use App\Models\Contact;
@@ -16,6 +18,7 @@ use App\Models\SettingsAudit;
 use App\Models\TelegramUser;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -116,7 +119,7 @@ it('writes audit and Activity rows on ban and unban, only on a real change, with
 
     $audit = SettingsAudit::query()->where('key', 'telegram.conversation.'.$chat->id)->sole();
     expect($audit->action)->toBe(AuditAction::Banned)
-        ->and($audit->area)->toBe(SettingsArea::TelegramBot)
+        ->and($audit->area)->toBe(SettingsArea::TelegramInbox)
         ->and($audit->user_id)->toBe($actor->id)
         ->and($audit->ip)->toBe('10.0.0.1')
         ->and(json_encode($audit->toArray()))->not->toContain('Secret Person');
@@ -166,7 +169,7 @@ it('lets a manager verify the link of their own or an unassigned customer', func
         ->and(linkAuditRow($chat->id)->action)->toBe(AuditAction::Verified);
 
     $activity = $chat->activities()->sole();
-    expect($activity->meta)->toBe(['action' => 'verify_link', 'customer_id' => $customer->id, 'contact_id' => null])
+    expect($activity->meta)->toBe(['action' => 'verify_link', 'customer_id' => $customer->id, 'contact_id' => null, 'account_changed' => false, 'phone_signal' => 'no_match'])
         ->and(app(VerifyConversationLink::class)->handle($fresh, $user, null))->toBeFalse();
 })->with([
     'own customer' => [fn (User $user) => $user->id],
@@ -292,7 +295,7 @@ it('links an unlinked thread by ids only, without verifying or touching the CRM 
         ->and($contact->fresh()->toArray())->toBe($before[1]);
 
     expect($chat->activities()->sole()->meta)->toBe([
-        'action' => 'link', 'from_customer_id' => null, 'from_contact_id' => null, 'customer_id' => $customer->id, 'contact_id' => $contact->id,
+        'action' => 'link', 'from_customer_id' => null, 'from_contact_id' => null, 'customer_id' => $customer->id, 'contact_id' => $contact->id, 'phone_signal' => 'no_match',
     ])->and($chat->activities()->sole()->type)->toBe(ActivityType::StatusChange);
 });
 
@@ -388,18 +391,60 @@ it('keeps verification when nothing changes', function () {
         ->and($chat->activities()->count())->toBe(0);
 });
 
-it('clears the flag on an account left alone on the former contact', function () {
+it('keeps the flag on another thread when one account is moved off the contact (T21-36)', function () {
     $admin = staffUser(Role::Admin);
     $customer = Customer::factory()->create();
     $contact = Contact::factory()->create(['customer_id' => $customer->id]);
     $other = Contact::factory()->create(['customer_id' => $customer->id]);
-    $first = linkThread(['customer_id' => $customer->id, 'contact_id' => $contact->id]);
-    $second = linkThread(['customer_id' => $customer->id, 'contact_id' => $contact->id]);
-    $second->forceFill(['account_changed' => true])->save();
+    $moved = linkThread(['customer_id' => $customer->id, 'contact_id' => $contact->id]);
+    $flagged = linkThread(['customer_id' => $customer->id, 'contact_id' => $contact->id]);
+    $flagged->forceFill(['account_changed' => true])->save();
 
-    app(LinkConversationToCustomer::class)->handle($first, $admin, $customer->id, $other->id);
+    app(LinkConversationToCustomer::class)->handle($moved, $admin, $customer->id, $other->id);
 
-    expect($second->fresh()->account_changed)->toBeFalse();
+    expect($flagged->fresh()->account_changed)->toBeTrue();
+});
+
+it('keeps account_changed on verify and records it in the Activity meta (T21-36)', function () {
+    $admin = staffUser(Role::Admin);
+    $customer = Customer::factory()->create(['phone' => '+998901234567']);
+    $chat = linkThread(['customer_id' => $customer->id, 'phone' => '+998901234567']);
+    $chat->forceFill(['account_changed' => true])->save();
+
+    app(VerifyConversationLink::class)->handle($chat, $admin, null);
+
+    expect($chat->fresh()->account_changed)->toBeTrue()
+        ->and($chat->activities()->sole()->meta)->toMatchArray(['account_changed' => true, 'phone_signal' => 'matches']);
+});
+
+it('keeps enable and secret rows visible when a manager toggles a ban past the limit (T21-35)', function () {
+    $sales = linkManager();
+    $admin = staffUser(Role::Admin);
+    SettingsAudit::record(SettingsArea::TelegramBot, 'telegram.bot_enabled', AuditAction::Enabled, $admin, null);
+    SettingsAudit::record(SettingsArea::Integrations, 'payme.key', AuditAction::Updated, $admin, null);
+    $chat = linkThread(manager: $sales);
+    $bans = app(SetConversationBan::class);
+
+    foreach (range(1, SetConversationBan::PER_HOUR) as $i) {
+        $i % 2 === 1 ? $bans->ban($chat, $sales, null) : $bans->unban($chat, $sales, null);
+    }
+
+    expect(fn () => $bans->ban($chat, $sales, null))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('too_many_actions'));
+    expect($chat->fresh()->isBanned())->toBeFalse()
+        ->and(SettingsAudit::query()->where('area', SettingsArea::TelegramInbox->value)->count())->toBe(SetConversationBan::PER_HOUR);
+
+    Livewire::actingAs($admin)->test(Bot::class)->assertSee('telegram.bot_enabled')->assertDontSee('telegram.conversation.');
+    Livewire::actingAs($admin)->test(Integrations::class)->assertSee('payme.key')->assertDontSee('telegram.conversation.');
+});
+
+it('uses no ban limit on a repeat that changes nothing', function () {
+    $sales = linkManager();
+    $chat = linkThread(manager: $sales);
+    $bans = app(SetConversationBan::class);
+
+    expect($bans->unban($chat, $sales, null))->toBeFalse()
+        ->and(RateLimiter::attempts(SetConversationBan::LIMIT_KEY.$sales->id))->toBe(0);
 });
 
 it('links through the picker, offering only customers the actor may edit', function () {
@@ -411,6 +456,7 @@ it('links through the picker, offering only customers the actor may edit', funct
 
     $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])
         ->assertSeeHtml('data-link-picker')
+        ->set('linkOpen', true)
         ->set('customerSearch', 'zebra')
         ->assertSeeHtml('data-customer-result="'.$own->id.'"')
         ->assertDontSeeHtml('data-customer-result="'.$foreign->id.'"');
@@ -420,6 +466,7 @@ it('links through the picker, offering only customers the actor may edit', funct
     expect($chat->fresh()->customer_id)->toBeNull();
 
     $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])
+        ->set('linkOpen', true)
         ->call('chooseCustomer', $own->id)
         ->assertSeeHtml('data-chosen-customer')
         ->assertSee('Own Contact')
@@ -440,7 +487,7 @@ it('reports an empty pick', function () {
 
 it('has no public way to send a phone or company with a link', function () {
     expect(array_map(fn (ReflectionParameter $parameter) => $parameter->getName(), (new ReflectionMethod(LinkConversationToCustomer::class, 'handle'))->getParameters()))
-        ->toBe(['conversation', 'actor', 'customerId', 'contactId']);
+        ->toBe(['conversation', 'actor', 'customerId', 'contactId', 'ip']);
 });
 
 it('renders customer names escaped in the panel and picker', function () {

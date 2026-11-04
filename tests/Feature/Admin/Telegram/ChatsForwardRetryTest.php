@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\RetryForward;
 use App\Enums\AuditAction;
 use App\Enums\Role;
@@ -110,7 +111,7 @@ it('writes an audit row with no text or file name (T21-16)', function () {
 
     $audit = SettingsAudit::query()->sole();
     expect($audit->action)->toBe(AuditAction::RetryForward)
-        ->and($audit->area)->toBe(SettingsArea::TelegramBot)
+        ->and($audit->area)->toBe(SettingsArea::TelegramInbox)
         ->and($audit->key)->toBe('telegram.conversation.'.$chat->id)
         ->and($audit->user_id)->toBe($actor->id)
         ->and($audit->ip)->toBe('10.0.0.3');
@@ -122,8 +123,9 @@ it('writes no audit row for a refused retry', function () {
     Bus::fake([ForwardTelegramMedia::class]);
     $row = forwardRetryFile(forwardRetryThread(), TelegramForwardStatus::Forwarded);
 
-    expect(app(RetryForward::class)->handle(staffUser(Role::Admin), $row))->toBeFalse()
-        ->and(SettingsAudit::query()->count())->toBe(0);
+    expect(fn () => app(RetryForward::class)->handle(staffUser(Role::Admin), $row))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('forward_not_retryable'));
+    expect(SettingsAudit::query()->count())->toBe(0);
 });
 
 it('caps retries per person, across messages (T21-16)', function () {
@@ -138,7 +140,9 @@ it('caps retries per person, across messages (T21-16)', function () {
 
     $row = forwardRetryFile($chat);
 
-    expect(app(RetryForward::class)->handle($user, $row))->toBeFalse();
+    expect(fn () => app(RetryForward::class)->handle($user, $row))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('too_many_actions'));
+    expect(RateLimiter::attempts(RetryForward::PER_MINUTE_KEY.$row->id))->toBe(0);
     Bus::assertNotDispatched(ForwardTelegramMedia::class);
     expect(SettingsAudit::query()->count())->toBe(0);
 
@@ -151,8 +155,9 @@ it('keeps the per-message limit', function () {
     $row = forwardRetryFile(forwardRetryThread());
     $admin = staffUser(Role::Admin);
 
-    expect(app(RetryForward::class)->handle($admin, $row))->toBeTrue()
-        ->and(app(RetryForward::class)->handle($admin, $row))->toBeFalse();
+    expect(app(RetryForward::class)->handle($admin, $row))->toBeTrue();
+    expect(fn () => app(RetryForward::class)->handle($admin, $row))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('busy'));
     Bus::assertDispatchedTimes(ForwardTelegramMedia::class, 1);
     expect(SettingsAudit::query()->count())->toBe(1);
 });
@@ -189,8 +194,8 @@ it('refuses a retry when the bot is off or the user is banned', function (bool $
     $chat = forwardRetryThread($attributes);
     $row = forwardRetryFile($chat);
 
-    expect(app(RetryForward::class)->handle(staffUser(Role::Admin), $row))->toBeFalse()
-        ->and(RateLimiter::attempts(RetryForward::PER_MINUTE_KEY.$row->id))->toBe(0)
+    expect(fn () => app(RetryForward::class)->handle(staffUser(Role::Admin), $row))->toThrow(InboxRefused::class);
+    expect(RateLimiter::attempts(RetryForward::PER_MINUTE_KEY.$row->id))->toBe(0)
         ->and(SettingsAudit::query()->count())->toBe(0);
     Bus::assertNotDispatched(ForwardTelegramMedia::class);
 

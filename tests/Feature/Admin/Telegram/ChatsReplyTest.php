@@ -4,11 +4,13 @@ use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\ResendTelegramMessage;
 use App\Actions\Telegram\SendTelegramReply;
 use App\Enums\ActivityType;
+use App\Enums\ConversationStatus;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
 use App\Enums\TelegramMessageStatus;
 use App\Jobs\DeliverBotMessage;
 use App\Livewire\Admin\Telegram\Chats\Show;
+use App\Models\Customer;
 use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
@@ -17,6 +19,7 @@ use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
@@ -156,10 +159,10 @@ it('does not reassign when an Admin replies on another manager\'s thread', funct
     expect($chat->fresh()->manager_id)->toBe($manager->id)->and($chat->activities()->count())->toBe(0);
 });
 
-it('refuses when the first-reply assignment loses the race, as manager or Admin (T21-12)', function (Role $role) {
+it('refuses when the first-reply assignment loses the race (T21-12)', function () {
     Bus::fake([DeliverBotMessage::class]);
     $winner = replyManager();
-    $actor = staffUser($role);
+    $actor = replyManager();
     $chat = replyThread();
 
     TelegramUser::retrieved(function () use ($chat, $winner): void {
@@ -173,7 +176,118 @@ it('refuses when the first-reply assignment loses the race, as manager or Admin 
 
     expect(TelegramMessage::query()->count())->toBe(0)->and($chat->activities()->count())->toBe(0);
     Bus::assertNotDispatched(DeliverBotMessage::class);
-})->with([Role::SalesManager, Role::Admin]);
+});
+
+it('leaves an unassigned thread unassigned when an Admin replies', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $chat = replyThread();
+
+    expect(app(SendTelegramReply::class)->handle($chat, staffUser(Role::Admin), 'hi'))->not->toBeNull()
+        ->and($chat->fresh()->manager_id)->toBeNull()
+        ->and($chat->activities()->count())->toBe(0);
+});
+
+it('reopens a closed thread on a staff reply, with an Activity row', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = TelegramUser::factory()->registered()->closed()->assigned($user)->create();
+
+    app(SendTelegramReply::class)->handle($chat, $user, 'hi');
+
+    expect($chat->fresh()->conversation_status)->toBe(ConversationStatus::Open)
+        ->and($chat->fresh()->closed_at)->toBeNull()
+        ->and($chat->activities()->sole()->type)->toBe(ActivityType::StatusChange)
+        ->and($chat->activities()->sole()->meta)->toBe(['from' => 'closed', 'to' => 'open', 'via' => 'reply']);
+});
+
+it('sends one message for two sendReply calls with the same token, and a repeat later still sends', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
+
+    $component->set('reply', 'same text')->call('sendReply', 'token-1')->assertSet('reply', '');
+    $component->set('reply', 'same text')->call('sendReply', 'token-1')->assertSet('reply', '');
+    $component->call('sendReply', 'token-1')->assertHasNoErrors();
+
+    expect(TelegramMessage::query()->count())->toBe(1)
+        ->and(RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(1);
+
+    $component->set('reply', 'same text')->call('sendReply', 'token-2');
+    expect(TelegramMessage::query()->count())->toBe(2);
+
+    $this->travel(SendTelegramReply::ONCE_SECONDS + 1)->seconds();
+    $component->set('reply', 'same text')->call('sendReply', 'token-1');
+    expect(TelegramMessage::query()->count())->toBe(3);
+});
+
+it('ignores a repeated submit with no token within the window', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
+
+    $component->set('reply', 'same text')->call('sendReply');
+    $component->set('reply', 'same text')->call('sendReply');
+
+    expect(TelegramMessage::query()->count())->toBe(1);
+});
+
+it('uses no limit on a resend that changes no row', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $author = replyManager();
+    $chat = replyThread(manager: $author);
+    $row = replyOwnFailed($chat, $author);
+
+    TelegramMessage::retrieved(function () use ($row): void {
+        TelegramMessage::query()->whereKey($row->id)->update(['status' => TelegramMessageStatus::Pending, 'updated_at' => now()]);
+    });
+
+    expect(app(ResendTelegramMessage::class)->handle($row, $author))->toBeFalse()
+        ->and((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$author->id))->toBe(0);
+});
+
+it('keeps the draft through refreshThread', function () {
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+
+    Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])
+        ->set('reply', 'half written')
+        ->call('refreshThread')
+        ->assertSet('reply', 'half written');
+});
+
+it('hides the resend button while the bot is off', function () {
+    $author = replyManager();
+    $chat = replyThread(manager: $author);
+    replyOwnFailed($chat, $author);
+
+    Livewire::actingAs($author)->test(Show::class, ['telegramUser' => $chat])->assertSeeHtml('data-resend=');
+
+    replyBotSwitch(false);
+
+    Livewire::actingAs($author)->test(Show::class, ['telegramUser' => $chat])->assertDontSeeHtml('data-resend=');
+});
+
+it('keeps the poll cheap: no UPDATE at 0 unread, no manager list or customer query', function () {
+    $user = staffUser(Role::Admin);
+    $customer = Customer::factory()->create();
+    $chat = replyThread(['customer_id' => $customer->id, 'unread_count' => 0]);
+    TelegramMessage::factory()->for($chat)->count(3)->create();
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $component->call('refreshThread');
+    $queries = collect(DB::getQueryLog())->pluck('query');
+    DB::disableQueryLog();
+
+    expect($queries->filter(fn (string $sql) => str_starts_with(strtolower($sql), 'update')))->toBeEmpty()
+        ->and($queries->filter(fn (string $sql) => str_contains($sql, 'model_has_permissions') && str_contains($sql, '"is_active"')))->toBeEmpty()
+        ->and($queries->filter(fn (string $sql) => str_contains($sql, '"customers"') && str_contains($sql, 'like')))->toBeEmpty()
+        ->and($queries->filter(fn (string $sql) => str_contains($sql, '"activities"')))->toBeEmpty()
+        ->and($queries->count())->toBeLessThanOrEqual(12);
+});
 
 it('refuses server-side when delivery cannot happen, for an Admin too (T21-12, T21-25)', function (array $attributes, bool $botOn, ?array $secrets, string $reason) {
     Bus::fake([DeliverBotMessage::class]);
@@ -350,7 +464,7 @@ it('never lets staff retry an ownerless auto-ack, Admin included (T21-13)', func
     expect($row->fresh()->status)->toBe(TelegramMessageStatus::Failed);
     Bus::assertNotDispatched(DeliverBotMessage::class);
 
-    Livewire::actingAs(staffUser(Role::Admin))->test(Show::class, ['telegramUser' => $chat])->assertDontSeeHtml('data-resend');
+    Livewire::actingAs(staffUser(Role::Admin))->test(Show::class, ['telegramUser' => $chat])->assertDontSeeHtml('data-resend=');
 });
 
 it('reclaims only what is failed or old enough', function (TelegramMessageStatus $status, int $minutes, bool $queued) {
@@ -458,7 +572,7 @@ it('hides the buttons from another viewer of the thread', function () {
     $chat = replyThread();
     replyOwnFailed($chat, replyManager());
 
-    Livewire::actingAs(replyManager())->test(Show::class, ['telegramUser' => $chat])->assertDontSeeHtml('data-resend');
+    Livewire::actingAs(replyManager())->test(Show::class, ['telegramUser' => $chat])->assertDontSeeHtml('data-resend=');
 });
 
 it('loads a resend target only through this thread and outbound rows', function () {

@@ -216,6 +216,7 @@ return [
         'mcp' => 'Доступ MCP',
         'catalog' => 'Каталог',
         'telegram_bot' => 'Telegram-бот',
+        'telegram_inbox' => 'Входящие Telegram',
     ],
 
     'audit_action' => [
@@ -240,7 +241,8 @@ return [
         'banned' => 'Заблокирован',
         'unbanned' => 'Блокировка снята',
         'verified' => 'Подтверждено',
-        'retry_forward' => 'Повтор пересылки',
+        'retry_forward' => 'Повтор копирования файла',
+        'linked' => 'Привязано',
     ],
 
     'price_sync_status' => [

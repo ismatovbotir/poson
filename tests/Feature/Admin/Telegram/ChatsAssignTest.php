@@ -139,6 +139,8 @@ it('lists only eligible targets', function () {
     $chat = assignThread();
 
     Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->assertDontSeeHtml('value="'.$active->id.'"')
+        ->set('assignOpen', true)
         ->assertSeeHtml('value="'.$active->id.'"')
         ->assertDontSee('Gone Manager')
         ->assertDontSee('Content Person');

@@ -3,6 +3,8 @@
 namespace App\Actions\Telegram;
 
 use App\Enums\ActivityType;
+use App\Enums\ConversationStatus;
+use App\Enums\Role;
 use App\Enums\TelegramDirection;
 use App\Enums\TelegramMessageKind;
 use App\Enums\TelegramMessageStatus;
@@ -13,6 +15,7 @@ use App\Models\User;
 use App\Services\Telegram\TelegramClient;
 use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -25,10 +28,16 @@ use Illuminate\Support\Facades\RateLimiter;
  * registered, banned, blocked the bot, bot off or no token. Then the per-user
  * atomic limit, shared with ResendTelegramMessage.
  *
- * The first reply on an unassigned conversation assigns it to the actor
+ * A manager's first reply on an unassigned conversation assigns it to them
  * (provisional owner decision) by a conditional update; when that loses to
- * another manager the reply is refused. The stored message is plain text
- * delivered by DeliverBotMessage after commit, which sends no parse_mode.
+ * another manager the reply is refused. An Admin's reply leaves it unassigned.
+ * A reply on a closed conversation reopens it, with an Activity row. The stored
+ * message is plain text delivered by DeliverBotMessage after commit, which sends
+ * no parse_mode.
+ *
+ * Idempotent per token: a repeated submit (double Ctrl+Enter, even as two
+ * serialized requests) within ONCE_SECONDS stores nothing, uses up no limit and
+ * returns null.
  */
 class SendTelegramReply
 {
@@ -43,17 +52,19 @@ class SendTelegramReply
 
     public const LIMIT_KEY = 'telegram-inbox-reply:';
 
+    public const ONCE_SECONDS = 10;
+
     public function __construct(private readonly TelegramClient $client) {}
 
     /**
      * @throws AuthorizationException
      * @throws InboxRefused
      */
-    public function handle(TelegramUser $conversation, User $actor, string $text): TelegramMessage
+    public function handle(TelegramUser $conversation, User $actor, string $text, ?string $token = null): ?TelegramMessage
     {
         $text = $this->clean($text);
 
-        return DB::transaction(function () use ($conversation, $actor, $text): TelegramMessage {
+        return DB::transaction(function () use ($conversation, $actor, $text, $token): ?TelegramMessage {
             $locked = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
 
             Gate::forUser($actor)->authorize('reply', $locked);
@@ -65,7 +76,15 @@ class SendTelegramReply
             }
 
             $this->hitLimit($actor);
+
+            if ($token !== null && ! Cache::add($this->onceKey($locked->id, $actor, $token), true, self::ONCE_SECONDS)) {
+                $this->releaseLimit($actor);
+
+                return null;
+            }
+
             $this->assignOnFirstReply($locked, $actor);
+            $this->reopenIfClosed($locked, $actor);
 
             $message = TelegramMessage::query()->create([
                 'telegram_user_id' => $locked->id,
@@ -112,6 +131,28 @@ class SendTelegramReply
     }
 
     /**
+     * Give back a hit for a call that turned out to do nothing.
+     */
+    public function releaseLimit(User $actor): void
+    {
+        RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
+    }
+
+    /**
+     * Whether this token was already used for a reply: the second of two
+     * serialized submits arrives with the draft already cleared.
+     */
+    public function alreadySent(int $conversationId, User $actor, string $token): bool
+    {
+        return Cache::has($this->onceKey($conversationId, $actor, $token));
+    }
+
+    private function onceKey(int $conversationId, User $actor, string $token): string
+    {
+        return 'telegram-inbox-reply-once:'.$conversationId.':'.$actor->id.':'.sha1($token);
+    }
+
+    /**
      * @throws InboxRefused
      */
     private function clean(string $text): string
@@ -132,7 +173,7 @@ class SendTelegramReply
      */
     private function assignOnFirstReply(TelegramUser $locked, User $actor): void
     {
-        if ($locked->manager_id !== null) {
+        if ($locked->manager_id !== null || $actor->hasRole(Role::Admin)) {
             return;
         }
 
@@ -150,6 +191,25 @@ class SendTelegramReply
             'user_id' => $actor->id,
             'type' => ActivityType::Assignment,
             'meta' => ['action' => 'first_reply', 'from_id' => null, 'to_id' => $actor->id],
+            'created_at' => now(),
+        ]);
+    }
+
+    private function reopenIfClosed(TelegramUser $locked, User $actor): void
+    {
+        $reopened = TelegramUser::query()
+            ->whereKey($locked->id)
+            ->where('conversation_status', ConversationStatus::Closed)
+            ->update(['conversation_status' => ConversationStatus::Open, 'closed_at' => null]);
+
+        if ($reopened !== 1) {
+            return;
+        }
+
+        $locked->activities()->create([
+            'user_id' => $actor->id,
+            'type' => ActivityType::StatusChange,
+            'meta' => ['from' => ConversationStatus::Closed->value, 'to' => ConversationStatus::Open->value, 'via' => 'reply'],
             'created_at' => now(),
         ]);
     }

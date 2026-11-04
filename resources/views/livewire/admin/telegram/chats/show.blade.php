@@ -88,6 +88,8 @@
                                     @if ($replyRefusal === null && $message->isResendable())
                                         @can('resend', [$conversation, $message])
                                             <button type="button" wire:click="resend({{ $message->id }})" @if ($message->status === \App\Enums\TelegramMessageStatus::Sending) wire:confirm="{{ __($t.'.resend.duplicate_warning') }}" @endif wire:loading.attr="disabled" wire:target="resend({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-resend="{{ $message->id }}">{{ $message->status === \App\Enums\TelegramMessageStatus::Sending ? __($t.'.resend.resend') : __($t.'.resend.retry') }}</button>
+                                        @else
+                                            <span class="text-slate-600" data-resend-hint="{{ $message->id }}">{{ __($t.'.resend.only_author', ['name' => $message->user?->name ?? __($t.'.history.someone')]) }}</span>
                                         @endcan
                                     @endif
                                     @if ($stuckRow)
@@ -112,11 +114,19 @@
 
             @can('reply', $conversation)
                 <x-admin.card>
-                    <form wire:submit="sendReply" class="space-y-3" data-reply-box>
+                    {{-- One token per draft: any edit makes a new one, so a repeated Ctrl+Enter is ignored on the server. --}}
+                    <form
+                        x-data="{ token: '', renew() { this.token = Date.now() + '-' + Math.random().toString(36).slice(2) }, send() { this.$wire.sendReply(this.token) } }"
+                        x-init="renew()"
+                        x-on:submit.prevent="send()"
+                        class="space-y-3"
+                        data-reply-box
+                    >
                         <x-admin.textarea
                             wire:model="reply"
-                            wire:keydown.ctrl.enter="sendReply"
-                            wire:keydown.cmd.enter="sendReply"
+                            x-on:input="renew()"
+                            x-on:keydown.ctrl.enter.prevent.throttle.1500ms="send()"
+                            x-on:keydown.cmd.enter.prevent.throttle.1500ms="send()"
                             rows="3"
                             :label="__($t.'.reply.label')"
                             :placeholder="__($t.'.reply.placeholder')"

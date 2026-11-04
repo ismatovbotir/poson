@@ -11,14 +11,20 @@
                         @can('view', $conversation->customer)
                             <a href="{{ route('admin.customers.show', $conversation->customer->id) }}" wire:navigate class="text-brand-700 hover:underline" data-customer-link>{{ $conversation->customer->name }}</a>
                         @else
-                            {{ $conversation->customer->name }}
+                            <span class="text-slate-500" data-customer-hidden>{{ __($t.'.crm.hidden') }}</span>
                         @endcan
                     </dd>
                 </div>
                 @if ($conversation->contact)
                     <div>
                         <dt class="text-slate-500">{{ __($t.'.crm.contact') }}</dt>
-                        <dd class="mt-0.5 break-words font-medium">{{ $conversation->contact->name }}</dd>
+                        <dd class="mt-0.5 break-words font-medium">
+                            @can('view', $conversation->customer)
+                                {{ $conversation->contact->name }}
+                            @else
+                                <span class="text-slate-500" data-contact-hidden>{{ __($t.'.crm.hidden') }}</span>
+                            @endcan
+                        </dd>
                     </div>
                 @endif
             </dl>
@@ -33,6 +39,7 @@
                 <p data-link-unverified><x-admin.badge color="amber">{{ __($t.'.crm.unverified') }}</x-admin.badge></p>
                 @if ($conversation->isRegistered())
                     @can('verifyLink', $conversation)
+                        @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $verifySignal])
                         <x-admin.button variant="secondary" class="w-full" wire:click="verifyLink" wire:confirm="{{ __($t.'.crm.verify_confirm') }}" loading="verifyLink" data-verify-link>{{ __($t.'.crm.verify') }}</x-admin.button>
                     @endcan
                 @endif
@@ -43,13 +50,13 @@
 
         @if ($canLink)
             <div class="space-y-2 border-t border-slate-100 pt-3" data-link-picker>
-                <p class="font-semibold">{{ $conversation->customer_id === null ? __($t.'.crm.link_title') : __($t.'.crm.relink_title') }}</p>
+                <button type="button" wire:click="$toggle('linkOpen')" class="font-semibold text-brand-700 hover:underline" aria-expanded="{{ $linkOpen ? 'true' : 'false' }}" data-link-toggle>{{ $conversation->customer_id === null ? __($t.'.crm.link_title') : __($t.'.crm.relink_title') }}</button>
+                @if ($linkOpen)
                 <x-admin.input wire:model.live.debounce.300ms="customerSearch" type="search" maxlength="100" :label="__($t.'.crm.search')" :placeholder="__($t.'.crm.search_placeholder')" />
                 @if (mb_strlen(trim($customerSearch)) >= 2)
                     @forelse ($customerResults as $result)
                         <button type="button" wire:key="link-customer-{{ $result->id }}" wire:click="chooseCustomer({{ $result->id }})" @class(['block w-full rounded-lg border px-3 py-2 text-left hover:bg-slate-50', 'border-brand-500' => $chosenCustomer?->id === $result->id, 'border-slate-200' => $chosenCustomer?->id !== $result->id]) data-customer-result="{{ $result->id }}">
                             <span class="block truncate font-medium">{{ $result->name }}</span>
-                            @if ($result->phone)<span class="block text-xs text-slate-500">{{ \App\Support\Phone::display($result->phone) }}</span>@endif
                         </button>
                     @empty
                         <p class="text-xs text-slate-500" data-no-customers>{{ __($t.'.crm.no_results') }}</p>
@@ -58,17 +65,19 @@
                 @if ($chosenCustomer)
                     <p class="break-words font-medium" data-chosen-customer>{{ $chosenCustomer->name }}</p>
                     @if ($chosenContacts->isNotEmpty())
-                        <x-admin.select wire:model="linkContactId" :label="__($t.'.crm.contact')" :placeholder="__($t.'.crm.contact_any')">
+                        <x-admin.select wire:model.live="linkContactId" :label="__($t.'.crm.contact')" :placeholder="__($t.'.crm.contact_any')">
                             @foreach ($chosenContacts as $option)
                                 <option value="{{ $option->id }}" wire:key="link-contact-{{ $option->id }}">{{ $option->name }}</option>
                             @endforeach
                         </x-admin.select>
                     @endif
+                    @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $linkSignal])
                     @if ($conversation->customer_id === null)
                         <x-admin.button class="w-full" wire:click="link" loading="link" data-do-link>{{ __($t.'.crm.link') }}</x-admin.button>
                     @else
                         <x-admin.button variant="danger" class="w-full" wire:click="link" wire:confirm="{{ __($t.'.crm.relink_confirm') }}" loading="link" data-do-link>{{ __($t.'.crm.relink') }}</x-admin.button>
                     @endif
+                @endif
                 @endif
             </div>
         @endif

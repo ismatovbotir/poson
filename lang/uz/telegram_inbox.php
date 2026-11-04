@@ -89,6 +89,7 @@ return [
         'retry' => 'Qayta urinish',
         'resend' => 'Yana yuborish',
         'duplicate_warning' => 'Mijoz bu xabarni allaqachon olgan boʻlishi mumkin. Yana yuborilsa, ikki marta yetib borishi mumkin. Davom etasizmi?',
+        'only_author' => 'Buni faqat :name yoki administrator qayta yubora oladi.',
     ],
     'refused' => [
         'unregistered' => 'Tashrifchi roʻyxatdan oʻtishni tugatmagan, shuning uchun bu mavjud emas.',
@@ -99,7 +100,9 @@ return [
         'invalid_text' => 'Xabar boʻsh yoki juda uzun.',
         'taken' => 'Bu suhbatni boshqa menejer olgan.',
         'not_retryable' => 'Bu xabarni qayta yuborib boʻlmaydi.',
-        'forward_not_retryable' => 'Bu faylni hozir qayta yuborib boʻlmaydi. Bir daqiqadan keyin urinib koʻring.',
+        'forward_not_retryable' => 'Bu faylni hozir qayta yuborish shart emas.',
+        'busy' => 'Bu fayl hozirgina qayta yuborildi. Bir daqiqadan keyin urinib koʻring.',
+        'too_many_actions' => 'Amallar juda koʻp. Keyinroq urinib koʻring.',
         'invalid_target' => 'Bu menejerga chat tayinlab boʻlmaydi.',
         'no_customer' => 'Chat mijozga bogʻlanmagan.',
         'invalid_customer' => 'Bu mijoz mavjud emas.',
@@ -108,6 +111,7 @@ return [
     'toasts' => [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
         'resent' => 'Xabar yana yetkazish navbatiga qoʻyildi.',
+        'no_change' => 'Hech narsa oʻzgarmadi.',
         'forward_retried' => 'Fayl yana koʻchirish navbatiga qoʻyildi.',
         'assigned' => 'Chat tayinlandi.',
         'taken' => 'Chat endi sizniki.',
@@ -150,6 +154,12 @@ return [
         'link' => 'Bogʻlash',
         'relink' => 'Bogʻlanishni oʻzgartirish',
         'relink_confirm' => 'Bogʻlanish oʻzgartirilsinmi? Tasdiq bekor qilinadi.',
+        'hidden' => 'Yashirin',
+        'phone_signal' => [
+            'matches' => 'Telefon mijoz yoki kontakt bilan mos keladi',
+            'no_match' => 'Telefon mijoz yoki kontakt bilan mos kelmaydi',
+            'anonymous' => 'Telegram anonim raqami (+888), tekshirib boʻlmaydi',
+        ],
     ],
     'forward_retry' => 'Qayta urinish',
     'forward_lines' => [
@@ -159,6 +169,20 @@ return [
         'not_configured' => 'koʻchirilmadi, chat sozlanmagan',
         'limited' => 'koʻchirilmadi, limitga yetildi',
         'failed' => 'koʻchirilmadi, xatolik',
+    ],
+    'history' => [
+        'title' => 'Tarix',
+        'empty' => 'Hozircha amallar yoʻq.',
+        'someone' => 'Xodim',
+        'first_reply' => ':actor javob berib chatni oldi',
+        'assign' => ':actor chatni tayinladi: :target',
+        'take' => ':actor chatni oldi',
+        'closed' => ':actor chatni yopdi',
+        'reopened' => ':actor chatni qayta ochdi',
+        'link' => ':actor chatni mijozga bogʻladi',
+        'verify_link' => ':actor bogʻlanishni tasdiqladi',
+        'ban' => ':actor mijozni blokladi',
+        'unban' => ':actor blokni olib tashladi',
     ],
 
 ];
