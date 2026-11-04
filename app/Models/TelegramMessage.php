@@ -34,13 +34,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property TelegramForwardStatus|null $forward_status
  * @property int|null $forwarded_message_id
+ * @property int|null $forwarded_chat_id
  * @property int|null $forward_error_code
  * @property int|null $lead_id
  */
 #[Fillable([
     'telegram_user_id', 'direction', 'kind', 'text', 'media', 'media_group_id',
     'telegram_message_id', 'user_id', 'status', 'error_code', 'sent_at',
-    'forward_status', 'forwarded_message_id', 'forward_error_code',
+    'forward_status', 'forwarded_message_id', 'forwarded_chat_id', 'forward_error_code',
 ])]
 class TelegramMessage extends Model
 {
@@ -63,6 +64,7 @@ class TelegramMessage extends Model
             'telegram_message_id' => 'integer',
             'error_code' => 'integer',
             'forwarded_message_id' => 'integer',
+            'forwarded_chat_id' => 'integer',
             'forward_error_code' => 'integer',
             'sent_at' => 'datetime',
         ];

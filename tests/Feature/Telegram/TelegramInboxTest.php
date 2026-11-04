@@ -47,6 +47,7 @@ use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 /**
@@ -1357,4 +1358,47 @@ it('does not alert for an ordinary copy 400 such as a deleted message, only for 
     inboxSend(inboxPhoto(['caption' => 'three']));
 
     expect(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toHaveCount(1);
+});
+
+/* ------------------------------------------- plan 21 B1: forwarded_chat_id */
+
+it('saves the chat of the copy with its message id in the same save (B1)', function () {
+    telegramBotConfigured(['services.telegram.chats.inbox' => INBOX_CHAT]);
+    inboxApi();
+    inboxUser();
+
+    inboxSend(inboxPhoto());
+
+    $row = inboxLastInbound();
+
+    expect($row->forwarded_message_id)->toBe(901)
+        ->and($row->forwarded_chat_id)->toBe((int) INBOX_CHAT)
+        ->and(TelegramMessage::factory()->forwarded()->create(['telegram_user_id' => $row->telegram_user_id])->forwarded_chat_id)->toBeNull();
+});
+
+it('stores no chat id when the 20-digit id would overflow a signed bigint (T21-9)', function () {
+    $overflow = '-99999999999999999999';
+    telegramBotConfigured(['services.telegram.chats.inbox' => $overflow]);
+    inboxApi();
+    inboxUser();
+
+    inboxSend(inboxPhoto());
+
+    $row = inboxLastInbound();
+
+    expect($row->forward_status)->toBe(TelegramForwardStatus::Forwarded)
+        ->and($row->forwarded_message_id)->toBe(901)
+        ->and($row->forwarded_chat_id)->toBeNull();
+});
+
+it('adds forwarded_chat_id by a migration that rolls back cleanly (B1)', function () {
+    $path = 'database/migrations/2026_11_04_085341_add_forwarded_chat_id_to_telegram_messages.php';
+
+    expect(Schema::hasColumn('telegram_messages', 'forwarded_chat_id'))->toBeTrue();
+
+    $this->artisan('migrate:rollback', ['--path' => $path, '--no-interaction' => true])->assertSuccessful();
+    expect(Schema::hasColumn('telegram_messages', 'forwarded_chat_id'))->toBeFalse();
+
+    $this->artisan('migrate', ['--path' => $path, '--no-interaction' => true])->assertSuccessful();
+    expect(Schema::hasColumn('telegram_messages', 'forwarded_chat_id'))->toBeTrue();
 });

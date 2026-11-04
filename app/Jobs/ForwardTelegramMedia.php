@@ -47,7 +47,7 @@ use Throwable;
  *  5. Header (TG-24, B4-S7): a new one unless the last one went to the same
  *     chat less than HEADER_MINUTES ago; saved (id, time, chat) before the copy,
  *     so a retry never repeats it. No buttons until the B5 admin route exists.
- *  6. copyMessage (TG-21, B4-S4): reply to the header, empty reply_markup, an
+ *  6. copyMessage (TG-21, B4-S4; the chat is saved with the copy id in forwarded_chat_id, T21-9): reply to the header, empty reply_markup, an
  *     explicit plain caption ('' when empty) for captioned kinds, none for
  *     sticker / location / video_note.
  *
@@ -249,6 +249,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
         $message->forceFill([
             'forward_status' => TelegramForwardStatus::Forwarded,
             'forwarded_message_id' => $copiedId > 0 ? $copiedId : null,
+            'forwarded_chat_id' => $copiedId > 0 ? $this->storableChatId($chatId) : null,
             'forward_error_code' => null,
         ])->save();
     }
@@ -346,6 +347,15 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
      * Captioned kinds always get an explicit plain caption ('' when empty),
      * so Telegram never copies the original caption or its entities.
      */
+    /**
+     * T21-9: the chat id for the signed bigint column, or null when the
+     * pattern's 20 digits would overflow int64 (a wrong id is worse than none).
+     */
+    private function storableChatId(string $chatId): ?int
+    {
+        return (string) (int) $chatId === $chatId ? (int) $chatId : null;
+    }
+
     private function caption(TelegramMessage $message): ?string
     {
         return $message->kind->hasCaption() ? BotText::caption($message->text) : null;
