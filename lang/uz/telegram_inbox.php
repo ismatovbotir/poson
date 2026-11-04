@@ -112,6 +112,7 @@ return [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
         'resent' => 'Xabar yana yetkazish navbatiga qoʻyildi.',
         'no_change' => 'Hech narsa oʻzgarmadi.',
+        'already_sent' => 'Bu xabar allaqachon yuborilgan.',
         'forward_retried' => 'Fayl yana koʻchirish navbatiga qoʻyildi.',
         'assigned' => 'Chat tayinlandi.',
         'taken' => 'Chat endi sizniki.',
@@ -157,6 +158,7 @@ return [
         'hidden' => 'Yashirin',
         'phone_signal' => [
             'matches' => 'Telefon mijoz yoki kontakt bilan mos keladi',
+            'matches_other' => 'Telefon shu mijozga tegishli, lekin tanlangan kontaktga emas',
             'no_match' => 'Telefon mijoz yoki kontakt bilan mos kelmaydi',
             'anonymous' => 'Telegram anonim raqami (+888), tekshirib boʻlmaydi',
         ],

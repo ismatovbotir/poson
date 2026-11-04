@@ -4,6 +4,7 @@ namespace App\Actions\Telegram;
 
 use App\Enums\ActivityType;
 use App\Enums\AuditAction;
+use App\Enums\Role;
 use App\Enums\SettingsArea;
 use App\Enums\TelegramUserState;
 use App\Models\SettingsAudit;
@@ -17,12 +18,12 @@ use Illuminate\Support\Facades\RateLimiter;
 /**
  * Ban or unban a bot user (plan 21 A4, TG-35, T21-34, T21-35). Policy "ban"
  * (view + telegram.ban) is checked against the row as it is now. A real change
- * counts against the per-user atomic limit, is a conditional update, and writes
+ * counts against the per-user atomic limit (Admins exempt), is a conditional update, and writes
  * the Activity and SettingsAudit rows (no name or text). A repeat that changes
  * nothing uses up no limit.
  *
  * Unbanning a scrubbed row (state Language, not registered: the retention scrub
- * kept it for the ban only) deletes it, so the user returns as a new visitor and
+ * kept it for the ban only) deletes it, unless it has a lead-linked message, so the user returns as a new visitor and
  * is not caught by prune. Unbanning any other row keeps its registration. A
  * banned user's updates are ignored by HandleTelegramUpdate, and nothing is
  * delivered to them.
@@ -70,8 +71,10 @@ class SetConversationBan
                 return false;
             }
 
-            // Atomic: the hit itself decides.
-            if (RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
+            // Admins are exempt, so a spam wave can be handled. Atomic: the hit itself decides.
+            $limited = ! $actor->hasRole(Role::Admin);
+
+            if ($limited && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
                 throw new InboxRefused('too_many_actions');
             }
 
@@ -79,7 +82,9 @@ class SetConversationBan
             $banned ? $query->whereNull('banned_at') : $query->whereNotNull('banned_at');
 
             if ($query->update(['banned_at' => $banned ? now() : null, 'banned_by_id' => $banned ? $actor->id : null]) !== 1) {
-                RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
+                if ($limited) {
+                    RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
+                }
 
                 return false;
             }
@@ -87,7 +92,6 @@ class SetConversationBan
             SettingsAudit::record(SettingsArea::TelegramInbox, 'telegram.conversation.'.$fresh->id, $banned ? AuditAction::Banned : AuditAction::Unbanned, $actor, $ip);
 
             if (! $banned && $this->isScrubbed($fresh)) {
-                $fresh->activities()->delete();
                 $fresh->delete();
 
                 return true;
@@ -106,6 +110,8 @@ class SetConversationBan
 
     private function isScrubbed(TelegramUser $row): bool
     {
-        return $row->state === TelegramUserState::Language && ! $row->isRegistered();
+        return $row->state === TelegramUserState::Language
+            && ! $row->isRegistered()
+            && ! $row->messages()->whereNotNull('lead_id')->exists();
     }
 }

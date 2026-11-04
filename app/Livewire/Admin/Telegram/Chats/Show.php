@@ -136,11 +136,13 @@ class Show extends Component
             attributes: ['reply' => __('telegram_inbox.reply.label')],
         );
 
-        $this->attempt(function () use ($send, $token): bool {
+        $this->attempt(function () use ($send, $token): ?string {
             $sent = $send->handle($this->conversation(), $this->user(), $this->reply, $token ?? 'text-'.sha1($this->reply));
+
+            // Only reached when the message was sent or already had been: a refusal or error keeps the draft.
             $this->reset('reply');
 
-            return $sent !== null;
+            return $sent === null ? 'already_sent' : null;
         }, 'reply_queued');
     }
 
@@ -169,11 +171,7 @@ class Show extends Component
             ->where('direction', TelegramDirection::In)
             ->findOrFail($messageId);
 
-        $this->attempt(function () use ($retry, $message): void {
-            if (! $retry->handle($this->user(), $message, request()->ip())) {
-                throw new InboxRefused('forward_not_retryable');
-            }
-        }, 'forward_retried');
+        $this->attempt(fn () => $retry->handle($this->user(), $message, request()->ip()), 'forward_retried');
     }
 
     public function assign(AssignConversation $assign): void
@@ -293,15 +291,17 @@ class Show extends Component
     }
 
     /**
-     * Run a write and report it. A write returning false changed nothing, so it
-     * gets no success toast. A policy refusal stays a 403. The row is read again
+     * Run a write and report it. A write returning false changed nothing and one
+     * returning a string names its own notice, so neither gets a success toast. A policy refusal stays a 403. The row is read again
      * for the render, because the write may have changed it.
      */
     private function attempt(Closure $write, string $toast): void
     {
         try {
-            if ($write() === false) {
-                $this->dispatch('toast', title: __('telegram_inbox.toasts.no_change'), type: 'info');
+            $result = $write();
+
+            if ($result === false || is_string($result)) {
+                $this->dispatch('toast', title: __('telegram_inbox.toasts.'.(is_string($result) ? $result : 'no_change')), type: 'info');
             } else {
                 $this->dispatch('toast', title: __('admin.toast.done'), body: __('telegram_inbox.toasts.'.$toast), type: 'success');
             }
@@ -328,7 +328,7 @@ class Show extends Component
         $term = trim(mb_substr($this->customerSearch, 0, 100));
 
         $results = $open && mb_strlen($term) >= 2
-            ? Customer::query()->visibleTo($user)->editableBy($user)->search($term)->orderBy('name')->limit(self::LINK_RESULTS)->get(['id', 'name'])
+            ? Customer::query()->visibleTo($user)->editableBy($user)->search($term)->orderBy('name')->limit(self::LINK_RESULTS)->get(['id', 'name', 'phone'])
             : new Collection;
 
         $chosen = $open && $this->linkCustomerId !== null
@@ -345,7 +345,9 @@ class Show extends Component
             'chosenCustomer' => $chosen,
             'chosenContacts' => $contacts,
             'linkSignal' => $chosen !== null ? LinkPhoneSignal::for($conversation->phone, $chosen, $contacts->firstWhere('id', $this->linkContactId)) : null,
-            'verifySignal' => $conversation->customer !== null ? LinkPhoneSignal::for($conversation->phone, $conversation->customer, $conversation->contact) : null,
+            'verifySignal' => $conversation->customer !== null && ! $conversation->isLinkVerified() && $user->can('verifyLink', $conversation)
+                ? LinkPhoneSignal::for($conversation->phone, $conversation->customer, $conversation->contact)
+                : null,
         ];
     }
 

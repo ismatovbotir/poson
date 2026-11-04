@@ -70,6 +70,7 @@ class LinkConversationToCustomer
 
             $fromCustomerId = $locked->customer_id;
             $fromContactId = $locked->contact_id;
+            $accountChangedBefore = $locked->account_changed;
 
             $locked->forceFill([
                 'customer_id' => $customer->id,
@@ -88,6 +89,7 @@ class LinkConversationToCustomer
                     'from_contact_id' => $fromContactId,
                     'customer_id' => $customer->id,
                     'contact_id' => $contact?->id,
+                    'account_changed_before' => $accountChangedBefore,
                     'phone_signal' => LinkPhoneSignal::for($locked->phone, $customer, $contact),
                 ],
                 'created_at' => now(),

@@ -57,13 +57,14 @@
                     @forelse ($customerResults as $result)
                         <button type="button" wire:key="link-customer-{{ $result->id }}" wire:click="chooseCustomer({{ $result->id }})" @class(['block w-full rounded-lg border px-3 py-2 text-left hover:bg-slate-50', 'border-brand-500' => $chosenCustomer?->id === $result->id, 'border-slate-200' => $chosenCustomer?->id !== $result->id]) data-customer-result="{{ $result->id }}">
                             <span class="block truncate font-medium">{{ $result->name }}</span>
+                            <span class="block text-xs text-slate-500" data-customer-tag>#{{ $result->id }}@if ($masked = \App\Support\Phone::maskLastFour($result->phone)) · {{ $masked }}@endif</span>
                         </button>
                     @empty
                         <p class="text-xs text-slate-500" data-no-customers>{{ __($t.'.crm.no_results') }}</p>
                     @endforelse
                 @endif
                 @if ($chosenCustomer)
-                    <p class="break-words font-medium" data-chosen-customer>{{ $chosenCustomer->name }}</p>
+                    <p class="break-words font-medium" data-chosen-customer>{{ $chosenCustomer->name }} <span class="text-xs font-normal text-slate-500" data-customer-tag>#{{ $chosenCustomer->id }}@if ($masked = \App\Support\Phone::maskLastFour($chosenCustomer->phone)) · {{ $masked }}@endif</span></p>
                     @if ($chosenContacts->isNotEmpty())
                         <x-admin.select wire:model.live="linkContactId" :label="__($t.'.crm.contact')" :placeholder="__($t.'.crm.contact_any')">
                             @foreach ($chosenContacts as $option)

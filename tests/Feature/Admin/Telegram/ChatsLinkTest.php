@@ -2,22 +2,29 @@
 
 use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\LinkConversationToCustomer;
+use App\Actions\Telegram\ScrubBannedTelegramUsers;
 use App\Actions\Telegram\SetConversationBan;
 use App\Actions\Telegram\VerifyConversationLink;
 use App\Enums\ActivityType;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
+use App\Enums\TelegramUserState;
 use App\Livewire\Admin\Settings\Integrations;
 use App\Livewire\Admin\Telegram\Bot;
 use App\Livewire\Admin\Telegram\Chats\Index;
 use App\Livewire\Admin\Telegram\Chats\Show;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\SettingsAudit;
+use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Support\Phone;
+use App\Support\Telegram\Bot\LinkPhoneSignal;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
@@ -295,7 +302,7 @@ it('links an unlinked thread by ids only, without verifying or touching the CRM 
         ->and($contact->fresh()->toArray())->toBe($before[1]);
 
     expect($chat->activities()->sole()->meta)->toBe([
-        'action' => 'link', 'from_customer_id' => null, 'from_contact_id' => null, 'customer_id' => $customer->id, 'contact_id' => $contact->id, 'phone_signal' => 'no_match',
+        'action' => 'link', 'from_customer_id' => null, 'from_contact_id' => null, 'customer_id' => $customer->id, 'contact_id' => $contact->id, 'account_changed_before' => false, 'phone_signal' => 'no_match',
     ])->and($chat->activities()->sole()->type)->toBe(ActivityType::StatusChange);
 });
 
@@ -498,4 +505,154 @@ it('renders customer names escaped in the panel and picker', function () {
     $html = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])->html();
 
     expect($html)->not->toContain('<img src=x')->toContain('&lt;img src=x');
+});
+
+/* ---------------------------------------------------------- phone signal */
+
+it('computes the phone signal against the customer and contacts in order', function (Closure $scenario, string $signal) {
+    $customer = Customer::factory()->create(['phone' => '+998901110000']);
+    $mine = Contact::factory()->create(['customer_id' => $customer->id, 'phone' => '+998902220000']);
+    $other = Contact::factory()->create(['customer_id' => $customer->id, 'phone' => '+998903330000']);
+
+    [$phone, $chosen] = $scenario($mine, $other);
+
+    expect(LinkPhoneSignal::for($phone, $customer, $chosen))->toBe($signal);
+})->with([
+    'phone on another contact, none chosen' => [fn ($mine, $other) => ['+998903330000', null], LinkPhoneSignal::MATCHES_OTHER],
+    'phone on another contact, a different one chosen' => [fn ($mine, $other) => ['+998903330000', $mine], LinkPhoneSignal::MATCHES_OTHER],
+    'customer phone, a different contact chosen' => [fn ($mine, $other) => ['+998901110000', $mine], LinkPhoneSignal::MATCHES_OTHER],
+    'customer phone, none chosen' => [fn ($mine, $other) => ['+998901110000', null], LinkPhoneSignal::MATCHES],
+    'chosen contact phone' => [fn ($mine, $other) => ['+998902220000', $mine], LinkPhoneSignal::MATCHES],
+    'unknown phone' => [fn ($mine, $other) => ['+998904440000', $mine], LinkPhoneSignal::NO_MATCH],
+    'anonymous' => [fn ($mine, $other) => ['+88812345678', null], LinkPhoneSignal::ANONYMOUS],
+]);
+
+it('does not query for the verify signal on a poll of a verified thread', function () {
+    $admin = staffUser(Role::Admin);
+    $customer = Customer::factory()->create(['phone' => '+998901110000']);
+    $chat = linkThread(['customer_id' => $customer->id, 'phone' => '+998907770000']);
+    $chat->forceFill(['link_verified_at' => now()])->save();
+    $component = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $component->call('refreshThread');
+    $queries = collect(DB::getQueryLog())->pluck('query');
+    DB::disableQueryLog();
+
+    expect($queries->filter(fn (string $sql) => str_contains($sql, '"contacts"')))->toBeEmpty();
+    $component->assertDontSeeHtml('data-phone-signal');
+});
+
+/* ---------------------------------------------------------------- picker */
+
+it('tells same-name customers apart by id and last 4 digits, without the full number', function () {
+    $user = linkManager();
+    $one = Customer::factory()->create(['name' => 'Twin Company', 'manager_id' => $user->id, 'phone' => '+998901111234']);
+    $two = Customer::factory()->create(['name' => 'Twin Company', 'manager_id' => $user->id, 'phone' => '+998902225678']);
+    $chat = linkThread(manager: $user);
+
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])->set('linkOpen', true)->set('customerSearch', 'twin');
+
+    $component->assertSee('#'.$one->id)->assertSee('#'.$two->id)->assertSee('••••1234')->assertSee('••••5678');
+
+    $component->call('chooseCustomer', $two->id);
+    $html = $component->html();
+    expect(strip_tags(substr($html, (int) strpos($html, 'data-chosen-customer'))))->toContain('#'.$two->id.' · ••••5678');
+
+    foreach ([$component->html(), json_encode($component->snapshot)] as $blob) {
+        foreach (['998901111234', '998902225678', '901111234', '902225678', '(90) 111', '(90) 222'] as $full) {
+            expect($blob)->not->toContain($full);
+        }
+    }
+
+    expect(json_encode($component->snapshot))->not->toContain('1234')->not->toContain('5678');
+});
+
+it('masks nothing it cannot', function () {
+    expect(Phone::maskLastFour(null))->toBeNull()
+        ->and(Phone::maskLastFour('12'))->toBeNull()
+        ->and(Phone::maskLastFour('+998901234567'))->toBe('••••4567');
+});
+
+/* ------------------------------------------------------------ unban delete */
+
+it('deletes a scrubbed row on unban, keeps the audit row and redirects with no 404', function () {
+    $admin = staffUser(Role::Admin);
+    $row = TelegramUser::factory()->create(['state' => TelegramUserState::Language, 'registered_at' => null, 'banned_at' => now()]);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $row])
+        ->call('unban')
+        ->assertRedirect(route('admin.telegram.chats'));
+
+    expect(TelegramUser::query()->whereKey($row->id)->exists())->toBeFalse()
+        ->and(linkAuditRow($row->id)?->action)->toBe(AuditAction::Unbanned);
+});
+
+it('keeps a registered row on unban', function () {
+    $admin = staffUser(Role::Admin);
+    $row = linkThread(['banned_at' => now()]);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $row])->call('unban')->assertNoRedirect();
+
+    expect($row->fresh()->isBanned())->toBeFalse()->and($row->fresh()->isRegistered())->toBeTrue();
+});
+
+it('never deletes a lead-linked thread on unban', function () {
+    $admin = staffUser(Role::Admin);
+    $row = TelegramUser::factory()->create(['state' => TelegramUserState::Language, 'registered_at' => null, 'banned_at' => now()]);
+    $message = TelegramMessage::factory()->for($row)->create();
+    $message->forceFill(['lead_id' => Lead::factory()->create()->id])->save();
+
+    expect(app(SetConversationBan::class)->unban($row, $admin, null))->toBeTrue()
+        ->and($row->fresh())->not->toBeNull()
+        ->and($row->fresh()->isBanned())->toBeFalse();
+});
+
+it('does not let a Sales manager reach an unregistered row to unban it', function () {
+    $sales = linkManager();
+    $row = TelegramUser::factory()->create(['state' => TelegramUserState::Language, 'registered_at' => null, 'banned_at' => now()]);
+
+    expect(fn () => app(SetConversationBan::class)->unban($row, $sales, null))->toThrow(AuthorizationException::class);
+    $this->actingAs($sales)->get(route('admin.telegram.chats.show', $row))->assertForbidden();
+
+    expect(TelegramUser::query()->whereKey($row->id)->exists())->toBeTrue();
+});
+
+it('exempts an Admin from the ban limit', function () {
+    $admin = staffUser(Role::Admin);
+    $chat = linkThread();
+    $bans = app(SetConversationBan::class);
+
+    foreach (range(1, SetConversationBan::PER_HOUR + 2) as $i) {
+        expect($i % 2 === 1 ? $bans->ban($chat, $admin, null) : $bans->unban($chat, $admin, null))->toBeTrue();
+    }
+});
+
+it('lets a scrubbed user come back as a new visitor after an unban, end to end', function () {
+    $admin = staffUser(Role::Admin);
+    $row = linkThread(['telegram_id' => 5550077, 'banned_at' => now()->subMonths(13), 'last_message_at' => now()->subMonths(13), 'phone' => '+998901112233']);
+    TelegramUser::query()->whereKey($row->id)->update(['created_at' => now()->subMonths(14)]);
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(1);
+
+    $scrubbed = $row->fresh();
+    expect($scrubbed->state)->toBe(TelegramUserState::Language)
+        ->and($scrubbed->isRegistered())->toBeFalse()
+        ->and($scrubbed->isBanned())->toBeTrue()
+        ->and($scrubbed->phone)->toBeNull();
+
+    expect(app(SetConversationBan::class)->unban($scrubbed, $admin, null))->toBeTrue()
+        ->and(TelegramUser::query()->where('telegram_id', 5550077)->exists())->toBeFalse();
+});
+
+it('keeps banned rows out of prunable()', function () {
+    $old = now()->subMonths(13);
+    $banned = TelegramUser::factory()->create(['banned_at' => $old]);
+    $free = TelegramUser::factory()->create();
+    TelegramUser::query()->whereKey([$banned->id, $free->id])->update(['created_at' => $old]);
+
+    $ids = (new TelegramUser)->prunable()->pluck('id')->all();
+
+    expect($ids)->toContain($free->id)->not->toContain($banned->id);
 });

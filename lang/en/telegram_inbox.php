@@ -112,6 +112,7 @@ return [
         'reply_queued' => 'The reply is queued for delivery.',
         'resent' => 'The message is queued for delivery again.',
         'no_change' => 'Nothing changed.',
+        'already_sent' => 'This message was already sent.',
         'forward_retried' => 'The file is queued for copying again.',
         'assigned' => 'The chat is assigned.',
         'taken' => 'The chat is now yours.',
@@ -157,6 +158,7 @@ return [
         'hidden' => 'Hidden',
         'phone_signal' => [
             'matches' => 'Phone matches the customer or contact',
+            'matches_other' => 'Phone belongs to this customer, but not the chosen contact',
             'no_match' => 'Phone does not match the customer or contact',
             'anonymous' => 'Anonymous Telegram number (+888), cannot be checked',
         ],

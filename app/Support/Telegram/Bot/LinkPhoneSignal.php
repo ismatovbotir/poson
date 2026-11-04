@@ -18,6 +18,11 @@ final class LinkPhoneSignal
 {
     public const MATCHES = 'matches';
 
+    /**
+     * The phone belongs to this customer, but not to the chosen contact.
+     */
+    public const MATCHES_OTHER = 'matches_other';
+
     public const NO_MATCH = 'no_match';
 
     public const ANONYMOUS = 'anonymous';
@@ -34,8 +39,14 @@ final class LinkPhoneSignal
             return self::NO_MATCH;
         }
 
-        return in_array($normalized, [Phone::normalizeAny($customer->phone), Phone::normalizeAny($contact?->phone)], true)
-            ? self::MATCHES
+        $onCustomer = Phone::normalizeAny($customer->phone) === $normalized;
+
+        if ($contact !== null ? Phone::normalizeAny($contact->phone) === $normalized : $onCustomer) {
+            return self::MATCHES;
+        }
+
+        return $onCustomer || Contact::query()->where('customer_id', $customer->id)->matchingPhone($normalized)->exists()
+            ? self::MATCHES_OTHER
             : self::NO_MATCH;
     }
 }

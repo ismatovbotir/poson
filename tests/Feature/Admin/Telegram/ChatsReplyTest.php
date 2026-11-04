@@ -221,6 +221,70 @@ it('sends one message for two sendReply calls with the same token, and a repeat 
     expect(TelegramMessage::query()->count())->toBe(3);
 });
 
+it('keeps the draft on a failure after the claim point, and an immediate retry sends exactly one', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])->set('reply', 'important text');
+
+    TelegramMessage::creating(function (): void {
+        throw new InboxRefused('taken');
+    });
+
+    $component->call('sendReply', 'token-f')->assertDispatched('toast', type: 'error')->assertSet('reply', 'important text');
+    expect(TelegramMessage::query()->count())->toBe(0)
+        ->and((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(0);
+
+    TelegramMessage::flushEventListeners();
+
+    $component->call('sendReply', 'token-f')->assertDispatched('toast', type: 'success')->assertSet('reply', '');
+    expect(TelegramMessage::query()->count())->toBe(1);
+});
+
+it('frees the token after a database error too', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $action = app(SendTelegramReply::class);
+
+    TelegramMessage::creating(function (): void {
+        throw new RuntimeException('database down');
+    });
+
+    expect(fn () => $action->handle($chat, $user, 'text', 'token-d'))->toThrow(RuntimeException::class);
+    TelegramMessage::flushEventListeners();
+
+    expect($action->handle($chat, $user, 'text', 'token-d'))->not->toBeNull()
+        ->and($action->handle($chat, $user, 'text', 'token-d'))->toBeNull()
+        ->and(TelegramMessage::query()->count())->toBe(1);
+});
+
+it('sends a different text with a reused token', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
+
+    $component->set('reply', 'first text')->call('sendReply', 'token-r');
+    $component->set('reply', 'second text')->call('sendReply', 'token-r')->assertSet('reply', '');
+
+    expect(TelegramMessage::query()->pluck('text')->all())->toBe(['first text', 'second text']);
+});
+
+it('tells the user a true duplicate was already sent', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
+
+    $component->set('reply', 'same text')->call('sendReply', 'token-t');
+    $component->set('reply', 'same text')->call('sendReply', 'token-t')
+        ->assertDispatched('toast', title: __('telegram_inbox.toasts.already_sent'), type: 'info')
+        ->assertSet('reply', '');
+
+    expect(TelegramMessage::query()->count())->toBe(1);
+});
+
 it('ignores a repeated submit with no token within the window', function () {
     Bus::fake([DeliverBotMessage::class]);
     $user = replyManager();

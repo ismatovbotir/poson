@@ -125,6 +125,8 @@
                         <x-admin.textarea
                             wire:model="reply"
                             x-on:input="renew()"
+                            x-on:change="renew()"
+                            x-on:paste="renew()"
                             x-on:keydown.ctrl.enter.prevent.throttle.1500ms="send()"
                             x-on:keydown.cmd.enter.prevent.throttle.1500ms="send()"
                             rows="3"

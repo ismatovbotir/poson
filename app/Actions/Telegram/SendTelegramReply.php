@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 
 /**
  * A staff reply in a bot conversation (plan 14 v2 §9, plan 21 A2, T21-12).
@@ -35,9 +36,11 @@ use Illuminate\Support\Facades\RateLimiter;
  * message is plain text delivered by DeliverBotMessage after commit, which sends
  * no parse_mode.
  *
- * Idempotent per token: a repeated submit (double Ctrl+Enter, even as two
- * serialized requests) within ONCE_SECONDS stores nothing, uses up no limit and
- * returns null.
+ * Idempotent per token: a repeat of the same text with the same token (double
+ * Ctrl+Enter, even as two serialized requests) within ONCE_SECONDS stores
+ * nothing, uses up no limit and returns null. The token is claimed as the last
+ * step under the row lock, holding sha1(text), so a failed attempt can be retried
+ * at once and a different text with a reused token is sent.
  */
 class SendTelegramReply
 {
@@ -57,50 +60,79 @@ class SendTelegramReply
     public function __construct(private readonly TelegramClient $client) {}
 
     /**
+     * @return TelegramMessage|null null: a true duplicate of what was already sent
+     *
      * @throws AuthorizationException
      * @throws InboxRefused
      */
     public function handle(TelegramUser $conversation, User $actor, string $text, ?string $token = null): ?TelegramMessage
     {
         $text = $this->clean($text);
+        $hash = sha1($text);
+        $counted = false;
+        $committed = false;
 
-        return DB::transaction(function () use ($conversation, $actor, $text, $token): ?TelegramMessage {
-            $locked = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
+        try {
+            return DB::transaction(function () use ($conversation, $actor, $text, $token, $hash, &$counted, &$committed): ?TelegramMessage {
+                $locked = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
 
-            Gate::forUser($actor)->authorize('reply', $locked);
+                Gate::forUser($actor)->authorize('reply', $locked);
 
-            $refusal = $this->refusal($locked);
+                $refusal = $this->refusal($locked);
 
-            if ($refusal !== null) {
-                throw new InboxRefused($refusal);
+                if ($refusal !== null) {
+                    throw new InboxRefused($refusal);
+                }
+
+                // Under the row lock, so two submits of one conversation cannot both pass.
+                if ($token !== null && Cache::get($this->onceKey($locked->id, $actor, $token)) === $hash) {
+                    return null;
+                }
+
+                $this->hitLimit($actor);
+                $counted = true;
+
+                $this->assignOnFirstReply($locked, $actor);
+                $this->reopenIfClosed($locked, $actor);
+
+                $message = TelegramMessage::query()->create([
+                    'telegram_user_id' => $locked->id,
+                    'direction' => TelegramDirection::Out,
+                    'kind' => TelegramMessageKind::Text,
+                    'text' => $text,
+                    'user_id' => $actor->id,
+                    'status' => TelegramMessageStatus::Pending,
+                ]);
+
+                TelegramUser::query()->whereKey($locked->id)->update(['last_message_at' => now()]);
+
+                DB::afterCommit(function () use (&$committed): void {
+                    $committed = true;
+                });
+
+                dispatch(new DeliverBotMessage($message->id));
+
+                // Last step: nothing above can leave it claimed. A database cache store rolls back with the
+                // transaction, and any other store is cleared in the catch below if the commit fails.
+                if ($token !== null) {
+                    Cache::put($this->onceKey($locked->id, $actor, $token), $hash, self::ONCE_SECONDS);
+                }
+
+                return $message;
+            });
+        } catch (Throwable $failure) {
+            if (! $committed) {
+                if ($token !== null) {
+                    Cache::forget($this->onceKey((int) $conversation->getKey(), $actor, $token));
+                }
+
+                if ($counted) {
+                    $this->releaseLimit($actor);
+                }
             }
 
-            $this->hitLimit($actor);
-
-            if ($token !== null && ! Cache::add($this->onceKey($locked->id, $actor, $token), true, self::ONCE_SECONDS)) {
-                $this->releaseLimit($actor);
-
-                return null;
-            }
-
-            $this->assignOnFirstReply($locked, $actor);
-            $this->reopenIfClosed($locked, $actor);
-
-            $message = TelegramMessage::query()->create([
-                'telegram_user_id' => $locked->id,
-                'direction' => TelegramDirection::Out,
-                'kind' => TelegramMessageKind::Text,
-                'text' => $text,
-                'user_id' => $actor->id,
-                'status' => TelegramMessageStatus::Pending,
-            ]);
-
-            TelegramUser::query()->whereKey($locked->id)->update(['last_message_at' => now()]);
-
-            dispatch(new DeliverBotMessage($message->id));
-
-            return $message;
-        });
+            throw $failure;
+        }
     }
 
     /**

@@ -602,7 +602,7 @@ final class TelegramStatus
     {
         $users = TelegramUser::query()->toBase()
             ->selectRaw('sum(case when state = ? then 1 else 0 end) as registered', ['registered'])
-            ->selectRaw('sum(case when state <> ? then 1 else 0 end) as registering', ['registered'])
+            ->selectRaw('sum(case when state <> ? and banned_at is null then 1 else 0 end) as registering', ['registered'])
             ->selectRaw('coalesce(sum(unread_count), 0) as unread')
             ->first();
 

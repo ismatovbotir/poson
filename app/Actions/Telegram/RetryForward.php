@@ -73,8 +73,6 @@ class RetryForward
                 throw new InboxRefused('bot_off');
             }
 
-            $this->hitLimits($user, $row);
-
             if ($row->forward_status === TelegramForwardStatus::Sending) {
                 $reclaimed = TelegramMessage::query()
                     ->whereKey($row->id)
@@ -86,6 +84,9 @@ class RetryForward
                     throw new InboxRefused('busy');
                 }
             }
+
+            // Rolled back if a limit refuses; a failed reclaim uses up no token.
+            $this->hitLimits($user, $row);
 
             Cache::forget(ForwardTelegramMedia::capDecisionKey($row->id));
             dispatch(new ForwardTelegramMedia($row->id, $row->telegram_user_id));

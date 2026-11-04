@@ -186,7 +186,7 @@ it('shows and records the phone signal on link and verify without rendering the 
         }
     }
 })->with([
-    'customer phone matches' => ['+998901234567', '+998901234567', '+998905550000', 'matches'],
+    'customer phone, a different contact chosen' => ['+998901234567', '+998901234567', '+998905550000', 'matches_other'],
     'contact phone matches' => ['+998901234567', '+998907776655', '+998901234567', 'matches'],
     'no match' => ['+998901234567', '+998907776655', '+998905550000', 'no_match'],
     'anonymous +888' => ['+88801234567', '+88801234567', '+88801234567', 'anonymous'],
