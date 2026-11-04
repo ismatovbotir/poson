@@ -76,6 +76,8 @@ return [
         'send_telegram_alerts' => 'Оповещения в Telegram',
         'send_lead_to_telegram' => 'Оповещение о новой заявке',
         'notify_finance_of_price_sync_issues' => 'Оповещение о синхронизации цен',
+        'send_telegram_inbox_alert' => 'Оповещение о сообщении клиента',
+        'forward_telegram_media' => 'Копирование файла клиента',
     ],
 
     'confirm' => [

@@ -1200,6 +1200,7 @@ return [
                 'telegram_chats_management' => 'Management chat',
                 'telegram_chats_inbox' => 'Inbox chat',
                 'telegram_notify_new_leads' => 'New lead alerts',
+                'telegram_notify_inbox' => 'Bot message alerts',
                 'telegram_notify_price_sync' => 'Price sync problem alerts',
                 'telegram_locale' => 'Language of Telegram messages',
                 'payme_merchant_id' => 'Merchant ID',
@@ -1229,8 +1230,9 @@ return [
                 'telegram_chats_service' => 'Service requests. A number like -1001234567890 or @channel.',
                 'telegram_chats_finance' => 'Payments and price sync problems. A number like -1001234567890 or @channel.',
                 'telegram_chats_management' => 'MCP (Claude) access alerts: tokens, new IP or client, revokes. Only for the CEO / management. A number like -1001234567890 or @channel.',
-                'telegram_chats_inbox' => 'Customer files from the Telegram bot. If empty, the sales chat is used. A number like -1001234567890 or @channel.',
+                'telegram_chats_inbox' => 'Customer files and message alerts from the Telegram bot. If empty, the sales chat is used. Private groups only: a number like -1001234567890 (public groups and @channels are refused).',
                 'telegram_notify_new_leads' => 'Send every new lead to the sales chat, and service requests to the service chat.',
+                'telegram_notify_inbox' => 'When a customer writes to the bot, a short alert goes to the inbox chat (or the sales chat), at most once per conversation every 10 minutes.',
                 'telegram_notify_price_sync' => 'Send a message to the finance chat when a 1C price batch has unknown or invalid codes or is rejected.',
                 'telegram_locale' => 'Lead alerts and test messages are written in this language.',
                 'payme_merchant_id' => 'Payme merchant cabinet → Cashbox → ID (24 characters).',
@@ -1457,7 +1459,7 @@ return [
     // Plan 14 v2 B2: Telegram → Bot page.
     'telegram_bot' => [
         'title' => 'Telegram bot',
-        'subtitle' => 'Bot setup: checklist, webhook, commands and the on/off switch.',
+        'subtitle' => 'Bot setup: checklist, webhook and the on/off switch.',
         'loading' => 'Loading bot data from Telegram…',
         'checking' => 'Checking with Telegram…',
         'problem_hints' => [
@@ -1488,7 +1490,7 @@ return [
             'webhook_secret' => 'Webhook secret is set',
             'app_url' => 'Site address (APP_URL) is public https',
             'webhook' => 'Webhook points to this site',
-            'chat' => 'Sales chat or inbox chat is set',
+            'chat' => 'Inbox chat (or sales chat) ID format OK (the group itself is not verified yet)',
             'privacy' => 'Privacy policy page is active and reviewed',
         ],
         'checks_fix' => [
@@ -1496,7 +1498,7 @@ return [
             'webhook_secret' => 'Settings → Integrations → Telegram: generate the webhook secret.',
             'app_url' => 'Set APP_URL to the public https address of the site.',
             'webhook' => 'Press "Set webhook" below.',
-            'chat' => 'Settings → Integrations → Telegram: set the sales chat or the inbox chat.',
+            'chat' => 'Settings → Integrations → Telegram: set a private group ID (like -1001234567890) for the inbox chat or the sales chat.',
             'privacy' => 'Content → Pages: publish the privacy page with the Telegram section and clear "needs review".',
         ],
         'webhook_title' => 'Webhook',
@@ -1513,9 +1515,6 @@ return [
         'set_webhook' => 'Set webhook',
         'delete_webhook' => 'Delete webhook',
         'confirm_delete_webhook' => 'Delete the webhook? The bot stops receiving messages.',
-        'commands_title' => 'Commands',
-        'commands_hint' => 'The command menu customers see, in Uzbek, Russian and English.',
-        'set_commands' => 'Publish commands',
         'audit_title' => 'Recent changes',
         'audit_empty' => 'No changes yet.',
         'console' => 'Console',
@@ -1525,7 +1524,6 @@ return [
             'unchanged' => 'Nothing changed.',
             'webhook_set' => 'Webhook set.',
             'webhook_deleted' => 'Webhook deleted.',
-            'commands_set' => 'Commands published.',
             'webhook_reset_failed' => 'The new secret is saved, but the webhook could not be set again. Open Telegram → Bot and press "Set webhook".',
         ],
         'errors' => [

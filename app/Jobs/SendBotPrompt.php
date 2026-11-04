@@ -28,7 +28,8 @@ use Illuminate\Support\Facades\Log;
  * 429 → released for retry_after; 403 → telegram_users.blocked_at, no
  * retry; 400 / 404 → dropped; 5xx / timeout → backoff 10/60/300/900.
  * Skipped when the row is gone, banned, or the kill switch is off.
- * Answering the callback and clearing old buttons are best effort.
+ * Answering the callback and clearing old buttons are best effort and only
+ * on the first try (a retry after 429 / 5xx only re-sends the prompt).
  * Logs: row id and error code only.
  */
 class SendBotPrompt implements ShouldQueueAfterCommit
@@ -80,11 +81,16 @@ class SendBotPrompt implements ShouldQueueAfterCommit
         }
 
         $chatId = (string) $user->telegram_id;
-        if ($this->callbackQueryId !== null) {
+
+        // Callback answers expire within seconds and buttons were already
+        // cleared on the first try: a retry only re-sends the prompt.
+        $firstTry = $this->attempts() <= 1;
+
+        if ($firstTry && $this->callbackQueryId !== null) {
             $this->bestEffort(fn () => $client->answerCallbackQuery((string) $this->callbackQueryId));
         }
 
-        if ($this->clearMarkupMessageId !== null) {
+        if ($firstTry && $this->clearMarkupMessageId !== null) {
             $this->bestEffort(fn () => $client->editMessageReplyMarkup($chatId, (int) $this->clearMarkupMessageId));
         }
 

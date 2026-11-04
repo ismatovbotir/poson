@@ -16,6 +16,7 @@ use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Livewire\Exceptions\MethodNotFoundException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -143,8 +144,8 @@ it('requires a recent password for every write and changes nothing without it', 
 
     expect(SettingsAudit::query()->count())->toBe(0)
         ->and(BotSwitch::isEnabled())->toBeFalse()
-        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook', 'setMyCommands'])->all())->toBe([]);
-})->with(['enable', 'disable', 'setWebhook', 'deleteWebhook', 'setCommands']);
+        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook'])->all())->toBe([]);
+})->with(['enable', 'disable', 'setWebhook', 'deleteWebhook']);
 
 it('refuses the confirmation once it is older than 15 minutes', function () {
     botPageTelegram();
@@ -236,19 +237,18 @@ it('disables with the password only, even when the checklist fails', function ()
         ->and(SettingsAudit::query()->sole()->action)->toBe(AuditAction::Disabled);
 });
 
-it('sets and deletes the webhook and publishes commands from the page, audited', function () {
+it('sets and deletes the webhook from the page, audited', function () {
     botPageTelegram();
     confirmAdminPassword();
 
     Livewire::actingAs(staffUser())->test(Bot::class)
         ->call('setWebhook')
-        ->call('deleteWebhook')
-        ->call('setCommands');
+        ->call('deleteWebhook');
 
-    expect(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook', 'setMyCommands'])->countBy()->all())
-        ->toBe(['setWebhook' => 1, 'deleteWebhook' => 1, 'setMyCommands' => 4])
+    expect(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook'])->countBy()->all())
+        ->toBe(['setWebhook' => 1, 'deleteWebhook' => 1])
         ->and(SettingsAudit::query()->orderBy('id')->pluck('action')->all())
-        ->toBe([AuditAction::WebhookSet, AuditAction::WebhookDeleted, AuditAction::Updated]);
+        ->toBe([AuditAction::WebhookSet, AuditAction::WebhookDeleted]);
 });
 
 it('locks the displayed state against tampering', function () {
@@ -257,3 +257,29 @@ it('locks the displayed state against tampering', function () {
     Livewire::actingAs(staffUser())->test(Bot::class)
         ->set('checklist', ['privacy' => true]);
 })->throws(CannotUpdateLockedPropertyException::class);
+
+it('no longer exposes the removed setCommands action or its button', function () {
+    botPageTelegram();
+    confirmAdminPassword();
+
+    $component = Livewire::actingAs(staffUser())->test(Bot::class);
+
+    expect(fn () => $component->call('setCommands'))->toThrow(MethodNotFoundException::class);
+
+    $component->assertSeeHtml('data-action="set-webhook"')
+        ->assertDontSeeHtml('data-action="set-commands"');
+
+    expect(SettingsAudit::query()->count())->toBe(0)
+        ->and(collect(telegramApiCalls())->pluck('method')->contains('setMyCommands'))->toBeFalse();
+});
+
+it('still renders a legacy telegram.commands audit row', function () {
+    botPageTelegram();
+    SettingsAudit::factory()->create([
+        'area' => SettingsArea::TelegramBot,
+        'key' => 'telegram.commands',
+        'action' => AuditAction::Updated,
+    ]);
+
+    Livewire::actingAs(staffUser())->test(Bot::class)->assertSee('telegram.commands');
+});

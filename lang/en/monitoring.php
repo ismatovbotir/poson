@@ -76,6 +76,8 @@ return [
         'send_telegram_alerts' => 'Telegram alerts',
         'send_lead_to_telegram' => 'New lead alert',
         'notify_finance_of_price_sync_issues' => 'Price sync alert',
+        'send_telegram_inbox_alert' => 'Inbox text alert',
+        'forward_telegram_media' => 'Customer file copy',
     ],
 
     'confirm' => [

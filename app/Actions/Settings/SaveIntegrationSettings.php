@@ -15,6 +15,7 @@ use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
+use App\Support\Telegram\Bot\InboxChat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -140,6 +141,11 @@ class SaveIntegrationSettings
 
             if ($changed !== []) {
                 DB::afterCommit(fn () => Secrets::flush());
+            }
+
+            // Another inbox / sales chat id: verify the inbox target again (B4-S2).
+            if (array_filter($changed, fn (string $key): bool => str_starts_with($key, 'telegram.chats.')) !== []) {
+                DB::afterCommit(fn () => InboxChat::forget());
             }
 
             $uzqrKeys = array_values(array_filter($changed, fn (string $key): bool => str_starts_with($key, 'uzqr.')));

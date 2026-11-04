@@ -11,7 +11,7 @@ use Throwable;
 /**
  * The one Telegram Bot API client (plan 05c, extended in plan 14 v2 B2):
  * team alerts, the Integrations connection test and the customer bot
- * (messages, callbacks, copies, webhook and commands setup). Plain Http,
+ * (messages, callbacks, copies, webhook setup). Plain Http,
  * TIMEOUT seconds, no retries (queued callers retry). The bot token comes
  * from the Secrets resolver only; every failure is a TelegramException
  * without the URL (condition 18).
@@ -196,24 +196,6 @@ class TelegramClient
     public function getWebhookInfo(): array
     {
         return $this->call('getWebhookInfo', [], get: true);
-    }
-
-    /**
-     * Set the bot's command menu, optionally for one user language.
-     *
-     * @param  list<array{command: string, description: string}>  $commands
-     *
-     * @throws TelegramException
-     */
-    public function setMyCommands(array $commands, ?string $languageCode = null): void
-    {
-        $payload = ['commands' => $commands];
-
-        if ($languageCode !== null) {
-            $payload['language_code'] = $languageCode;
-        }
-
-        $this->callRaw('setMyCommands', $payload);
     }
 
     /**

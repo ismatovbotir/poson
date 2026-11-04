@@ -300,12 +300,12 @@ it('forbids each Bot page method called directly by a role that has no telegram.
 
     expect(BotSwitch::isEnabled())->toBeFalse()
         ->and(SettingsAudit::query()->count())->toBe(0)
-        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook', 'setMyCommands'])->all())->toBe([]);
+        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook'])->all())->toBe([]);
 })->with([
     'content manager' => Role::ContentManager,
     'sales manager' => Role::SalesManager,
     'service engineer' => Role::ServiceEngineer,
-])->with(['refresh', 'enable', 'disable', 'setWebhook', 'deleteWebhook', 'setCommands']);
+])->with(['refresh', 'enable', 'disable', 'setWebhook', 'deleteWebhook']);
 
 it('changes nothing for an admin whose password confirmation is missing, stale or from the future', function (?int $confirmedAt) {
     abuseTelegramWebhookAt();
@@ -317,13 +317,13 @@ it('changes nothing for an admin whose password confirmation is missing, stale o
         confirmAdminPassword(-$confirmedAt);
     }
 
-    foreach (['enable', 'disable', 'setWebhook', 'deleteWebhook', 'setCommands'] as $method) {
+    foreach (['enable', 'disable', 'setWebhook', 'deleteWebhook'] as $method) {
         $component->call($method);
     }
 
     expect(BotSwitch::isEnabled())->toBeTrue()
         ->and(SettingsAudit::query()->count())->toBe(0)
-        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook', 'setMyCommands'])->all())->toBe([]);
+        ->and(collect(telegramApiCalls())->pluck('method')->intersect(['setWebhook', 'deleteWebhook'])->all())->toBe([]);
 })->with([
     'never confirmed' => [null],
     'stale' => [-3600],

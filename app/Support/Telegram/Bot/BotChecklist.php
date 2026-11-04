@@ -18,7 +18,9 @@ use App\Support\Secrets;
  *  - webhook_secret: a webhook secret is configured;
  *  - app_url: APP_URL is a public https address;
  *  - webhook: Telegram's webhook URL equals the expected one (getWebhookInfo);
- *  - chat: the sales chat or the inbox chat is set;
+ *  - chat: the inbox target (InboxChat: inbox chat, else sales chat) is a
+ *    numeric group id (^-[1-9]\d{0,19}$); the getChat check (private group) runs in
+ *    ForwardTelegramMedia / the inbox alert, cached (B4-S1/S2);
  *  - privacy: the privacy page exists, is active and no longer needs review.
  */
 final class BotChecklist
@@ -54,7 +56,7 @@ final class BotChecklist
             'webhook_secret' => Secrets::isConfigured('telegram.webhook_secret'),
             'app_url' => ConfigureTelegramWebhook::expectedUrl() !== null && IntegrationRegistry::webhooksArePublic(),
             'webhook' => null,
-            'chat' => Secrets::isConfigured('telegram.chats.sales') || Secrets::isConfigured('telegram.chats.inbox'),
+            'chat' => InboxChat::id() !== null,
             'privacy' => Page::query()->where('slug', self::PRIVACY_SLUG)->where('is_active', true)->where('needs_review', false)->exists(),
         ];
     }

@@ -8,6 +8,7 @@ use App\Enums\TelegramMessageKind;
 use App\Enums\TelegramMessageStatus;
 use Database\Factories\TelegramMessageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,6 +66,26 @@ class TelegramMessage extends Model
             'forward_error_code' => 'integer',
             'sent_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A claimed send or forward older than this many minutes is "stuck" (the
+     * worker died mid-call); only an explicit staff retry reclaims it.
+     */
+    public const STUCK_MINUTES = 10;
+
+    /**
+     * Rows left in "sending" (delivery or forward) for more than STUCK_MINUTES
+     * (B4-S11c), for the inbox (B5) and RetryForward.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeStuck(Builder $query): void
+    {
+        $query->where('telegram_messages.updated_at', '<', now()->subMinutes(self::STUCK_MINUTES))
+            ->where(fn (Builder $inner) => $inner
+                ->where('telegram_messages.status', TelegramMessageStatus::Sending)
+                ->orWhere('telegram_messages.forward_status', TelegramForwardStatus::Sending));
     }
 
     /**

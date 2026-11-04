@@ -50,18 +50,18 @@ return [
     ],
 
     // Registration finished.
-    'welcome' => 'Rahmat, :name! 👋 Roʻyxatdan oʻtish yakunlandi. Poson jamoasi uskunani tanlash, sozlash, kafolat va servis boʻyicha yordam beradi. Savolingizni shu yerda yozing — menejer javob beradi.',
+    'welcome' => 'Rahmat, :name! 👋 Roʻyxatdan oʻtish yakunlandi. Poson jamoasi uskunani tanlash, sozlash, kafolat va servis boʻyicha yordam beradi. Savolingizni shu yerda yozing — u jamoamizga yetib boradi.',
 
     'menu' => [
         'main' => 'Asosiy menyu. Savolingizni yozing yoki quyidagi tugmalardan foydalaning.',
         'contact_manager' => 'Menejer bilan bogʻlanish',
         'catalog' => 'Katalog',
         'language' => 'Til',
-        'contact_manager_reply' => 'Savolingizni shu yerda yozing, menejer ish vaqtida javob beradi.',
+        'contact_manager_reply' => 'Savolingizni shu yerda yozing — u jamoamizga yetib boradi.',
         'catalog_reply' => 'Uskunalar katalogi: :url',
     ],
 
-    'help' => 'Bu Poson rasmiy boti. Shtrix-kod skanerlari, printerlar, TSD va POS uskunalari boʻyicha menejerga savol yozishingiz, katalogni ochishingiz va tilni oʻzgartirishingiz mumkin. Savolingizni shu yerda yozing.',
+    'help' => 'Bu Poson rasmiy boti. Shtrix-kod skanerlari, printerlar, TSD va POS uskunalari boʻyicha savol yozishingiz, katalogni ochishingiz va tilni oʻzgartirishingiz mumkin. Savolingizni shu yerda yozing.',
 
     // Free text/media before registration is done.
     'registration' => [
@@ -75,9 +75,9 @@ return [
         'back' => 'Orqaga',
     ],
 
-    // Used later by the inbox (auto-ack at most once per 30 min).
+    // Inbox (StoreInboundMessage): auto-ack at most once per 30 min; "unsupported" at most once per 10 min.
     'inbox' => [
-        'auto_ack' => 'Rahmat, xabaringiz qabul qilindi. Menejer tez orada javob beradi.',
+        'auto_ack' => 'Rahmat, xabaringiz qabul qilindi.',
         'unsupported' => 'Iltimos, matn, rasm yoki hujjat yuboring.',
     ],
 ];

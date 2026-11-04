@@ -138,19 +138,6 @@
             </div>
         </x-admin.card>
 
-        {{-- Commands --}}
-        <x-admin.card :title="__($t.'.commands_title')" :description="__($t.'.commands_hint')">
-            <ul class="space-y-1 text-sm">
-                @foreach (\App\Actions\Telegram\SetBotCommands::commandsFor(app()->getLocale()) as $command)
-                    <li wire:key="command-{{ $command['command'] }}"><span class="font-mono">/{{ $command['command'] }}</span> <span class="text-slate-500">— {{ $command['description'] }}</span></li>
-                @endforeach
-            </ul>
-
-            <div class="mt-5 border-t border-slate-100 pt-4">
-                <x-admin.button variant="soft" icon="list" wire:click="setCommands" loading="setCommands" data-action="set-commands">{{ __($t.'.set_commands') }}</x-admin.button>
-            </div>
-        </x-admin.card>
-
         {{-- Audit --}}
         <x-admin.card :title="__($t.'.audit_title')">
             @if ($audits->isEmpty())

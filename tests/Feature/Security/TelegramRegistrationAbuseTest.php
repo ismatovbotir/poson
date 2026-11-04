@@ -155,7 +155,9 @@ function abzCaptureLogs(): Closure
             .($exception instanceof Throwable ? $exception->getMessage().get_class($exception) : '');
     });
 
-    return fn (): array => $logged;
+    return function () use (&$logged): array {
+        return $logged;
+    };
 }
 
 /**
@@ -554,7 +556,8 @@ it('case 14: sets blocked_at on 403 and logs no token, phone, chat id or text', 
 
     $all = implode("\n", $logs());
 
-    expect($user->fresh()->blocked_at)->not->toBeNull()
+    expect($logs())->not->toBeEmpty()
+        ->and($user->fresh()->blocked_at)->not->toBeNull()
         ->and($message->fresh()->status)->toBe(TelegramMessageStatus::Failed)
         ->and($all)->not->toContain('AAFakeToken')->not->toContain('api.telegram.org')
         ->not->toContain('998901234567')->not->toContain((string) ABZ_USER)

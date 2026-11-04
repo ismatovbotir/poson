@@ -120,6 +120,15 @@ return [
         'open' => 'Open MCP access',
     ],
 
+    // Plan 14 v2 B4: customer bot inbox (header of copied files, new-message alert). Never phone, INN or company.
+    'inbox' => [
+        'customer' => 'Customer:',
+        'chat' => 'Telegram chat #:id',
+        'unnamed' => 'no name',
+        'alert_title' => 'New message in the Telegram bot',
+        'open_in_admin' => 'Open in admin',
+    ],
+
     'monitoring' => [
         'events' => [
             'cron_dead' => 'Scheduler is not running',
@@ -130,6 +139,7 @@ return [
             'telegram_webhook' => 'Telegram bot webhook problem',
             'telegram_token' => 'Telegram refuses the bot token (401)',
             'telegram_customer_cap' => 'Hourly limit of new customers from the Telegram bot reached (registrations stay unlinked)',
+            'telegram_forward' => 'The Telegram bot cannot copy customer files to the chat',
         ],
         'recovered' => [
             'cron_dead' => 'Scheduler is running again',
@@ -148,6 +158,14 @@ return [
             'pending' => 'Waiting jobs',
             'limit' => 'Limit per hour',
             'issue' => 'Problem',
+            'reason' => 'Reason',
+        ],
+        // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        'forward_reasons' => [
+            'lost_target' => 'the bot was removed from the chat or cannot post there (files are not copied)',
+            'refused_target' => 'the chat is public, a channel or was not found (only a private group is accepted)',
+            'conversation_limit' => 'more than 30 files an hour from one conversation',
+            'daily_limit' => 'more than 300 files in a day',
         ],
         // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
         'webhook_issues' => [
@@ -158,12 +176,5 @@ return [
         ],
         'reminder' => 'Still not resolved.',
         'open' => 'Open monitoring',
-    ],
-
-    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
-    'bot_commands' => [
-        'start' => 'Start and register',
-        'language' => 'Change language',
-        'help' => 'Help and contacts',
     ],
 ];

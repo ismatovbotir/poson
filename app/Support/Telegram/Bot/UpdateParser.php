@@ -15,7 +15,11 @@ use App\Enums\TelegramMessageKind;
  * - Never keeps a file_id / file_unique_id or a vcard (D9, condition 5):
  *   media are reduced to their kind and size / type / duration params.
  * - Messages sent via an inline bot or carrying buttons, stories, giveaways
- *   and paid media are kind "other" (TG-22).
+ *   and paid media are kind "other" (TG-22), and so are venues (they also
+ *   carry a location, but a title / address the copy would repeat verbatim).
+ * - file_name is reduced to its base name without format (bidi, zero-width)
+ *   characters; mime_type is kept only when it looks like type/subtype
+ *   (B4-S5); media_group_id only when it is a short token.
  */
 final readonly class UpdateParser
 {
@@ -53,12 +57,16 @@ final readonly class UpdateParser
     /**
      * Message keys that always make the message "other" (TG-22).
      */
-    private const OTHER_MARKERS = ['via_bot', 'reply_markup', 'story', 'giveaway', 'giveaway_winners', 'paid_media'];
+    private const OTHER_MARKERS = ['via_bot', 'reply_markup', 'story', 'giveaway', 'giveaway_winners', 'paid_media', 'venue'];
 
     /**
      * Media params kept (never file_id / file_unique_id / thumbnails).
      */
     private const MEDIA_PARAMS = ['file_size', 'mime_type', 'file_name', 'duration', 'width', 'height'];
+
+    public const MIME_PATTERN = '/^[\w.+-]+\/[\w.+-]+$/D';
+
+    public const FILE_NAME_LIMIT = 255;
 
     /**
      * @param  array<string, int|string>  $media  Safe media params (see MEDIA_PARAMS)
@@ -84,6 +92,7 @@ final readonly class UpdateParser
         public ?string $callbackQueryId = null,
         public ?string $callbackData = null,
         public ?string $memberStatus = null,
+        public ?string $mediaGroupId = null,
     ) {}
 
     /**
@@ -149,6 +158,7 @@ final readonly class UpdateParser
             isForwarded: isset($message['forward_origin']) || isset($message['forward_from']) || isset($message['forward_date']),
             contactPhone: self::string($contact['phone_number'] ?? null, 32),
             contactUserId: is_int($contact['user_id'] ?? null) ? $contact['user_id'] : null,
+            mediaGroupId: is_string($message['media_group_id'] ?? null) && preg_match('/^[\w-]{1,32}$/D', $message['media_group_id']) === 1 ? $message['media_group_id'] : null,
         );
     }
 
@@ -237,14 +247,44 @@ final readonly class UpdateParser
         foreach (self::MEDIA_PARAMS as $param) {
             $value = $item[$param] ?? null;
 
-            if (is_int($value) && $value >= 0) {
-                $params[$param] = $value;
-            } elseif (is_string($value) && ($clean = self::string($value, $param === 'file_name' ? 255 : 100)) !== null) {
+            $clean = match (true) {
+                is_int($value) => $value >= 0 && ! in_array($param, ['mime_type', 'file_name'], true) ? $value : null,
+                ! is_string($value) => null,
+                $param === 'file_name' => self::fileName($value),
+                $param === 'mime_type' => self::mimeType($value),
+                default => null,
+            };
+
+            if ($clean !== null) {
                 $params[$param] = $clean;
             }
         }
 
         return $params;
+    }
+
+    /**
+     * Base name only (no "../", no folders), format characters (bidi
+     * overrides, zero-width) removed, ≤ FILE_NAME_LIMIT; null when nothing is left.
+     */
+    private static function fileName(string $value): ?string
+    {
+        if (! mb_check_encoding($value, 'UTF-8')) {
+            return null;
+        }
+
+        $value = (string) preg_replace('/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u', '', $value);
+        $parts = preg_split('#[/\\\\]#', $value) ?: [];
+        $name = trim((string) end($parts));
+
+        return $name === '' || $name === '.' || $name === '..' ? null : mb_substr($name, 0, self::FILE_NAME_LIMIT);
+    }
+
+    private static function mimeType(string $value): ?string
+    {
+        $value = strtolower(trim($value));
+
+        return strlen($value) <= 100 && preg_match(self::MIME_PATTERN, $value) === 1 ? $value : null;
     }
 
     /**

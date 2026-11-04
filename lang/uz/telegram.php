@@ -120,6 +120,15 @@ return [
         'open' => 'MCP kirishni ochish',
     ],
 
+    // Plan 14 v2 B4: customer bot inbox (header of copied files, new-message alert). Never phone, INN or company.
+    'inbox' => [
+        'customer' => 'Mijoz:',
+        'chat' => 'Telegram suhbat #:id',
+        'unnamed' => 'ismsiz',
+        'alert_title' => 'Telegram botda yangi xabar',
+        'open_in_admin' => 'Admin panelda ochish',
+    ],
+
     'monitoring' => [
         'events' => [
             'cron_dead' => 'Rejalashtiruvchi ishlamayapti',
@@ -130,6 +139,7 @@ return [
             'telegram_webhook' => 'Telegram bot webhookida muammo',
             'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',
             'telegram_customer_cap' => 'Telegram botdan yangi mijozlar soatlik limiti oshdi (roʻyxatdan oʻtganlar CRMga bogʻlanmadi)',
+            'telegram_forward' => 'Telegram bot mijoz fayllarini chatga yubora olmayapti',
         ],
         'recovered' => [
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
@@ -148,6 +158,14 @@ return [
             'pending' => 'Navbatdagi vazifalar',
             'limit' => 'Soatlik limit',
             'issue' => 'Muammo',
+            'reason' => 'Sabab',
+        ],
+        // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        'forward_reasons' => [
+            'lost_target' => 'bot chatdan chiqarilgan yoki unda yozish huquqi yoʻq (fayllar yuborilmayapti)',
+            'refused_target' => 'chat ochiq guruh, kanal yoki topilmadi (faqat yopiq guruh qabul qilinadi)',
+            'conversation_limit' => 'bitta suhbatdan soatiga 30 tadan ortiq fayl',
+            'daily_limit' => 'bir kunda 300 tadan ortiq fayl',
         ],
         // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
         'webhook_issues' => [
@@ -158,12 +176,5 @@ return [
         ],
         'reminder' => 'Muammo hali bartaraf etilmagan.',
         'open' => 'Monitoringni ochish',
-    ],
-
-    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
-    'bot_commands' => [
-        'start' => 'Boshlash va roʻyxatdan oʻtish',
-        'language' => 'Tilni oʻzgartirish',
-        'help' => 'Yordam va aloqa',
     ],
 ];

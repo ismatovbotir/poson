@@ -120,6 +120,15 @@ return [
         'open' => 'Открыть доступ MCP',
     ],
 
+    // Plan 14 v2 B4: customer bot inbox (header of copied files, new-message alert). Never phone, INN or company.
+    'inbox' => [
+        'customer' => 'Клиент:',
+        'chat' => 'Диалог Telegram #:id',
+        'unnamed' => 'без имени',
+        'alert_title' => 'Новое сообщение в Telegram-боте',
+        'open_in_admin' => 'Открыть в админке',
+    ],
+
     'monitoring' => [
         'events' => [
             'cron_dead' => 'Планировщик не работает',
@@ -130,6 +139,7 @@ return [
             'telegram_webhook' => 'Проблема с вебхуком Telegram-бота',
             'telegram_token' => 'Telegram не принимает токен бота (401)',
             'telegram_customer_cap' => 'Превышен часовой лимит новых клиентов из Telegram-бота (регистрации не привязаны к CRM)',
+            'telegram_forward' => 'Telegram-бот не может переслать файлы клиентов в чат',
         ],
         'recovered' => [
             'cron_dead' => 'Планировщик снова работает',
@@ -148,6 +158,14 @@ return [
             'pending' => 'Задач в очереди',
             'limit' => 'Лимит в час',
             'issue' => 'Проблема',
+            'reason' => 'Причина',
+        ],
+        // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        'forward_reasons' => [
+            'lost_target' => 'бот удалён из чата или не может в нём писать (файлы не пересылаются)',
+            'refused_target' => 'чат публичный, это канал или он не найден (принимается только закрытая группа)',
+            'conversation_limit' => 'больше 30 файлов в час из одного диалога',
+            'daily_limit' => 'больше 300 файлов за день',
         ],
         // Plan 14 v2 TG-38: telegram:check-webhook issue names (never the URL or Telegram's error text).
         'webhook_issues' => [
@@ -158,12 +176,5 @@ return [
         ],
         'reminder' => 'Проблема всё ещё не устранена.',
         'open' => 'Открыть мониторинг',
-    ],
-
-    // Plan 14 v2: the bot's command menu (setMyCommands, per language).
-    'bot_commands' => [
-        'start' => 'Начать и зарегистрироваться',
-        'language' => 'Сменить язык',
-        'help' => 'Помощь и контакты',
     ],
 ];

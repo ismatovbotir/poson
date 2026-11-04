@@ -50,18 +50,18 @@ return [
     ],
 
     // Registration finished.
-    'welcome' => 'Thank you, :name! 👋 Registration is complete. The Poson team helps you choose equipment, set it up, and look after warranty and service. Just write your question here and a manager will answer.',
+    'welcome' => 'Thank you, :name! 👋 Registration is complete. The Poson team helps you choose equipment, set it up, and look after warranty and service. Just write your question here and it will reach our team.',
 
     'menu' => [
         'main' => 'Main menu. Type your question or use the buttons below.',
         'contact_manager' => 'Contact a manager',
         'catalog' => 'Catalog',
         'language' => 'Language',
-        'contact_manager_reply' => 'Write your question here, and a manager will answer during working hours.',
+        'contact_manager_reply' => 'Write your question here and it will reach our team.',
         'catalog_reply' => 'Equipment catalog: :url',
     ],
 
-    'help' => 'This is the official Poson bot. You can ask a manager about barcode scanners, printers, mobile computers and POS equipment, open the catalog and change the language. Just write your question here.',
+    'help' => 'This is the official Poson bot. You can send your question about barcode scanners, printers, mobile computers and POS equipment, open the catalog and change the language. Just write your question here.',
 
     // Free text/media before registration is done.
     'registration' => [
@@ -75,9 +75,9 @@ return [
         'back' => 'Back',
     ],
 
-    // Used later by the inbox (auto-ack at most once per 30 min).
+    // Inbox (StoreInboundMessage): auto-ack at most once per 30 min; "unsupported" at most once per 10 min.
     'inbox' => [
-        'auto_ack' => 'Thank you, we received your message. A manager will reply soon.',
+        'auto_ack' => 'Thanks, we have received your message.',
         'unsupported' => 'Please send text, a photo or a document.',
     ],
 ];

@@ -1200,6 +1200,7 @@ return [
                 'telegram_chats_management' => 'Rahbariyat chati',
                 'telegram_chats_inbox' => 'Kiruvchi xabarlar chati',
                 'telegram_notify_new_leads' => 'Yangi murojaatlar haqida bildirishnomalar',
+                'telegram_notify_inbox' => 'Bot xabarlari haqida bildirishnomalar',
                 'telegram_notify_price_sync' => 'Narxlar sinxronizatsiyasidagi muammolar haqida bildirishnomalar',
                 'telegram_locale' => 'Telegram xabarlari tili',
                 'payme_merchant_id' => 'Merchant ID',
@@ -1229,8 +1230,9 @@ return [
                 'telegram_chats_service' => 'Servis murojaatlari. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_finance' => 'Toʻlovlar va narxlar sinxronizatsiyasidagi muammolar. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_management' => 'MCP (Claude) kirish ogohlantirishlari: tokenlar, yangi IP yoki mijoz, bekor qilishlar. Faqat direktor / rahbariyat uchun. -1001234567890 kabi raqam yoki @channel.',
-                'telegram_chats_inbox' => 'Telegram botdan kelgan mijoz fayllari. Boʻsh boʻlsa, sotuv chati ishlatiladi. -1001234567890 kabi raqam yoki @channel.',
+                'telegram_chats_inbox' => 'Telegram botdan kelgan mijoz fayllari va xabarlar haqidagi bildirishnomalar. Boʻsh boʻlsa, sotuv chati ishlatiladi. Faqat yopiq guruh: -1001234567890 kabi raqam (ochiq guruh yoki @kanal qabul qilinmaydi).',
                 'telegram_notify_new_leads' => 'Har bir yangi murojaat sotuv chatiga, servis soʻrovlari esa servis chatiga yuboriladi.',
+                'telegram_notify_inbox' => 'Mijoz botga yozganda kiruvchi xabarlar chatiga (yoki sotuv chatiga) qisqa bildirishnoma yuboriladi, bitta suhbat uchun 10 daqiqada koʻpi bilan bir marta.',
                 'telegram_notify_price_sync' => '1C dan kelgan narx paketida nomaʼlum yoki xato kodlar boʻlsa yoki paket rad etilsa, buxgalteriya chatiga xabar yuboriladi.',
                 'telegram_locale' => 'Murojaat bildirishnomalari va sinov xabarlari shu tilda yoziladi.',
                 'payme_merchant_id' => 'Payme merchant kabineti → Kassa → ID (24 belgi).',
@@ -1457,7 +1459,7 @@ return [
     // Plan 14 v2 B2: Telegram → Bot page.
     'telegram_bot' => [
         'title' => 'Telegram bot',
-        'subtitle' => 'Bot sozlamalari: tekshiruv roʻyxati, webhook, buyruqlar va yoqish.',
+        'subtitle' => 'Bot sozlamalari: tekshiruv roʻyxati, webhook va yoqish.',
         'loading' => 'Bot maʼlumotlari Telegramdan yuklanmoqda…',
         'checking' => 'Telegramda tekshirilmoqda…',
         'problem_hints' => [
@@ -1488,7 +1490,7 @@ return [
             'webhook_secret' => 'Webhook siri kiritilgan',
             'app_url' => 'Sayt manzili (APP_URL) ochiq https',
             'webhook' => 'Webhook shu saytga yoʻnaltirilgan',
-            'chat' => 'Savdo chati yoki kiruvchi xabarlar chati belgilangan',
+            'chat' => 'Kiruvchi xabarlar chati (yoki savdo chati) ID formati toʻgʻri (guruh hali tekshirilmagan)',
             'privacy' => 'Maxfiylik siyosati sahifasi faol va tekshirilgan',
         ],
         'checks_fix' => [
@@ -1496,7 +1498,7 @@ return [
             'webhook_secret' => 'Sozlamalar → Integratsiyalar → Telegram: webhook sirini yarating.',
             'app_url' => 'APP_URLʼda saytning ochiq https manzilini koʻrsating.',
             'webhook' => 'Quyidagi «Webhookni oʻrnatish» tugmasini bosing.',
-            'chat' => 'Sozlamalar → Integratsiyalar → Telegram: savdo chati yoki kiruvchi xabarlar chatini koʻrsating.',
+            'chat' => 'Sozlamalar → Integratsiyalar → Telegram: kiruvchi xabarlar chati yoki savdo chati uchun yopiq guruh IDsini koʻrsating (-1001234567890 kabi).',
             'privacy' => 'Kontent → Sahifalar: Telegram boʻlimi bilan maxfiylik sahifasini eʼlon qiling va «tekshiruv kerak» belgisini olib tashlang.',
         ],
         'webhook_title' => 'Webhook',
@@ -1513,9 +1515,6 @@ return [
         'set_webhook' => 'Webhookni oʻrnatish',
         'delete_webhook' => 'Webhookni oʻchirish',
         'confirm_delete_webhook' => 'Webhook oʻchirilsinmi? Bot xabarlarni qabul qilmay qoʻyadi.',
-        'commands_title' => 'Buyruqlar',
-        'commands_hint' => 'Mijozlar koʻradigan buyruqlar menyusi: oʻzbek, rus va ingliz tillarida.',
-        'set_commands' => 'Buyruqlarni eʼlon qilish',
         'audit_title' => 'Soʻnggi oʻzgarishlar',
         'audit_empty' => 'Hozircha oʻzgarishlar yoʻq.',
         'console' => 'Konsol',
@@ -1525,7 +1524,6 @@ return [
             'unchanged' => 'Hech narsa oʻzgarmadi.',
             'webhook_set' => 'Webhook oʻrnatildi.',
             'webhook_deleted' => 'Webhook oʻchirildi.',
-            'commands_set' => 'Buyruqlar eʼlon qilindi.',
             'webhook_reset_failed' => 'Yangi sir saqlandi, lekin webhookni qayta oʻrnatib boʻlmadi. Telegram → Bot sahifasini oching va «Webhookni oʻrnatish» tugmasini bosing.',
         ],
         'errors' => [

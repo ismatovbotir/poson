@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\RateLimiter;
  *  - bot-created CRM customers: CUSTOMERS_PER_HOUR an hour overall; over it
  *    the registration still completes (identical reply) without a new
  *    customer and the management chat gets one alert an hour.
+ *
+ * The counters are hit inside HandleTelegramUpdate's DB transaction but live
+ * in the cache, so a rolled-back update still counts (B4-S11a, kept on
+ * purpose): a failing update can never be replayed to bypass a limit, and
+ * Telegram does not resend a webhook update that was answered 200.
  */
 final class BotLimits
 {

@@ -168,6 +168,8 @@ final class IntegrationRegistry
             new IntegrationField('telegram.chats.inbox', 'telegram', ['services.telegram.chats.inbox'], 'TELEGRAM_INBOX_CHAT_ID', rules: ['string', 'max:40', 'regex:'.self::TELEGRAM_CHAT]),
             // Plan 05c: new-lead alerts on/off and the language of every Telegram message (decision 2026-10-22: Uzbek).
             new IntegrationField('telegram.notify_new_leads', 'telegram', ['services.telegram.notify_new_leads'], 'TELEGRAM_NOTIFY_NEW_LEADS', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
+            // Plan 14 v2: team-chat alert for new customer messages in the bot inbox (≤ 1 per conversation per 10 min).
+            new IntegrationField('telegram.notify_inbox', 'telegram', ['services.telegram.notify_inbox'], 'TELEGRAM_NOTIFY_INBOX', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
             // Plan 09: finance-chat alert on price API problems (on from launch, decision 2026-10-27).
             new IntegrationField('telegram.notify_price_sync', 'telegram', ['services.telegram.notify_price_sync'], 'TELEGRAM_NOTIFY_PRICE_SYNC', type: IntegrationField::TYPE_BOOL, rules: ['boolean'], default: true),
             new IntegrationField('telegram.locale', 'telegram', ['services.telegram.locale'], 'TELEGRAM_LOCALE', type: IntegrationField::TYPE_SELECT, rules: ['string', Rule::in($locales)], default: 'uz', options: $locales),

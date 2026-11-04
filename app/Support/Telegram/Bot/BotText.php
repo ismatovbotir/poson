@@ -31,7 +31,41 @@ final class BotText
         'help',
         'registration.continue',
         'rate_limited',
+        'inbox.unsupported',
     ];
+
+    /**
+     * Copy-safe caption: control characters except line breaks and format
+     * characters (bidi overrides, zero-width) removed, at most $limit UTF-16
+     * code units (Telegram's caption limit is 1024 of them), trimmed. Line
+     * breaks are kept. Invalid UTF-8 gives an empty string (B4-S4).
+     */
+    public static function caption(?string $value, int $limit = 1024): string
+    {
+        if ($value === null || ! mb_check_encoding($value, 'UTF-8')) {
+            return '';
+        }
+
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+        $value = (string) preg_replace('/[^\P{Cc}\n]/u', '', $value);
+        $value = (string) preg_replace('/[\p{Cf}\p{Zl}\p{Zp}]/u', '', $value);
+        $value = trim($value);
+
+        $units = 0;
+        $kept = '';
+
+        foreach (mb_str_split($value) as $char) {
+            $units += mb_ord($char) > 0xFFFF ? 2 : 1;
+
+            if ($units > $limit) {
+                break;
+            }
+
+            $kept .= $char;
+        }
+
+        return trim($kept);
+    }
 
     public static function isPrompt(string $key): bool
     {

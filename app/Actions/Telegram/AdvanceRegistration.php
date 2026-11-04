@@ -31,7 +31,8 @@ use App\Support\Telegram\Bot\UpdateParser;
  *    zero-width characters removed), INN only after a company, exactly 9
  *    digits. Company and INN can be skipped.
  *  - Free text and media before registration are never stored: the user
- *    gets a re-prompt. Main menu labels are commands, never stored.
+ *    gets a re-prompt. After registration they go to the inbox
+ *    (StoreInboundMessage). Main menu labels are commands, never stored.
  *
  * Every reply is a queued SendBotPrompt (after commit); nothing is sent
  * from here. Replies never depend on CRM data (condition 6).
@@ -44,7 +45,10 @@ class AdvanceRegistration
 
     public const COMPANY_MAX = 160;
 
-    public function __construct(private readonly RegisterTelegramUser $register) {}
+    public function __construct(
+        private readonly RegisterTelegramUser $register,
+        private readonly StoreInboundMessage $inbox,
+    ) {}
 
     public function handle(TelegramUser $user, UpdateParser $update): void
     {
@@ -296,14 +300,13 @@ class AdvanceRegistration
     }
 
     /**
-     * B4 HOOK — registered users' free text and media belong to the inbox
-     * (StoreInboundMessage: store, unread, auto-ack, forward media, staff
-     * alert). Not built in B3: such messages are deliberately ignored here
-     * (nothing stored, nothing sent).
+     * Registered users' free text and media belong to the inbox (B4):
+     * StoreInboundMessage stores them, raises unread, auto-acks, queues the
+     * media forward and the staff alert (all after commit).
      */
     private function registered(TelegramUser $user, UpdateParser $update): void
     {
-        // Intentionally empty until B4 (inbox intake).
+        $this->inbox->handle($user, $update);
     }
 
     /**

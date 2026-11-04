@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\Contracts\TelegramAlert;
+use App\Events\Telegram\TelegramInboxMessage;
 use App\Jobs\SendTelegramMessage;
 use App\Support\Telegram\TelegramLocale;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,6 +22,15 @@ class SendTelegramAlerts implements ShouldQueue
     public bool $afterCommit = true;
 
     public bool $deleteWhenMissingModels = true;
+
+    /**
+     * The customer inbox alert has its own listener with retries
+     * (SendTelegramInboxAlert); this one never handles it.
+     */
+    public function shouldQueue(TelegramAlert $event): bool
+    {
+        return ! $event instanceof TelegramInboxMessage;
+    }
 
     public function handle(TelegramAlert $event): void
     {

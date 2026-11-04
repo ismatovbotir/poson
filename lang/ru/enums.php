@@ -452,6 +452,7 @@ return [
 
     'telegram_forward_status' => [
         'pending' => 'Ожидает',
+        'sending' => 'Отправляется',
         'forwarded' => 'Переслано',
         'not_configured' => 'Не настроено',
         'limited' => 'Лимит',

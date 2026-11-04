@@ -452,6 +452,7 @@ return [
 
     'telegram_forward_status' => [
         'pending' => 'Kutilmoqda',
+        'sending' => 'Yuborilmoqda',
         'forwarded' => 'Yuborilgan',
         'not_configured' => 'Sozlanmagan',
         'limited' => 'Limitga yetgan',

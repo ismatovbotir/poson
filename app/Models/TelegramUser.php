@@ -51,6 +51,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $closed_at
  * @property int|null $forward_header_message_id
  * @property Carbon|null $forward_header_at
+ * @property int|null $forward_header_chat_id
  * @property Carbon|null $blocked_at
  * @property Carbon|null $banned_at
  * @property int|null $banned_by_id
@@ -59,7 +60,7 @@ use Illuminate\Support\Carbon;
     'telegram_id', 'username', 'first_name', 'last_name', 'locale', 'state',
     'phone', 'name', 'declared_company', 'declared_inn', 'consent_at', 'registered_at',
     'conversation_status', 'unread_count', 'last_message_at', 'last_inbound_at', 'last_alert_at', 'closed_at',
-    'forward_header_message_id', 'forward_header_at', 'blocked_at',
+    'forward_header_message_id', 'forward_header_at', 'forward_header_chat_id', 'blocked_at',
 ])]
 class TelegramUser extends Model
 {
@@ -97,6 +98,7 @@ class TelegramUser extends Model
             'last_alert_at' => 'datetime',
             'closed_at' => 'datetime',
             'forward_header_at' => 'datetime',
+            'forward_header_chat_id' => 'integer',
             'blocked_at' => 'datetime',
             'banned_at' => 'datetime',
         ];

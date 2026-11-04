@@ -1,10 +1,12 @@
 <?php
 
+use App\Jobs\ForwardTelegramMedia;
 use App\Jobs\RecordWorkerHeartbeat;
 use App\Jobs\SendTelegramMessage;
 use App\Listeners\NotifyFinanceOfPriceSyncIssues;
 use App\Listeners\SendLeadToTelegram;
 use App\Listeners\SendTelegramAlerts;
+use App\Listeners\SendTelegramInboxAlert;
 
 return [
 
@@ -61,8 +63,11 @@ return [
     'retry_classes' => [
         SendTelegramMessage::class,
         SendTelegramAlerts::class,
+        SendTelegramInboxAlert::class,
         SendLeadToTelegram::class,
         NotifyFinanceOfPriceSyncIssues::class,
+        // Plan 14 v2 D13: customer files to the inbox chat (DeliverBotMessage deliberately not).
+        ForwardTelegramMedia::class,
     ],
 
     /*

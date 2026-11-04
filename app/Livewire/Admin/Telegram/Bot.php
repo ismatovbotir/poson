@@ -4,7 +4,6 @@ namespace App\Livewire\Admin\Telegram;
 
 use App\Actions\Telegram\CheckTelegramWebhook;
 use App\Actions\Telegram\ConfigureTelegramWebhook;
-use App\Actions\Telegram\SetBotCommands;
 use App\Actions\Telegram\SetBotEnabled;
 use App\Actions\Telegram\TelegramBotException;
 use App\Enums\SettingsArea;
@@ -23,8 +22,7 @@ use Livewire\Component;
 
 /**
  * Telegram → Bot (/admin/telegram/bot, plan 14 v2 §9): bot identity
- * (getMe), the readiness checklist, the kill switch, webhook set / delete
- * and the command menu.
+ * (getMe), the readiness checklist, the kill switch, webhook set / delete.
  *
  * Loading makes no Telegram call: mount() evaluates the database-only
  * checklist items; getMe / getWebhookInfo run from wire:init="refresh"
@@ -140,15 +138,6 @@ class Bot extends Component
             $configure->delete(auth()->user(), request()->ip());
 
             return __('admin.telegram_bot.flash.webhook_deleted');
-        });
-    }
-
-    public function setCommands(SetBotCommands $setCommands): void
-    {
-        $this->write(function () use ($setCommands): string {
-            $setCommands->handle(auth()->user(), request()->ip());
-
-            return __('admin.telegram_bot.flash.commands_set');
         });
     }
 

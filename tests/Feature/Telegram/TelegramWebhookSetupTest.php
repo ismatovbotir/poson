@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\Telegram\ConfigureTelegramWebhook;
-use App\Actions\Telegram\SetBotCommands;
 use App\Actions\Telegram\TelegramBotException;
 use App\Enums\AuditAction;
 use App\Enums\Role;
@@ -22,7 +21,7 @@ use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 /**
- * Plan 14 v2 B2: ConfigureTelegramWebhook (H1 / condition 1), commands and the client.
+ * Plan 14 v2 B2: ConfigureTelegramWebhook (H1 / condition 1) and the client.
  */
 /**
  * Every Bot API call answers ok (the first Http::fake() wins, so tests with other answers don't call this).
@@ -137,7 +136,6 @@ it('refuses webhook and command writes to a user without telegram.bot', function
 })->with([
     'set webhook' => [fn ($user) => app(ConfigureTelegramWebhook::class)->set($user, null)],
     'delete webhook' => [fn ($user) => app(ConfigureTelegramWebhook::class)->delete($user, null)],
-    'set commands' => [fn ($user) => app(SetBotCommands::class)->handle($user, null)],
 ]);
 
 it('hints at deleting the webhook when polling gets 409', function () {
@@ -197,20 +195,6 @@ it('refuses the webhook console command over http', function () {
     config(['app.url' => 'http://poson.example.uz']);
 
     $this->artisan('telegram:webhook set')->assertFailed();
-});
-
-it('publishes /start /language /help per language', function () {
-    telegramApiOk();
-    app(SetBotCommands::class)->handle(staffUser(), null);
-
-    $calls = collect(telegramApiCalls())->where('method', 'setMyCommands')->values();
-
-    expect($calls)->toHaveCount(4)
-        ->and($calls[0]['data'])->not->toHaveKey('language_code')
-        ->and($calls->pluck('data.language_code')->filter()->values()->all())->toBe(['uz', 'ru', 'en'])
-        ->and(array_column($calls[2]['data']['commands'], 'command'))->toBe(['start', 'language', 'help'])
-        ->and($calls[2]['data']['commands'][0]['description'])->toBe(__('telegram.bot_commands.start', [], 'ru'))
-        ->and(SettingsAudit::query()->sole()->key)->toBe(SetBotCommands::AUDIT_KEY);
 });
 
 it('refuses telegram:poll in production', function () {

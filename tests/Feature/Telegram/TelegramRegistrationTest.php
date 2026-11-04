@@ -473,13 +473,13 @@ it('handles main menu labels as commands in any bot language and stores nothing'
     'contact a manager (ru)' => [fn () => __('telegram_bot.menu.contact_manager', [], 'ru'), fn () => __('telegram_bot.menu.contact_manager_reply', [], 'en')],
 ]);
 
-it('leaves registered users\' free text to the inbox hook (B4): nothing stored or sent yet', function () {
+it('hands registered users\' free text to the inbox (B4): stored once, auto-ack only to the customer', function () {
     TelegramUser::factory()->registered()->create(['telegram_id' => REG_USER, 'locale' => 'en']);
 
     regText('I need a Zebra ZD421');
 
-    expect(regSent())->toBe([])
-        ->and(TelegramMessage::query()->count())->toBe(0);
+    expect(collect(regSent(REG_USER))->pluck('text')->all())->toBe([__('telegram_bot.inbox.auto_ack', [], 'en')])
+        ->and(TelegramMessage::query()->where('direction', 'in')->pluck('text')->all())->toBe(['I need a Zebra ZD421']);
 });
 
 it('ignores banned users silently', function () {
