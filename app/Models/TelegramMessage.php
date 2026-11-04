@@ -89,6 +89,16 @@ class TelegramMessage extends Model
     }
 
     /**
+     * Same rule as scopeStuck() for a loaded row.
+     */
+    public function isStuck(): bool
+    {
+        return $this->updated_at !== null
+            && $this->updated_at->lt(now()->subMinutes(self::STUCK_MINUTES))
+            && ($this->status === TelegramMessageStatus::Sending || $this->forward_status === TelegramForwardStatus::Sending);
+    }
+
+    /**
      * @return BelongsTo<TelegramUser, $this>
      */
     public function telegramUser(): BelongsTo

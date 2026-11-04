@@ -197,6 +197,7 @@ class TelegramUser extends Model
 
     /**
      * Whether the user may see this conversation (matches scopeVisibleTo).
+     * Without telegram.inbox-all only registered conversations (T21-11).
      */
     public function isVisibleTo(User $user): bool
     {
@@ -204,12 +205,16 @@ class TelegramUser extends Model
             return false;
         }
 
-        return $user->can('telegram.inbox-all') || $this->manager_id === null || $this->manager_id === $user->id;
+        if ($user->can('telegram.inbox-all')) {
+            return true;
+        }
+
+        return $this->isRegistered() && ($this->manager_id === null || $this->manager_id === $user->id);
     }
 
     /**
      * Conversations the user may see: telegram.inbox-all every one, telegram.inbox
-     * those assigned to the user or unassigned, otherwise none.
+     * those registered and assigned to the user or unassigned, otherwise none.
      *
      * @param  Builder<self>  $query
      */
@@ -225,7 +230,8 @@ class TelegramUser extends Model
             return;
         }
 
-        $query->where(fn (Builder $inner) => $inner->whereNull('telegram_users.manager_id')->orWhere('telegram_users.manager_id', $user->id));
+        $query->whereNotNull('telegram_users.registered_at')
+            ->where(fn (Builder $inner) => $inner->whereNull('telegram_users.manager_id')->orWhere('telegram_users.manager_id', $user->id));
     }
 
     /**
@@ -237,7 +243,7 @@ class TelegramUser extends Model
     }
 
     /**
-     * Admin search: name, username, company or phone digits (at least 3).
+     * Admin search: name, username, Telegram first / last name, company or phone digits (at least 3).
      *
      * @param  Builder<self>  $query
      */
@@ -255,6 +261,8 @@ class TelegramUser extends Model
         $query->where(function (Builder $inner) use ($pattern, $digits): void {
             $inner->whereRaw("lower(telegram_users.name) like ? escape '!'", [$pattern])
                 ->orWhereRaw("lower(telegram_users.username) like ? escape '!'", [$pattern])
+                ->orWhereRaw("lower(telegram_users.first_name) like ? escape '!'", [$pattern])
+                ->orWhereRaw("lower(telegram_users.last_name) like ? escape '!'", [$pattern])
                 ->orWhereRaw("lower(telegram_users.declared_company) like ? escape '!'", [$pattern]);
 
             if (strlen($digits) >= 3) {

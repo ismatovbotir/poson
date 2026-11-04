@@ -353,6 +353,7 @@ it('auto-acks once per 30 minutes with a stored outbound message that never echo
 });
 
 it('alerts the inbox chat about text at most once per conversation per 10 minutes, escaped and excerpted (B4-S7, B4-S10)', function () {
+    config(['app.url' => 'http://poson.test']);
     inboxUser(['name' => "Ali\u{202E} <b>Boss</b>\nVali"]);
 
     inboxSend(['text' => '<a href="https://evil.example">Click</a> '.str_repeat('x', 400)]);
@@ -475,6 +476,7 @@ it('cleans captions but keeps line breaks; stickers, locations and video notes g
 ]);
 
 it('sends the header once per 10 minutes with the cleaned name and chat #id only, without buttons (TG-24, B4-S7)', function () {
+    config(['app.url' => 'http://poson.test']);
     $user = inboxUser(['name' => "Ali\u{202E} <b>Boss</b>\nVali"]);
 
     inboxSend(inboxPhoto(['media_group_id' => 'album1']));

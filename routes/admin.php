@@ -167,7 +167,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/telegram/settings', Telegram\Settings::class)->name('telegram.settings');
     // Telegram status panel (plan 21 E2): telegram.bot (Admin only), read-only, no Telegram call on load.
     Route::livewire('/telegram/status', Telegram\Status::class)->name('telegram.status');
-    // Plan 21: telegram.chats (telegram.inbox) routes go here.
+    // Plan 21 A1: staff inbox (telegram.inbox), authorized in the components; rows through TelegramUser::visibleTo.
+    Route::livewire('/telegram/chats', Telegram\Chats\Index::class)->name('telegram.chats');
+    Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

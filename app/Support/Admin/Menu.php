@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Enums\SettingsArea;
 use App\Models\Lead;
 use App\Models\Setting;
+use App\Models\TelegramUser;
 use App\Models\User;
 
 /**
@@ -151,6 +152,11 @@ final class Menu
 
         if ($user->can('viewAny', Lead::class)) {
             $badges['leads'] = Lead::query()->visibleTo($user)->where('status', LeadStatus::New->value)->count();
+        }
+
+        // Plan 21 A1: conversations with unread messages the user can see.
+        if ($user->can('viewAny', TelegramUser::class)) {
+            $badges['telegram-chats'] = TelegramUser::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
         }
 
         return array_filter($badges);

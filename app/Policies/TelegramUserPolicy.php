@@ -10,7 +10,8 @@ use App\Models\User;
  * TelegramUser::isVisibleTo() / scopeVisibleTo(): telegram.inbox-all sees every
  * conversation, telegram.inbox the user's own and unassigned ones. Every
  * ability except viewAny and delete builds on view, so assign / ban can never
- * reach another manager's thread. Admins also pass through Gate::before.
+ * reach another manager's thread. Without telegram.inbox-all an unregistered
+ * conversation is never visible (T21-11, in isVisibleTo()). Admins also pass through Gate::before.
  */
 class TelegramUserPolicy
 {
