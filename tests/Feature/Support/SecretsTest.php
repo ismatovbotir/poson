@@ -253,6 +253,44 @@ describe('invalid .env values', function () {
     });
 });
 
+describe('invalidEnv', function () {
+    it('names bad bool, bad select and malformed token by key and env name only', function () {
+        freshSecrets([
+            'services.telegram.notify_inbox' => 'MARKER-maybe',
+            'services.telegram.locale' => 'MARKER-klingon',
+            'services.telegram.bot_token' => 'MARKER-not-a-token',
+            'services.telegram.chats.sales' => '-1001234567890',
+            'services.telegram.chats.inbox' => 'MARKER-chat',
+        ]);
+
+        $result = Secrets::invalidEnv('telegram');
+
+        expect($result)->toBe([
+            ['key' => 'telegram.bot_token', 'env' => 'TELEGRAM_BOT_TOKEN', 'reason' => 'format'],
+            ['key' => 'telegram.chats.inbox', 'env' => 'TELEGRAM_INBOX_CHAT_ID', 'reason' => 'format'],
+            ['key' => 'telegram.notify_inbox', 'env' => 'TELEGRAM_NOTIFY_INBOX', 'reason' => 'ignored'],
+            ['key' => 'telegram.locale', 'env' => 'TELEGRAM_LOCALE', 'reason' => 'ignored'],
+        ])
+            ->and(json_encode($result))->not->toContain('MARKER')
+            ->and(array_map('array_keys', $result))->each->toBe(['key', 'env', 'reason']);
+    });
+
+    it('is empty for valid, empty and other-group values', function () {
+        freshSecrets(['services.telegram.chats.sales' => '-1001234567890', 'services.telegram.locale' => 'ru', 'services.payme.mode' => 'MARKER-bad']);
+
+        expect(Secrets::invalidEnv('telegram'))->toBe([]);
+    });
+
+    it('does not log or report anything itself and keeps the marker out of the log', function () {
+        Exceptions::fake();
+        freshSecrets(['services.telegram.bot_token' => 'MARKER-not-a-token']);
+
+        Secrets::invalidEnv('telegram');
+
+        Exceptions::assertReportedCount(0);
+    });
+});
+
 it('declares every integration field in config without a default and in .env.example', function () {
     $example = file_get_contents(base_path('.env.example'));
     $services = file_get_contents(config_path('services.php'));

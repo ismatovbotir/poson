@@ -184,6 +184,52 @@ final class Secrets
     }
 
     /**
+     * Fields of one group whose non-empty .env value is unusable, as
+     * {key, env, reason} only (never a value, never an error message):
+     *  - ignored: the value can't be read as the field type or is outside a
+     *    select's options, so the admin value or the default applies;
+     *  - format: the value is in use but fails the field's rules (e.g. a
+     *    malformed bot token or chat id; .env values skip those rules);
+     *  - unknown: the check itself failed.
+     * Reads the .env values captured before the overlay; boolean validation
+     * only, so no rule message can carry a value.
+     *
+     * @return list<array{key: string, env: string, reason: string}>
+     */
+    public static function invalidEnv(string $group): array
+    {
+        $instance = self::instance();
+        $invalid = [];
+
+        foreach (IntegrationRegistry::group($group) as $field) {
+            try {
+                $instance->captureEnv();
+                $raw = $instance->envValues[$field->key] ?? null;
+
+                if (! IntegrationField::isFilled($raw)) {
+                    continue;
+                }
+
+                $value = $field->cast($raw);
+
+                if ($value === null || ($field->type === IntegrationField::TYPE_SELECT && ! in_array($value, $field->options, true))) {
+                    $reason = 'ignored';
+                } elseif (! Validator::make(['value' => $value], ['value' => $field->rules])->passes()) {
+                    $reason = 'format';
+                } else {
+                    continue;
+                }
+            } catch (Throwable) {
+                $reason = 'unknown';
+            }
+
+            $invalid[] = ['key' => $field->key, 'env' => $field->env, 'reason' => $reason];
+        }
+
+        return $invalid;
+    }
+
+    /**
      * Drop the cache, publish a new version (queue workers re-apply) and
      * re-apply in this process. Call after the change has committed.
      */

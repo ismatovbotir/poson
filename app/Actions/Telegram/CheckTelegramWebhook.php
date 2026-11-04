@@ -7,8 +7,10 @@ use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Monitoring\ProblemMonitor;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\Bot\InboxChat;
 use App\Support\Telegram\TelegramLocale;
 use Illuminate\Support\Carbon;
+use Throwable;
 
 /**
  * Webhook health check behind `telegram:check-webhook` (plan 14 v2 D13,
@@ -41,6 +43,8 @@ class CheckTelegramWebhook
 
     public const TOKEN_EVENT = 'telegram_token';
 
+    public const SNAPSHOT_KEY = 'telegram:status';
+
     public const ERROR_WINDOW = 900;
 
     public const PENDING_LIMIT = 100;
@@ -60,6 +64,20 @@ class CheckTelegramWebhook
      */
     public function handle(int $timeout = 5): string
     {
+        $info = null;
+        $code = null;
+        $result = $this->check($timeout, $info, $code);
+        $this->writeSnapshot($result, $info, $code);
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $info
+     * @return self::OK|self::PROBLEM|self::SKIPPED|self::UNREACHABLE
+     */
+    private function check(int $timeout, ?array &$info, ?int &$code): string
+    {
         $monitor = ProblemMonitor::using($timeout);
 
         if (! $this->client->isConfigured()) {
@@ -73,6 +91,8 @@ class CheckTelegramWebhook
         try {
             $info = $this->client->withTimeout($timeout)->getWebhookInfo();
         } catch (TelegramException $exception) {
+            $code = $exception->status;
+
             if ($exception->status === 401) {
                 $monitor->track(self::TOKEN_KEY, true, self::TOKEN_EVENT, []);
 
@@ -93,6 +113,42 @@ class CheckTelegramWebhook
         ]);
 
         return $issues === [] ? self::OK : self::PROBLEM;
+    }
+
+    /**
+     * The status panel's snapshot (plan 21 E1, T21-6): an exact allow-list of
+     * safe fields in MonitoringState `telegram:status`. Never the URL, IP,
+     * Telegram's error text, a chat id or title, the bot id or username.
+     * A failed write is reported and never fails the check.
+     *
+     * @param  array<string, mixed>|null  $info
+     */
+    private function writeSnapshot(string $result, ?array $info, ?int $code): void
+    {
+        $expected = ConfigureTelegramWebhook::expectedUrl();
+        $url = is_array($info) && is_string($info['url'] ?? null) ? $info['url'] : null;
+        $lastError = is_array($info) && is_int($info['last_error_date'] ?? null) ? $info['last_error_date'] : null;
+
+        $meta = [
+            'checked_at' => now()->toIso8601String(),
+            'webhook_match' => $url === null ? null : ($expected !== null && $url !== '' && hash_equals($expected, $url)),
+            'last_error_at' => $lastError === null ? null : Carbon::createFromTimestamp($lastError)->toIso8601String(),
+            'pending' => is_array($info) && is_int($info['pending_update_count'] ?? null) ? $info['pending_update_count'] : null,
+            'get_me' => match (true) {
+                $result === self::PROBLEM && $info === null => 'fail',
+                $info !== null => 'ok',
+                default => 'unknown',
+            },
+            'chat' => 'unknown',
+            'chat_key' => InboxChat::key(),
+            'code' => $code,
+        ];
+
+        try {
+            MonitoringState::query()->updateOrCreate(['key' => self::SNAPSHOT_KEY], ['ticked_at' => now(), 'meta' => $meta]);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     /**

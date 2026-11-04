@@ -189,3 +189,56 @@ it('shows an open Telegram problem on the Monitoring screen', function () {
         ->assertSee('data-telegram-problem="telegram_token"', false)
         ->assertSee(__('telegram.monitoring.events.telegram_token'));
 });
+
+describe('status snapshot (plan 21 E1, T21-6)', function () {
+    it('writes an exact allow-list and no marker value, URL, IP or error text', function () {
+        enableBotSwitch();
+        webhookInfoAnswers([Http::response(['ok' => true, 'result' => [
+            'url' => 'https://attacker-MARKER.example/hook',
+            'pending_update_count' => 7,
+            'last_error_date' => now()->subMinutes(2)->unix(),
+            'last_error_message' => 'Wrong response MARKER-ERROR-TEXT',
+            'ip_address' => '203.0.113.99',
+        ]])]);
+
+        $this->artisan('telegram:check-webhook')->assertSuccessful();
+
+        $state = MonitoringState::query()->find('telegram:status');
+
+        expect(array_keys($state->meta))->toBe(['checked_at', 'webhook_match', 'last_error_at', 'pending', 'get_me', 'chat', 'chat_key', 'code'])
+            ->and($state->meta['webhook_match'])->toBeFalse()
+            ->and($state->meta['pending'])->toBe(7)
+            ->and($state->meta['get_me'])->toBe('ok')
+            ->and($state->meta['chat'])->toBe('unknown')
+            ->and($state->meta['chat_key'])->toBe('sales')
+            ->and(json_encode($state->getAttributes()))->not->toContain('MARKER')->not->toContain('203.0.113')->not->toContain('attacker')->not->toContain(TG_BOT_TOKEN)->not->toContain('1111111111');
+    });
+
+    it('records a healthy match', function () {
+        $this->artisan('telegram:check-webhook')->assertSuccessful();
+
+        expect(MonitoringState::query()->find('telegram:status')->meta)
+            ->webhook_match->toBeTrue()->get_me->toBe('ok')->code->toBeNull();
+    });
+
+    it('records a revoked token as get_me fail with the status code', function () {
+        webhookInfoAnswers([Http::response(['ok' => false, 'error_code' => 401, 'description' => 'Unauthorized MARKER'], 401)]);
+
+        $this->artisan('telegram:check-webhook')->assertSuccessful();
+
+        $meta = MonitoringState::query()->find('telegram:status')->meta;
+
+        expect($meta['get_me'])->toBe('fail')->and($meta['code'])->toBe(401)->and($meta['webhook_match'])->toBeNull()
+            ->and(json_encode($meta))->not->toContain('MARKER');
+    });
+
+    it('records an unreachable API as unknown and no token as unknown', function () {
+        webhookInfoAnswers([Http::response('', 502)]);
+        app(CheckTelegramWebhook::class)->handle();
+        expect(MonitoringState::query()->find('telegram:status')->meta)->get_me->toBe('unknown')->code->toBe(502);
+
+        freshSecrets();
+        app(CheckTelegramWebhook::class)->handle();
+        expect(MonitoringState::query()->find('telegram:status')->meta)->get_me->toBe('unknown')->webhook_match->toBeNull()->chat_key->toBeNull();
+    });
+});
