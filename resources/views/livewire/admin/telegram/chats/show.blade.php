@@ -2,7 +2,7 @@
 @php($name = \App\Support\Telegram\InboxMessage::displayName($conversation))
 @php($tz = config('app.timezone'))
 
-{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 A1, A2). Polls every 10 s while visible. --}}
+{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 stream A). Polls every 10 s while visible. --}}
 <div @if ($polling) wire:poll.10s.visible="refreshThread" @endif data-telegram-chat="{{ $conversation->id }}">
     <x-admin.page-header :title="$name !== '' ? $name : __($t.'.unnamed')" :subtitle="__($t.'.show.subtitle', ['id' => $conversation->id])">
         <x-slot:breadcrumbs>
@@ -143,7 +143,14 @@
                     </div>
                     <div>
                         <dt class="text-slate-500">{{ __($t.'.panel.manager') }}</dt>
-                        <dd class="mt-0.5 font-medium">{{ $conversation->manager?->name ?? __($t.'.unassigned') }}</dd>
+                        <dd class="mt-0.5 flex flex-wrap items-center gap-2 font-medium">
+                            {{ $conversation->manager?->name ?? __($t.'.unassigned') }}
+                            @if ($conversation->manager && ! $conversation->manager->is_active)
+                                @can('telegram.inbox-all')
+                                    <x-admin.badge color="amber" data-inactive-manager>{{ __($t.'.badges.inactive_manager') }}</x-admin.badge>
+                                @endcan
+                            @endif
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-slate-500">{{ __($t.'.panel.registered_at') }}</dt>
@@ -155,6 +162,8 @@
                     </div>
                 </dl>
             </x-admin.card>
+
+            @include('livewire.admin.telegram.chats.partials.manage-panel')
         </aside>
     </div>
 </div>

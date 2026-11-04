@@ -18,7 +18,8 @@ use Livewire\Component;
  * staff inbox of bot conversations. Filters scope (all / mine / unassigned /
  * unread), status and search. Rows come from TelegramUser::visibleTo() only,
  * so the list matches the thread URLs (TelegramUserPolicy::view, T21-10, T21-11).
- * telegram_id is never selected. The list refreshes every 15 seconds while visible.
+ * Staff with telegram.inbox-all see threads owned by an inactive manager marked
+ * (T21-17). telegram_id is never selected. The list refreshes every 15 seconds while visible.
  */
 #[Layout('layouts::admin')]
 class Index extends Component
@@ -91,7 +92,7 @@ class Index extends Component
             ->when($scope === 'unread', fn (Builder $query) => $query->where('telegram_users.unread_count', '>', 0))
             ->when($status !== null, fn (Builder $query) => $query->where('telegram_users.conversation_status', $status))
             ->search(mb_substr($this->search, 0, 100))
-            ->with('manager:id,name')
+            ->with('manager:id,name,is_active')
             ->orderByDesc('telegram_users.last_message_at')
             ->orderByDesc('telegram_users.id')
             ->paginate(self::PER_PAGE);
@@ -108,6 +109,7 @@ class Index extends Component
             'stuck' => $stuck,
             'filtering' => $scope !== 'all' || $status !== null || trim($this->search) !== '',
             'currentScope' => $scope,
+            'marksInactiveManagers' => $user->can('telegram.inbox-all'),
         ])->title(__('telegram_inbox.title'));
     }
 

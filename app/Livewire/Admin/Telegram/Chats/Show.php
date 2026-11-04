@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Telegram\Chats;
 
+use App\Actions\Telegram\AssignConversation;
+use App\Actions\Telegram\ChangeConversationStatus;
 use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\MarkConversationRead;
 use App\Actions\Telegram\ResendTelegramMessage;
@@ -17,9 +19,9 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Conversation (plan 14 v2 §9, plan 21 A1, A2): the latest 50 messages with
- * "load older", a profile panel, stuck deliveries highlighted, the reply box
- * and resend of undelivered replies. Opening it marks the thread read. Writes
+ * Conversation (plan 14 v2 §9, plan 21 A1 to A3): the latest 50 messages with
+ * "load older", a profile panel, stuck deliveries highlighted, the reply box,
+ * resend of undelivered replies, assign / take and close / reopen. Opening it marks the thread read. Writes
  * go through actions, which check policy and state again.
  *
  * Only the conversation id is held in state (T21-10): the row is loaded on
@@ -48,6 +50,8 @@ class Show extends Component
     public int $limit = self::PAGE_SIZE;
 
     public string $reply = '';
+
+    public ?int $assignTarget = null;
 
     /**
      * The row loaded in this request (never part of the Livewire state).
@@ -109,6 +113,43 @@ class Show extends Component
         }, 'resent');
     }
 
+    public function assign(AssignConversation $assign): void
+    {
+        $this->authorize('assign', $this->conversation());
+
+        $this->attempt(function () use ($assign): void {
+            if ($this->assignTarget === null) {
+                throw new InboxRefused('invalid_target');
+            }
+
+            $assign->assign($this->conversation(), $this->user(), $this->assignTarget);
+            $this->reset('assignTarget');
+        }, 'assigned');
+
+        $this->leaveIfNoLongerVisible();
+    }
+
+    public function take(AssignConversation $assign): void
+    {
+        $this->authorize('assign', $this->conversation());
+
+        $this->attempt(fn () => $assign->take($this->conversation(), $this->user()), 'taken');
+    }
+
+    public function close(ChangeConversationStatus $status): void
+    {
+        $this->authorize('close', $this->conversation());
+
+        $this->attempt(fn () => $status->close($this->conversation(), $this->user()), 'closed');
+    }
+
+    public function reopen(ChangeConversationStatus $status): void
+    {
+        $this->authorize('close', $this->conversation());
+
+        $this->attempt(fn () => $status->reopen($this->conversation(), $this->user()), 'reopened');
+    }
+
     public function render(): View
     {
         $conversation = $this->conversation();
@@ -127,12 +168,13 @@ class Show extends Component
         $hasOlder = $newestFirst->count() > $this->limit;
 
         return view('livewire.admin.telegram.chats.show', [
-            'conversation' => $conversation->loadMissing('manager:id,name'),
+            'conversation' => $conversation->loadMissing('manager:id,name,is_active'),
             'messages' => $newestFirst->take($this->limit)->reverse()->values(),
             'hasOlder' => $hasOlder && $this->limit < self::MAX_MESSAGES,
             'olderHidden' => $hasOlder && $this->limit >= self::MAX_MESSAGES,
             'polling' => $this->limit === self::PAGE_SIZE,
             'replyRefusal' => app(SendTelegramReply::class)->refusal($conversation),
+            'candidates' => $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
         ])->title(__('telegram_inbox.show.title'));
     }
 
@@ -150,6 +192,16 @@ class Show extends Component
         }
 
         $this->loaded = null;
+    }
+
+    /**
+     * A manager who gave the thread away cannot see it any more.
+     */
+    private function leaveIfNoLongerVisible(): void
+    {
+        if (! $this->user()->can('view', $this->conversation(fresh: true))) {
+            $this->redirectRoute('admin.telegram.chats', navigate: true);
+        }
     }
 
     private function conversation(bool $fresh = false): TelegramUser

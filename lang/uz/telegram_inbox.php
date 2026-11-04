@@ -40,6 +40,7 @@ return [
         'banned' => 'Bloklangan',
         'blocked' => 'Botni bloklagan',
         'stuck' => 'Yetkazish qotib qolgan',
+        'inactive_manager' => 'Menejer faol emas',
     ],
     'banners' => [
         'banned' => 'Mijoz bloklangan. Uning xabarlari qabul qilinmaydi.',
@@ -93,10 +94,24 @@ return [
         'invalid_text' => 'Xabar boʻsh yoki juda uzun.',
         'taken' => 'Bu suhbatni boshqa menejer olgan.',
         'not_retryable' => 'Bu xabarni qayta yuborib boʻlmaydi.',
+        'invalid_target' => 'Bu menejerga chat tayinlab boʻlmaydi.',
     ],
     'toasts' => [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
         'resent' => 'Xabar yana yetkazish navbatiga qoʻyildi.',
+        'assigned' => 'Chat tayinlandi.',
+        'taken' => 'Chat endi sizniki.',
+        'closed' => 'Chat yopildi.',
+        'reopened' => 'Chat qayta ochildi.',
+    ],
+    'manage' => [
+        'title' => 'Boshqaruv',
+        'assign' => 'Tayinlash',
+        'assign_placeholder' => 'Menejerni tanlang',
+        'assign_btn' => 'Tayinlash',
+        'take' => 'Chatni olish',
+        'close' => 'Chatni yopish',
+        'reopen' => 'Chatni qayta ochish',
     ],
 
 ];

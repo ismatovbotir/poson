@@ -40,6 +40,7 @@ return [
         'banned' => 'Banned',
         'blocked' => 'Blocked the bot',
         'stuck' => 'Delivery stuck',
+        'inactive_manager' => 'Inactive manager',
     ],
     'banners' => [
         'banned' => 'This customer is banned. Their messages are not accepted.',
@@ -93,10 +94,24 @@ return [
         'invalid_text' => 'The message is empty or too long.',
         'taken' => 'Another manager has taken this conversation.',
         'not_retryable' => 'This message cannot be sent again.',
+        'invalid_target' => 'This manager is not available for chats.',
     ],
     'toasts' => [
         'reply_queued' => 'The reply is queued for delivery.',
         'resent' => 'The message is queued for delivery again.',
+        'assigned' => 'The chat is assigned.',
+        'taken' => 'The chat is now yours.',
+        'closed' => 'The chat is closed.',
+        'reopened' => 'The chat is reopened.',
+    ],
+    'manage' => [
+        'title' => 'Manage',
+        'assign' => 'Assign to',
+        'assign_placeholder' => 'Choose a manager',
+        'assign_btn' => 'Assign',
+        'take' => 'Take this chat',
+        'close' => 'Close chat',
+        'reopen' => 'Reopen chat',
     ],
 
 ];

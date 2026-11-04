@@ -12,6 +12,9 @@
 @if ($chat->blocked_at)
     <x-admin.badge color="amber">{{ __($t.'.badges.blocked') }}</x-admin.badge>
 @endif
+@if ($marksInactiveManagers && $chat->manager && ! $chat->manager->is_active)
+    <x-admin.badge color="amber" data-inactive-manager>{{ __($t.'.badges.inactive_manager') }}</x-admin.badge>
+@endif
 @if (in_array($chat->id, $stuck, true))
     <x-admin.badge color="amber" data-stuck>{{ __($t.'.badges.stuck') }}</x-admin.badge>
 @endif
