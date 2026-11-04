@@ -9,7 +9,8 @@ use App\Support\Secrets;
 use Livewire\Form;
 
 /**
- * Non-secret integration values of Settings → Integrations, nested by
+ * Non-secret integration values of Settings → Integrations and
+ * Telegram → Settings (each screen fills only its own groups), nested by
  * registry key ("telegram.chats.sales" → values.telegram.chats.sales).
  * Secrets never enter this form. Validation uses the registry rules inside
  * SaveIntegrationSettings; its errors are mapped to "form.values.<key>".

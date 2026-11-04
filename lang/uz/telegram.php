@@ -1,7 +1,7 @@
 <?php
 
 /*
-| Telegram messages (plan 05c). Language: Settings → Integrations → Telegram
+| Telegram messages (plan 05c). Language: Telegram → Settings
 | (telegram.locale, default uz). Values go into parse_mode=HTML after e().
 */
 

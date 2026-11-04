@@ -480,7 +480,7 @@ return [
     'dashboard' => [
         'telegram_failures' => [
             'title' => 'Telegram alerts failed',
-            'body' => ':count lead alerts in the last 7 days didn’t reach Telegram. Check the integration settings.',
+            'body' => ':count lead alerts in the last 7 days didn’t reach Telegram. Check the Telegram settings.',
             'settings' => 'Open Telegram settings',
         ],
         'leads_label' => 'Leads',

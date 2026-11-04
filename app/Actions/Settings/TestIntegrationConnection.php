@@ -20,7 +20,7 @@ use InvalidArgumentException;
 use Throwable;
 
 /**
- * "Test connection" in Settings → Integrations, always with the saved
+ * "Test connection" in Telegram → Settings and Settings → Integrations, always with the saved
  * effective value (.env or admin), never with what is typed in the form.
  *
  * Targets: telegram (getMe), telegram_chat (a test message to the sales /
@@ -114,7 +114,7 @@ class TestIntegrationConnection
             return ConnectionTestResult::failure('chat_not_configured');
         }
 
-        // Same language as the lead alerts (Settings → Integrations → Telegram, default uz).
+        // Same language as the lead alerts (Telegram → Settings, default uz).
         $locale = TelegramLocale::current();
         $text = __('admin.settings.integrations.test.telegram_message', ['chat' => __('admin.settings.integrations.fields.telegram_chats_'.$chat, [], $locale)], $locale);
 

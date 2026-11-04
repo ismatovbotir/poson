@@ -1460,7 +1460,7 @@ return [
     'telegram_settings' => [
         'title' => 'Настройки Telegram',
         'subtitle' => 'Токен бота, секрет вебхука, ID чатов и переключатели оповещений.',
-        'audit_subtitle' => 'Последние изменения настроек Telegram (до :count). Значения не показываются.',
+        'audit_subtitle' => 'Последние :count изменений настроек Telegram.',
         'open' => 'Открыть настройки Telegram',
     ],
 

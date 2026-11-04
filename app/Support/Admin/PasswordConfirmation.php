@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Date;
 
 /**
  * Recent password re-confirmation for sensitive admin writes (plan 04 S7):
- * Settings → Integrations needs one within the last
+ * Settings → Integrations and Telegram → Settings need one within the last
  * config('admin.password_confirm_timeout') seconds (15 minutes).
  *
  * Uses Laravel's own session key ("auth.password_confirmed_at", set by

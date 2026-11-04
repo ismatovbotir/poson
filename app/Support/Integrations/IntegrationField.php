@@ -6,7 +6,7 @@ namespace App\Support\Integrations;
  * One editable integration value (plan 04 S3), declared in IntegrationRegistry.
  *
  * - key: registry key, also the integration_secrets / settings key ("telegram.bot_token")
- * - group: Settings → Integrations section (telegram, payme, click)
+ * - group: section of Telegram → Settings (telegram) or Settings → Integrations (payme, click, …)
  * - configPaths: config() paths the effective value is written to; the first
  *   one is also where the .env value is read from
  * - env: the .env name (for the "locked by .env" hint and .env.example)

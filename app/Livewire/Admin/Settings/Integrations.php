@@ -145,7 +145,7 @@ class Integrations extends Component
 
         $generate->handle(auth()->user(), request()->ip());
 
-        unset($this->testResults['indexnow_key']);
+        $this->forgetTestResults('indexnow');
 
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.indexnow.generated'), type: 'success');
     }

@@ -1459,7 +1459,7 @@ return [
     // Plan 21 stream C: Telegram → Settings page.
     'telegram_settings' => [
         'title' => 'Telegram sozlamalari',
-        'subtitle' => 'Bot tokeni, webhook siri, chat IDlari va ogohlantirish kalitlari.',
+        'subtitle' => 'Bot tokeni, webhook siri, chat IDlari va ogohlantirish sozlamalari.',
         'audit_subtitle' => 'Telegram sozlamalaridagi soʻnggi :count ta oʻzgarish. Qiymatlar koʻrsatilmaydi.',
         'open' => 'Telegram sozlamalarini ochish',
     ],

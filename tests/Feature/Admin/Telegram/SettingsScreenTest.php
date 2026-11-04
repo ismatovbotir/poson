@@ -27,8 +27,10 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Js;
 use Livewire\Exceptions\MethodNotFoundException;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Tests\Support\Uzqr;
 
 const TG_SETTINGS_TOKEN = '123456789:AAScreenTokenScreenTokenScreenTok4321';
 
@@ -683,6 +685,67 @@ describe('connection tests', function () {
         }
 
         expect(RateLimiter::attempts(TestIntegrationConnection::throttleKey($user)))->toBe(0);
+    });
+});
+
+describe('test results', function () {
+    it('cannot be set from the browser, on both screens', function (string $class) {
+        expect(fn () => Livewire::actingAs(staffUser())->test($class)->set('testResults.telegram_bot_token', ['ok' => true, 'message' => 'forged']))
+            ->toThrow(CannotUpdateLockedPropertyException::class);
+    })->with(['telegram page' => [Settings::class], 'integrations' => [Integrations::class]]);
+
+    it('forgets every Telegram result when the token changes', function () {
+        IntegrationSecret::factory()->withValue('telegram.bot_token', TG_SETTINGS_TOKEN)->create();
+        Setting::factory()->create(['key' => 'telegram.chats.sales', 'group' => 'integrations', 'value' => '-100123']);
+        Secrets::flush();
+        confirmAdminPassword();
+        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['username' => 'poson_bot']])]);
+
+        $component = telegramSettingsScreen()
+            ->call('test', 'telegram')
+            ->call('test', 'telegram_chat', 'sales')
+            ->assertSet('testResults.telegram_bot_token.ok', true)
+            ->assertSet('testResults.telegram_chats_sales.ok', true);
+
+        typeAndReplaceTelegramSecret($component, 'telegram.bot_token', '123456789:AAOtherTokenOtherTokenOtherTokenOt0000')
+            ->assertHasNoErrors()
+            ->assertSet('testResults', []);
+    });
+
+    it('forgets the chat result when its chat id changes, not on a save without changes', function () {
+        IntegrationSecret::factory()->withValue('telegram.bot_token', TG_SETTINGS_TOKEN)->create();
+        Setting::factory()->create(['key' => 'telegram.chats.sales', 'group' => 'integrations', 'value' => '-100123']);
+        Secrets::flush();
+        confirmAdminPassword();
+        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => []])]);
+
+        $component = telegramSettingsScreen()
+            ->call('test', 'telegram_chat', 'sales')
+            ->assertSet('testResults.telegram_chats_sales.ok', true)
+            ->call('save', 'telegram')
+            ->assertSet('testResults.telegram_chats_sales.ok', true);
+
+        $component->set('form.values.telegram.chats.sales', '-100456')
+            ->call('save', 'telegram')
+            ->assertHasNoErrors();
+
+        expect($component->get('testResults'))->not->toHaveKey('telegram_chats_sales');
+    });
+
+    it('forgets the UzQR result when the API key changes', function () {
+        IntegrationSecret::factory()->withValue('uzqr.api_key', Uzqr::KEY)->create();
+        Setting::factory()->create(['key' => 'uzqr.inn', 'group' => 'integrations', 'value' => Uzqr::INN]);
+        Secrets::flush();
+        confirmAdminPassword();
+        Http::fake();
+
+        $component = Livewire::actingAs(staffUser())->test(Integrations::class)->call('test', 'uzqr');
+
+        expect($component->get('testResults'))->toHaveKey('uzqr_connection');
+
+        typeAndReplaceTelegramSecret($component, 'uzqr.api_key', 'fake-uzqr-other-key-0000')->assertHasNoErrors();
+
+        expect($component->get('testResults'))->not->toHaveKey('uzqr_connection');
     });
 });
 

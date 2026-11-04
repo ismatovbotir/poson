@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
  * in X-Telegram-Bot-Api-Secret-Token): 48 random letters and digits, stored
  * encrypted through SetSecret and audited as "generated". The value is not
  * returned. The old webhook stops validating at once: after this commits,
- * the Integrations screen calls ConfigureTelegramWebhook::afterSecretGenerated()
+ * the Telegram settings page calls ConfigureTelegramWebhook::afterSecretGenerated()
  * (plan 14 v2, condition 1), which registers the webhook with the new secret.
  */
 class GenerateWebhookSecret

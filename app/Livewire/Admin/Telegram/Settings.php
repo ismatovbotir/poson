@@ -54,9 +54,11 @@ class Settings extends Component
 
         $generate->handle(auth()->user(), request()->ip());
 
+        $this->forgetTestResults('telegram');
+
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.telegram.webhook_generated'), type: 'success');
 
-        // Plan 14 v2 condition 1: re-register the webhook with the new (committed) secret; failure is a warning, never an exception.
+        // Plan 14 v2 condition 1: re-register the webhook with the new (committed) secret; failure is an error toast (there is no warning style), never an exception.
         if ($configureWebhook->afterSecretGenerated(auth()->user(), request()->ip()) === ConfigureTelegramWebhook::FAILED) {
             $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.telegram_bot.flash.webhook_reset_failed'), type: 'error');
         }

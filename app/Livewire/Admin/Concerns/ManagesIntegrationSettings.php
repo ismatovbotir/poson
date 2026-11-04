@@ -17,6 +17,7 @@ use App\Support\Secrets;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 
 /**
  * A settings screen for a set of IntegrationRegistry groups. The component
@@ -51,10 +52,12 @@ trait ManagesIntegrationSettings
     public array $secretInputs = [];
 
     /**
-     * Last connection test per test id: {ok, message} (safe text only).
+     * Last connection test per test id: {ok, message} (safe text only). Set by
+     * the server only; forgotten when a value of the group changes.
      *
      * @var array<string, array{ok: bool, message: string}>
      */
+    #[Locked]
     public array $testResults = [];
 
     /**
@@ -156,7 +159,7 @@ trait ManagesIntegrationSettings
             $this->resetSecretInputs();
         }
 
-        unset($this->testResults[$field->langKey()]);
+        $this->forgetTestResults($field->group);
 
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.settings.integrations.secret_saved', ['name' => $field->label()]), type: 'success');
     }
@@ -177,7 +180,7 @@ trait ManagesIntegrationSettings
 
         $cleared = $clearSecret->handle($key, auth()->user(), request()->ip());
 
-        unset($this->testResults[$field->langKey()]);
+        $this->forgetTestResults($field->group);
 
         $this->dispatch('toast', title: $cleared ? __('admin.toast.done') : __('admin.settings.integrations.no_changes'), body: $cleared ? __('admin.settings.integrations.secret_cleared', ['name' => $field->label()]) : null, type: $cleared ? 'success' : 'info');
     }
@@ -238,7 +241,23 @@ trait ManagesIntegrationSettings
             return;
         }
 
+        $this->forgetTestResults($group);
+
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.settings.integrations.saved', ['section' => __('admin.settings.integrations.groups.'.$group)]), type: 'success');
+    }
+
+    /**
+     * A changed value makes every earlier result of its group stale: a chat
+     * test depends on the token too, so no old "passed" may stay on screen.
+     * Test ids start with the group name (see testId()).
+     */
+    protected function forgetTestResults(string $group): void
+    {
+        $this->testResults = array_filter(
+            $this->testResults,
+            fn (string $testId): bool => ! str_starts_with($testId, $group.'_'),
+            ARRAY_FILTER_USE_KEY,
+        );
     }
 
     /**

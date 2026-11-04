@@ -480,7 +480,7 @@ return [
     'dashboard' => [
         'telegram_failures' => [
             'title' => 'Telegram xabarnomalari yuborilmadi',
-            'body' => 'Soʻnggi 7 kunda :count ta murojaat haqidagi xabarnoma Telegramga yetib bormadi. Integratsiya sozlamalarini tekshiring.',
+            'body' => 'Soʻnggi 7 kunda :count ta murojaat haqidagi xabarnoma Telegramga yetib bormadi. Telegram sozlamalarini tekshiring.',
             'settings' => 'Telegram sozlamalarini ochish',
         ],
         'leads_label' => 'Murojaatlar',
