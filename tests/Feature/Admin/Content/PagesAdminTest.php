@@ -2,13 +2,16 @@
 
 use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\SavePage;
+use App\Enums\AuditAction;
 use App\Enums\PageTemplate;
 use App\Enums\Role;
+use App\Enums\SettingsArea;
 use App\Livewire\Admin\Faq\FaqItems;
 use App\Livewire\Admin\Pages\Form;
 use App\Livewire\Admin\Pages\Index;
 use App\Models\FaqItem;
 use App\Models\Page;
+use App\Models\SettingsAudit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -252,8 +255,122 @@ describe('form', function () {
         expect($page->slug)->toBe('privacy')
             ->and($page->template)->toBe(PageTemplate::Legal)
             ->and($page->getTranslation('title', 'ru'))->toBe('Политика конфиденциальности')
-            ->and($page->needs_review)->toBeFalse()
+            ->and($page->needs_review)->toBeTrue()
             ->and($page->is_active)->toBeFalse();
+    });
+
+    it('keeps the review flag for a content manager on privacy and offer without losing other edits', function (string $slug) {
+        $page = Page::factory()->system($slug)->needsReview()->create();
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.ru', 'Новый заголовок')
+            ->set('form.needs_review', false)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast', type: 'error')
+            ->assertSet('form.needs_review', true);
+
+        $page->refresh();
+
+        expect($page->needs_review)->toBeTrue()
+            ->and($page->getTranslation('title', 'ru'))->toBe('Новый заголовок')
+            ->and(SettingsAudit::query()->count())->toBe(0);
+    })->with(['privacy', 'offer']);
+
+    it('lets an admin clear the review flag and audits it without page content', function (string $slug) {
+        $page = Page::factory()->system($slug)->needsReview()->create(['title' => ['uz' => 'Maxfiy matn sarlavhasi']]);
+        $admin = staffUser(Role::Admin);
+
+        Livewire::actingAs($admin)
+            ->test(Form::class, ['page' => $page])
+            ->set('form.needs_review', false)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertNotDispatched('toast', type: 'error');
+
+        $audit = SettingsAudit::query()->sole();
+
+        expect($page->refresh()->needs_review)->toBeFalse()
+            ->and($audit->area)->toBe(SettingsArea::Legal)
+            ->and($audit->key)->toBe("pages.{$slug}.needs_review")
+            ->and($audit->action)->toBe(AuditAction::Cleared)
+            ->and($audit->user_id)->toBe($admin->id)
+            ->and(json_encode($audit->getAttributes()))->not->toContain('Maxfiy');
+    })->with(['privacy', 'offer']);
+
+    it('lets a content manager clear the review flag on other pages and does not audit it', function () {
+        $page = Page::factory()->system('about')->needsReview()->create();
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.needs_review', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->needs_review)->toBeFalse()
+            ->and(SettingsAudit::query()->count())->toBe(0);
+    });
+
+    it('keeps the flag when SavePage has no actor', function () {
+        $page = Page::factory()->system('privacy')->needsReview()->create();
+        $data = ['title' => ['uz' => 'Maxfiylik'], 'body' => [], 'meta_title' => [], 'meta_description' => [], 'template' => 'legal', 'sort' => null, 'is_active' => true, 'needs_review' => false];
+
+        app(SavePage::class)->handle($page, $data);
+
+        expect($page->refresh()->needs_review)->toBeTrue()->and(SettingsAudit::query()->count())->toBe(0);
+    });
+
+    it('raises the review flag again when a content manager changes approved legal text', function (string $slug) {
+        $page = Page::factory()->system($slug)->create(['title' => ['uz' => 'Eski']]);
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', 'Yangi sarlavha')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $audit = SettingsAudit::query()->sole();
+
+        expect($page->refresh()->needs_review)->toBeTrue()
+            ->and($audit->key)->toBe("pages.{$slug}.review_reraised")
+            ->and($audit->area)->toBe(SettingsArea::Legal)
+            ->and(json_encode($audit->getAttributes()))->not->toContain('Yangi');
+    })->with(['privacy', 'offer']);
+
+    it('does not re-raise the flag on a whitespace-only or SEO-only edit', function () {
+        $page = Page::factory()->system('privacy')->create(['title' => ['uz' => 'Maxfiylik']]);
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', ' Maxfiylik ')
+            ->set('form.meta_title.uz', 'Maxfiylik — Poson')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->needs_review)->toBeFalse()->and(SettingsAudit::query()->count())->toBe(0);
+    });
+
+    it('keeps the flag off for an admin text edit of approved legal text and audits it', function () {
+        $page = Page::factory()->system('offer')->create(['title' => ['uz' => 'Oferta']]);
+
+        Livewire::actingAs(staffUser(Role::Admin))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', 'Oferta yangi')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->needs_review)->toBeFalse()
+            ->and(SettingsAudit::query()->sole()->key)->toBe('pages.offer.approved_text_changed');
+    });
+
+    it('locks the review toggle for a content manager on legal pages only', function () {
+        $legal = Page::factory()->system('privacy')->needsReview()->create();
+        $other = Page::factory()->system('about')->create();
+
+        Livewire::actingAs(staffUser(Role::ContentManager))->test(Form::class, ['page' => $legal])->assertSeeHtml('data-review-toggle')->assertSee(__('admin.pages.review_admin_only_hint'));
+        Livewire::actingAs(staffUser(Role::ContentManager))->test(Form::class, ['page' => $other])->assertDontSee(__('admin.pages.review_admin_only_hint'));
+        Livewire::actingAs(staffUser(Role::Admin))->test(Form::class, ['page' => $legal])->assertDontSee(__('admin.pages.review_admin_only_hint'));
     });
 
     it('stores an optional cover image privately with WebP conversions and alt per locale', function () {

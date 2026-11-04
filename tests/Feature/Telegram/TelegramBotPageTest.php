@@ -12,8 +12,10 @@ use App\Models\Page;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Support\Admin\Menu;
+use App\Support\Telegram\Bot\BotChecklist;
 use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Livewire\Exceptions\MethodNotFoundException;
@@ -34,6 +36,7 @@ function botPageTelegram(string $webhookUrl = TG_PAGE_URL): void
         return match (basename(parse_url($request->url(), PHP_URL_PATH))) {
             'getMe' => Http::response(['ok' => true, 'result' => ['id' => 123456789, 'is_bot' => true, 'username' => 'poson_test_bot', 'can_read_all_group_messages' => false]]),
             'getWebhookInfo' => Http::response(['ok' => true, 'result' => ['url' => $webhookUrl, 'pending_update_count' => 0]]),
+            'getChat' => Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']]),
             default => Http::response(['ok' => true, 'result' => true]),
         };
     }]);
@@ -73,7 +76,7 @@ it('loads the page without calling Telegram, then refresh shows getMe and the ch
         ->assertDontSee(TG_BOT_TOKEN)
         ->assertDontSee(TG_WEBHOOK_SECRET);
 
-    expect(collect(telegramApiCalls())->pluck('method')->all())->toBe(['getMe', 'getWebhookInfo']);
+    expect(collect(telegramApiCalls())->pluck('method')->all())->toBe(['getMe', 'getWebhookInfo', 'getChat']);
 });
 
 it('limits refreshes to 10 per minute per user', function () {
@@ -87,7 +90,8 @@ it('limits refreshes to 10 per minute per user', function () {
     $calls = count(telegramApiCalls());
     $component->call('refresh')->assertDispatched('toast', type: 'error');
 
-    expect(count(telegramApiCalls()))->toBe($calls)->toBe(20);
+    // 10 refreshes x (getMe + getWebhookInfo) = 20, plus one getChat: its pass is cached for 10 minutes.
+    expect(count(telegramApiCalls()))->toBe($calls)->toBe(21);
 });
 
 it('shows a banner for an open token problem', function () {
@@ -282,4 +286,136 @@ it('still renders a legacy telegram.commands audit row', function () {
     ]);
 
     Livewire::actingAs(staffUser())->test(Bot::class)->assertSee('telegram.commands');
+});
+
+/**
+ * Plan 21 E3: webhook is fine, getChat answers with $chat (a response or a Closure).
+ */
+function botPageChatAnswers(mixed $chat): void
+{
+    Http::fake(['api.telegram.org/*' => fn ($request) => match (basename(parse_url($request->url(), PHP_URL_PATH))) {
+        'getWebhookInfo' => Http::response(['ok' => true, 'result' => ['url' => TG_PAGE_URL, 'pending_update_count' => 0]]),
+        'getChat' => $chat instanceof Closure ? $chat() : $chat,
+        default => Http::response(['ok' => true, 'result' => true]),
+    }]);
+}
+
+it('refuses to enable a refused group chat', function (array $chat) {
+    privacyPage();
+    botPageChatAnswers(Http::response(['ok' => true, 'result' => $chat]));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready')->and($exception->failing)->toBe(['chat']));
+
+    expect(BotSwitch::isEnabled())->toBeFalse();
+})->with([
+    'public supergroup' => [['id' => -1001111111111, 'type' => 'supergroup', 'username' => 'public_group']],
+    'channel' => [['id' => -1001111111111, 'type' => 'channel']],
+]);
+
+it('refuses to enable on a getChat 403', function () {
+    privacyPage();
+    botPageChatAnswers(Http::response(['ok' => false, 'error_code' => 403], 403));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready'));
+});
+
+it('refuses with try again on a 5xx or a timeout and caches nothing', function (Closure $answer) {
+    privacyPage();
+    $recovered = false;
+    botPageChatAnswers(function () use (&$recovered, $answer) {
+        return $recovered
+            ? Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']])
+            : $answer();
+    });
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('chat_unavailable')->and($exception->translated())->toBe(__('admin.telegram_bot.errors.chat_unavailable')));
+
+    expect(BotSwitch::isEnabled())->toBeFalse();
+
+    // Nothing was cached: once Telegram recovers, the same chat passes.
+    $recovered = true;
+
+    expect(app(SetBotEnabled::class)->enable(staffUser(), null))->toBeTrue();
+})->with([
+    '503' => [fn () => Http::response(['ok' => false], 503)],
+    'timeout' => [fn () => throw new ConnectionException('cURL error 28: Operation timed out after 3000 milliseconds')],
+]);
+
+it('bounds the chat check by a 3 second timeout', function () {
+    expect(BotChecklist::CHAT_TIMEOUT)->toBe(3);
+});
+
+it('accepts a chat pass cached for 10 minutes without calling Telegram again', function () {
+    privacyPage();
+    botPageTelegram();
+    app(SetBotEnabled::class)->enable(staffUser(), null);
+    app(SetBotEnabled::class)->disable(staffUser(), null);
+    botPageChatAnswers(Http::response(['ok' => false], 500));
+
+    expect(app(SetBotEnabled::class)->enable(staffUser(), null))->toBeTrue()
+        ->and(collect(telegramApiCalls())->pluck('method')->contains('getChat'))->toBeFalse();
+});
+
+it('shows the chat verdict and a check now button that reuses the status check', function () {
+    botPageTelegram();
+    $admin = staffUser();
+
+    Livewire::actingAs($admin)->test(Bot::class)
+        ->assertSeeHtml('data-chat-verdict="unknown"')
+        ->call('checkChat')
+        ->assertDispatched('toast', type: 'success')
+        ->assertSeeHtml('data-chat-verdict="pass"')
+        ->call('checkChat')
+        ->assertDispatched('toast', type: 'error');
+});
+
+it('shows a failing chat verdict from the check', function () {
+    botPageChatAnswers(Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup', 'username' => 'public_group']]));
+
+    Livewire::actingAs(staffUser())->test(Bot::class)
+        ->call('checkChat')
+        ->assertSeeHtml('data-chat-verdict="fail"');
+});
+
+it('forbids the chat check for non-admins', function () {
+    Livewire::actingAs(staffUser(Role::ContentManager))->test(Bot::class)->assertForbidden();
+});
+
+it('reports not_ready, not try again, when getChat answers 401 (bad token)', function () {
+    privacyPage();
+    // plan21/jobs makes InboxChat::verify() rethrow 401/404; the checklist must then still say not_ready.
+    botPageChatAnswers(Http::response(['ok' => false, 'error_code' => 401], 401));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready'));
+});
+
+it('puts a failing privacy page ahead of a chat 503', function () {
+    privacyPage(needsReview: true);
+    botPageChatAnswers(Http::response(['ok' => false], 503));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready')->and($exception->failing)->toContain('privacy'));
+});
+
+it('shows a neutral not verified text for a chat 503 and syncs the checklist after check now', function () {
+    privacyPage();
+    $recovered = false;
+    botPageChatAnswers(function () use (&$recovered) {
+        return $recovered
+            ? Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']])
+            : Http::response(['ok' => false], 503);
+    });
+
+    $component = Livewire::actingAs(staffUser())->test(Bot::class)
+        ->call('refresh')
+        ->assertSeeHtml('data-chat-unverified')
+        ->assertSet('checklist.chat', false);
+
+    $recovered = true;
+
+    $component->call('checkChat')->assertSet('checklist.chat', true)->assertDontSeeHtml('data-chat-unverified');
 });
