@@ -54,7 +54,8 @@ use Throwable;
  * Failures (B4-S8): 429 → back to pending, released for retry_after (the
  * release counts as an attempt, but only retryUntil and $maxExceptions end
  * the job, so a 429 never uses up a real retry); every other 4xx → failed + code, a 400 / 403
- * drops the cached chat check, a 403 alerts the management chat (deduped);
+ * drops the cached chat check, a 403, any 400 on the header or the third copy 400 in an hour alerts
+ * the management chat as lost_target (deduped; L4);
  * 5xx / timeout → back to pending and thrown (backoff 30/120/600/1800),
  * failed after $maxExceptions. Any other error after the claim (database,
  * bug) also puts the row back to pending and is rethrown, so nothing stays
@@ -75,6 +76,18 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
     public const DAILY_KEY = 'telegram-forward:day';
 
     public const MONITORING_EVENT = ForwardAlerts::MONITORING_EVENT;
+
+    /** Where a Telegram call failed (L4): the chat check, the header or the copy. */
+    private const PHASE_CHECK = 'check';
+
+    private const PHASE_HEADER = 'header';
+
+    private const PHASE_COPY = 'copy';
+
+    /** Copy 400s within an hour that mean the target is lost (L4); one "message deleted" 400 is ordinary. */
+    public const COPY_400_KEY = 'telegram-forward:copy-400';
+
+    public const COPY_400_ALERT_AT = 3;
 
     /**
      * 429 releases and lock waits must not use up the retries: the job may be
@@ -211,11 +224,24 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
 
                 return;
             }
+        } catch (TelegramException $exception) {
+            $this->failure($message, $chatId, $exception, self::PHASE_CHECK);
 
+            return;
+        }
+
+        try {
             $headerId = $this->header($client, $user, $chatId);
+        } catch (TelegramException $exception) {
+            $this->failure($message, $chatId, $exception, self::PHASE_HEADER);
+
+            return;
+        }
+
+        try {
             $copiedId = $client->copyMessage($chatId, (string) $user->telegram_id, (int) $message->telegram_message_id, $headerId, $this->caption($message));
         } catch (TelegramException $exception) {
-            $this->failure($message, $chatId, $exception);
+            $this->failure($message, $chatId, $exception, self::PHASE_COPY);
 
             return;
         }
@@ -325,7 +351,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
         return $message->kind->hasCaption() ? BotText::caption($message->text) : null;
     }
 
-    private function failure(TelegramMessage $message, string $chatId, TelegramException $exception): void
+    private function failure(TelegramMessage $message, string $chatId, TelegramException $exception, string $phase): void
     {
         $permanent = $exception->status >= 400 && $exception->status < 500 && ! $exception->isRateLimited();
         $status = $permanent ? TelegramForwardStatus::Failed : TelegramForwardStatus::Pending;
@@ -355,9 +381,25 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
             InboxChat::invalidate($chatId);
         }
 
-        if ($exception->status === 403) {
+        if ($this->targetLost($exception, $phase)) {
             ForwardAlerts::once('lost_target', 3600);
         }
+    }
+
+    /**
+     * L4: a 403 (kicked / blocked) or any 400 on the header (we build it, so a
+     * 400 means the chat) is a lost target at once; a 400 on the copy only
+     * after COPY_400_ALERT_AT of them in an hour (a deleted source message
+     * also gives 400). 401 / 404 are token problems, never a lost target.
+     */
+    private function targetLost(TelegramException $exception, string $phase): bool
+    {
+        return match (true) {
+            $exception->status === 403 => true,
+            $exception->status === 400 && $phase === self::PHASE_HEADER => true,
+            $exception->status === 400 && $phase === self::PHASE_COPY => RateLimiter::hit(self::COPY_400_KEY, 3600) >= self::COPY_400_ALERT_AT,
+            default => false,
+        };
     }
 
     private function mark(TelegramMessage $message, TelegramForwardStatus $status, int $code = 0): void

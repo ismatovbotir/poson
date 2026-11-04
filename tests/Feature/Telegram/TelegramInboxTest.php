@@ -18,6 +18,7 @@ use App\Events\Telegram\TelegramInboxMessage;
 use App\Jobs\DeliverBotMessage;
 use App\Jobs\ForwardTelegramMedia;
 use App\Jobs\SendBotPrompt;
+use App\Jobs\SendTelegramMessage;
 use App\Listeners\SendTelegramAlerts;
 use App\Listeners\SendTelegramInboxAlert;
 use App\Models\Order;
@@ -1253,4 +1254,107 @@ it('does not hand other alert events to the inbox listener and leaves their list
     expect(property_exists(SendTelegramAlerts::class, 'tries'))->toBeFalse()
         ->and(method_exists(SendTelegramAlerts::class, 'backoff'))->toBeFalse()
         ->and(method_exists(SendTelegramAlerts::class, 'failed'))->toBeFalse();
+});
+
+/* ------------------------------------- plan 21 A6: send-time target, L4 */
+
+it('re-resolves the inbox target when the alert is sent: a switch during the queue wait is honoured (A6/L3)', function () {
+    telegramBotConfigured();
+    inboxApi();
+    $job = new SendTelegramMessage('sales', 'hello <b>team</b>', [], 'TelegramInboxMessage', inbox: true);
+
+    // The inbox chat is set while the job waits in the queue.
+    telegramBotConfigured(['services.telegram.chats.inbox' => INBOX_CHAT]);
+    $job->handle(app(TelegramClient::class));
+
+    expect(inboxCalls('sendMessage', INBOX_CHAT))->toHaveCount(1)
+        ->and(inboxCalls('sendMessage', INBOX_SALES_CHAT))->toBe([]);
+});
+
+it('sends nothing to a target that is no longer verified at send time, with one deduped alert (A6/L3)', function () {
+    telegramBotConfigured();
+    inboxApi(['getChat' => ['id' => -1, 'type' => 'supergroup', 'username' => 'open_group']]);
+
+    foreach ([1, 2] as $_) {
+        (new SendTelegramMessage('sales', 'secret alert text', [], 'TelegramInboxMessage', inbox: true))->handle(app(TelegramClient::class));
+    }
+
+    $alerts = inboxCalls('sendMessage', TG_MANAGEMENT_CHAT);
+
+    expect(inboxCalls('sendMessage', INBOX_SALES_CHAT))->toBe([])
+        ->and($alerts)->toHaveCount(1)
+        ->and($alerts[0]['data']['text'])->toContain(e(__('telegram.monitoring.forward_reasons.refused_target', [], 'uz')))
+        ->and($alerts[0]['data']['text'])->not->toContain('secret alert text');
+});
+
+it('never sends a non-inbox alert through the inbox check (A6/L3)', function () {
+    telegramBotConfigured();
+    inboxApi(['getChat' => ['id' => -1, 'type' => 'channel']]);
+
+    (new SendTelegramMessage('sales', 'order alert'))->handle(app(TelegramClient::class));
+
+    expect(inboxCalls('getChat'))->toBe([])
+        ->and(inboxCalls('sendMessage', INBOX_SALES_CHAT))->toHaveCount(1);
+});
+
+it('does not cache a 401 / 404 from getChat as a bad chat: nothing is sent, and after the token fix the next try sends (security L2)', function (int $status) {
+    telegramBotConfigured();
+    $answers = [$status, $status];
+    inboxApi(['getChat' => function () use (&$answers) {
+        return array_shift($answers) ?? ['id' => -1, 'type' => 'supergroup'];
+    }]);
+    inboxUser();
+    $alert = new SendTelegramMessage('sales', 'alert text', [], 'TelegramInboxMessage', inbox: true);
+    $alert->withFakeQueueInteractions();
+
+    try {
+        $alert->handle(app(TelegramClient::class));
+    } catch (TelegramException) {
+        // permanent for the alert job: failed, nothing sent
+    }
+
+    inboxSend(inboxPhoto());
+    $row = inboxLastInbound();
+
+    expect(inboxCalls('sendMessage', INBOX_SALES_CHAT))->toBe([])
+        ->and($row->forward_status)->toBe(TelegramForwardStatus::Failed)
+        ->and($row->forward_error_code)->toBe($status)
+        ->and(inboxCalls('copyMessage'))->toBe([])
+        ->and(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toBe([]);
+
+    // The token is fixed: no cached "false" is waiting, the retry verifies again and copies.
+    inboxApi(['getChat' => null]);
+    inboxRunForward($row);
+
+    expect($row->fresh()->forward_status)->toBe(TelegramForwardStatus::Forwarded);
+})->with([401, 404]);
+
+it('alerts lost_target once for a 400 on the header, however many files follow (A6/L4)', function () {
+    inboxApi(['sendMessage' => fn (Request $request) => (string) $request->data()['chat_id'] === INBOX_SALES_CHAT ? 400 : ['message_id' => 1]]);
+    inboxUser();
+
+    inboxSend(inboxPhoto());
+    inboxSend(inboxDocument());
+
+    $alerts = inboxCalls('sendMessage', TG_MANAGEMENT_CHAT);
+
+    expect(inboxCalls('copyMessage'))->toBe([])
+        ->and(TelegramMessage::query()->where('forward_status', TelegramForwardStatus::Failed)->where('forward_error_code', 400)->count())->toBe(2)
+        ->and($alerts)->toHaveCount(1)
+        ->and($alerts[0]['data']['text'])->toContain(e(__('telegram.monitoring.forward_reasons.lost_target', [], 'uz')));
+});
+
+it('does not alert for an ordinary copy 400 such as a deleted message, only for the third within an hour (A6/L4)', function () {
+    inboxApi(['copyMessage' => 400]);
+    inboxUser();
+
+    inboxSend(inboxPhoto());
+    inboxSend(inboxPhoto(['caption' => 'two']));
+
+    expect(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toBe([])
+        ->and(TelegramMessage::query()->where('forward_error_code', 400)->count())->toBe(2);
+
+    inboxSend(inboxPhoto(['caption' => 'three']));
+
+    expect(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toHaveCount(1);
 });

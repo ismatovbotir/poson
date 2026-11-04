@@ -24,8 +24,10 @@ use Illuminate\Support\Str;
  *    username. The pass / fail flag is cached VERIFY_TTL seconds under
  *    sha1(chat id) (never the id itself) within a generation that forget()
  *    bumps when a chat id or the bot token is saved; invalidate() drops it on
- *    a 400 / 403 from the target. 429 / 5xx / timeouts are transient: thrown,
- *    never cached, never "not configured".
+ *    a 400 / 403 from the target. 429 / 5xx / timeouts are transient, and a
+ *    401 / 404 means the token is the problem, not the chat: thrown, never
+ *    cached, never "not configured" (so a token fix in .env works at once;
+ *    senders still send nothing).
  */
 final class InboxChat
 {
@@ -63,7 +65,7 @@ final class InboxChat
     /**
      * Whether the chat is a non-public group the bot can see (cached).
      *
-     * @throws TelegramException on 429, 5xx, timeouts and connection failures
+     * @throws TelegramException on 401, 404, 429, 5xx, timeouts and connection failures
      */
     public static function verify(TelegramClient $client, string $chatId): bool
     {
@@ -79,7 +81,9 @@ final class InboxChat
             $ok = in_array($chat['type'] ?? null, ['group', 'supergroup'], true)
                 && (! isset($chat['username']) || $chat['username'] === '');
         } catch (TelegramException $exception) {
-            if (! $exception->isPermanent()) {
+            // 429 / 5xx / timeouts, and a refused token (401) or unknown bot URL (404):
+            // the verdict on the chat is unknown, never cached as a bad chat (security L2).
+            if (! $exception->isPermanent() || in_array($exception->status, [401, 404], true)) {
                 throw $exception;
             }
 
