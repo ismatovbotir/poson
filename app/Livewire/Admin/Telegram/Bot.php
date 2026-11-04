@@ -132,7 +132,7 @@ class Bot extends Component
         $outcome = $status->refresh(auth()->id());
 
         if ($outcome === TelegramStatus::REFRESHED) {
-            $this->load();
+            $this->reloadAfterWrite();
         }
 
         match ($outcome) {
@@ -196,7 +196,21 @@ class Bot extends Component
             $this->dispatch('toast', title: __('admin.toast.error'), body: $exception->translated(), type: 'error');
         }
 
-        $this->load();
+        $this->reloadAfterWrite();
+    }
+
+    /**
+     * Reload after a committed write or check. A cache or other failure here
+     * must not turn the already-done action into a 500: it is reported (the
+     * exception carries no secrets) and the page keeps its previous values.
+     */
+    protected function reloadAfterWrite(): void
+    {
+        try {
+            $this->load();
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     protected function load(): void

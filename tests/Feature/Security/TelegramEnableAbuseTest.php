@@ -281,11 +281,9 @@ describe('enable fails closed on the chat', function () {
             tenaBreakChatCache();
         }
 
-        try {
-            $component->call('disable');
-        } catch (Throwable) {
-            // A failing reload after the commit may surface; the write itself must have stuck.
-        }
+        // No exception reaches the Admin: the toast confirms the bot is off.
+        $component->call('disable')
+            ->assertDispatched('toast', type: 'success', body: __('admin.telegram_bot.flash.disabled'));
 
         $audit = SettingsAudit::query()->where('key', BotSwitch::KEY)->sole();
 
