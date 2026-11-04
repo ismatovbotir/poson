@@ -11,6 +11,7 @@ use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
 use App\Support\Telegram\InboxMessage;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -114,7 +115,7 @@ it('refuses polls and marks nothing read for staff deactivated mid-session', fun
     $chat->forceFill(['unread_count' => 3])->save();
     $user->forceFill(['is_active' => false])->save();
 
-    // Livewire::test() skips persistent middleware, so the update request is modelled with the X-Livewire header.
+    // Livewire::test() does not run the persistent middleware; real update requests are covered in the two update-request tests below.
     expect(Livewire::getPersistentMiddleware())->toContain(EnsureStaff::class);
 
     $this->actingAs($user->fresh())->get(route('admin.telegram.chats.show', $chat))->assertRedirect(route('admin.login'));
@@ -124,6 +125,68 @@ it('refuses polls and marks nothing read for staff deactivated mid-session', fun
         $this->actingAs($user->fresh())->get($url, ['X-Livewire' => 'true'])->assertForbidden();
         expect($chat->fresh()->unread_count)->toBe(3);
     }
+});
+
+it('refuses a bare $refresh on Show after reassignment and leaks no new message (hydrate)', function () {
+    $user = staffUser(Role::SalesManager);
+    $chat = abuseThread([], $user);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])->assertOk();
+
+    $chat->forceFill(['manager_id' => abuseManager()->id])->save();
+    TelegramMessage::factory()->for($chat)->create(['text' => 'brand-new-secret-message']);
+
+    $component->call('$refresh')->assertForbidden()->assertDontSee('brand-new-secret-message');
+});
+
+/**
+ * Real Livewire update request for a user deactivated after the page was rendered.
+ * One update request per test: several in one application instance wrongly returned 200.
+ */
+function deactivatedUpdateRequest(string $page, string $snapshotKey, string $method): void
+{
+    test()->seed(RolesAndPermissionsSeeder::class);
+    $user = User::factory()->withRole(Role::SalesManager)->create();
+    $chat = abuseThread(['unread_count' => 0], $user);
+    $url = $page === 'show' ? route('admin.telegram.chats.show', $chat) : route('admin.telegram.chats');
+
+    $html = test()->actingAs($user)->get($url)->assertOk()->getContent();
+    preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+
+    $snapshot = collect($matches[1])
+        ->map(fn (string $raw) => html_entity_decode($raw, ENT_QUOTES))
+        ->first(fn (string $candidate) => array_key_exists($snapshotKey, json_decode($candidate, true)['data'] ?? []));
+    expect($snapshot)->not->toBeNull();
+
+    $chat->forceFill(['unread_count' => 3])->save();
+    $user->forceFill(['is_active' => false])->save();
+
+    test()->withHeaders(['X-Livewire' => '1'])
+        ->postJson(app('livewire')->getUpdateUri(), [
+            'components' => [['snapshot' => $snapshot, 'calls' => [['method' => $method, 'params' => [], 'metadata' => []]], 'updates' => []]],
+        ])
+        ->assertForbidden();
+
+    test()->assertGuest();
+    expect($chat->fresh()->unread_count)->toBe(3);
+}
+
+it('returns 403 to a real Show update request after the manager is deactivated', function () {
+    deactivatedUpdateRequest('show', 'conversationId', 'refreshThread');
+});
+
+it('returns 403 to a real Index update request after the manager is deactivated', function () {
+    deactivatedUpdateRequest('index', 'scope', '$refresh');
+});
+
+it('does not clear unread through a model loaded before the thread was reassigned', function () {
+    $user = staffUser(Role::SalesManager);
+    $chat = abuseThread(['unread_count' => 3]);
+    $stale = TelegramUser::query()->findOrFail($chat->id);
+
+    TelegramUser::query()->whereKey($chat->id)->update(['manager_id' => abuseManager()->id]);
+
+    expect(abuseRefused(fn () => app(MarkConversationRead::class)->handle($stale, $user)))->toBeFalse()
+        ->and($chat->fresh()->unread_count)->toBe(3);
 });
 
 // 4
