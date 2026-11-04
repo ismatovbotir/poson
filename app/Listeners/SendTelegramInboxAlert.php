@@ -49,7 +49,7 @@ class SendTelegramInboxAlert implements ShouldQueue
         }
 
         foreach (array_values(array_unique($event->telegramChats())) as $chat) {
-            SendTelegramMessage::dispatch($chat, $message->html, $message->buttons, class_basename($event));
+            SendTelegramMessage::dispatch($chat, $message->html, $message->buttons, class_basename($event), inbox: true);
         }
     }
 }

@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property TelegramForwardStatus|null $forward_status
  * @property int|null $forwarded_message_id
+ * @property int|null $forwarded_chat_id
  * @property int|null $forward_error_code
  * @property int|null $lead_id
  */
@@ -63,6 +64,7 @@ class TelegramMessage extends Model
             'telegram_message_id' => 'integer',
             'error_code' => 'integer',
             'forwarded_message_id' => 'integer',
+            'forwarded_chat_id' => 'integer',
             'forward_error_code' => 'integer',
             'sent_at' => 'datetime',
         ];

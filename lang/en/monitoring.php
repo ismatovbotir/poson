@@ -105,5 +105,6 @@ return [
         'rate' => 'Too many actions. Try again later.',
         'too_many' => 'Too many jobs selected (at most 50).',
         'class' => 'These jobs can only be deleted, not retried.',
+        'inbox_alert' => 'Customer inbox alerts cannot be retried: they would re-send the customer\'s text. Delete them.',
     ],
 ];

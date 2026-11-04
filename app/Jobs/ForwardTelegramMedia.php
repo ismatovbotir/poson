@@ -47,14 +47,17 @@ use Throwable;
  *  5. Header (TG-24, B4-S7): a new one unless the last one went to the same
  *     chat less than HEADER_MINUTES ago; saved (id, time, chat) before the copy,
  *     so a retry never repeats it. No buttons until the B5 admin route exists.
- *  6. copyMessage (TG-21, B4-S4): reply to the header, empty reply_markup, an
+ *  6. copyMessage (TG-21, B4-S4; the chat is saved with the copy id in forwarded_chat_id, T21-9): reply to the header, empty reply_markup, an
  *     explicit plain caption ('' when empty) for captioned kinds, none for
  *     sticker / location / video_note.
  *
  * Failures (B4-S8): 429 → back to pending, released for retry_after (the
  * release counts as an attempt, but only retryUntil and $maxExceptions end
- * the job, so a 429 never uses up a real retry); every other 4xx → failed + code, a 400 / 403
- * drops the cached chat check, a 403 alerts the management chat (deduped);
+ * the job, so a 429 never uses up a real retry); every other 4xx → failed + code.
+ * A 400 / 403 drops the cached chat check. A 403 or any 400 on the header
+ * alerts the management chat as lost_target (deduped); a 400 / 403 on the
+ * copy re-verifies the chat at once and alerts refused_target only when the
+ * check fails (T21-29).
  * 5xx / timeout → back to pending and thrown (backoff 30/120/600/1800),
  * failed after $maxExceptions. Any other error after the claim (database,
  * bug) also puts the row back to pending and is rethrown, so nothing stays
@@ -76,6 +79,13 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
 
     public const MONITORING_EVENT = ForwardAlerts::MONITORING_EVENT;
 
+    /** Where a Telegram call failed (L4): the chat check, the header or the copy. */
+    private const PHASE_CHECK = 'check';
+
+    private const PHASE_HEADER = 'header';
+
+    private const PHASE_COPY = 'copy';
+
     /**
      * 429 releases and lock waits must not use up the retries: the job may be
      * retried for RETRY_HOURS, while real failures are capped here.
@@ -83,7 +93,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
     public int $maxExceptions = 5;
 
     /**
-     * Seconds a run may take (getChat + header + copy, 10 s each at most);
+     * Seconds a run may take (getChat + header + copy + the re-verify getChat after a copy 400 / 403, 10 s each at most);
      * a run killed by the timeout is failed, not retried (L2), so a copy
      * that may have reached Telegram is never sent twice automatically.
      */
@@ -211,11 +221,24 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
 
                 return;
             }
+        } catch (TelegramException $exception) {
+            $this->failure($client, $message, $chatId, $exception, self::PHASE_CHECK);
 
+            return;
+        }
+
+        try {
             $headerId = $this->header($client, $user, $chatId);
+        } catch (TelegramException $exception) {
+            $this->failure($client, $message, $chatId, $exception, self::PHASE_HEADER);
+
+            return;
+        }
+
+        try {
             $copiedId = $client->copyMessage($chatId, (string) $user->telegram_id, (int) $message->telegram_message_id, $headerId, $this->caption($message));
         } catch (TelegramException $exception) {
-            $this->failure($message, $chatId, $exception);
+            $this->failure($client, $message, $chatId, $exception, self::PHASE_COPY);
 
             return;
         }
@@ -223,6 +246,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
         $message->forceFill([
             'forward_status' => TelegramForwardStatus::Forwarded,
             'forwarded_message_id' => $copiedId > 0 ? $copiedId : null,
+            'forwarded_chat_id' => $copiedId > 0 ? $this->storableChatId($chatId) : null,
             'forward_error_code' => null,
         ])->save();
     }
@@ -310,10 +334,19 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
         $user->forceFill([
             'forward_header_message_id' => $headerId,
             'forward_header_at' => now(),
-            'forward_header_chat_id' => (int) $chatId,
+            'forward_header_chat_id' => $this->storableChatId($chatId),
         ])->save();
 
         return $headerId;
+    }
+
+    /**
+     * T21-9: the chat id for the signed bigint column, or null when the
+     * pattern's 20 digits would overflow int64 (a wrong id is worse than none).
+     */
+    private function storableChatId(string $chatId): ?int
+    {
+        return (string) (int) $chatId === $chatId ? (int) $chatId : null;
     }
 
     /**
@@ -325,7 +358,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
         return $message->kind->hasCaption() ? BotText::caption($message->text) : null;
     }
 
-    private function failure(TelegramMessage $message, string $chatId, TelegramException $exception): void
+    private function failure(TelegramClient $client, TelegramMessage $message, string $chatId, TelegramException $exception, string $phase): void
     {
         $permanent = $exception->status >= 400 && $exception->status < 500 && ! $exception->isRateLimited();
         $status = $permanent ? TelegramForwardStatus::Failed : TelegramForwardStatus::Pending;
@@ -355,8 +388,31 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
             InboxChat::invalidate($chatId);
         }
 
-        if ($exception->status === 403) {
+        if ($phase === self::PHASE_HEADER && in_array($exception->status, [400, 403], true)) {
             ForwardAlerts::once('lost_target', 3600);
+
+            return;
+        }
+
+        if ($phase === self::PHASE_COPY && in_array($exception->status, [400, 403], true)) {
+            $this->reverifyTarget($client, $chatId);
+        }
+    }
+
+    /**
+     * T21-29: a copy 400 / 403 can come from the customer's side (deleted
+     * source message), so it never alerts by itself. The chat is checked
+     * again at once (the cached verdict was dropped): refused → refused_target,
+     * passed or transient → no alert.
+     */
+    private function reverifyTarget(TelegramClient $client, string $chatId): void
+    {
+        try {
+            if (! InboxChat::verify($client, $chatId)) {
+                ForwardAlerts::once('refused_target', 3600);
+            }
+        } catch (TelegramException) {
+            // Unknown verdict (transient, token): no alert.
         }
     }
 

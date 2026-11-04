@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * Retry failed jobs by uuid (plan 17, MON-S3, S4, S9): every id is a uuid
  * that exists in failed_jobs (≤ 50), every job's class is in
  * config('monitoring.retry_classes'), and queue:retry gets the id array only
- * (never "all" or --range). 10 retry / forget calls per 10 minutes per user.
+ * (never "all" or --range). Customer inbox alerts are never retried (T21-31). 10 retry / forget calls per 10 minutes per user.
  * One audit row with the count and the uuids.
  */
 final class RetryFailedJobs
@@ -49,6 +49,11 @@ final class RetryFailedJobs
             if (! FailedJobs::isRetryable($class)) {
                 throw new MonitoringActionException('class');
             }
+        }
+
+        // T21-31: an inbox alert would re-send a customer excerpt, maybe after the thread or chat changed.
+        if (FailedJobs::hasInboxAlert($uuids)) {
+            throw new MonitoringActionException('inbox_alert');
         }
 
         RateLimiter::hit($limiter, self::WINDOW);
