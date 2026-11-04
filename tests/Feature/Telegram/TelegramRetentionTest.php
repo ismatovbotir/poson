@@ -2,6 +2,8 @@
 
 use App\Actions\Monitoring\MonitoringActionException;
 use App\Actions\Monitoring\RetryFailedJobs;
+use App\Actions\Telegram\ScrubBannedTelegramUsers;
+use App\Enums\TelegramUserState;
 use App\Jobs\SendTelegramMessage;
 use App\Livewire\Admin\System\Monitoring;
 use App\Models\Activity;
@@ -139,17 +141,6 @@ it('never prunes a banned row, unregistered or silent, and the ban still works',
         ->and(TelegramMessage::query()->where('telegram_user_id', $row->id)->exists())->toBeTrue();
 })->with(['unregistered', 'silent']);
 
-it('counts the 30 unregistered days from the last message', function () {
-    $recent = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => now()->subDays(5)]);
-    $idle = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => now()->subDays(40)]);
-    $never = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => null]);
-
-    retentionPruneModels();
-
-    expect(TelegramUser::query()->pluck('id')->all())->toBe([$recent->id])
-        ->and(TelegramUser::query()->whereKey([$idle->id, $never->id])->exists())->toBeFalse();
-});
-
 it('refuses to retry an inbox alert from failed jobs and still retries a sales alert (T21-31)', function () {
     $queue = fn (SendTelegramMessage $job, string $uuid) => DB::table('failed_jobs')->insert([
         'uuid' => $uuid, 'connection' => 'database', 'queue' => 'default',
@@ -172,4 +163,94 @@ it('refuses to retry an inbox alert from failed jobs and still retries a sales a
 
     expect(app(RetryFailedJobs::class)->handle($admin, [$sales]))->toBe(1)
         ->and(DB::table('failed_jobs')->where('uuid', $sales)->exists())->toBeFalse();
+});
+
+function retentionBanned(array $attributes = [], bool $registered = false): TelegramUser
+{
+    $user = TelegramUser::factory()->{$registered ? 'registered' : 'unregistered'}()->create(array_merge([
+        'username' => 'secret_user', 'first_name' => 'Ali', 'phone' => '+998901234567', 'name' => 'Ali Valiyev',
+        'declared_company' => 'OOO Secret', 'declared_inn' => '123456789', 'consent_at' => now()->subYear(),
+        'forward_header_message_id' => 10, 'forward_header_at' => now()->subYear(), 'forward_header_chat_id' => -100123,
+        'created_at' => now()->subMonths(14), 'last_message_at' => null,
+    ], $attributes));
+    $user->forceFill(['banned_at' => now()->subDays(40), 'banned_by_id' => null])->save();
+    TelegramMessage::factory()->create(['telegram_user_id' => $user->id, 'text' => 'secret text']);
+    retentionActivity($user);
+
+    return $user;
+}
+
+it('scrubs a banned user past retention, keeps the ban and does it only once', function () {
+    $user = retentionBanned();
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(1);
+
+    $fresh = $user->fresh();
+
+    expect($fresh->banned_at)->not->toBeNull()
+        ->and($fresh->isBanned())->toBeTrue()
+        ->and($fresh->telegram_id)->toBe($user->telegram_id)
+        ->and($fresh->state)->toBe(TelegramUserState::Language)
+        ->and(collect(ScrubBannedTelegramUsers::NULLED)->filter(fn ($column) => $fresh->{$column} !== null)->all())->toBe([])
+        ->and(TelegramMessage::query()->where('telegram_user_id', $user->id)->exists())->toBeFalse()
+        ->and(Activity::query()->where('subject_id', $user->id)->exists())->toBeFalse();
+
+    $updatedAt = $fresh->updated_at;
+    $this->travel(1)->hours();
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(0)
+        ->and($user->fresh()->updated_at->equalTo($updatedAt))->toBeTrue();
+});
+
+it('waits for the retention counted from the later of the last message and the ban', function () {
+    $recentBan = retentionBanned();
+    $recentBan->forceFill(['banned_at' => now()->subDays(2)])->save();
+    $registered = retentionBanned(['last_message_at' => now()->subMonths(5)], registered: true);
+    $registeredOld = retentionBanned(['last_message_at' => now()->subMonths(13)], registered: true);
+    $registeredOld->forceFill(['banned_at' => now()->subMonths(13)])->save();
+    $banNewer = retentionBanned(['last_message_at' => now()->subMonths(14)], registered: true);
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(1)
+        ->and($recentBan->fresh()->username)->toBe('secret_user')
+        ->and($registered->fresh()->username)->toBe('secret_user')
+        ->and($banNewer->fresh()->username)->toBe('secret_user')
+        ->and($registeredOld->fresh()->username)->toBeNull();
+});
+
+it('leaves a lead-linked banned thread whole', function () {
+    $user = retentionBanned();
+    TelegramMessage::factory()->create(['telegram_user_id' => $user->id, 'lead_id' => Lead::factory()->create()->id]);
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(0)
+        ->and($user->fresh()->username)->toBe('secret_user')
+        ->and(TelegramMessage::query()->where('telegram_user_id', $user->id)->count())->toBe(2);
+});
+
+it('makes no Telegram call and logs the count only when scrubbing, and schedules the command daily', function () {
+    Http::fake();
+    Log::spy();
+    retentionBanned();
+
+    Artisan::call('telegram:scrub-banned');
+
+    Http::assertNothingSent();
+    Log::shouldHaveReceived('info')->withArgs(fn ($message, $context = []) => $context === ['count' => 1])->once();
+    Artisan::call('schedule:list');
+    $event = MonitoredTasks::events()->get('telegram:scrub-banned');
+
+    expect($event->expression)->toBe('10 3 * * *')->and($event->onOneServer)->toBeTrue()->and($event->withoutOverlapping)->toBeTrue();
+});
+
+it('refuses to retry a pre-flag inbox alert recognised by its context (T21-31)', function () {
+    $uuid = (string) Str::uuid();
+    $job = new SendTelegramMessage('sales', 'CUSTOMER SECRET TEXT', [], 'TelegramInboxMessage');
+    DB::table('failed_jobs')->insert([
+        'uuid' => $uuid, 'connection' => 'database', 'queue' => 'default',
+        'payload' => json_encode(['displayName' => SendTelegramMessage::class, 'data' => ['commandName' => SendTelegramMessage::class, 'command' => serialize($job)]]),
+        'exception' => 'x', 'failed_at' => now(),
+    ]);
+    $admin = staffUser();
+    confirmAdminPassword();
+
+    expect(fn () => app(RetryFailedJobs::class)->handle($admin, [$uuid]))->toThrow(MonitoringActionException::class);
 });

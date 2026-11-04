@@ -137,7 +137,8 @@ Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverl
 | Daily: model:prune for TelegramUser (unregistered visitors after 30 days,
 | threads silent for 12 months; threads with a lead-linked message and their
 | customer rows are kept; activities go with the thread) and TelegramUpdate
-| (dedupe rows after 3 days). No Telegram call: copies in the staff chat
+| (dedupe rows after 3 days). telegram:scrub-banned strips banned users past
+| retention (T21-34). No Telegram call: copies in the staff chat
 | are not removed by retention. queue:prune-failed --hours=720 keeps failed
 | jobs 30 days (their payloads can hold customer excerpts; provisional owner
 | decision). Task keys: "model:prune --model=App\Models\TelegramUser --model=App\Models\TelegramUpdate"
@@ -145,6 +146,7 @@ Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverl
 */
 
 Schedule::command('model:prune', ['--model' => [TelegramUser::class, TelegramUpdate::class]])->dailyAt('03:00')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('telegram:scrub-banned')->dailyAt('03:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*

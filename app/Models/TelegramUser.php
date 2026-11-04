@@ -117,10 +117,10 @@ class TelegramUser extends Model
     }
 
     /**
-     * Rows to delete: unregistered visitors 30 days after their last message
-     * (or creation), and threads with no lead-linked message after 12 months
+     * Rows to delete: unregistered visitors 30 days after creation
+     * (last_message_at is only written for registered users), and threads with no lead-linked message after 12 months
      * of silence. Messages cascade. Banned rows are never pruned (the ban
-     * survives; so does the whole thread, its messages included).
+     * survives); ScrubBannedTelegramUsers strips their personal data later (T21-34).
      * Prune makes no Telegram call (TG-27 amended: copies in the staff chat cannot be removed
      * by retention). The activities go in the `deleting` hook, which prune and delete share.
      *
@@ -135,7 +135,7 @@ class TelegramUser extends Model
             ->where(function (Builder $query) use ($withoutLeadMessage): void {
                 $query->where(fn (Builder $unregistered) => $unregistered
                     ->whereNull('registered_at')
-                    ->whereRaw('coalesce(last_message_at, created_at) < ?', [now()->subDays(self::KEEP_UNREGISTERED_DAYS)])
+                    ->where('created_at', '<', now()->subDays(self::KEEP_UNREGISTERED_DAYS))
                     ->tap($withoutLeadMessage))
                     ->orWhere(fn (Builder $silent) => $silent
                         ->where(fn (Builder $when) => $when

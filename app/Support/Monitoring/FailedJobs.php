@@ -79,7 +79,10 @@ final class FailedJobs
             : "JSON_UNQUOTE(JSON_EXTRACT(payload, '$.data.command'))";
 
         return DB::table('failed_jobs')->whereIn('uuid', $uuids)
-            ->whereRaw("{$command} like ?", ['%s:5:"inbox";b:1;%'])
+            ->where(fn (Builder $query) => $query
+                ->whereRaw("{$command} like ?", ['%s:5:"inbox";b:1;%'])
+                // Queued before the inbox flag existed (pre-A6): recognised by its context.
+                ->orWhereRaw("{$command} like ?", ['%s:7:"context";s:20:"TelegramInboxMessage";%']))
             ->exists();
     }
 
