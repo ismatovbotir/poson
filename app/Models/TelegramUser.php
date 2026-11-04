@@ -105,9 +105,22 @@ class TelegramUser extends Model
     }
 
     /**
+     * One hook for prune and every other delete (T21-20): the thread's
+     * activities (a morph relation has no foreign key) go with it. Messages
+     * cascade in the database.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $user): void {
+            $user->activities()->delete();
+        });
+    }
+
+    /**
      * Rows to delete: unregistered visitors after 30 days, and threads with
      * no lead-linked message after 12 months of silence. Messages cascade.
-     * TG-27 (best-effort deleteMessage of forwarded copies) hooks into pruning() later.
+     * Prune makes no Telegram call (TG-27 amended: copies in the staff chat cannot be removed
+     * by retention). The activities go in the `deleting` hook, which prune and delete share.
      *
      * @return Builder<self>
      */

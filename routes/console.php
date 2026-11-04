@@ -5,6 +5,8 @@ use App\Models\McpCall;
 use App\Models\MonitoringAction;
 use App\Models\PriceSyncLog;
 use App\Models\ScheduledTaskRun;
+use App\Models\TelegramUpdate;
+use App\Models\TelegramUser;
 use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -127,6 +129,23 @@ Schedule::command('indexnow:flush')->everyFiveMinutes()->withoutOverlapping(10)-
 */
 
 Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverlapping(5)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Telegram retention (plan 21 B3, TG-27 amended), Tashkent time
+|--------------------------------------------------------------------------
+| Daily: model:prune for TelegramUser (unregistered visitors after 30 days,
+| threads silent for 12 months; threads with a lead-linked message and their
+| customer rows are kept; activities go with the thread) and TelegramUpdate
+| (dedupe rows after 3 days). No Telegram call: copies in the staff chat
+| are not removed by retention. queue:prune-failed --hours=720 keeps failed
+| jobs 30 days (their payloads can hold customer excerpts; provisional owner
+| decision). Task keys: "model:prune --model=...TelegramUser,...TelegramUpdate"
+| and "queue:prune-failed --hours=720".
+*/
+
+Schedule::command('model:prune', ['--model' => [TelegramUser::class, TelegramUpdate::class]])->dailyAt('03:00')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
 | Keep the last output of every command (overwritten each run, never
