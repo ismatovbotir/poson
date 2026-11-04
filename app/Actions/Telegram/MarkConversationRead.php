@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Gate;
  * Staff opened a bot conversation: clear its unread counter (plan 21 A1).
  *
  * Authorizes "view" for the actor and updates exactly the given row, so it can
- * never touch another thread. Returns whether anything changed.
+ * never touch another thread. Provisional owner rule: only the assigned manager
+ * (or anyone, while the thread is unassigned) clears the counter; an Admin or
+ * other viewer of someone else's thread leaves it unchanged. Returns whether
+ * anything changed.
  */
 class MarkConversationRead
 {
@@ -18,9 +21,14 @@ class MarkConversationRead
     {
         Gate::forUser($actor)->authorize('view', $conversation);
 
+        if ($conversation->manager_id !== null && $conversation->manager_id !== $actor->id) {
+            return false;
+        }
+
         return TelegramUser::query()
             ->whereKey($conversation->getKey())
             ->where('unread_count', '>', 0)
+            ->where(fn ($query) => $query->whereNull('manager_id')->orWhere('manager_id', $actor->id))
             ->update(['unread_count' => 0]) > 0;
     }
 }

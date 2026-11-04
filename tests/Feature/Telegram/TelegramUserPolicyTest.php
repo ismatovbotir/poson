@@ -29,6 +29,7 @@ it('authorizes each ability per role and ownership', function (Role $role, strin
 
     expect($user->can('viewAny', TelegramUser::class))->toBe(in_array($role, [Role::Admin, Role::SalesManager], true));
 })->with([
+    // Covers visibility (view and the abilities built on it) only; the per-permission gates have their own test below.
     'admin: other' => [Role::Admin, 'other', ['view', 'reply', 'convert', 'close', 'assign', 'ban', 'delete']],
     'admin: own' => [Role::Admin, 'own', ['view', 'reply', 'convert', 'close', 'assign', 'ban', 'delete']],
     'sales: own' => [Role::SalesManager, 'own', ['view', 'reply', 'convert', 'close', 'assign', 'ban']],

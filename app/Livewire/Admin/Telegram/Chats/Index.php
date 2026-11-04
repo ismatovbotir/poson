@@ -90,9 +90,8 @@ class Index extends Component
             ->when($scope === 'unassigned', fn (Builder $query) => $query->whereNull('telegram_users.manager_id'))
             ->when($scope === 'unread', fn (Builder $query) => $query->where('telegram_users.unread_count', '>', 0))
             ->when($status !== null, fn (Builder $query) => $query->where('telegram_users.conversation_status', $status))
-            ->search($this->search)
+            ->search(mb_substr($this->search, 0, 100))
             ->with('manager:id,name')
-            ->orderByRaw('telegram_users.last_message_at is null')
             ->orderByDesc('telegram_users.last_message_at')
             ->orderByDesc('telegram_users.id')
             ->paginate(self::PER_PAGE);

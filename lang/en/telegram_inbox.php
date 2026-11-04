@@ -13,7 +13,7 @@ return [
     'unassigned' => 'Unassigned',
     'open' => 'Open conversation',
     'empty_title' => 'No conversations yet',
-    'empty_body' => 'Messages written to the bot by customers will appear here.',
+    'empty_body' => 'Messages that customers send to the bot will appear here.',
     'no_results' => 'Nothing found',
     'no_results_body' => 'Change the filters or the search.',
     'unread_count' => ':count new',
@@ -44,7 +44,7 @@ return [
     'banners' => [
         'banned' => 'This customer is banned. Their messages are not accepted.',
         'blocked' => 'The customer blocked the bot, so messages cannot be delivered.',
-        'account_changed' => 'The Telegram account of this customer changed. Check who is writing before sharing details.',
+        'account_changed' => 'This customer\'s Telegram account has changed. Check who is writing before sharing details.',
         'unregistered' => 'This visitor has not finished registration in the bot.',
     ],
     'show' => [
@@ -52,6 +52,8 @@ return [
         'subtitle' => 'Chat #:id',
         'back' => 'Back to chats',
         'load_older' => 'Load older messages',
+        'refresh' => 'Refresh',
+        'older_hidden' => 'Older messages are not shown (showing the latest :count).',
         'no_messages' => 'No messages yet.',
         'from_customer' => 'Customer',
         'from_bot' => 'Bot',

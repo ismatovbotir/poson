@@ -243,7 +243,7 @@ class TelegramUser extends Model
     }
 
     /**
-     * Admin search: name, username, company or phone digits (at least 3).
+     * Admin search: name, username, Telegram first / last name, company or phone digits (at least 3).
      *
      * @param  Builder<self>  $query
      */
@@ -261,6 +261,8 @@ class TelegramUser extends Model
         $query->where(function (Builder $inner) use ($pattern, $digits): void {
             $inner->whereRaw("lower(telegram_users.name) like ? escape '!'", [$pattern])
                 ->orWhereRaw("lower(telegram_users.username) like ? escape '!'", [$pattern])
+                ->orWhereRaw("lower(telegram_users.first_name) like ? escape '!'", [$pattern])
+                ->orWhereRaw("lower(telegram_users.last_name) like ? escape '!'", [$pattern])
                 ->orWhereRaw("lower(telegram_users.declared_company) like ? escape '!'", [$pattern]);
 
             if (strlen($digits) >= 3) {

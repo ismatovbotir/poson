@@ -91,6 +91,8 @@ class Show extends Component
             'conversation' => $conversation->loadMissing('manager:id,name'),
             'messages' => $newestFirst->take($this->limit)->reverse()->values(),
             'hasOlder' => $hasOlder && $this->limit < self::MAX_MESSAGES,
+            'olderHidden' => $hasOlder && $this->limit >= self::MAX_MESSAGES,
+            'polling' => $this->limit === self::PAGE_SIZE,
         ])->title(__('telegram_inbox.show.title'));
     }
 

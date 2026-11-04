@@ -52,6 +52,8 @@ return [
         'subtitle' => 'Chat №:id',
         'back' => 'Chatlarga qaytish',
         'load_older' => 'Oldingi xabarlarni yuklash',
+        'refresh' => 'Yangilash',
+        'older_hidden' => 'Oldingi xabarlar koʻrsatilmagan (oxirgi :count ta koʻrsatilgan).',
         'no_messages' => 'Hozircha xabarlar yoʻq.',
         'from_customer' => 'Mijoz',
         'from_bot' => 'Bot',

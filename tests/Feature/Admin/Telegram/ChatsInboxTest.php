@@ -100,15 +100,78 @@ it('lists only visible conversations and filters by scope, status and search', f
     Livewire::actingAs(staffUser(Role::Admin))->test(Index::class)->assertSee('Other Customer');
 });
 
-it('ignores a tampered scope and refuses a changed conversation id', function () {
+it('ignores a tampered scope', function () {
     $user = staffUser(Role::SalesManager);
-    $chat = thread();
+    thread(['name' => 'Free Customer']);
 
-    Livewire::actingAs($user)->test(Index::class)->set('scope', 'bogus')->assertOk();
-    Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])
-        ->set('conversationId', thread(manager: inboxManager())->id)
-        ->assertStatus(500);
-})->throws(CannotUpdateLockedPropertyException::class);
+    Livewire::actingAs($user)->test(Index::class)->set('scope', 'bogus')->assertOk()->assertSee('Free Customer');
+});
+
+it('refuses a changed conversation id', function () {
+    $user = staffUser(Role::SalesManager);
+    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => thread()]);
+
+    expect(fn () => $component->set('conversationId', thread(manager: inboxManager())->id))->toThrow(CannotUpdateLockedPropertyException::class);
+});
+
+it('clears unread only for the assigned manager or on an unassigned thread (M1)', function () {
+    $manager = inboxManager();
+    $admin = staffUser(Role::Admin);
+    $foreign = thread(['unread_count' => 3], $manager);
+    $free = thread(['unread_count' => 2]);
+
+    $component = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $foreign]);
+    $component->call('refreshThread');
+    expect($foreign->fresh()->unread_count)->toBe(3)
+        ->and(app(MarkConversationRead::class)->handle($foreign, $admin))->toBeFalse();
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $free]);
+    expect($free->fresh()->unread_count)->toBe(0);
+
+    Livewire::actingAs($manager)->test(Show::class, ['telegramUser' => $foreign]);
+    expect($foreign->fresh()->unread_count)->toBe(0);
+});
+
+it('polls only on the first page of messages and shows a refresh button after load older (M2, L2)', function () {
+    $chat = thread();
+    TelegramMessage::factory()->for($chat)->count(3)->create();
+
+    $component = Livewire::actingAs(staffUser(Role::Admin))->test(Show::class, ['telegramUser' => $chat]);
+    $component->assertSeeHtml('wire:poll.10s.visible')->assertDontSeeHtml('data-refresh');
+
+    $component->call('loadOlder')->assertDontSeeHtml('wire:poll')->assertSeeHtml('data-refresh');
+});
+
+it('tells when older messages are beyond the cap (L2)', function () {
+    $chat = thread();
+    TelegramMessage::factory()->for($chat)->count(Show::MAX_MESSAGES + 5)->create();
+
+    $component = Livewire::actingAs(staffUser(Role::Admin))->test(Show::class, ['telegramUser' => $chat]);
+    foreach (range(1, Show::MAX_MESSAGES / Show::PAGE_SIZE) as $_) {
+        $component->call('loadOlder');
+    }
+
+    $component->assertSeeHtml('data-older-hidden')->assertDontSeeHtml('data-load-older');
+});
+
+it('searches the Telegram first and last name inside visibility and bounds the term (L1, L4)', function () {
+    $sales = staffUser(Role::SalesManager);
+    thread(['name' => null, 'first_name' => 'Zafarbek', 'last_name' => 'Qodirov']);
+    thread(['name' => null, 'first_name' => 'Zafarhidden', 'last_name' => 'Other'], inboxManager());
+
+    Livewire::actingAs($sales)->test(Index::class)->set('search', 'qodir')->assertSee('Zafarbek')
+        ->set('search', 'zafar')->assertDontSee('Zafarhidden')
+        ->set('search', str_repeat('q', 5000))->assertOk();
+});
+
+it('strips bidi controls from message text', function () {
+    $chat = thread();
+    TelegramMessage::factory()->for($chat)->create(['text' => "pay\u{202E}gnp.exe now\u{2066}"]);
+
+    $html = Livewire::actingAs(staffUser(Role::Admin))->test(Show::class, ['telegramUser' => $chat])->html();
+
+    expect($html)->toContain('paygnp.exe now')->not->toContain("\u{202E}")->not->toContain("\u{2066}");
+});
 
 it('renders customer text escaped with line breaks and no links', function () {
     $user = staffUser(Role::Admin);

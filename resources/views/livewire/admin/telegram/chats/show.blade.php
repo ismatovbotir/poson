@@ -3,7 +3,7 @@
 @php($tz = config('app.timezone'))
 
 {{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 A1). Read-only; polls every 10 s while visible. --}}
-<div wire:poll.10s.visible="refreshThread" data-telegram-chat="{{ $conversation->id }}">
+<div @if ($polling) wire:poll.10s.visible="refreshThread" @endif data-telegram-chat="{{ $conversation->id }}">
     <x-admin.page-header :title="$name !== '' ? $name : __($t.'.unnamed')" :subtitle="__($t.'.show.subtitle', ['id' => $conversation->id])">
         <x-slot:breadcrumbs>
             {{ __('menu.groups.telegram') }} <span class="text-slate-300">/</span>
@@ -11,6 +11,9 @@
             <span class="text-slate-300">/</span> #{{ $conversation->id }}
         </x-slot:breadcrumbs>
         <x-slot:actions>
+            @unless ($polling)
+                <x-admin.button variant="secondary" icon="restore" wire:click="refreshThread" loading="refreshThread" data-refresh>{{ __($t.'.show.refresh') }}</x-admin.button>
+            @endunless
             <x-admin.button :href="route('admin.telegram.chats')" wire:navigate variant="secondary" icon="chevron-left">{{ __($t.'.show.back') }}</x-admin.button>
         </x-slot:actions>
     </x-admin.page-header>
@@ -38,6 +41,10 @@
                         </div>
                     @endif
 
+                    @if ($olderHidden)
+                        <p class="text-center text-xs text-slate-500" data-older-hidden>{{ __($t.'.show.older_hidden', ['count' => \App\Livewire\Admin\Telegram\Chats\Show::MAX_MESSAGES]) }}</p>
+                    @endif
+
                     @forelse ($messages as $message)
                         @php($inbound = $message->direction === \App\Enums\TelegramDirection::In)
                         @php($stuckRow = $message->isStuck())
@@ -59,7 +66,7 @@
                                     </p>
                                 @endif
                                 @if (filled($message->text))
-                                    <p class="break-words">{!! nl2br(e($message->text)) !!}</p>
+                                    <p class="break-words">{!! nl2br(e(preg_replace('/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $message->text) ?? '')) !!}</p>
                                 @elseif ($message->kind === \App\Enums\TelegramMessageKind::Text)
                                     <p class="text-slate-400">{{ __('admin.common.empty_value') }}</p>
                                 @endif
