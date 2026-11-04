@@ -39,7 +39,14 @@ class Integrations extends Component
     /**
      * Payment providers with a test / prod mode (plan 11 v2 §1.8).
      */
-    public const PAYMENT_GROUPS = ['payme', 'click', 'uzqr'];
+    /**
+     * Registry groups hidden from this screen by owner decision (plan 23):
+     * Payme and Click. Their keys stay in the registry and the database, and
+     * every save / secret / test action answers 404 for them.
+     */
+    public const HIDDEN_GROUPS = ['payme', 'click'];
+
+    public const PAYMENT_GROUPS = ['uzqr'];
 
     /**
      * Set by the server when save('payme' | 'click') opened the "switch to
@@ -58,7 +65,7 @@ class Integrations extends Component
      */
     protected function integrationGroups(): array
     {
-        return array_values(array_diff(IntegrationRegistry::GROUPS, ['telegram']));
+        return array_values(array_diff(IntegrationRegistry::GROUPS, ['telegram'], self::HIDDEN_GROUPS));
     }
 
     /**

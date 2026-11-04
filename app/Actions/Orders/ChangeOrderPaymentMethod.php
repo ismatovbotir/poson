@@ -49,12 +49,12 @@ class ChangeOrderPaymentMethod
     {
         $to = PaymentMethod::tryFrom($method);
 
-        if ($to === null || $to->isReserved()) {
-            throw ValidationException::withMessages(['payment_method' => __('orders.errors.method_not_allowed')]);
+        if ($to !== null && $order->payment_method === $to) {
+            return;
         }
 
-        if ($order->payment_method === $to) {
-            return;
+        if ($to === null || $to->isReserved()) {
+            throw ValidationException::withMessages(['payment_method' => __('orders.errors.method_not_allowed')]);
         }
 
         if (! $order->isLinesEditable()) {

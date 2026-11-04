@@ -166,20 +166,20 @@ describe('cross-screen writes', function () {
 
         expect(Setting::query()->where('key', 'like', 'telegram.%')->count())->toBe(0)
             ->and(SettingsAudit::query()->where('key', 'like', 'telegram.%')->count())->toBe(0);
-    })->with(['payme', 'monitoring']);
+    })->with(['uzqr', 'monitoring']);
 
     it('stores no foreign input when another secret is replaced', function () {
         confirmAdminPassword();
 
         $component = tsetScreen(Integrations::class)->update(
-            calls: [['method' => 'replaceSecret', 'params' => ['payme.key'], 'path' => '']],
-            updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN, 'secretInputs.payme.key' => TSA_PAYME_KEY],
+            calls: [['method' => 'replaceSecret', 'params' => ['uzqr.api_key'], 'path' => '']],
+            updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN, 'secretInputs.uzqr.api_key' => TSA_PAYME_KEY],
         );
 
-        expect(Secrets::get('payme.key'))->toBe(TSA_PAYME_KEY)
+        expect(Secrets::get('uzqr.api_key'))->toBe(TSA_PAYME_KEY)
             ->and(Secrets::isConfigured('telegram.bot_token'))->toBeFalse()
-            ->and(IntegrationSecret::query()->pluck('key')->all())->toBe(['payme.key'])
-            ->and(SettingsAudit::query()->pluck('key')->all())->toBe(['payme.key'])
+            ->and(IntegrationSecret::query()->pluck('key')->all())->toBe(['uzqr.api_key'])
+            ->and(SettingsAudit::query()->pluck('key')->all())->toBe(['uzqr.api_key'])
             ->and(tsetPayload($component))->not->toContain('AAAbuseToken')->not->toContain(TSA_PAYME_KEY);
     });
 
@@ -187,7 +187,7 @@ describe('cross-screen writes', function () {
         confirmAdminPassword();
 
         tsetScreen(Integrations::class)->update(
-            calls: [['method' => 'replaceSecret', 'params' => ['payme.key'], 'path' => '']],
+            calls: [['method' => 'replaceSecret', 'params' => ['uzqr.api_key'], 'path' => '']],
             updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN],
         );
 
@@ -221,7 +221,7 @@ describe('password confirmation', function () {
         confirmAdminPassword();
         $user = staffUser();
 
-        tsetScreen(Integrations::class, $user)->call('save', 'payme')->assertNoRedirect();
+        tsetScreen(Integrations::class, $user)->call('save', 'uzqr')->assertNoRedirect();
         tsetScreen(Settings::class, $user)->call('save', 'telegram')->assertNoRedirect();
     });
 
@@ -233,8 +233,8 @@ describe('password confirmation', function () {
         expect(tsetStateOf()['audits'])->toBe(0)
             ->and(IntegrationSecret::query()->count())->toBe(0);
     })->with([
-        'integrations save' => [Integrations::class, 'save', ['payme']],
-        'integrations replace' => [Integrations::class, 'replaceSecret', ['payme.key']],
+        'integrations save' => [Integrations::class, 'save', ['uzqr']],
+        'integrations replace' => [Integrations::class, 'replaceSecret', ['uzqr.api_key']],
         'integrations test' => [Integrations::class, 'test', ['uzqr']],
         'telegram save' => [Settings::class, 'save', ['telegram']],
         'telegram replace' => [Settings::class, 'replaceSecret', ['telegram.bot_token']],

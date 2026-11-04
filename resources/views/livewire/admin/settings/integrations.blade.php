@@ -13,7 +13,7 @@
     @include('livewire.admin.settings.integrations.password-banner')
 
     <nav class="scrollbar-none mt-4 flex gap-2 overflow-x-auto" aria-label="{{ __($t.'.sections_label') }}">
-        @foreach (\App\Support\Integrations\IntegrationRegistry::GROUPS as $group)
+        @foreach (array_merge(['telegram'], array_keys($sections)) as $group)
             <a @if ($group === 'telegram') href="{{ route('admin.telegram.settings') }}" wire:navigate @else href="#section-{{ $group }}" @endif class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">
                 <x-admin.icon :name="$icons[$group]" size="size-4" />{{ __($t.'.groups.'.$group) }}
             </a>

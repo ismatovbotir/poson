@@ -187,9 +187,9 @@ return [
             'en' => 'Delivery and payment methods — Poson',
         ],
         'meta_description' => [
-            'uz' => 'Qoʻqon boʻylab bepul yetkazib berish, Oʻzbekiston boʻylab kuryer, ofisdan olib ketish. Toʻlov: bank oʻtkazmasi, naqd, Payme, Click, karta terminali va UzQR.',
-            'ru' => 'Бесплатная доставка по Коканду, курьером по всему Узбекистану, самовывоз из офиса. Оплата: перечисление по счёту, наличные, Payme, Click, терминал и UzQR.',
-            'en' => 'Free delivery within Kokand, courier delivery across Uzbekistan, pickup from our office. Payment by bank transfer, cash, Payme, Click, card terminal or UzQR.',
+            'uz' => 'Qoʻqon boʻylab bepul yetkazib berish, Oʻzbekiston boʻylab kuryer, ofisdan olib ketish. Toʻlov: bank oʻtkazmasi, naqd, karta terminali va UzQR.',
+            'ru' => 'Бесплатная доставка по Коканду, курьером по всему Узбекистану, самовывоз из офиса. Оплата: перечисление по счёту, наличные, терминал и UzQR.',
+            'en' => 'Free delivery within Kokand, courier delivery across Uzbekistan, pickup from our office. Payment by bank transfer, cash, card terminal or UzQR.',
         ],
         'body' => [
             'uz' => <<<'HTML'
@@ -204,7 +204,6 @@ return [
             <ul>
             <li>Bank orqali oʻtkazma — hisob-varaq asosida</li>
             <li>Naqd pul</li>
-            <li>Payme va Click</li>
             <li>Terminal orqali bank kartasi bilan</li>
             <li>UzQR</li>
             </ul>
@@ -223,7 +222,6 @@ return [
             <ul>
             <li>Безналичное перечисление по счёту</li>
             <li>Наличные</li>
-            <li>Payme и Click</li>
             <li>Банковской картой через терминал</li>
             <li>UzQR</li>
             </ul>
@@ -242,7 +240,6 @@ return [
             <ul>
             <li>Bank transfer against an invoice</li>
             <li>Cash</li>
-            <li>Payme and Click</li>
             <li>Bank card at a card terminal</li>
             <li>UzQR</li>
             </ul>

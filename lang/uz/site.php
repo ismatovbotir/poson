@@ -294,7 +294,7 @@ return [
         'copied' => 'Nusxalandi',
         'delivery' => [
             'shipping' => 'Qoʻqon shahri boʻylab yetkazib berish bepul. Oʻzbekiston boʻylab kuryer xizmati orqali yetkazib beramiz, Qoʻqondagi ofisimizdan olib ketish ham mumkin.',
-            'payment' => 'Toʻlov: naqd pul, karta, Click yoki Payme orqali, yuridik shaxslar uchun bank oʻtkazmasi.',
+            'payment' => 'Toʻlov: naqd pul, karta, UzQR orqali yoki yuridik shaxslar uchun bank oʻtkazmasi.',
             'setup' => 'Uskunani sozlaymiz va dasturingizga ulaymiz.',
             'warranty' => 'Rasmiy kafolat: :months',
             'warranty_on_request' => 'Kafolat shartlarini tijorat taklifida koʻrsatamiz.',

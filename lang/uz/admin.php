@@ -64,7 +64,7 @@ return [
         'tagline' => 'Katalog, sotuv, buyurtmalar va servis — bitta boshqaruv panelida.',
         'points' => [
             'leads' => 'Murojaatlar va tijorat takliflari',
-            'payments' => 'Payme, Click va bank oʻtkazmasi',
+            'payments' => 'UzQR, qabul qilishda toʻlov va bank oʻtkazmasi',
             'telegram' => 'Telegram bildirishnomalari',
         ],
     ],
@@ -536,7 +536,7 @@ return [
             'brand' => 'Mahsulot sahifasida brend sahifasiga havola bilan koʻrsatiladi va brendlar filtrida ishlatiladi. Brend boʻlmasa, boʻsh qoldiring.',
             'unit' => 'Narxlar va minimal buyurtma shu birlikda koʻrsatiladi; u tijorat taklifi qatorlariga ham koʻchiriladi.',
             'stock_status' => 'Mahsulot kartochkasi va sahifasida koʻrsatiladi hamda mavjudlik filtrida ishlatiladi. Buyurtmani toʻsmaydi.',
-            'ikpu_code' => 'tasnif.soliq.uz dagi 17 raqam. Payme / Click cheklari uchun kerak: usiz bu mahsulot uchun onlayn toʻlov yashiriladi.',
+            'ikpu_code' => 'tasnif.soliq.uz dagi 17 raqam. Mahsulotda cheklar va hisob uchun saqlanadi; UzQR orqali toʻlov uchun shart emas.',
             'package_code' => 'Shu IKPU uchun tasnif.soliq.uz dagi qadoq (birlik) kodi.',
             'badge' => 'Mahsulot kartochkasi va sahifasidagi ixtiyoriy belgi: ommabop mahsulotlar uchun “Xit”, yangi kelganlar uchun “Yangi”.',
         ],
@@ -1152,7 +1152,7 @@ return [
 
         'integrations' => [
             'title' => 'Integratsiyalar',
-            'subtitle' => 'API kalitlari: Payme, Click va UzQR',
+            'subtitle' => 'API kalitlari va ulanishlar: UzQR, monitoring, IndexNow',
             'sections_label' => 'Integratsiya boʻlimlari',
             'saved' => '“:section” boʻlimi saqlandi.',
             'no_changes' => 'Hech narsa oʻzgarmadi.',

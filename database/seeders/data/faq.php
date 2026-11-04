@@ -85,9 +85,9 @@ return [
                     'en' => 'Can a company buy on invoice and pay by bank transfer?',
                 ],
                 'answer' => [
-                    'uz' => 'Ha. Saytda kompaniya rekvizitlari bilan tijorat taklifi soʻrovini yuboring, biz taklif va toʻlov uchun hisob tayyorlaymiz. Savatcha orqali buyurtmalarni Payme, Click yoki naqd pul bilan ham toʻlash mumkin.',
-                    'ru' => 'Да. Отправьте на сайте запрос коммерческого предложения с реквизитами компании, и мы подготовим предложение и счёт на оплату. Заказы через корзину также можно оплатить через Payme, Click или наличными.',
-                    'en' => 'Yes. Send a quote request on the website with your company details, and we will prepare a commercial offer and an invoice for payment. Cart orders can also be paid with Payme, Click or cash.',
+                    'uz' => 'Ha. Saytda kompaniya rekvizitlari bilan tijorat taklifi soʻrovini yuboring, biz taklif va toʻlov uchun hisob tayyorlaymiz. Savatcha orqali buyurtmalarni UzQR, naqd pul yoki bank oʻtkazmasi bilan ham toʻlash mumkin.',
+                    'ru' => 'Да. Отправьте на сайте запрос коммерческого предложения с реквизитами компании, и мы подготовим предложение и счёт на оплату. Заказы через корзину также можно оплатить через UzQR, наличными или банковским переводом.',
+                    'en' => 'Yes. Send a quote request on the website with your company details, and we will prepare a commercial offer and an invoice for payment. Cart orders can also be paid through UzQR, in cash or by bank transfer.',
                 ],
             ],
             [
@@ -121,9 +121,9 @@ return [
                     'en' => 'Which payment methods do you accept?',
                 ],
                 'answer' => [
-                    'uz' => 'Hisob-varaq asosida bank oʻtkazmasi, naqd pul, Payme va Click, terminal orqali bank kartasi hamda UzQR orqali toʻlash mumkin. Kompaniyalar uchun hisob-varaq rekvizitlaringiz asosida tayyorlanadi. Buyurtmangiz uchun qulay usulni menejer bilan aniqlashtiring.',
-                    'ru' => 'Можно оплатить безналичным переводом по счёту, наличными, через Payme и Click, банковской картой через терминал или по UzQR. Для компаний счёт выставляется на ваши реквизиты. Удобный способ для вашего заказа уточните у менеджера.',
-                    'en' => 'You can pay by bank transfer against an invoice, in cash, with Payme or Click, by bank card at a card terminal or with UzQR. Companies receive an invoice made out to their details. Check the most convenient method for your order with a manager.',
+                    'uz' => 'Hisob-varaq asosida bank oʻtkazmasi, naqd pul, terminal orqali bank kartasi hamda UzQR orqali toʻlash mumkin. Kompaniyalar uchun hisob-varaq rekvizitlaringiz asosida tayyorlanadi. Buyurtmangiz uchun qulay usulni menejer bilan aniqlashtiring.',
+                    'ru' => 'Можно оплатить безналичным переводом по счёту, наличными, банковской картой через терминал или по UzQR. Для компаний счёт выставляется на ваши реквизиты. Удобный способ для вашего заказа уточните у менеджера.',
+                    'en' => 'You can pay by bank transfer against an invoice, in cash, by bank card at a card terminal or with UzQR. Companies receive an invoice made out to their details. Check the most convenient method for your order with a manager.',
                 ],
             ],
             [

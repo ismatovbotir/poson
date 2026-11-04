@@ -64,7 +64,7 @@ return [
         'tagline' => 'Catalog, sales, orders and service in one admin panel.',
         'points' => [
             'leads' => 'Leads and quotes',
-            'payments' => 'Payme, Click and bank transfer',
+            'payments' => 'UzQR, on-receipt and bank transfer',
             'telegram' => 'Telegram notifications',
         ],
     ],
@@ -536,7 +536,7 @@ return [
             'brand' => 'Shown on the product page with a link to the brand page, and used in the brand filter. Leave empty if there is none.',
             'unit' => 'Prices and the minimum order refer to this unit; it is also copied to quote lines.',
             'stock_status' => 'Shown on the product card and page and used in the availability filter. It does not block ordering.',
-            'ikpu_code' => '17 digits from tasnif.soliq.uz. Needed for Payme / Click receipts: without it online payment is hidden for this product.',
+            'ikpu_code' => '17 digits from tasnif.soliq.uz. Stored with the product for receipts and records; not required for UzQR payment.',
             'package_code' => 'Package (unit) code from tasnif.soliq.uz for this IKPU.',
             'badge' => 'An optional label on the product card and page: “Bestseller” for popular items, “New” for new arrivals.',
         ],
@@ -1152,7 +1152,7 @@ return [
 
         'integrations' => [
             'title' => 'Integrations',
-            'subtitle' => 'API keys: Payme, Click and UzQR',
+            'subtitle' => 'API keys and connections: UzQR, monitoring and IndexNow',
             'sections_label' => 'Integration sections',
             'saved' => ':section saved.',
             'no_changes' => 'Nothing changed.',

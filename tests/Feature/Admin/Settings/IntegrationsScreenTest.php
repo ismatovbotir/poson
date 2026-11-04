@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\Settings\SetSecret;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
@@ -12,6 +11,7 @@ use App\Models\User;
 use App\Support\Admin\Menu;
 use App\Support\Admin\MenuGroup;
 use App\Support\Admin\MenuItem;
+use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Exceptions;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Tests\Support\Uzqr;
 
 const SCREEN_SECRET = 'fake-payme-SCREENSECRET-000000000000wxyz';
 
@@ -56,7 +57,10 @@ $otherRoles = [
     'service engineer' => [Role::ServiceEngineer],
 ];
 
-beforeEach(fn () => freshSecrets());
+beforeEach(function () {
+    freshSecrets();
+    config(['uzqr.base_urls.test' => Uzqr::TEST]);
+});
 
 describe('access', function () use ($otherRoles) {
     it('opens for the admin with every section', function () {
@@ -66,7 +70,7 @@ describe('access', function () use ($otherRoles) {
             ->assertSeeLivewire(Integrations::class)
             ->getContent();
 
-        foreach (['payme', 'click', 'uzqr', 'monitoring', 'indexnow'] as $group) {
+        foreach (['uzqr', 'monitoring', 'indexnow'] as $group) {
             expect($html)->toContain('data-section="'.$group.'"');
         }
 
@@ -87,7 +91,7 @@ describe('access', function () use ($otherRoles) {
 
     it('forbids direct method calls by another role', function (Role $role, string $method, array $params) {
         confirmAdminPassword();
-        $component = integrationsScreen()->set('secretInputs.payme.key', SCREEN_SECRET);
+        $component = integrationsScreen()->set('secretInputs.uzqr.api_key', SCREEN_SECRET);
 
         $this->actingAs(staffUser($role));
 
@@ -97,9 +101,9 @@ describe('access', function () use ($otherRoles) {
             ->and(Setting::query()->count())->toBe(0)
             ->and(SettingsAudit::query()->count())->toBe(0);
     })->with($otherRoles)->with([
-        'save' => ['save', ['payme']],
-        'replace' => ['replaceSecret', ['payme.key']],
-        'clear' => ['clearSecret', ['payme.key']],
+        'save' => ['save', ['uzqr']],
+        'replace' => ['replaceSecret', ['uzqr.api_key']],
+        'clear' => ['clearSecret', ['uzqr.api_key']],
         'generate' => ['generateIndexNowKey', []],
         'test' => ['test', ['uzqr']],
     ]);
@@ -120,8 +124,8 @@ describe('access', function () use ($otherRoles) {
 describe('password confirmation', function () {
     it('asks for the password before any write and returns here afterwards', function (string $method, array $params) {
         integrationsScreen()
-            ->set('secretInputs.payme.key', SCREEN_SECRET)
-            ->set('form.values.click.service_id', '12345')
+            ->set('secretInputs.uzqr.api_key', SCREEN_SECRET)
+            ->set('form.values.uzqr.inn', Uzqr::INN)
             ->call($method, ...$params)
             ->assertRedirect(route('admin.confirm-password'));
 
@@ -129,9 +133,9 @@ describe('password confirmation', function () {
             ->and(IntegrationSecret::query()->count())->toBe(0)
             ->and(Setting::query()->count())->toBe(0);
     })->with([
-        'save' => ['save', ['payme']],
-        'replace' => ['replaceSecret', ['payme.key']],
-        'clear' => ['clearSecret', ['payme.key']],
+        'save' => ['save', ['uzqr']],
+        'replace' => ['replaceSecret', ['uzqr.api_key']],
+        'clear' => ['clearSecret', ['uzqr.api_key']],
         'generate' => ['generateIndexNowKey', []],
         'test' => ['test', ['uzqr']],
     ]);
@@ -152,21 +156,21 @@ describe('password confirmation', function () {
         confirmAdminPassword(14 * 60);
 
         integrationsScreen()
-            ->set('form.values.click.service_id', '12345')
-            ->call('save', 'click')
+            ->set('form.values.uzqr.inn', Uzqr::INN)
+            ->call('save', 'uzqr')
             ->assertNoRedirect()
             ->assertHasNoErrors();
 
-        expect(config('services.click.service_id'))->toBe('12345');
+        expect(config('services.uzqr.inn'))->toBe(Uzqr::INN);
 
         $this->travel(2)->minutes();
 
         integrationsScreen()
-            ->set('form.values.click.service_id', '67890')
-            ->call('save', 'click')
+            ->set('form.values.uzqr.inn', '305123457')
+            ->call('save', 'uzqr')
             ->assertRedirect(route('admin.confirm-password'));
 
-        expect(config('services.click.service_id'))->toBe('12345');
+        expect(config('services.uzqr.inn'))->toBe(Uzqr::INN);
     });
 });
 
@@ -179,12 +183,12 @@ describe('secrets', function () {
             $logged[] = $event->message.json_encode($event->context);
         });
 
-        $component = typeAndReplaceSecret(integrationsScreen(), 'payme.key', SCREEN_SECRET)
+        $component = typeAndReplaceSecret(integrationsScreen(), 'uzqr.api_key', SCREEN_SECRET)
             ->assertHasNoErrors()
-            ->assertSet('secretInputs.payme.key', '')
+            ->assertSet('secretInputs.uzqr.api_key', '')
             ->assertDispatched('toast');
 
-        expect(Secrets::get('payme.key'))->toBe(SCREEN_SECRET)
+        expect(Secrets::get('uzqr.api_key'))->toBe(SCREEN_SECRET)
             ->and(browserPayload($component))->not->toContain('SCREENSECRET')
             ->and($component->html())->toContain('••••wxyz')
             ->and(json_encode(SettingsAudit::query()->get()->toArray()))->not->toContain('SCREENSECRET')
@@ -223,13 +227,13 @@ describe('secrets', function () {
         confirmAdminPassword();
 
         $component = integrationsScreen()
-            ->set('secretInputs.payme.key', SCREEN_SECRET)
-            ->assertSet('secretInputs.payme.key', '');
+            ->set('secretInputs.uzqr.api_key', SCREEN_SECRET)
+            ->assertSet('secretInputs.uzqr.api_key', '');
 
         expect(browserPayload($component))->not->toContain('SCREENSECRET');
 
-        $component->set('secretInputs.click.secret_key', 'fake-click-TYPEDONLY-000000000000000')
-            ->set('form.values.click.service_id', '12345');
+        $component->set('secretInputs.uzqr.test_api_key', 'fake-uzqr-TYPEDONLY-000000000000000')
+            ->set('form.values.uzqr.inn', Uzqr::INN);
 
         expect(browserPayload($component))->not->toContain('TYPEDONLY')->not->toContain('SCREENSECRET');
     });
@@ -241,51 +245,50 @@ describe('secrets', function () {
     it('resets the input and keeps the old value on a validation error', function () {
         confirmAdminPassword();
 
-        $component = typeAndReplaceSecret(integrationsScreen(), 'payme.key', 'broken TOKENPART')
-            ->assertHasErrors('secretInputs.payme.key')
-            ->assertSet('secretInputs.payme.key', '');
+        $component = typeAndReplaceSecret(integrationsScreen(), 'uzqr.api_key', 'broken TOKENPART')
+            ->assertHasErrors('secretInputs.uzqr.api_key')
+            ->assertSet('secretInputs.uzqr.api_key', '');
 
         expect(browserPayload($component))->not->toContain('TOKENPART')
             ->and(IntegrationSecret::query()->count())->toBe(0);
     });
 
     it('shows the status of each secret', function () {
-        IntegrationSecret::factory()->withValue('payme.test_key', 'fake-payme-test-0000000000000000000abcd')->create();
-        freshSecrets(['services.payme.key' => 'fake-payme-env-0000000000000000000000']);
+        IntegrationSecret::factory()->withValue('uzqr.test_api_key', 'fake-uzqr-test-0000000000000000000abcd')->create();
+        freshSecrets(['services.uzqr.api_key' => 'fake-uzqr-env-0000000000000000000000']);
 
         integrationsScreen()
-            ->assertSeeHtml('data-secret="payme.key"')
-            ->assertSeeInOrder(['data-secret="payme.key"', 'data-status="env"', 'PAYME_KEY'], false)
-            ->assertSeeInOrder(['data-secret="payme.test_key"', 'data-status="configured"', '••••abcd'], false)
-            ->assertSeeInOrder(['data-secret="click.secret_key"', 'data-status="none"'], false)
-            ->assertDontSee('fake-payme-env-');
+            ->assertSeeHtml('data-secret="uzqr.api_key"')
+            ->assertSeeInOrder(['data-secret="uzqr.api_key"', 'data-status="env"', 'UZQR_API_KEY'], false)
+            ->assertSeeInOrder(['data-secret="uzqr.test_api_key"', 'data-status="configured"', '••••abcd'], false)
+            ->assertDontSee('fake-uzqr-env-');
     });
 
     it('refuses to replace a secret locked by .env', function () {
-        freshSecrets(['services.payme.key' => 'fake-payme-env-0000000000000000000000']);
+        freshSecrets(['services.uzqr.api_key' => 'fake-uzqr-env-0000000000000000000000']);
         confirmAdminPassword();
 
-        typeAndReplaceSecret(integrationsScreen(), 'payme.key', SCREEN_SECRET)
+        typeAndReplaceSecret(integrationsScreen(), 'uzqr.api_key', SCREEN_SECRET)
             ->assertDispatched('toast', type: 'error');
 
         expect(IntegrationSecret::query()->count())->toBe(0);
     });
 
     it('clears a secret', function () {
-        IntegrationSecret::factory()->withValue('click.secret_key', 'fake-click-secret-0000')->create();
+        IntegrationSecret::factory()->withValue('uzqr.test_api_key', 'fake-uzqr-secret-00000000')->create();
         Secrets::flush();
         confirmAdminPassword();
 
-        integrationsScreen()->call('clearSecret', 'click.secret_key')->assertDispatched('toast', type: 'success');
+        integrationsScreen()->call('clearSecret', 'uzqr.test_api_key')->assertDispatched('toast', type: 'success');
 
-        expect(Secrets::isConfigured('click.secret_key'))->toBeFalse()
+        expect(Secrets::isConfigured('uzqr.test_api_key'))->toBeFalse()
             ->and(SettingsAudit::query()->sole()->action)->toBe(AuditAction::Cleared);
     });
 
     it('404s for a key that is not a secret', function () {
         confirmAdminPassword();
 
-        integrationsScreen()->call('replaceSecret', 'payme.mode')->assertNotFound();
+        integrationsScreen()->call('replaceSecret', 'uzqr.mode')->assertNotFound();
     });
 });
 
@@ -294,40 +297,38 @@ describe('settings', function () {
         confirmAdminPassword();
 
         integrationsScreen()
-            ->set('form.values.click.service_id', '12345')
-            ->set('form.values.click.merchant_id', '67890')
-            ->call('save', 'click')
+            ->set('form.values.uzqr.inn', Uzqr::INN)
+            ->call('save', 'uzqr')
             ->assertHasNoErrors()
-            ->assertSet('form.values.click.service_id', '12345')
+            ->assertSet('form.values.uzqr.inn', Uzqr::INN)
             ->assertDispatched('toast', type: 'success');
 
-        expect(config('services.click.service_id'))->toBe('12345')
-            ->and(config('services.click.merchant_id'))->toBe('67890')
-            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['click.merchant_id', 'click.service_id']);
+        expect(config('services.uzqr.inn'))->toBe(Uzqr::INN)
+            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['uzqr.inn']);
     });
 
     it('shows validation errors under the field', function () {
         confirmAdminPassword();
 
         integrationsScreen()
-            ->set('form.values.click.service_id', 'not digits')
-            ->call('save', 'click')
-            ->assertHasErrors('form.values.click.service_id');
+            ->set('form.values.uzqr.inn', 'not digits')
+            ->call('save', 'uzqr')
+            ->assertHasErrors('form.values.uzqr.inn');
 
         expect(Setting::query()->count())->toBe(0);
     });
 
     it('does not send fields locked by .env', function () {
-        freshSecrets(['services.click.service_id' => '777']);
+        freshSecrets(['services.uzqr.inn' => '777777777']);
         confirmAdminPassword();
 
         integrationsScreen()
-            ->assertSet('form.values.click.service_id', '777')
-            ->set('form.values.click.service_id', '888')
-            ->call('save', 'click');
+            ->assertSet('form.values.uzqr.inn', '777777777')
+            ->set('form.values.uzqr.inn', '888888888')
+            ->call('save', 'uzqr');
 
-        expect(Setting::query()->where('key', 'click.service_id')->exists())->toBeFalse()
-            ->and(config('services.click.service_id'))->toBe('777');
+        expect(Setting::query()->where('key', 'uzqr.inn')->exists())->toBeFalse()
+            ->and(config('services.uzqr.inn'))->toBe('777777777');
     });
 
     it('404s for an unknown section', function () {
@@ -337,138 +338,76 @@ describe('settings', function () {
     });
 });
 
-describe('click mode', function () {
-    it('asks for an extra confirmation before switching Click to prod', function () {
-        IntegrationSecret::factory()->withValue('click.secret_key', 'fake-click-live-0000')->create();
-        Setting::factory()->create(['key' => 'click.service_id', 'group' => 'integrations', 'value' => '12345']);
-        Setting::factory()->create(['key' => 'click.merchant_id', 'group' => 'integrations', 'value' => '11111']);
-        Setting::factory()->create(['key' => 'click.merchant_user_id', 'group' => 'integrations', 'value' => '67890']);
+describe('hidden payment providers (plan 23)', function () {
+    it('renders neither Payme nor Click: no sections, chips, fields or webhook URLs', function () {
+        IntegrationSecret::factory()->withValue('payme.key', 'fake-payme-HIDDENVALUE-0000')->create();
         Secrets::flush();
-        confirmAdminPassword();
 
-        $component = integrationsScreen()
-            ->set('form.values.click.mode', 'prod')
-            ->call('save', 'click')
-            ->assertDispatched('confirm', method: 'confirmProd')
-            ->assertSet('prodConfirmGroup', 'click');
+        $html = integrationsScreen()->html();
 
-        expect(config('services.click.mode'))->toBe('test');
-
-        $component->call('confirmProd')->assertSet('prodConfirmGroup', null);
-
-        expect(config('services.click.mode'))->toBe('prod');
+        expect($html)->not->toContain('data-section="payme"')->not->toContain('data-section="click"')
+            ->not->toContain('#section-payme')->not->toContain('#section-click')
+            ->not->toContain('data-secret="payme.')->not->toContain('data-secret="click.')
+            ->not->toContain('data-webhooks')->not->toContain('/webhooks/payme')->not->toContain('/webhooks/click')
+            ->not->toContain('HIDDENVALUE')
+            ->not->toMatch('/\\b(Payme|Click)\\b/')
+            ->toContain('#section-uzqr')->toContain(route('admin.telegram.settings'));
     });
 
-    it('refuses Click prod without the live credentials', function () {
+    it('answers 404 to every write and test for the hidden groups and leaves stored rows alone', function (string $method, array $params) {
+        IntegrationSecret::factory()->withValue('payme.key', 'fake-payme-stored-0000')->create();
+        Setting::factory()->create(['key' => 'click.service_id', 'group' => 'integrations', 'value' => '12345']);
+        Secrets::flush();
         confirmAdminPassword();
+        $before = [IntegrationSecret::query()->get()->toArray(), Setting::query()->get()->toArray(), SettingsAudit::query()->count()];
 
         integrationsScreen()
-            ->set('form.values.click.mode', 'prod')
-            ->call('save', 'click')
-            ->assertHasErrors('form.values.click.mode')
-            ->assertNotDispatched('confirm');
+            ->set('form.values.click.service_id', '99999')
+            ->call($method, ...$params)
+            ->assertNotFound();
 
-        expect(config('services.click.mode'))->toBe('test');
+        expect([IntegrationSecret::query()->get()->toArray(), Setting::query()->get()->toArray(), SettingsAudit::query()->count()])->toBe($before)
+            ->and(Secrets::get('payme.key'))->toBe('fake-payme-stored-0000');
+    })->with([
+        'save payme' => ['save', ['payme']],
+        'save click' => ['save', ['click']],
+        'replace payme key' => ['replaceSecret', ['payme.key']],
+        'replace click secret' => ['replaceSecret', ['click.secret_key']],
+        'clear payme key' => ['clearSecret', ['payme.key']],
+        'clear click test secret' => ['clearSecret', ['click.test_secret_key']],
+        'test payme' => ['test', ['payme']],
+        'test click' => ['test', ['click']],
+    ]);
+
+    it('keeps the registry groups and fields untouched', function () {
+        expect(IntegrationRegistry::GROUPS)->toContain('payme', 'click')
+            ->and(IntegrationRegistry::has('payme.key'))->toBeTrue()
+            ->and(Integrations::PAYMENT_GROUPS)->toBe(['uzqr']);
     });
 
-    it('stores the Click test secret encrypted like the other secrets', function () {
-        app(SetSecret::class)->handle('click.test_secret_key', 'fake-click-test-0000', null, null);
-
-        integrationsScreen()->assertSeeHtml('data-secret="click.test_secret_key"')->assertDontSeeHtml('fake-click-test-0000');
-
-        expect(Secrets::isConfigured('click.test_secret_key'))->toBeTrue()
-            ->and(config('services.click.test_secret_key'))->toBe('fake-click-test-0000');
-    });
-});
-
-describe('payme mode', function () {
-    it('asks for an extra confirmation before switching to prod', function () {
-        IntegrationSecret::factory()->withValue('payme.key', 'payme-fake-live-key-0000')->create();
-        Setting::factory()->create(['key' => 'payme.merchant_id', 'group' => 'integrations', 'value' => '587f72c72cac0d162c722ae2']);
-        Secrets::flush();
+    it('asks for an extra confirmation before switching UzQR to prod and then switches', function () {
+        Uzqr::configure('test', ['services.uzqr.mode' => null]);
         confirmAdminPassword();
 
         $component = integrationsScreen()
-            ->set('form.values.payme.mode', 'prod')
-            ->assertSeeHtml('data-payme-warning')
-            ->call('save', 'payme')
+            ->set('form.values.uzqr.mode', 'prod')
+            ->call('save', 'uzqr')
             ->assertDispatched('confirm', method: 'confirmProd')
-            ->assertSet('prodConfirmGroup', 'payme');
+            ->assertSet('prodConfirmGroup', 'uzqr');
 
-        expect(config('services.payme.mode'))->toBe('test')
-            ->and(Setting::query()->where('key', 'payme.mode')->exists())->toBeFalse();
+        expect(Setting::query()->where('key', 'uzqr.mode')->exists())->toBeFalse();
 
-        $component->call('confirmProd')
-            ->assertSet('prodConfirmGroup', null)
-            ->assertDispatched('toast', type: 'success');
+        $component->call('confirmProd')->assertSet('prodConfirmGroup', null)->assertDispatched('toast', type: 'success');
 
-        expect(config('services.payme.mode'))->toBe('prod');
+        expect(Secrets::get('uzqr.mode'))->toBe('prod');
     });
 
-    it('keeps the pending flag on the server', function () {
+    it('keeps the pending flag on the server and refuses a hidden group in confirmProd', function () {
         confirmAdminPassword();
 
         integrationsScreen()->call('confirmProd')->assertForbidden();
 
-        expect(fn () => integrationsScreen()->set('prodConfirmGroup', 'payme'))
-            ->toThrow(CannotUpdateLockedPropertyException::class);
-    });
-
-    it('refuses prod without the merchant ID and the live key', function () {
-        confirmAdminPassword();
-
-        integrationsScreen()
-            ->set('form.values.payme.mode', 'prod')
-            ->call('save', 'payme')
-            ->assertHasErrors('form.values.payme.mode')
-            ->assertNotDispatched('confirm')
-            ->assertSet('prodConfirmGroup', null);
-
-        expect(config('services.payme.mode'))->toBe('test');
-    });
-
-    it('warns when test mode has no test key', function () {
-        integrationsScreen()->assertSeeHtml('data-payme-test-key-warning');
-
-        IntegrationSecret::factory()->withValue('payme.test_key', 'payme-fake-test-key-0000')->create();
-        Secrets::flush();
-
-        integrationsScreen()->assertDontSeeHtml('data-payme-test-key-warning');
-    });
-
-    it('warns when the webhook URLs are not public https', function (string $url, bool $warns) {
-        config(['app.url' => $url]);
-
-        $component = integrationsScreen();
-
-        $warns ? $component->assertSeeHtml('data-webhooks-not-public') : $component->assertDontSeeHtml('data-webhooks-not-public');
-    })->with([
-        'http' => ['http://poson.uz', true],
-        'localhost' => ['https://localhost', true],
-        'loopback' => ['https://127.0.0.1', true],
-        'dot test' => ['https://poson.test', true],
-        'live' => ['https://poson.uz', false],
-    ]);
-
-    it('switches back to test without a confirmation', function () {
-        Setting::factory()->create(['key' => 'payme.mode', 'group' => 'integrations', 'value' => 'prod']);
-        Secrets::flush();
-        confirmAdminPassword();
-
-        integrationsScreen()
-            ->set('form.values.payme.mode', 'test')
-            ->call('save', 'payme')
-            ->assertNotDispatched('confirm');
-
-        expect(config('services.payme.mode'))->toBe('test');
-    });
-
-    it('shows the webhook URLs to paste into the merchant cabinets', function () {
-        integrationsScreen()
-            ->assertSeeHtml('data-webhooks="payme"')
-            ->assertSeeHtml(rtrim(config('app.url'), '/').'/webhooks/payme')
-            ->assertSeeHtml(rtrim(config('app.url'), '/').'/webhooks/click/prepare')
-            ->assertSeeHtml(rtrim(config('app.url'), '/').'/webhooks/click/complete');
+        expect(fn () => integrationsScreen()->set('prodConfirmGroup', 'uzqr'))->toThrow(CannotUpdateLockedPropertyException::class);
     });
 });
 
@@ -477,7 +416,7 @@ describe('connection tests', function () {
         confirmAdminPassword();
 
         integrationsScreen()->call('test', $target)->assertNotFound();
-    })->with(['payme', 'telegram', 'telegram_chat', 'anthropic', 'openrouter', 'openai', 'removebg']);
+    })->with(['payme', 'click', 'telegram', 'telegram_chat', 'anthropic', 'openrouter', 'openai', 'removebg']);
 });
 
 describe('audit history', function () {

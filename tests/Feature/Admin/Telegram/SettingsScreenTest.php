@@ -764,13 +764,13 @@ describe('T21-4 links', function () {
         Livewire::actingAs(staffUser())->test(Integrations::class)
             ->assertSeeHtml('href="'.route('admin.telegram.settings').'"')
             ->assertDontSeeHtml('href="#section-telegram"')
-            ->assertSeeHtml('href="#section-payme"');
+            ->assertSeeHtml('href="#section-uzqr"');
     });
 
     it('keeps the other sections of Integrations open', function () {
         $html = $this->actingAs(staffUser())->get(route('admin.settings.integrations'))->assertOk()->getContent();
 
-        foreach (['payme', 'click', 'uzqr', 'monitoring', 'indexnow'] as $group) {
+        foreach (['uzqr', 'monitoring', 'indexnow'] as $group) {
             expect($html)->toContain('data-section="'.$group.'"');
         }
     });
