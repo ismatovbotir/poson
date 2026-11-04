@@ -68,9 +68,11 @@ function abuseCustomerSpy(?Throwable $throws = null): object
  */
 function abuseTelegramWebhookAt(string $url = ABUSE_EXPECTED_URL, array $extra = []): void
 {
-    Http::fake(['api.telegram.org/*' => fn ($request) => str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/getWebhookInfo')
-        ? Http::response(['ok' => true, 'result' => array_merge(['url' => $url, 'pending_update_count' => 0], $extra)])
-        : Http::response(['ok' => true, 'result' => true])]);
+    Http::fake(['api.telegram.org/*' => fn ($request) => match (basename(parse_url($request->url(), PHP_URL_PATH))) {
+        'getWebhookInfo' => Http::response(['ok' => true, 'result' => array_merge(['url' => $url, 'pending_update_count' => 0], $extra)]),
+        'getChat' => Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']]),
+        default => Http::response(['ok' => true, 'result' => true]),
+    }]);
 }
 
 function abuseSetWebhookUrls(): array

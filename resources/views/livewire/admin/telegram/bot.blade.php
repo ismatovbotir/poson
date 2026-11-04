@@ -106,6 +106,8 @@
                             <span class="font-medium">{{ __($t.'.checks.'.$item) }}</span>
                             @if ($ok === null)
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checking') }}</span>
+                            @elseif (! $ok && $item === 'chat' && $chatUnverified)
+                                <span class="mt-0.5 block text-slate-500" data-chat-unverified>{{ __($t.'.chat_check.unverified') }}</span>
                             @elseif (! $ok)
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checks_fix.'.$item) }}</span>
                                 @if (in_array($item, ['token', 'webhook_secret', 'chat'], true))
@@ -118,6 +120,14 @@
                     </li>
                 @endforeach
             </ul>
+        </x-admin.card>
+
+        {{-- Inbox chat verdict (display only; enabling re-checks the chat) --}}
+        <x-admin.card :title="__($t.'.chat_check.title')" :description="__($t.'.chat_check.hint')">
+            <div class="flex flex-wrap items-center gap-3 text-sm" data-chat-verdict="{{ $chatVerdict }}">
+                <x-admin.badge :color="$chatVerdict === 'pass' ? 'brand' : ($chatVerdict === 'fail' ? 'red' : 'amber')">{{ __($t.'.chat_check.'.$chatVerdict) }}</x-admin.badge>
+                <x-admin.button variant="secondary" icon="restore" wire:click="checkChat" loading="checkChat" data-action="check-chat">{{ __($t.'.chat_check.button') }}</x-admin.button>
+            </div>
         </x-admin.card>
 
         {{-- Webhook --}}

@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Log;
  * Payload: the telegram_messages id only. The target must pass the TG-23
  * getChat check (cached); otherwise, or when the check can't run now, no
  * alert is sent: a refused target raises the deduped refused_target
- * monitoring alert (message stays stored); a transient failure is rethrown so
+ * monitoring alert (message stays stored); a transient failure (429 / 5xx / timeout) or a refused token (401 / 404) is rethrown so
  * SendTelegramInboxAlert retries, and when the retries run out releaseAlertSlot()
  * clears last_alert_at. Content: see InboxMessage::alert() (no phone, INN, company).
  */
@@ -61,7 +61,7 @@ class TelegramInboxMessage implements ShouldDispatchAfterCommit, TelegramAlert
         } catch (TelegramException $exception) {
             Log::info('Telegram inbox alert delayed', ['telegram_message_id' => $this->telegramMessageId, 'code' => $exception->code()]);
 
-            // Transient (429 / 5xx / timeout): SendTelegramInboxAlert retries; nothing is sent or cached meanwhile.
+            // Transient (429 / 5xx / timeout) or token refused (401 / 404): SendTelegramInboxAlert retries; nothing is sent or cached meanwhile.
             throw $exception;
         }
 

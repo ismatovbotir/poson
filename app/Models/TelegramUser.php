@@ -105,9 +105,24 @@ class TelegramUser extends Model
     }
 
     /**
-     * Rows to delete: unregistered visitors after 30 days, and threads with
-     * no lead-linked message after 12 months of silence. Messages cascade.
-     * TG-27 (best-effort deleteMessage of forwarded copies) hooks into pruning() later.
+     * One hook for prune and every other delete (T21-20): the thread's
+     * activities (a morph relation has no foreign key) go with it. Messages
+     * cascade in the database.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $user): void {
+            $user->activities()->delete();
+        });
+    }
+
+    /**
+     * Rows to delete: unregistered visitors 30 days after creation
+     * (last_message_at is only written for registered users), and threads with no lead-linked message after 12 months
+     * of silence. Messages cascade. Banned rows are never pruned (the ban
+     * survives); ScrubBannedTelegramUsers strips their personal data later (T21-34).
+     * Prune makes no Telegram call (TG-27 amended: copies in the staff chat cannot be removed
+     * by retention). The activities go in the `deleting` hook, which prune and delete share.
      *
      * @return Builder<self>
      */
@@ -116,6 +131,7 @@ class TelegramUser extends Model
         $withoutLeadMessage = fn (Builder $query) => $query->whereDoesntHave('messages', fn (Builder $messages) => $messages->whereNotNull('lead_id'));
 
         return static::query()
+            ->whereNull('banned_at')
             ->where(function (Builder $query) use ($withoutLeadMessage): void {
                 $query->where(fn (Builder $unregistered) => $unregistered
                     ->whereNull('registered_at')

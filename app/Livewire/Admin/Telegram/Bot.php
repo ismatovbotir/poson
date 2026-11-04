@@ -78,6 +78,12 @@ class Bot extends Component
     public bool $loaded = false;
 
     /**
+     * The last chat verification hit a transient Telegram failure (not a verdict).
+     */
+    #[Locked]
+    public bool $chatUnverified = false;
+
+    /**
      * Error code of the last failed Telegram call while loading (HTTP code / timeout).
      */
     #[Locked]
@@ -111,6 +117,31 @@ class Bot extends Component
 
         RateLimiter::hit($key, 60);
         $this->load();
+    }
+
+    /**
+     * "Check now" for the inbox chat: the status panel's own check
+     * (TelegramStatus::refresh: rate-limited, 3 s timeouts, cached verdict
+     * dropped first). The shown verdict is informational only.
+     */
+    public function checkChat(TelegramStatus $status): void
+    {
+        $this->authorize('telegram.bot');
+
+        $t = 'admin.telegram_bot.chat_check.';
+        $outcome = $status->refresh(auth()->id());
+
+        if ($outcome === TelegramStatus::REFRESHED) {
+            $this->reloadAfterWrite();
+        }
+
+        match ($outcome) {
+            TelegramStatus::REFRESHED => $this->dispatch('toast', title: __('admin.toast.done'), body: __($t.'done'), type: 'success'),
+            TelegramStatus::LIMITED => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'limited', ['seconds' => TelegramStatus::retryAfter(auth()->id())]), type: 'error'),
+            TelegramStatus::BUSY => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'busy'), type: 'error'),
+            TelegramStatus::UNREACHABLE => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'unreachable'), type: 'error'),
+            default => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'failed'), type: 'error'),
+        };
     }
 
     public function enable(SetBotEnabled $setBotEnabled): void
@@ -165,7 +196,21 @@ class Bot extends Component
             $this->dispatch('toast', title: __('admin.toast.error'), body: $exception->translated(), type: 'error');
         }
 
-        $this->load();
+        $this->reloadAfterWrite();
+    }
+
+    /**
+     * Reload after a committed write or check. A cache or other failure here
+     * must not turn the already-done action into a 500: it is reported (the
+     * exception carries no secrets) and the page keeps its previous values.
+     */
+    protected function reloadAfterWrite(): void
+    {
+        try {
+            $this->load();
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     protected function load(): void
@@ -200,7 +245,9 @@ class Bot extends Component
             }
         }
 
-        $this->checklist = app(BotChecklist::class)->evaluate($info ?? ['url' => '']);
+        $checklist = app(BotChecklist::class);
+        $this->checklist = $checklist->evaluate($info ?? ['url' => '']);
+        $this->chatUnverified = $checklist->chatUnavailable();
         $this->loaded = true;
     }
 
@@ -235,6 +282,28 @@ class Bot extends Component
         }
     }
 
+    /**
+     * Display-only chat verdict from the status snapshot: pass, fail or unknown.
+     */
+    protected function chatVerdict(): string
+    {
+        try {
+            foreach (app(TelegramStatus::class)->result()['rows'] as $row) {
+                if ($row['id'] === 'chat') {
+                    return match ($row['state']) {
+                        TelegramStatus::OK => 'pass',
+                        TelegramStatus::PROBLEM => 'fail',
+                        default => 'unknown',
+                    };
+                }
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return 'unknown';
+    }
+
     public function render(): View
     {
         return view('livewire.admin.telegram.bot', [
@@ -245,6 +314,7 @@ class Bot extends Component
             'problems' => CheckTelegramWebhook::openProblems(),
             'audits' => $this->audits(),
             'statusSummary' => $this->statusSummary(),
+            'chatVerdict' => $this->chatVerdict(),
         ])->title(__('admin.telegram_bot.title'));
     }
 }

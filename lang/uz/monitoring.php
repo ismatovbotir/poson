@@ -105,5 +105,6 @@ return [
         'rate' => 'Amallar juda koʻp. Keyinroq urinib koʻring.',
         'too_many' => 'Juda koʻp topshiriq tanlandi (koʻpi bilan 50).',
         'class' => 'Bu topshiriqlarni faqat oʻchirish mumkin, qayta urinib boʻlmaydi.',
+        'inbox_alert' => 'Mijozlar yozishmasi xabarnomalarini qayta yuborib boʻlmaydi: ular mijoz matnini yana yuboradi. Ularni oʻchiring.',
     ],
 ];
