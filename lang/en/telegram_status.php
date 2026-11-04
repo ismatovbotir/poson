@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * Plan 21 E2: Telegram → Status panel. Every row has a plain next step.
+ */
+return [
+    'title' => 'Telegram status',
+    'subtitle' => 'One look at the bot, the alert chats, the queue and the inbox. Nothing here calls Telegram until you press "Check now".',
+    'check_now' => 'Check now',
+    'checked_at' => 'Last Telegram check: :time',
+    'never_checked' => 'No Telegram check yet. The scheduler runs one every 15 minutes.',
+    'next_label' => 'What to do',
+    'next_unknown' => 'Press "Check now". If it stays unknown, the scheduled 15-minute check has not run yet or the queue is not measurable here.',
+    'states' => [
+        'ok' => 'OK',
+        'problem' => 'Problem',
+        'unknown' => 'Unknown',
+        'neutral' => 'Off',
+    ],
+    'links' => [
+        'bot' => 'Open the Bot page',
+        'settings' => 'Open Settings',
+        'monitoring' => 'Open Monitoring',
+    ],
+    'chat_keys' => [
+        'inbox' => 'Inbox',
+        'sales' => 'Sales',
+    ],
+    'invalid_reasons' => [
+        'format' => 'in use but malformed',
+        'ignored' => 'not usable, ignored',
+        'unknown' => 'could not be checked',
+    ],
+    'flash' => [
+        'refreshed' => 'Telegram was checked.',
+        'limited' => 'Checked a moment ago. Try again in :seconds s.',
+        'busy' => 'Another check is running. Try again in a few seconds.',
+        'failed' => 'The check failed. The affected rows show as unknown.',
+    ],
+    'summary' => [
+        'ok' => 'Telegram status: no problems found.',
+        'problems' => 'Telegram status: :count to fix.',
+        'unknown' => 'Telegram status: some checks are unknown.',
+        'open' => 'Open the status panel',
+    ],
+    'rows_title' => 'Checks',
+    'rows' => [
+        'bot_switch' => [
+            'label' => 'Customer bot switch',
+            'ok' => 'The bot is on and answers customers.',
+            'neutral' => 'The bot is off. That is fine; staff alerts keep working.',
+        ],
+        'token' => [
+            'label' => 'Bot token',
+            'ok' => 'Telegram accepts the token.',
+            'problem' => 'The token is missing or Telegram refuses it.',
+            'unknown' => 'No fresh answer from Telegram yet.',
+            'neutral' => 'No token set. Not needed while the bot is off.',
+            'next' => 'Put a valid token in Settings → Integrations (BotFather → /revoke gives a new one), then press "Check now".',
+        ],
+        'webhook' => [
+            'label' => 'Webhook',
+            'ok' => 'The webhook points to this site. Updates waiting: :pending.',
+            'problem' => 'The webhook URL differs, deliveries fail or too many updates are waiting (:pending).',
+            'unknown' => 'No fresh answer from Telegram yet.',
+            'neutral' => 'Not judged while the bot is off.',
+            'next' => 'Open the Bot page and press "Set webhook".',
+        ],
+        'chat' => [
+            'label' => 'Inbox chat',
+            'ok' => ':chat chat is a private group the bot can see.',
+            'problem' => 'The inbox (or sales) chat is missing, is not a numeric group id, or Telegram refuses it.',
+            'unknown' => 'The chat has not been verified recently.',
+            'neutral' => 'No inbox chat yet. Needed once the bot is on.',
+            'next' => 'Set a private group chat id in Settings → Integrations and add the bot to that group.',
+        ],
+        'management_chat' => [
+            'label' => 'Management chat',
+            'ok' => 'Monitoring alerts can be delivered.',
+            'problem' => 'No management chat or no bot token: monitoring alerts cannot be delivered.',
+            'next' => 'Set the management chat id in Settings → Integrations.',
+        ],
+        'privacy' => [
+            'label' => 'Privacy policy page',
+            'ok' => 'The privacy page is published and reviewed.',
+            'problem' => 'The bot is on, but the privacy page is missing, hidden or needs review.',
+            'neutral' => 'The privacy page is not ready. It is required before the bot is turned on.',
+            'next' => 'Content → Pages: publish the privacy page and clear "needs review".',
+        ],
+        'worker' => [
+            'label' => 'Queue worker',
+            'ok' => 'Last heartbeat :minutes min ago.',
+            'problem' => 'No heartbeat for :minutes min.',
+            'unknown' => 'Not measurable: no heartbeat yet, the scheduler is down, or the queue is not the database queue.',
+            'next' => 'Restart the queue worker on the server (supervisor), then check again.',
+        ],
+        'cron' => [
+            'label' => 'Scheduler (cron)',
+            'ok' => 'Last tick :minutes min ago.',
+            'problem' => 'No tick for :minutes min.',
+            'unknown' => 'The scheduler has not ticked yet.',
+            'next' => 'Check the server cron entry that runs "php artisan schedule:run" every minute.',
+        ],
+        'oldest_job' => [
+            'label' => 'Oldest waiting job',
+            'ok' => 'Waiting jobs: :pending. None is stuck.',
+            'problem' => 'A job has been waiting :minutes min.',
+            'unknown' => 'Not measurable: the queue is not the database queue.',
+            'next' => 'Make sure the queue worker is running; details in System → Monitoring.',
+        ],
+        'failed_jobs' => [
+            'label' => 'Failed Telegram jobs',
+            'ok' => 'None.',
+            'problem' => ':count failed Telegram jobs.',
+            'next' => 'Open System → Monitoring, read the failure, then retry or forget the jobs.',
+        ],
+        'invalid_env' => [
+            'label' => 'TELEGRAM_* values in .env',
+            'ok' => 'All values that are set are usable.',
+            'problem' => ':count .env values cannot be used.',
+            'unknown' => 'The .env values could not be checked.',
+            'next' => 'Fix the listed values in .env, rebuild the config (php artisan config:cache) and restart the queue workers.',
+        ],
+        'inbox_listener' => [
+            'label' => 'Inbox alert listener',
+            'ok' => 'Registered.',
+            'problem' => 'Not registered: new customer messages send no alert to the team.',
+            'next' => 'Deploy the current code, run "php artisan event:clear" and restart the queue workers.',
+        ],
+        'queue_connection' => [
+            'label' => 'Queue connection',
+            'ok' => 'Queue connection: :connection.',
+            'problem' => 'The queue runs synchronously: Telegram sending blocks page requests and retries do not work.',
+            'next' => 'Set QUEUE_CONNECTION=database in .env, rebuild the config and start a queue worker.',
+        ],
+    ],
+    'counts_title' => 'Bot activity',
+    'counts' => [
+        'registered' => 'Registered users',
+        'registering' => 'In registration',
+        'today' => 'Messages today',
+        'last_message' => 'Last message',
+        'stuck' => 'Stuck sends',
+        'failed_forwards' => 'Failed forwards',
+        'unread' => 'Unread messages',
+        'none' => 'none yet',
+    ],
+];

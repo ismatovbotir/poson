@@ -65,6 +65,29 @@ final class FailedJobs
     }
 
     /**
+     * Number of failed jobs of the given classes (a fixed list, never user
+     * input). One count query on the displayName the database extracts; the
+     * payload is not read.
+     *
+     * @param  list<class-string>  $classes
+     */
+    public static function countForClasses(array $classes): int
+    {
+        if ($classes === []) {
+            return 0;
+        }
+
+        $name = self::displayNameSql();
+
+        return DB::table('failed_jobs')->where(function (Builder $query) use ($classes, $name): void {
+            foreach ($classes as $class) {
+                $query->orWhereRaw("{$name} = ?", [$class])
+                    ->orWhereRaw("{$name} like ? escape '!'", [str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $class).'@%']);
+            }
+        })->count();
+    }
+
+    /**
      * Only real uuids, no duplicates, 1..MAX_BULK of them. Never "all" or a range.
      *
      * @param  array<mixed>  $ids

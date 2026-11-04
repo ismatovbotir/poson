@@ -13,12 +13,14 @@ use App\Services\Telegram\TelegramException;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Telegram\Bot\BotChecklist;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\Bot\TelegramStatus;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Telegram → Bot (/admin/telegram/bot, plan 14 v2 §9): bot identity
@@ -217,6 +219,22 @@ class Bot extends Component
             ->get();
     }
 
+    /**
+     * Problem counts of the status panel (cached there), or null if unavailable.
+     *
+     * @return array{problems: int, unknown: int}|null
+     */
+    protected function statusSummary(): ?array
+    {
+        try {
+            return app(TelegramStatus::class)->summary();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+    }
+
     public function render(): View
     {
         return view('livewire.admin.telegram.bot', [
@@ -226,6 +244,7 @@ class Bot extends Component
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'problems' => CheckTelegramWebhook::openProblems(),
             'audits' => $this->audits(),
+            'statusSummary' => $this->statusSummary(),
         ])->title(__('admin.telegram_bot.title'));
     }
 }

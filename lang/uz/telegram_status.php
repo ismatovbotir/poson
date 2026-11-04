@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * Reja 21 E2: «Telegram → Holat» paneli. Har bir qatorda tushunarli keyingi qadam bor.
+ */
+return [
+    'title' => 'Telegram holati',
+    'subtitle' => 'Bot, ogohlantirish chatlari, navbat va kiruvchi xabarlar bir joyda. «Hozir tekshirish» tugmasini bosmaguningizcha sahifa Telegramga murojaat qilmaydi.',
+    'check_now' => 'Hozir tekshirish',
+    'checked_at' => 'Telegramning oxirgi tekshiruvi: :time',
+    'never_checked' => 'Telegram hali tekshirilmagan. Rejalashtiruvchi har 15 daqiqada tekshiradi.',
+    'next_label' => 'Nima qilish kerak',
+    'next_unknown' => '«Hozir tekshirish» tugmasini bosing. Holat nomaʼlum boʻlib qolsa, rejalashtirilgan 15 daqiqalik tekshiruv hali ishlamagan yoki navbat bu yerda oʻlchanmaydi.',
+    'states' => [
+        'ok' => 'Joyida',
+        'problem' => 'Muammo',
+        'unknown' => 'Nomaʼlum',
+        'neutral' => 'Oʻchiq',
+    ],
+    'links' => [
+        'bot' => 'Bot sahifasini ochish',
+        'settings' => 'Sozlamalarni ochish',
+        'monitoring' => 'Monitoringni ochish',
+    ],
+    'chat_keys' => [
+        'inbox' => 'Kiruvchi',
+        'sales' => 'Sotuv',
+    ],
+    'invalid_reasons' => [
+        'format' => 'ishlatilmoqda, lekin formati notoʻgʻri',
+        'ignored' => 'yaroqsiz, eʼtiborga olinmaydi',
+        'unknown' => 'tekshirib boʻlmadi',
+    ],
+    'flash' => [
+        'refreshed' => 'Telegram tekshirildi.',
+        'limited' => 'Hozirgina tekshirilgan. :seconds soniyadan keyin urinib koʻring.',
+        'busy' => 'Boshqa tekshiruv ketmoqda. Bir necha soniyadan keyin urinib koʻring.',
+        'failed' => 'Tekshiruv bajarilmadi. Taʼsirlangan qatorlar nomaʼlum deb koʻrsatiladi.',
+    ],
+    'summary' => [
+        'ok' => 'Telegram holati: muammo topilmadi.',
+        'problems' => 'Telegram holati: tuzatish kerak: :count.',
+        'unknown' => 'Telegram holati: ayrim tekshiruvlar nomaʼlum.',
+        'open' => 'Holat panelini ochish',
+    ],
+    'rows_title' => 'Tekshiruvlar',
+    'rows' => [
+        'bot_switch' => [
+            'label' => 'Mijozlar boti kaliti',
+            'ok' => 'Bot yoqilgan va mijozlarga javob beradi.',
+            'neutral' => 'Bot oʻchiq. Bu normal; xodimlar uchun ogohlantirishlar ishlayveradi.',
+        ],
+        'token' => [
+            'label' => 'Bot tokeni',
+            'ok' => 'Telegram tokenni qabul qiladi.',
+            'problem' => 'Token kiritilmagan yoki Telegram uni rad etmoqda.',
+            'unknown' => 'Telegramdan yangi javob hali yoʻq.',
+            'neutral' => 'Token kiritilmagan. Bot oʻchiq ekan, kerak emas.',
+            'next' => 'Sozlamalar → Integratsiyalar boʻlimida amaldagi tokenni kiriting (BotFather → /revoke yangisini beradi), soʻng «Hozir tekshirish» tugmasini bosing.',
+        ],
+        'webhook' => [
+            'label' => 'Vebhuk',
+            'ok' => 'Vebhuk shu saytga yoʻnalgan. Kutayotgan yangilanishlar: :pending.',
+            'problem' => 'Vebhuk manzili boshqacha, yetkazishda xatolar bor yoki kutayotgan yangilanishlar juda koʻp (:pending).',
+            'unknown' => 'Telegramdan yangi javob hali yoʻq.',
+            'neutral' => 'Bot oʻchiq ekan, baholanmaydi.',
+            'next' => 'Bot sahifasini oching va «Vebhukni oʻrnatish» tugmasini bosing.',
+        ],
+        'chat' => [
+            'label' => 'Kiruvchi xabarlar chati',
+            'ok' => '«:chat» chati yopiq guruh, bot uni koʻradi.',
+            'problem' => 'Kiruvchi (yoki sotuv) chati kiritilmagan, u raqamli guruh id emas yoki Telegram uni rad etmoqda.',
+            'unknown' => 'Chat yaqinda tekshirilmagan.',
+            'neutral' => 'Kiruvchi chat hali kiritilmagan. Bot yoqilganda kerak boʻladi.',
+            'next' => 'Sozlamalar → Integratsiyalar boʻlimida yopiq guruh id sini kiriting va botni shu guruhga qoʻshing.',
+        ],
+        'management_chat' => [
+            'label' => 'Boshqaruv chati',
+            'ok' => 'Monitoring ogohlantirishlari yetib boradi.',
+            'problem' => 'Boshqaruv chati yoki bot tokeni yoʻq: monitoring ogohlantirishlari yetkazilmaydi.',
+            'next' => 'Sozlamalar → Integratsiyalar boʻlimida boshqaruv chati id sini kiriting.',
+        ],
+        'privacy' => [
+            'label' => 'Maxfiylik siyosati sahifasi',
+            'ok' => 'Maxfiylik sahifasi eʼlon qilingan va koʻrib chiqilgan.',
+            'problem' => 'Bot yoqilgan, lekin maxfiylik sahifasi yoʻq, yashirilgan yoki koʻrib chiqishni talab qiladi.',
+            'neutral' => 'Maxfiylik sahifasi tayyor emas. Botni yoqishdan oldin u kerak.',
+            'next' => 'Kontent → Sahifalar: maxfiylik sahifasini eʼlon qiling va «koʻrib chiqish kerak» belgisini olib tashlang.',
+        ],
+        'worker' => [
+            'label' => 'Navbat ishchisi',
+            'ok' => 'Oxirgi signal :minutes daqiqa oldin.',
+            'problem' => ':minutes daqiqadan beri signal yoʻq.',
+            'unknown' => 'Oʻlchanmaydi: signal hali yoʻq, rejalashtiruvchi ishlamayapti yoki navbat maʼlumotlar bazasida emas.',
+            'next' => 'Serverda navbat ishchisini (supervisor) qayta ishga tushiring va qayta tekshiring.',
+        ],
+        'cron' => [
+            'label' => 'Rejalashtiruvchi (cron)',
+            'ok' => 'Oxirgi ishga tushish :minutes daqiqa oldin.',
+            'problem' => ':minutes daqiqadan beri ishga tushmagan.',
+            'unknown' => 'Rejalashtiruvchi hali ishga tushmagan.',
+            'next' => 'Serverdagi cron yozuvini tekshiring: «php artisan schedule:run» har daqiqada.',
+        ],
+        'oldest_job' => [
+            'label' => 'Navbatdagi eng eski vazifa',
+            'ok' => 'Kutayotgan vazifalar: :pending. Qotib qolgani yoʻq.',
+            'problem' => 'Vazifa :minutes daqiqadan beri kutmoqda.',
+            'unknown' => 'Oʻlchanmaydi: navbat maʼlumotlar bazasida emas.',
+            'next' => 'Navbat ishchisi ishlayotganini tekshiring; batafsil Tizim → Monitoring boʻlimida.',
+        ],
+        'failed_jobs' => [
+            'label' => 'Bajarilmagan Telegram vazifalari',
+            'ok' => 'Yoʻq.',
+            'problem' => 'Bajarilmagan Telegram vazifalari: :count.',
+            'next' => 'Tizim → Monitoring boʻlimini oching, sababini oʻqing, soʻng vazifalarni qayta urining yoki oʻchiring.',
+        ],
+        'invalid_env' => [
+            'label' => '.env dagi TELEGRAM_* qiymatlari',
+            'ok' => 'Kiritilgan barcha qiymatlar yaroqli.',
+            'problem' => '.env dagi yaroqsiz qiymatlar: :count.',
+            'unknown' => '.env qiymatlarini tekshirib boʻlmadi.',
+            'next' => 'Koʻrsatilgan qiymatlarni .env da toʻgʻrilang, konfiguratsiyani qayta yigʻing (php artisan config:cache) va navbat ishchilarini qayta ishga tushiring.',
+        ],
+        'inbox_listener' => [
+            'label' => 'Kiruvchi xabar ogohlantirishi',
+            'ok' => 'Roʻyxatdan oʻtgan.',
+            'problem' => 'Roʻyxatdan oʻtmagan: mijozlarning yangi xabarlari haqida jamoaga ogohlantirish bormaydi.',
+            'next' => 'Joriy kodni joylang, «php artisan event:clear» ni bajaring va navbat ishchilarini qayta ishga tushiring.',
+        ],
+        'queue_connection' => [
+            'label' => 'Navbat ulanishi',
+            'ok' => 'Navbat ulanishi: :connection.',
+            'problem' => 'Navbat sinxron ishlaydi: Telegramga yuborish sahifalarni sekinlashtiradi, qayta urinishlar ishlamaydi.',
+            'next' => '.env da QUEUE_CONNECTION=database qiling, konfiguratsiyani qayta yigʻing va navbat ishchisini ishga tushiring.',
+        ],
+    ],
+    'counts_title' => 'Bot faoliyati',
+    'counts' => [
+        'registered' => 'Roʻyxatdan oʻtganlar',
+        'registering' => 'Roʻyxatdan oʻtmoqda',
+        'today' => 'Bugungi xabarlar',
+        'last_message' => 'Oxirgi xabar',
+        'stuck' => 'Qotib qolgan yuborishlar',
+        'failed_forwards' => 'Muvaffaqiyatsiz yoʻnaltirishlar',
+        'unread' => 'Oʻqilmagan xabarlar',
+        'none' => 'hali yoʻq',
+    ],
+];

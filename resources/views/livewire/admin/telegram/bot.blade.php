@@ -22,6 +22,14 @@
             </p>
         @endif
 
+        @if ($statusSummary !== null)
+            <p class="flex flex-wrap items-center gap-2 rounded-lg border p-3 text-sm {{ $statusSummary['problems'] > 0 ? 'border-red-200 bg-red-50 text-danger' : 'border-slate-200 bg-white text-slate-700' }}" data-status-summary="{{ $statusSummary['problems'] > 0 ? 'problems' : ($statusSummary['unknown'] > 0 ? 'unknown' : 'ok') }}">
+                <x-admin.icon name="radar" size="size-4" class="shrink-0" />
+                <span>{{ $statusSummary['problems'] > 0 ? __('telegram_status.summary.problems', ['count' => $statusSummary['problems']]) : ($statusSummary['unknown'] > 0 ? __('telegram_status.summary.unknown') : __('telegram_status.summary.ok')) }}</span>
+                <a href="{{ route('admin.telegram.status') }}" wire:navigate class="font-medium underline">{{ __('telegram_status.summary.open') }}</a>
+            </p>
+        @endif
+
         @foreach ($problems as $event => $since)
             <p wire:key="problem-{{ $event }}" class="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert" data-problem="{{ $event }}">
                 <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />

@@ -163,7 +163,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // Telegram bot page (plan 14 v2 §9): telegram.bot (Admin only), password re-confirmation on every write.
     Route::livewire('/telegram/bot', Telegram\Bot::class)->name('telegram.bot');
-    // Plan 21: telegram.status (telegram.bot), telegram.settings (settings.integrations), telegram.chats (telegram.inbox) routes go here.
+    // Telegram status panel (plan 21 E2): telegram.bot (Admin only), read-only, no Telegram call on load.
+    Route::livewire('/telegram/status', Telegram\Status::class)->name('telegram.status');
+    // Plan 21: telegram.settings (settings.integrations), telegram.chats (telegram.inbox) routes go here.
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });
