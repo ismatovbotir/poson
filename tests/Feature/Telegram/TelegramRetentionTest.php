@@ -2,18 +2,27 @@
 
 use App\Actions\Monitoring\MonitoringActionException;
 use App\Actions\Monitoring\RetryFailedJobs;
+use App\Actions\Telegram\HandleTelegramUpdate;
 use App\Actions\Telegram\ScrubBannedTelegramUsers;
+use App\Enums\ConversationStatus;
+use App\Enums\SettingsArea;
 use App\Enums\TelegramUserState;
+use App\Jobs\AnswerBotCallback;
+use App\Jobs\SendBotPrompt;
 use App\Jobs\SendTelegramMessage;
 use App\Livewire\Admin\System\Monitoring;
 use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\MonitoringAction;
+use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
+use App\Models\User;
 use App\Support\Monitoring\MonitoredTasks;
+use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -253,4 +262,67 @@ it('refuses to retry a pre-flag inbox alert recognised by its context (T21-31)',
     confirmAdminPassword();
 
     expect(fn () => app(RetryFailedJobs::class)->handle($admin, [$uuid]))->toThrow(MonitoringActionException::class);
+});
+
+it('re-checks under the lock: a row unbanned or lead-linked after it was selected is not wiped', function () {
+    $unbanned = retentionBanned();
+    $linked = retentionBanned();
+    $scrub = fn (int $id) => (new ReflectionMethod(ScrubBannedTelegramUsers::class, 'scrub'))->invoke(app(ScrubBannedTelegramUsers::class), $id);
+
+    // Both were candidates; then the world changes before their scrub runs.
+    TelegramUser::query()->whereKey($unbanned->id)->update(['banned_at' => null]);
+    TelegramMessage::factory()->create(['telegram_user_id' => $linked->id, 'lead_id' => Lead::factory()->create()->id]);
+
+    expect($scrub($unbanned->id))->toBeFalse()
+        ->and($scrub($linked->id))->toBeFalse()
+        ->and($unbanned->fresh()->username)->toBe('secret_user')
+        ->and(TelegramMessage::query()->where('telegram_user_id', $unbanned->id)->exists())->toBeTrue()
+        ->and($linked->fresh()->username)->toBe('secret_user');
+});
+
+it('scrubs more rows than one chunk in one run and closes the thread', function () {
+    $users = collect(range(1, 3))->map(fn () => retentionBanned(['conversation_status' => 'open', 'manager_id' => User::factory()->create()->id, 'locale' => 'ru', 'unread_count' => 4]));
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(3);
+
+    foreach ($users as $user) {
+        $fresh = $user->fresh();
+        expect($fresh->conversation_status)->toBe(ConversationStatus::Closed)
+            ->and($fresh->manager_id)->toBeNull()
+            ->and($fresh->locale)->toBeNull()
+            ->and($fresh->account_changed)->toBeFalse()
+            ->and($fresh->unread_count)->toBe(0);
+    }
+
+    $stamp = $users[0]->fresh()->updated_at;
+    $this->travel(2)->hours();
+
+    expect(app(ScrubBannedTelegramUsers::class)->handle())->toBe(0)
+        ->and($users[0]->fresh()->updated_at->equalTo($stamp))->toBeTrue();
+});
+
+it('keeps a scrubbed banned user blocked: a message, a callback and /start add nothing', function () {
+    Bus::fake();
+    telegramBotConfigured();
+    Setting::query()->updateOrCreate(['key' => BotSwitch::KEY], ['group' => SettingsArea::TelegramBot->group(), 'value' => true]);
+    $user = retentionBanned(['telegram_id' => 5550777]);
+    app(ScrubBannedTelegramUsers::class)->handle();
+    $rows = TelegramUser::query()->count();
+    $handle = fn (array $update) => app(HandleTelegramUpdate::class)->handle($update);
+
+    $handle(telegramPrivateUpdate(7001, ['text' => 'Salom'], 5550777));
+    $handle(telegramPrivateUpdate(7002, ['text' => '/start'], 5550777));
+    $handle(['update_id' => 7003, 'callback_query' => [
+        'id' => 'cbq-7003', 'from' => ['id' => 5550777, 'is_bot' => false, 'first_name' => 'Ali'],
+        'message' => ['message_id' => 77, 'chat' => ['id' => 5550777, 'type' => 'private']], 'data' => 'lang:ru',
+    ]]);
+
+    $fresh = $user->fresh();
+
+    expect(TelegramUser::query()->count())->toBe($rows)
+        ->and($fresh->isBanned())->toBeTrue()
+        ->and($fresh->username)->toBeNull()->and($fresh->first_name)->toBeNull()->and($fresh->locale)->toBeNull()
+        ->and(TelegramMessage::query()->where('telegram_user_id', $user->id)->exists())->toBeFalse();
+    Bus::assertDispatched(AnswerBotCallback::class, 1);
+    Bus::assertNotDispatched(SendBotPrompt::class);
 });
