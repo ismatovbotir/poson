@@ -21,7 +21,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
-use Throwable;
 
 /**
  * Turn selected customer messages of one conversation into a CRM lead (plan 14
@@ -38,7 +37,9 @@ use Throwable;
  * of this thread with text. Any message already on a lead links nothing and
  * creates nothing, which is what a second or concurrent attempt finds. A selection
  * longer than the lead keeps is refused, never cut. The per-user limit is hit last,
- * so a refused call uses nothing (Admin exempt).
+ * so a refused call uses nothing (Admin exempt). A failed attempt keeps its limit
+ * hit on a cache store outside the database, and loses it with the rollback on the
+ * database store; nothing gives it back by hand.
  *
  * The lead's phone and name come from the thread, its customer only from the
  * thread's link (never a phone match, so an unlinked thread gets no customer),
@@ -123,54 +124,44 @@ class ConvertTelegramToLead
             [$attachCustomer, $signal] = self::customerDecision($locked);
 
             // Admins are exempt. Atomic: the hit itself decides, after every refusal above.
-            $limited = ! $actor->hasRole(Role::Admin);
-
-            if ($limited && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
+            if (! $actor->hasRole(Role::Admin) && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
                 throw new InboxRefused('too_many_actions');
             }
 
-            try {
-                $lead = $this->createLead->handle(new LeadData(
-                    source: LeadSource::Telegram,
-                    type: $type,
-                    name: $this->name($locked),
-                    phone: $phone,
-                    locale: $locked->locale ?? (string) config('app.locale'),
-                    company: $locked->declared_company,
-                    message: $text,
-                    managerId: $managerId,
-                    createdById: $actor->id,
-                    matchCustomer: false,
-                    customerId: $attachCustomer ? $locked->customer_id : null,
-                ));
+            $lead = $this->createLead->handle(new LeadData(
+                source: LeadSource::Telegram,
+                type: $type,
+                name: $this->name($locked),
+                phone: $phone,
+                locale: $locked->locale ?? (string) config('app.locale'),
+                company: $locked->declared_company,
+                message: $text,
+                managerId: $managerId,
+                createdById: $actor->id,
+                matchCustomer: false,
+                customerId: $attachCustomer ? $locked->customer_id : null,
+            ));
 
-                // No timestamps: updated_at dates a stuck delivery or file copy, and this is neither.
-                TelegramMessage::query()->whereKey($ids)->whereNull('lead_id')->toBase()->update(['lead_id' => $lead->id]);
+            // No timestamps: updated_at dates a stuck delivery or file copy, and this is neither.
+            TelegramMessage::query()->whereKey($ids)->whereNull('lead_id')->toBase()->update(['lead_id' => $lead->id]);
 
-                $locked->activities()->create([
-                    'user_id' => $actor->id,
-                    'type' => ActivityType::StatusChange,
-                    'meta' => [
-                        'action' => 'convert',
-                        'lead_id' => $lead->id,
-                        'lead_type' => $type->value,
-                        'message_ids' => $ids,
-                        'customer_id' => $locked->customer_id,
-                        'contact_id' => $locked->contact_id,
-                        'customer_attached' => $attachCustomer,
-                        'phone_signal' => $signal,
-                        'link_verified' => $locked->isLinkVerified(),
-                        'account_changed' => $locked->account_changed,
-                    ],
-                    'created_at' => now(),
-                ]);
-            } catch (Throwable $failed) {
-                if ($limited) {
-                    RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
-                }
-
-                throw $failed;
-            }
+            $locked->activities()->create([
+                'user_id' => $actor->id,
+                'type' => ActivityType::StatusChange,
+                'meta' => [
+                    'action' => 'convert',
+                    'lead_id' => $lead->id,
+                    'lead_type' => $type->value,
+                    'message_ids' => $ids,
+                    'customer_id' => $locked->customer_id,
+                    'contact_id' => $locked->contact_id,
+                    'customer_attached' => $attachCustomer,
+                    'phone_signal' => $signal,
+                    'link_verified' => $locked->isLinkVerified(),
+                    'account_changed' => $locked->account_changed,
+                ],
+                'created_at' => now(),
+            ]);
 
             return $lead;
         });

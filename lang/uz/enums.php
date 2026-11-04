@@ -237,13 +237,13 @@ return [
         'webhook_set' => 'Webhook oʻrnatildi',
         'webhook_deleted' => 'Webhook oʻchirildi',
         'enabled' => 'Yoqildi',
-        'disabled' => 'Oʻchirildi',
+        'disabled' => 'Oʻchirib qoʻyildi',
         'banned' => 'Bloklandi',
         'unbanned' => 'Blok olib tashlandi',
         'verified' => 'Tasdiqlandi',
         'retry_forward' => 'Fayl qayta koʻchirildi',
         'linked' => 'Bogʻlandi',
-        'deleted' => 'Oʻchirildi',
+        'deleted' => 'Butunlay oʻchirildi',
     ],
 
     'price_sync_status' => [

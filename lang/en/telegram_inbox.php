@@ -148,7 +148,7 @@ return [
         'ban_confirm' => 'Ban this customer? Their messages will no longer be accepted.',
         'unban_confirm' => 'Lift the ban on this customer?',
         'delete' => 'Delete chat',
-        'delete_help' => 'The chat’s messages and history are removed from the admin for good. Copies in the staff chat may stay there.',
+        'delete_help' => 'The chat\'s messages and history are removed from the admin for good. Copies in the staff chat may stay there.',
         'delete_confirm' => 'Delete this chat for good?',
         'delete_warn_banned' => 'This customer is banned. Deleting the chat also loses the ban, and they can write to the bot again as a new visitor.',
         'delete_warn_lead' => 'This chat is linked to a lead. The lead and its text remain.',

@@ -64,6 +64,25 @@ function linkAuditRow(int $conversationId): ?SettingsAudit
 
 /* ------------------------------------------------------------------- ban */
 
+it('counts a ban only when it changes the row, and rolls the update back over the limit', function () {
+    $manager = linkManager();
+    $chat = linkThread([], $manager);
+    $key = SetConversationBan::LIMIT_KEY.$manager->id;
+
+    app(SetConversationBan::class)->ban($chat, $manager, null);
+    app(SetConversationBan::class)->ban($chat, $manager, null);
+
+    expect(RateLimiter::attempts($key))->toBe(1);
+
+    app(SetConversationBan::class)->unban($chat, $manager, null);
+    RateLimiter::increment($key, 3600, SetConversationBan::PER_HOUR);
+
+    expect(fn () => app(SetConversationBan::class)->ban($chat, $manager, null))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('too_many_actions'));
+
+    expect($chat->fresh()->banned_at)->toBeNull();
+});
+
 it('refuses ban, unban, verify and link on another manager\'s thread by direct calls (TG-35)', function (string $method) {
     $owner = linkManager();
     $customer = Customer::factory()->create();

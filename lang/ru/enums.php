@@ -243,7 +243,7 @@ return [
         'verified' => 'Подтверждено',
         'retry_forward' => 'Повтор копирования файла',
         'linked' => 'Привязано',
-        'deleted' => 'Удалено',
+        'deleted' => 'Удалено навсегда',
     ],
 
     'price_sync_status' => [

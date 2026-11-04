@@ -499,21 +499,23 @@ class Show extends Component
 
     /**
      * Data for the convert control. The text lengths come from the rows already
-     * loaded, and the two queries behind the notices run only while it is open.
+     * loaded. They and the two queries behind the notices run only while it is
+     * open; closed, the per-message button needs only filled text, and the action
+     * still refuses text that cleans to empty.
      * Ticks that stopped being convertible, or scrolled out of the loaded rows
      * with no checkbox left to untick, are dropped here. The action still checks
      * what the client sends.
      *
      * @param  Collection<int, TelegramMessage>  $messages
-     * @return array{canConvert: bool, convertPhoneUsable: bool, convertTypes: list<LeadType>, convertLengths: array<int, int>, convertTextLength: int, convertTextTooLong: bool, convertCustomerSkipped: bool, convertHasRecentLead: bool}
+     * @return array{canConvert: bool, convertPhoneUsable: bool, convertTypes: list<LeadType>, convertEligible: bool, convertLengths: array<int, int>, convertTextLength: int, convertTextTooLong: bool, convertCustomerSkipped: bool, convertHasRecentLead: bool}
      */
     private function convertPanel(TelegramUser $conversation, Collection $messages): array
     {
         $types = $this->convertTypes();
         $canConvert = $conversation->isRegistered() && ! $conversation->isBanned() && $types !== [] && $this->user()->can('convert', $conversation);
         $phoneUsable = ConvertTelegramToLead::hasUsablePhone($conversation);
-        $lengths = $canConvert && $phoneUsable ? $this->convertLengths($messages) : [];
         $open = $this->convertOpen && $canConvert && $phoneUsable;
+        $lengths = $open ? $this->convertLengths($messages) : [];
 
         if ($this->convertOpen) {
             $this->convertSelected = array_slice(array_values(array_filter(
@@ -530,6 +532,7 @@ class Show extends Component
             'canConvert' => $canConvert,
             'convertPhoneUsable' => $phoneUsable,
             'convertTypes' => $open ? $types : [],
+            'convertEligible' => $canConvert && $phoneUsable,
             'convertLengths' => $lengths,
             'convertTextLength' => $length,
             'convertTextTooLong' => $length > CreateLead::MESSAGE_LIMIT,

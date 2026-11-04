@@ -57,7 +57,7 @@
                     @forelse ($messages as $message)
                         @php($inbound = $message->direction === \App\Enums\TelegramDirection::In)
                         @php($stuckRow = $message->isStuck())
-                        @php($convertible = isset($convertLengths[$message->id]))
+                        @php($convertible = $convertOpen ? isset($convertLengths[$message->id]) : ($convertEligible && $inbound && $message->lead_id === null && filled($message->text)))
                         <div wire:key="message-{{ $message->id }}" @class(['flex items-start gap-2', 'justify-start' => $inbound, 'justify-end' => ! $inbound]) data-message="{{ $message->id }}">
                             @if ($convertOpen && $convertible)
                                 <input type="checkbox" wire:model.live="convertSelected" value="{{ $message->id }}" @disabled(count($convertSelected) >= \App\Actions\Telegram\ConvertTelegramToLead::MAX_MESSAGES && ! in_array($message->id, $convertSelected)) aria-label="{{ __($t.'.convert.select_message') }}" class="mt-3 size-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-convert-select="{{ $message->id }}">
