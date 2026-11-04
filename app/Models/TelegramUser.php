@@ -197,6 +197,7 @@ class TelegramUser extends Model
 
     /**
      * Whether the user may see this conversation (matches scopeVisibleTo).
+     * Without telegram.inbox-all only registered conversations (T21-11).
      */
     public function isVisibleTo(User $user): bool
     {
@@ -204,12 +205,16 @@ class TelegramUser extends Model
             return false;
         }
 
-        return $user->can('telegram.inbox-all') || $this->manager_id === null || $this->manager_id === $user->id;
+        if ($user->can('telegram.inbox-all')) {
+            return true;
+        }
+
+        return $this->isRegistered() && ($this->manager_id === null || $this->manager_id === $user->id);
     }
 
     /**
      * Conversations the user may see: telegram.inbox-all every one, telegram.inbox
-     * those assigned to the user or unassigned, otherwise none.
+     * those registered and assigned to the user or unassigned, otherwise none.
      *
      * @param  Builder<self>  $query
      */
@@ -225,7 +230,8 @@ class TelegramUser extends Model
             return;
         }
 
-        $query->where(fn (Builder $inner) => $inner->whereNull('telegram_users.manager_id')->orWhere('telegram_users.manager_id', $user->id));
+        $query->whereNotNull('telegram_users.registered_at')
+            ->where(fn (Builder $inner) => $inner->whereNull('telegram_users.manager_id')->orWhere('telegram_users.manager_id', $user->id));
     }
 
     /**

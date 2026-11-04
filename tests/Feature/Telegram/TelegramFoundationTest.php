@@ -202,12 +202,15 @@ it('wires the Telegram models and relations', function () {
 it('scopes conversations with visibleTo', function () {
     $sales = staffUser(Role::SalesManager);
     $other = User::factory()->withRole(Role::SalesManager)->create();
-    $own = TelegramUser::factory()->assigned($sales)->create();
-    $free = TelegramUser::factory()->create();
-    $foreign = TelegramUser::factory()->assigned($other)->create();
+    $own = TelegramUser::factory()->registered()->assigned($sales)->create();
+    $free = TelegramUser::factory()->registered()->create();
+    $foreign = TelegramUser::factory()->registered()->assigned($other)->create();
+    // T21-11: staff without inbox-all never see unregistered conversations.
+    TelegramUser::factory()->unregistered()->assigned($sales)->create();
+    TelegramUser::factory()->unregistered()->create();
 
     expect(TelegramUser::query()->visibleTo($sales)->pluck('id')->sort()->values()->all())->toBe([$own->id, $free->id])
-        ->and(TelegramUser::query()->visibleTo(User::factory()->withRole(Role::Admin)->create())->count())->toBe(3)
+        ->and(TelegramUser::query()->visibleTo(User::factory()->withRole(Role::Admin)->create())->count())->toBe(5)
         ->and(TelegramUser::query()->visibleTo(User::factory()->withRole(Role::ContentManager)->create())->count())->toBe(0)
         ->and($foreign->id)->not->toBeIn(TelegramUser::query()->visibleTo($sales)->pluck('id')->all());
 });

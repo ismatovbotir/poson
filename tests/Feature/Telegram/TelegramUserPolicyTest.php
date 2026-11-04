@@ -17,9 +17,10 @@ it('registers the policy', function () {
 it('authorizes each ability per role and ownership', function (Role $role, string $owner, array $allowed) {
     $user = staffUser($role);
     $thread = match ($owner) {
-        'own' => TelegramUser::factory()->assigned($user)->create(),
-        'free' => TelegramUser::factory()->create(),
-        'other' => TelegramUser::factory()->assigned(User::factory()->withRole(Role::SalesManager)->create())->create(),
+        'own' => TelegramUser::factory()->registered()->assigned($user)->create(),
+        'free' => TelegramUser::factory()->registered()->create(),
+        'other' => TelegramUser::factory()->registered()->assigned(User::factory()->withRole(Role::SalesManager)->create())->create(),
+        'unregistered' => TelegramUser::factory()->unregistered()->assigned($user)->create(),
     };
 
     foreach (['view', 'reply', 'convert', 'close', 'assign', 'ban', 'delete'] as $ability) {
@@ -33,6 +34,8 @@ it('authorizes each ability per role and ownership', function (Role $role, strin
     'sales: own' => [Role::SalesManager, 'own', ['view', 'reply', 'convert', 'close', 'assign', 'ban']],
     'sales: unassigned' => [Role::SalesManager, 'free', ['view', 'reply', 'convert', 'close', 'assign', 'ban']],
     'sales: other manager' => [Role::SalesManager, 'other', []],
+    'sales: unregistered (T21-11)' => [Role::SalesManager, 'unregistered', []],
+    'admin: unregistered' => [Role::Admin, 'unregistered', ['view', 'reply', 'convert', 'close', 'assign', 'ban', 'delete']],
     'content: unassigned' => [Role::ContentManager, 'free', []],
     'service: unassigned' => [Role::ServiceEngineer, 'free', []],
 ]);
@@ -41,7 +44,7 @@ it('keeps assign and ban behind their own permissions even on a visible thread',
     $user = staffUser(Role::SalesManager);
     Spatie\Permission\Models\Role::findByName(Role::SalesManager->value, 'web')->revokePermissionTo(['telegram.reassign', 'telegram.ban']);
     app(PermissionRegistrar::class)->forgetCachedPermissions();
-    $thread = TelegramUser::factory()->assigned($user)->create();
+    $thread = TelegramUser::factory()->registered()->assigned($user)->create();
     $user = $user->fresh();
 
     expect($user->can('view', $thread))->toBeTrue()
