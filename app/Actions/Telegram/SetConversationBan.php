@@ -63,7 +63,7 @@ class SetConversationBan
     private function write(TelegramUser $conversation, User $actor, ?string $ip, bool $banned): bool
     {
         return DB::transaction(function () use ($conversation, $actor, $ip, $banned): bool {
-            $fresh = TelegramUser::query()->findOrFail($conversation->getKey());
+            $fresh = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
 
             Gate::forUser($actor)->authorize('ban', $fresh);
 

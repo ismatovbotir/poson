@@ -158,7 +158,8 @@ return [
         'hidden' => 'Hidden',
         'phone_signal' => [
             'matches' => 'Phone matches the customer or contact',
-            'matches_other' => 'Phone belongs to another contact of this customer',
+            'matches_other' => 'Phone belongs to this customer, not to the chosen contact',
+            'matches_other_no_contact' => 'Phone belongs to another contact of this customer',
             'no_match' => 'Phone does not match the customer or contact',
             'anonymous' => 'Anonymous Telegram number (+888), cannot be checked',
         ],

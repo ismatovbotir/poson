@@ -158,7 +158,8 @@ return [
         'hidden' => 'Yashirin',
         'phone_signal' => [
             'matches' => 'Telefon mijoz yoki kontakt bilan mos keladi',
-            'matches_other' => 'Telefon shu mijozning boshqa kontaktiga tegishli',
+            'matches_other' => 'Telefon shu mijozga tegishli, tanlangan kontaktga emas',
+            'matches_other_no_contact' => 'Telefon shu mijozning boshqa kontaktiga tegishli',
             'no_match' => 'Telefon mijoz yoki kontakt bilan mos kelmaydi',
             'anonymous' => 'Telegram anonim raqami (+888), tekshirib boʻlmaydi',
         ],
