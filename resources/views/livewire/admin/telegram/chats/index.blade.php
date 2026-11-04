@@ -64,7 +64,7 @@
                         </td>
                         <td class="px-4 py-3">
                             <span class="flex flex-wrap gap-1">
-                                @include('livewire.admin.telegram.chats.partials.badges', ['chat' => $chat, 'stuck' => $stuck])
+                                @include('livewire.admin.telegram.chats.partials.badges', ['chat' => $chat, 'stuck' => $stuck, 'marksInactiveManagers' => $marksInactiveManagers])
                             </span>
                         </td>
                         <td class="max-w-[12rem] truncate px-4 py-3 text-slate-600">{{ $chat->manager?->name ?? __($t.'.unassigned') }}</td>
@@ -83,7 +83,7 @@
                         <a href="{{ route('admin.telegram.chats.show', $chat->id) }}" wire:navigate class="block truncate text-sm font-semibold">{{ $name !== '' ? $name : __($t.'.unnamed') }}</a>
                         <p class="mt-0.5 truncate text-xs text-slate-500">{{ $chat->manager?->name ?? __($t.'.unassigned') }} · {{ $chat->last_message_at ? \App\Support\DateFormat::iso($chat->last_message_at->copy()->setTimezone(config('app.timezone')), 'D MMM, HH:mm') : __('admin.common.empty_value') }}</p>
                         <span class="mt-2 flex flex-wrap gap-1">
-                            @include('livewire.admin.telegram.chats.partials.badges', ['chat' => $chat, 'stuck' => $stuck])
+                            @include('livewire.admin.telegram.chats.partials.badges', ['chat' => $chat, 'stuck' => $stuck, 'marksInactiveManagers' => $marksInactiveManagers])
                         </span>
                     </article>
                 @endforeach

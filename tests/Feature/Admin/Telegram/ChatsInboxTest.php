@@ -14,7 +14,6 @@ use App\Support\Admin\Menu;
 use App\Support\Telegram\InboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
-use Livewire\Exceptions\MethodNotFoundException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -238,16 +237,6 @@ it('shows the latest 50 messages, loads older ones and highlights stuck rows', f
 
     $component->call('loadOlder')->assertSee('msg-005')->assertSee('msg-001')->assertDontSee(__('telegram_inbox.show.load_older'));
     expect(fn () => $component->set('limit', 5000))->toThrow(CannotUpdateLockedPropertyException::class);
-});
-
-it('has no reply box and no write actions on the thread', function () {
-    $user = staffUser(Role::Admin);
-    $chat = thread();
-
-    $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat]);
-
-    expect($component->html())->not->toContain('<textarea');
-    expect(fn () => $component->call('reply', 'hi'))->toThrow(MethodNotFoundException::class);
 });
 
 it('renders the index and the thread without N+1 queries', function () {

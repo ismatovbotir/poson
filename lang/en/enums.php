@@ -216,6 +216,7 @@ return [
         'mcp' => 'MCP access',
         'catalog' => 'Catalog',
         'telegram_bot' => 'Telegram bot',
+        'telegram_inbox' => 'Telegram inbox',
     ],
 
     'audit_action' => [
@@ -237,6 +238,11 @@ return [
         'webhook_deleted' => 'Webhook deleted',
         'enabled' => 'Enabled',
         'disabled' => 'Disabled',
+        'banned' => 'Banned',
+        'unbanned' => 'Ban lifted',
+        'verified' => 'Verified',
+        'retry_forward' => 'File copy retried',
+        'linked' => 'Linked',
     ],
 
     'price_sync_status' => [

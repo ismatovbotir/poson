@@ -3,6 +3,7 @@
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
 use App\Actions\Telegram\HandleTelegramUpdate;
+use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\RetryForward;
 use App\Actions\Telegram\StoreInboundMessage;
 use App\Enums\ConversationStatus;
@@ -837,7 +838,7 @@ it('lets staff who can view the conversation retry a failed file once a minute, 
 
     $row->refresh()->forceFill(['forward_status' => TelegramForwardStatus::Failed])->save();
 
-    expect(app(RetryForward::class)->handle($manager, $row->fresh()))->toBeFalse();
+    expect(fn () => app(RetryForward::class)->handle($manager, $row->fresh()))->toThrow(InboxRefused::class);
 
     $this->travel(61)->seconds();
 
@@ -870,7 +871,11 @@ it('reclaims only stuck sending rows and never forwarded or fresh ones (B4-S11c)
     ]);
     TelegramMessage::query()->whereKey($row->id)->update(['updated_at' => now()->subMinutes($minutesAgo)]);
 
-    expect(app(RetryForward::class)->handle($admin, $row->fresh()))->toBe($queued);
+    if ($queued) {
+        expect(app(RetryForward::class)->handle($admin, $row->fresh()))->toBeTrue();
+    } else {
+        expect(fn () => app(RetryForward::class)->handle($admin, $row->fresh()))->toThrow(InboxRefused::class);
+    }
 
     $queued ? Bus::assertDispatched(ForwardTelegramMedia::class) : Bus::assertNotDispatched(ForwardTelegramMedia::class);
 })->with([
@@ -1039,12 +1044,13 @@ it('uses the per-minute retry limit only after the policy and status checks pass
         'telegram_user_id' => $user->id, 'direction' => TelegramDirection::In, 'telegram_message_id' => 60, 'forward_status' => TelegramForwardStatus::Forwarded,
     ]);
 
-    expect(app(RetryForward::class)->handle($admin, $row))->toBeFalse();
+    expect(fn () => app(RetryForward::class)->handle($admin, $row))->toThrow(InboxRefused::class);
 
     $row->forceFill(['forward_status' => TelegramForwardStatus::Failed])->save();
 
-    expect(app(RetryForward::class)->handle($admin, $row->fresh()))->toBeTrue()
-        ->and(app(RetryForward::class)->handle($admin, $row->fresh()))->toBeFalse();
+    expect(app(RetryForward::class)->handle($admin, $row->fresh()))->toBeTrue();
+    expect(fn () => app(RetryForward::class)->handle($admin, $row->fresh()))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('busy'));
 });
 
 it('labels the checklist chat item as an ID format check, not a verified group', function () {

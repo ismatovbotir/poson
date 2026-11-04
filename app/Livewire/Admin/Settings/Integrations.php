@@ -6,6 +6,7 @@ use App\Actions\Settings\GenerateIndexNowKey;
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymentMode;
+use App\Enums\SettingsArea;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\ManagesIntegrationSettings;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
@@ -171,13 +172,14 @@ class Integrations extends Component
     }
 
     /**
-     * The latest AUDIT_LIMIT changes of every settings area, AUDIT_PER_PAGE per page.
+     * The latest AUDIT_LIMIT changes of every settings area except the staff
+     * inbox (T21-35), AUDIT_PER_PAGE per page.
      *
      * @return LengthAwarePaginator<int, SettingsAudit>
      */
     protected function audits(): LengthAwarePaginator
     {
-        return $this->paginateAudits(SettingsAudit::query());
+        return $this->paginateAudits(SettingsAudit::query()->where('area', '!=', SettingsArea::TelegramInbox->value));
     }
 
     /**

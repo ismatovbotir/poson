@@ -206,6 +206,14 @@ class TelegramUser extends Model
         return $this->registered_at !== null;
     }
 
+    /**
+     * Verified counts only while the conversation is linked (T21-15).
+     */
+    public function isLinkVerified(): bool
+    {
+        return $this->link_verified_at !== null && $this->customer_id !== null;
+    }
+
     public function isBanned(): bool
     {
         return $this->banned_at !== null;

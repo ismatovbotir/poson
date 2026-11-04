@@ -216,6 +216,7 @@ return [
         'mcp' => 'MCP kirish',
         'catalog' => 'Katalog',
         'telegram_bot' => 'Telegram bot',
+        'telegram_inbox' => 'Telegram kiruvchi xabarlari',
     ],
 
     'audit_action' => [
@@ -237,6 +238,11 @@ return [
         'webhook_deleted' => 'Webhook oʻchirildi',
         'enabled' => 'Yoqildi',
         'disabled' => 'Oʻchirildi',
+        'banned' => 'Bloklandi',
+        'unbanned' => 'Blok olib tashlandi',
+        'verified' => 'Tasdiqlandi',
+        'retry_forward' => 'Fayl qayta koʻchirildi',
+        'linked' => 'Bogʻlandi',
     ],
 
     'price_sync_status' => [

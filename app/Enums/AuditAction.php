@@ -43,6 +43,16 @@ enum AuditAction: string
     case Enabled = 'enabled';
     case Disabled = 'disabled';
 
+    /**
+     * Plan 21 stream A: staff inbox moderation and link checks (key
+     * telegram.conversation.{id}, never a name or message text).
+     */
+    case Banned = 'banned';
+    case Unbanned = 'unbanned';
+    case Verified = 'verified';
+    case RetryForward = 'retry_forward';
+    case Linked = 'linked';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

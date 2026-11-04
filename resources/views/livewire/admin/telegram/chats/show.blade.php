@@ -2,7 +2,7 @@
 @php($name = \App\Support\Telegram\InboxMessage::displayName($conversation))
 @php($tz = config('app.timezone'))
 
-{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 A1). Read-only; polls every 10 s while visible. --}}
+{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 stream A). Polls every 10 s while visible. --}}
 <div @if ($polling) wire:poll.10s.visible="refreshThread" @endif data-telegram-chat="{{ $conversation->id }}">
     <x-admin.page-header :title="$name !== '' ? $name : __($t.'.unnamed')" :subtitle="__($t.'.show.subtitle', ['id' => $conversation->id])">
         <x-slot:breadcrumbs>
@@ -28,6 +28,15 @@
             @endif
             @if ($conversation->account_changed)
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="account-changed"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.account_changed') }}</p>
+            @endif
+            @if ($conversation->customer_id !== null && ! $conversation->isLinkVerified())
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="unverified"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.unverified') }}</p>
+            @endif
+            @if ($forwardNotConfigured)
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="forward-not-configured"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.forward_not_configured') }}</p>
+            @endif
+            @if ($replyRefusal === 'bot_off')
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="bot-off"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.bot_off') }}</p>
             @endif
             @unless ($conversation->isRegistered())
                 <p class="flex gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700" role="note" data-banner="unregistered"><x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.unregistered') }}</p>
@@ -76,13 +85,25 @@
                                     @unless ($inbound)
                                         <x-admin.badge :color="$message->status === \App\Enums\TelegramMessageStatus::Failed ? 'red' : 'muted'">{{ $message->status->label() }}@if ($message->error_code) · {{ $message->error_code }}@endif</x-admin.badge>
                                     @endunless
-                                    @if ($message->forward_status !== null)
-                                        <x-admin.badge :color="$message->forward_status === \App\Enums\TelegramForwardStatus::Forwarded ? 'brand' : ($message->forward_status === \App\Enums\TelegramForwardStatus::Failed ? 'red' : 'muted')">{{ __($t.'.show.forward') }}: {{ $message->forward_status->label() }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</x-admin.badge>
+                                    @if ($replyRefusal === null && $message->isResendable())
+                                        @can('resend', [$conversation, $message])
+                                            <button type="button" wire:click="resend({{ $message->id }})" @if ($message->status === \App\Enums\TelegramMessageStatus::Sending) wire:confirm="{{ __($t.'.resend.duplicate_warning') }}" @endif wire:loading.attr="disabled" wire:target="resend({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-resend="{{ $message->id }}">{{ $message->status === \App\Enums\TelegramMessageStatus::Sending ? __($t.'.resend.resend') : __($t.'.resend.retry') }}</button>
+                                        @else
+                                            <span class="text-slate-600" data-resend-hint="{{ $message->id }}">{{ __($t.'.resend.only_author', ['name' => $message->user?->name ?? __($t.'.history.someone')]) }}</span>
+                                        @endcan
                                     @endif
                                     @if ($stuckRow)
                                         <x-admin.badge color="amber">{{ __($t.'.badges.stuck') }}</x-admin.badge>
                                     @endif
                                 </p>
+                                @if ($message->forward_status !== null)
+                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]" data-forward-line="{{ $message->forward_status->value }}">
+                                        <span @class(['font-semibold', 'text-danger' => $message->forward_status === \App\Enums\TelegramForwardStatus::Failed, 'text-slate-500' => $message->forward_status !== \App\Enums\TelegramForwardStatus::Failed])>{{ __($t.'.show.forward') }}: {{ __($t.'.forward_lines.'.$message->forward_status->value) }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</span>
+                                        @if (! in_array($replyRefusal, ['banned', 'bot_off'], true) && $message->isForwardRetryable())
+                                            <button type="button" wire:click="retryForward({{ $message->id }})" wire:loading.attr="disabled" wire:target="retryForward({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-retry-forward="{{ $message->id }}">{{ __($t.'.forward_retry') }}</button>
+                                        @endif
+                                    </p>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -90,6 +111,37 @@
                     @endforelse
                 </div>
             </x-admin.card>
+
+            @can('reply', $conversation)
+                <x-admin.card>
+                    {{-- One token per draft: any edit makes a new one, so a repeated Ctrl+Enter is ignored on the server. --}}
+                    <form
+                        x-data="{ token: '', renew() { this.token = Date.now() + '-' + Math.random().toString(36).slice(2) }, send() { this.$wire.sendReply(this.token) } }"
+                        x-init="renew()"
+                        x-on:submit.prevent="send()"
+                        class="space-y-3"
+                        data-reply-box
+                    >
+                        <x-admin.textarea
+                            wire:model="reply"
+                            x-on:input="renew()"
+                            x-on:change="renew()"
+                            x-on:paste="renew()"
+                            x-on:keydown.ctrl.enter.prevent.throttle.1500ms="send()"
+                            x-on:keydown.cmd.enter.prevent.throttle.1500ms="send()"
+                            rows="3"
+                            :label="__($t.'.reply.label')"
+                            :placeholder="__($t.'.reply.placeholder')"
+                            :hint="__($t.'.reply.hint', ['max' => \App\Actions\Telegram\SendTelegramReply::MAX_LENGTH])"
+                            maxlength="{{ \App\Actions\Telegram\SendTelegramReply::MAX_LENGTH }}"
+                            :disabled="$replyRefusal !== null"
+                        />
+                        <div class="flex justify-end">
+                            <x-admin.button type="submit" icon="telegram" loading="sendReply" :disabled="$replyRefusal !== null" data-reply-send>{{ __($t.'.reply.send') }}</x-admin.button>
+                        </div>
+                    </form>
+                </x-admin.card>
+            @endcan
         </div>
 
         <aside class="space-y-4">
@@ -105,7 +157,12 @@
                     ] as $field => $value)
                         <div>
                             <dt class="text-slate-500">{{ __($t.'.panel.'.$field) }}</dt>
-                            <dd class="mt-0.5 break-words font-medium">{{ $value ?? __('admin.common.empty_value') }}</dd>
+                            <dd class="mt-0.5 flex flex-wrap items-center gap-2 break-words font-medium">
+                                {{ $value ?? __('admin.common.empty_value') }}
+                                @if ($value !== null && in_array($field, ['company', 'inn'], true))
+                                    <x-admin.badge color="outline" data-unproven>{{ __($t.'.panel.unproven') }}</x-admin.badge>
+                                @endif
+                            </dd>
                         </div>
                     @endforeach
                     <div>
@@ -114,7 +171,14 @@
                     </div>
                     <div>
                         <dt class="text-slate-500">{{ __($t.'.panel.manager') }}</dt>
-                        <dd class="mt-0.5 font-medium">{{ $conversation->manager?->name ?? __($t.'.unassigned') }}</dd>
+                        <dd class="mt-0.5 flex flex-wrap items-center gap-2 font-medium">
+                            {{ $conversation->manager?->name ?? __($t.'.unassigned') }}
+                            @if ($conversation->manager && ! $conversation->manager->is_active)
+                                @can('telegram.inbox-all')
+                                    <x-admin.badge color="amber" data-inactive-manager>{{ __($t.'.badges.inactive_manager') }}</x-admin.badge>
+                                @endcan
+                            @endif
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-slate-500">{{ __($t.'.panel.registered_at') }}</dt>
@@ -126,6 +190,9 @@
                     </div>
                 </dl>
             </x-admin.card>
+
+            @include('livewire.admin.telegram.chats.partials.crm-panel')
+            @include('livewire.admin.telegram.chats.partials.manage-panel')
         </aside>
     </div>
 </div>
