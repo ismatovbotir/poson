@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\TelegramMessage;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Secrets;
@@ -24,7 +25,9 @@ use Illuminate\Support\Facades\Log;
  * and verified (getChat, cached), so a target switch during the queue wait is
  * honoured and nothing goes to an unverified chat. A refused target sends
  * nothing and raises the deduped refused_target alert; a transient or token
- * failure of the check is handled like a send failure.
+ * failure of the check is handled like a send failure. An alert that carries its
+ * message id sends nothing once that row is gone, so a deleted thread's excerpt
+ * does not reach the staff chat from the queue (plan 21 A7).
  */
 class SendTelegramMessage implements ShouldQueue
 {
@@ -39,6 +42,12 @@ class SendTelegramMessage implements ShouldQueue
     public bool $inbox = false;
 
     /**
+     * The stored message of an inbox alert. Null: not an inbox alert, or queued
+     * before this field existed (same rule as $inbox, T21-30).
+     */
+    public ?int $telegramMessageId = null;
+
+    /**
      * @param  list<array{text: string, url: string}>  $buttons
      */
     public function __construct(
@@ -47,8 +56,10 @@ class SendTelegramMessage implements ShouldQueue
         public array $buttons = [],
         public string $context = 'alert',
         bool $inbox = false,
+        ?int $telegramMessageId = null,
     ) {
         $this->inbox = $inbox;
+        $this->telegramMessageId = $telegramMessageId;
     }
 
     /**
@@ -61,6 +72,10 @@ class SendTelegramMessage implements ShouldQueue
 
     public function handle(TelegramClient $client): void
     {
+        if ($this->telegramMessageId !== null && ! TelegramMessage::query()->whereKey($this->telegramMessageId)->exists()) {
+            return;
+        }
+
         if ($this->inbox && (! BotSwitch::isEnabled() || Secrets::get('telegram.notify_inbox') === false)) {
             return;
         }

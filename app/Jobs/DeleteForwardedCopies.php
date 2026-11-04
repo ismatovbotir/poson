@@ -23,10 +23,11 @@ use Throwable;
  *   client input, so a target switch still uses the old chat.
  * - Payload: ids only.
  * - Each failure is counted, never retried, and never reaches the chat check or
- *   lost_target (T21-9): no InboxChat or ForwardAlerts call here. A 429 ends the
- *   run, and what is left counts as failed. So does a run over DEADLINE_SECONDS.
- * - Kill switch off or no token: no call, like the other bot jobs; a copied
- *   database with the bot off cannot delete from the production chat this way.
+ *   lost_target (T21-9): no InboxChat or ForwardAlerts call here. A 401, 404 or
+ *   429 ends the run, and what is left counts as failed. So does a run over
+ *   DEADLINE_SECONDS. The timeout stays under the queue's default retry_after (90 s).
+ * - Outside production, kill switch off or no token: no call. Staging or a copied
+ *   database never deletes from the production chat, even with its token (T21-9).
  * - Logs: counts only. Not in monitoring.retry_classes on purpose.
  */
 class DeleteForwardedCopies implements ShouldQueueAfterCommit
@@ -38,7 +39,7 @@ class DeleteForwardedCopies implements ShouldQueueAfterCommit
      */
     public const MAX_AGE_HOURS = 47;
 
-    public const DEADLINE_SECONDS = 100;
+    public const DEADLINE_SECONDS = 70;
 
     private const CALL_TIMEOUT = 5;
 
@@ -46,7 +47,7 @@ class DeleteForwardedCopies implements ShouldQueueAfterCommit
 
     public int $tries = 1;
 
-    public int $timeout = 120;
+    public int $timeout = 85;
 
     public bool $failOnTimeout = true;
 
@@ -71,6 +72,7 @@ class DeleteForwardedCopies implements ShouldQueueAfterCommit
         $pairs = $conversation->messages()
             ->whereNotNull('forwarded_chat_id')
             ->whereNotNull('forwarded_message_id')
+            // created_at, not the send time: a late retry can only make a copy look older, never younger.
             ->where('created_at', '>', $cutoff)
             ->orderBy('id')
             ->get(['forwarded_chat_id', 'forwarded_message_id'])
@@ -90,8 +92,8 @@ class DeleteForwardedCopies implements ShouldQueueAfterCommit
     {
         $total = count($this->pairs);
 
-        if (! $client->isConfigured() || ! BotSwitch::isEnabled()) {
-            Log::info('Telegram forwarded copies not deleted: bot off', ['skipped' => $total]);
+        if (! app()->isProduction() || ! $client->isConfigured() || ! BotSwitch::isEnabled()) {
+            Log::info('Telegram forwarded copies not deleted', ['skipped' => $total]);
 
             return;
         }
@@ -109,7 +111,7 @@ class DeleteForwardedCopies implements ShouldQueueAfterCommit
                 $client->deleteMessage((string) $chatId, $messageId);
                 $deleted++;
             } catch (TelegramException $failure) {
-                if ($failure->isRateLimited()) {
+                if ($failure->isRateLimited() || in_array($failure->status, [401, 404], true)) {
                     break;
                 }
             } catch (Throwable $failure) {

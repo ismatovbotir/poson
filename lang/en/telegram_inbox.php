@@ -123,6 +123,7 @@ return [
         'verified' => 'The link is verified.',
         'linked' => 'The chat is linked. Verify the link once you have checked who is writing.',
         'deleted' => 'The chat is deleted.',
+        'chat_gone' => 'This chat no longer exists.',
     ],
     'manage' => [
         'title' => 'Manage',
@@ -141,6 +142,7 @@ return [
         'delete_confirm' => 'Delete this chat for good?',
         'delete_warn_banned' => 'This customer is banned. Deleting the chat also loses the ban, and they can write to the bot again as a new visitor.',
         'delete_warn_lead' => 'This chat is linked to a lead. The lead and its text remain.',
+        'delete_warn_bot_off' => 'The bot is off, so copies in the staff chat stay; remove them by hand.',
         'delete_btn' => 'Delete for good',
         'delete_password' => 'Deleting asks for your password again (valid for 15 minutes).',
     ],

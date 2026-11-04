@@ -35,6 +35,14 @@ beforeEach(function () {
     copyDeleteBotSwitch(true);
 });
 
+/**
+ * The job only calls Telegram in production. Set after staffUser(): the seeder refuses to run there.
+ */
+function copyDeleteProduction(): void
+{
+    app()->detectEnvironment(fn () => 'production');
+}
+
 function copyDeleteTelegramOk(): void
 {
     Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => true])]);
@@ -75,6 +83,7 @@ it('deletes a stored copy and header, after the rows are gone, and the job holds
     ]);
     copyDeleteRow($chat, COPY_OLD_CHAT, 901);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     expect(TelegramUser::query()->find($chat->id))->toBeNull()
@@ -91,6 +100,7 @@ it('queues the job with integer pairs only and nothing else', function () {
     $chat = TelegramUser::factory()->registered()->create(['name' => 'Private Person']);
     copyDeleteRow($chat, COPY_OLD_CHAT, 901);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     Bus::assertDispatched(DeleteForwardedCopies::class, fn (DeleteForwardedCopies $job) => $job->pairs === [[COPY_OLD_CHAT, 901]]
@@ -103,6 +113,7 @@ it('queues nothing when there is no stored pair, and the delete itself still wor
     $admin = staffUser(Role::Admin);
     $chat = TelegramUser::factory()->registered()->create();
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     Bus::assertNotDispatched(DeleteForwardedCopies::class);
@@ -123,6 +134,7 @@ it('never calls a pair over 47 h and calls one just under it', function () {
     $young = copyDeleteRow($chat, COPY_OLD_CHAT, 903);
     $young->forceFill(['created_at' => now()->subHours(47)->addMinute()])->save();
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     expect(copyDeleteCalls())->toBe([['chat_id' => (string) COPY_OLD_CHAT, 'message_id' => 903]]);
@@ -139,6 +151,7 @@ it('never calls a row missing either value of a pair', function () {
     copyDeleteRow($chat, null, 901);
     copyDeleteRow($chat, COPY_OLD_CHAT, null);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     Http::assertNothingSent();
@@ -149,6 +162,7 @@ it('never calls a header missing its id or time', function (array $header) {
     $admin = staffUser(Role::Admin);
     $chat = TelegramUser::factory()->registered()->create($header);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     Http::assertNothingSent();
@@ -166,6 +180,7 @@ it('uses the old stored pair after the target chat was switched', function () {
     telegramBotConfigured(['services.telegram.chats.inbox' => COPY_NEW_CHAT]);
     expect(InboxChat::id())->toBe(COPY_NEW_CHAT);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     expect(copyDeleteCalls())->toBe([['chat_id' => (string) COPY_OLD_CHAT, 'message_id' => 901]]);
@@ -179,6 +194,7 @@ it('takes nothing from the client: the screen call passes no chat or message id'
     copyDeleteRow($chat, COPY_OLD_CHAT, 901);
     confirmAdminPassword();
 
+    copyDeleteProduction();
     Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
         ->call('deleteConversation', '-1009999999999', 555)
         ->assertRedirect(route('admin.telegram.chats'));
@@ -206,6 +222,7 @@ it('logs counts only', function () {
     Log::spy();
     Http::fake(['api.telegram.org/*' => Http::sequence()->push(['ok' => true, 'result' => true])->push(['ok' => false], 400)]);
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901], [COPY_OLD_CHAT, 902]]))->handle(app(TelegramClient::class));
 
     Log::shouldHaveReceived('info')->once()->withArgs(function (string $message, array $context): bool {
@@ -227,6 +244,7 @@ it('changes nothing on a 400: no throw, no chat check, no lost_target, no alert'
     $sentBefore = Http::recorded()->count();
     $generation = InboxChat::generation();
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901], [COPY_OLD_CHAT, 902], [COPY_OLD_CHAT, 903], [COPY_OLD_CHAT, 904]]))->handle($client);
 
     $urls = Http::recorded()->skip($sentBefore)->map(fn (array $pair) => basename($pair[0]->url()))->values()->all();
@@ -242,6 +260,7 @@ it('counts a server error without retrying and goes on to the next pair', functi
     Log::spy();
     Http::fake(['api.telegram.org/*' => Http::sequence()->push(['ok' => false], 500)->push(['ok' => true, 'result' => true])]);
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901], [COPY_OLD_CHAT, 902]]))->handle(app(TelegramClient::class));
 
     expect(copyDeleteCalls())->toHaveCount(2);
@@ -252,6 +271,7 @@ it('stops on a 429 and counts what is left as failed', function () {
     Log::spy();
     Http::fake(['api.telegram.org/*' => Http::response(['ok' => false, 'parameters' => ['retry_after' => 30]], 429)]);
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901], [COPY_OLD_CHAT, 902]]))->handle(app(TelegramClient::class));
 
     expect(copyDeleteCalls())->toHaveCount(1);
@@ -266,6 +286,7 @@ it('stops at the deadline and counts what is left as failed', function () {
         return Http::response(['ok' => true, 'result' => true]);
     });
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901], [COPY_OLD_CHAT, 902]]))->handle(app(TelegramClient::class));
 
     expect(copyDeleteCalls())->toHaveCount(1);
@@ -281,6 +302,7 @@ it('makes no call with the bot off or without a token', function (bool $botOn, b
         telegramBotConfigured(['services.telegram.bot_token' => null]);
     }
 
+    copyDeleteProduction();
     (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901]]))->handle(app(TelegramClient::class));
 
     Http::assertNothingSent();
@@ -311,10 +333,55 @@ it('keeps the delete and raises nothing when the queue push fails after commit',
     });
     config(['queue.connections.copies-push-fails' => ['driver' => 'copies-push-fails'], 'queue.default' => 'copies-push-fails']);
 
+    copyDeleteProduction();
     app(DeleteConversation::class)->handle($chat, $admin, null);
 
     expect(TelegramUser::query()->find($chat->id))->toBeNull();
     Http::assertNothingSent();
+});
+
+it('makes no call outside production, with the same skipped log', function () {
+    Log::spy();
+    copyDeleteTelegramOk();
+
+    (new DeleteForwardedCopies([[COPY_OLD_CHAT, 901]]))->handle(app(TelegramClient::class));
+
+    Http::assertNothingSent();
+    Log::shouldHaveReceived('info')->once()->withArgs(fn (string $message, array $context): bool => $context === ['skipped' => 1]);
+});
+
+it('warns that copies stay only when the bot is off and a young pair exists', function (bool $botOn, ?int $ageHours, bool $warned) {
+    copyDeleteBotSwitch($botOn);
+    $admin = staffUser(Role::Admin);
+    $chat = TelegramUser::factory()->registered()->create();
+
+    if ($ageHours !== null) {
+        copyDeleteRow($chat, COPY_OLD_CHAT, 901, ageHours: $ageHours);
+    }
+
+    $page = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat]);
+
+    expect(str_contains($page->html(), __('telegram_inbox.manage.delete_warn_bot_off')))->toBeFalse();
+    expect(str_contains($page->set('deleteOpen', true)->html(), __('telegram_inbox.manage.delete_warn_bot_off')))->toBe($warned);
+})->with([
+    'bot off, young pair' => [false, 1, true],
+    'bot on, young pair' => [true, 1, false],
+    'bot off, old pair' => [false, 48, false],
+    'bot off, no pair' => [false, null, false],
+]);
+
+it('warns from a young header alone, whose columns the screen does not usually load', function () {
+    copyDeleteBotSwitch(false);
+    $admin = staffUser(Role::Admin);
+    $chat = TelegramUser::factory()->registered()->create([
+        'forward_header_chat_id' => COPY_OLD_CHAT,
+        'forward_header_message_id' => 900,
+        'forward_header_at' => now()->subHour(),
+    ]);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->set('deleteOpen', true)
+        ->assertSee(__('telegram_inbox.manage.delete_warn_bot_off'));
 });
 
 it('stays out of the Monitoring retry list', function () {

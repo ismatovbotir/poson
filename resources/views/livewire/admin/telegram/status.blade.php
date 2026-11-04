@@ -103,7 +103,7 @@
                     @foreach ($inboxAudits as $audit)
                         <tr wire:key="inbox-audit-{{ $audit->id }}" data-inbox-audit-row>
                             <td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ $audit->created_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
-                            <td class="px-4 py-3">{{ $audit->user?->name ?? $dash }}</td>
+                            <td class="px-4 py-3">{{ $audit->user_name ?? $dash }}</td>
                             <td class="px-4 py-3 font-mono text-xs">{{ $audit->key }}</td>
                             <td class="px-4 py-3"><x-admin.badge color="slate">{{ $audit->action->label() }}</x-admin.badge></td>
                         </tr>
@@ -117,7 +117,7 @@
                                 <span class="font-mono text-xs">{{ $audit->key }}</span>
                                 <x-admin.badge color="slate">{{ $audit->action->label() }}</x-admin.badge>
                             </div>
-                            <p class="mt-1 text-xs text-slate-500">{{ $audit->user?->name ?? $dash }} · {{ $audit->created_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ $audit->user_name ?? $dash }} · {{ $audit->created_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</p>
                         </article>
                     @endforeach
                 </x-admin.mobile-list>

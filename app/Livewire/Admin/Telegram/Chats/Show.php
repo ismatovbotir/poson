@@ -16,22 +16,27 @@ use App\Actions\Telegram\VerifyConversationLink;
 use App\Enums\ActivityType;
 use App\Enums\ConversationStatus;
 use App\Enums\TelegramDirection;
+use App\Jobs\DeleteForwardedCopies;
 use App\Models\Activity;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Services\Telegram\TelegramClient;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\InboxChat;
 use App\Support\Telegram\Bot\LinkPhoneSignal;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Conversation (plan 14 v2 §9, plan 21 A1 to A5, A7): the latest 50 messages with
@@ -96,17 +101,59 @@ class Show extends Component
      */
     private ?TelegramUser $loaded = null;
 
-    public function mount(TelegramUser $telegramUser, MarkConversationRead $markRead): void
+    /**
+     * The chat was deleted (another tab or person): this request only redirects.
+     */
+    private bool $gone = false;
+
+    /**
+     * Not a bound model on the route: Livewire binds the route again on every
+     * update, which would turn a chat deleted meanwhile into a 404 and an error
+     * modal before hydrate() could redirect.
+     */
+    public function mount(TelegramUser|int|string $telegramUser, MarkConversationRead $markRead): void
     {
+        $telegramUser = $telegramUser instanceof TelegramUser ? $telegramUser : TelegramUser::query()->findOrFail($telegramUser);
+
         $this->authorize('view', $telegramUser);
         $this->conversationId = $telegramUser->id;
 
         $markRead->handle($telegramUser, $this->user());
     }
 
+    /**
+     * A chat deleted meanwhile redirects to the list with a notice instead of the
+     * error modal, and nothing is rendered. The call in this request fails on the
+     * missing row before it does anything, and exception() ends it quietly.
+     */
     public function hydrate(): void
     {
-        $this->authorize('view', $this->conversation(fresh: true));
+        $this->loaded = TelegramUser::query()->select(self::COLUMNS)->find($this->conversationId);
+
+        if ($this->loaded === null) {
+            $this->gone = true;
+            $this->skipRender();
+            session()->flash('toast', ['title' => __('telegram_inbox.toasts.chat_gone'), 'type' => 'info']);
+            $this->redirectRoute('admin.telegram.chats', navigate: true);
+
+            return;
+        }
+
+        $this->authorize('view', $this->loaded);
+    }
+
+    /**
+     * Livewire's exception hook. Its parameters stay untyped: Livewire resolves
+     * this call through the container, and a class type here makes it recurse.
+     *
+     * @param  Throwable  $e
+     * @param  callable  $stopPropagation
+     */
+    public function exception($e, $stopPropagation): void
+    {
+        if ($this->gone && $e instanceof ModelNotFoundException) {
+            $stopPropagation();
+        }
     }
 
     public function loadOlder(): void
@@ -391,7 +438,23 @@ class Show extends Component
         return array_values(array_filter([
             $conversation->isBanned() ? __('telegram_inbox.manage.delete_warn_banned') : null,
             $conversation->messages()->whereNotNull('lead_id')->exists() ? __('telegram_inbox.manage.delete_warn_lead') : null,
+            $this->copiesWouldStay() ? __('telegram_inbox.manage.delete_warn_bot_off') : null,
         ]));
+    }
+
+    /**
+     * The bot cannot delete now, and there are copies young enough to delete. The
+     * header columns are read here only: they are not part of the usual row.
+     */
+    private function copiesWouldStay(): bool
+    {
+        if (app(TelegramClient::class)->isConfigured() && BotSwitch::isEnabled()) {
+            return false;
+        }
+
+        $header = TelegramUser::query()->select(['id', 'forward_header_chat_id', 'forward_header_message_id', 'forward_header_at'])->findOrFail($this->conversationId);
+
+        return DeleteForwardedCopies::pairsFor($header) !== [];
     }
 
     /**

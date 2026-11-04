@@ -19,6 +19,8 @@ use App\Models\TelegramMessage;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Services\Telegram\TelegramClient;
+use App\Support\Monitoring\FailedJobs;
 use App\Support\Monitoring\MonitoredTasks;
 use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Support\Facades\Artisan;
@@ -149,6 +151,68 @@ it('never prunes a banned row, unregistered or silent, and the ban still works',
     expect(TelegramUser::query()->find($row->id)?->isBanned())->toBeTrue()
         ->and(TelegramMessage::query()->where('telegram_user_id', $row->id)->exists())->toBeTrue();
 })->with(['unregistered', 'silent']);
+
+function retentionAlertApi(): void
+{
+    Setting::query()->updateOrCreate(['key' => BotSwitch::KEY], ['group' => SettingsArea::TelegramBot->group(), 'value' => true]);
+    Http::fake([
+        'api.telegram.org/*/getChat' => Http::response(['ok' => true, 'result' => ['id' => -1, 'type' => 'supergroup']]),
+        'api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 1]]),
+    ]);
+}
+
+function retentionSendCount(): int
+{
+    return Http::recorded()->filter(fn (array $pair) => str_ends_with($pair[0]->url(), '/sendMessage'))->count();
+}
+
+it('sends nothing from a queued alert once its thread is deleted', function () {
+    telegramBotConfigured();
+    retentionAlertApi();
+    $thread = TelegramUser::factory()->registered()->create();
+    $message = TelegramMessage::factory()->for($thread)->create();
+    $job = new SendTelegramMessage('sales', 'CUSTOMER SECRET TEXT', [], 'TelegramInboxMessage', inbox: true, telegramMessageId: $message->id);
+
+    $thread->delete();
+    $job->handle(app(TelegramClient::class));
+
+    expect(retentionSendCount())->toBe(0);
+});
+
+it('still sends an alert whose message exists', function () {
+    telegramBotConfigured();
+    retentionAlertApi();
+    $message = TelegramMessage::factory()->for(TelegramUser::factory()->registered())->create();
+
+    (new SendTelegramMessage('sales', 'alert', [], 'TelegramInboxMessage', inbox: true, telegramMessageId: $message->id))->handle(app(TelegramClient::class));
+
+    expect(retentionSendCount())->toBe(1);
+});
+
+it('still runs an older payload queued without the message id', function () {
+    telegramBotConfigured();
+    retentionAlertApi();
+    // A null default is left out of the serialized job, so this is the shape of a payload from before the field.
+    $older = serialize(new SendTelegramMessage('sales', 'old alert', [], 'TelegramInboxMessage', inbox: true));
+    expect($older)->not->toContain('telegramMessageId');
+
+    $job = unserialize($older);
+
+    expect($job->telegramMessageId)->toBeNull();
+    $job->handle(app(TelegramClient::class));
+    expect(retentionSendCount())->toBe(1);
+});
+
+it('still recognises an inbox alert carrying a message id in failed jobs', function () {
+    $uuid = (string) Str::uuid();
+    DB::table('failed_jobs')->insert([
+        'uuid' => $uuid, 'connection' => 'database', 'queue' => 'default',
+        'payload' => json_encode(['displayName' => SendTelegramMessage::class, 'data' => ['commandName' => SendTelegramMessage::class, 'command' => serialize(new SendTelegramMessage('sales', 'text', [], 'Other', inbox: true, telegramMessageId: 7))]]),
+        'exception' => 'x', 'failed_at' => now(),
+    ]);
+
+    expect(FailedJobs::hasInboxAlert([$uuid]))->toBeTrue();
+});
 
 it('refuses to retry an inbox alert from failed jobs and still retries a sales alert (T21-31)', function () {
     $queue = fn (SendTelegramMessage $job, string $uuid) => DB::table('failed_jobs')->insert([

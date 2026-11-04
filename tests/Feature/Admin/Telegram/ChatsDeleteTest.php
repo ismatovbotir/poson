@@ -228,12 +228,45 @@ it('deletes on a real request from an active Admin with a recent password', func
     expect(TelegramUser::query()->find($chat->id))->toBeNull();
 });
 
+it('redirects a mounted tab with a notice when the chat was deleted, with no error', function () {
+    $admin = staffUser(Role::Admin);
+    $chat = chatDeleteThread(['name' => 'Private Person']);
+    $page = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat]);
+
+    TelegramUser::query()->whereKey($chat->id)->delete();
+
+    $page->call('refreshThread')->assertRedirect(route('admin.telegram.chats'));
+
+    expect(session('toast')['title'])->toBe(__('telegram_inbox.toasts.chat_gone'));
+});
+
+it('renders nothing for a real poll after the chat was deleted', function () {
+    $admin = staffUser(Role::Admin);
+    $chat = chatDeleteThread(['name' => 'Private Person']);
+    $html = $this->actingAs($admin)->get(route('admin.telegram.chats.show', $chat))->assertOk()->getContent();
+    preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+    $snapshot = collect($matches[1])
+        ->map(fn (string $raw) => html_entity_decode($raw, ENT_QUOTES))
+        ->first(fn (string $candidate) => array_key_exists('conversationId', json_decode($candidate, true)['data'] ?? []));
+
+    TelegramUser::query()->whereKey($chat->id)->delete();
+
+    $response = $this->withHeaders(['X-Livewire' => '1'])->postJson(app('livewire')->getUpdateUri(), [
+        'components' => [['snapshot' => $snapshot, 'calls' => [['method' => 'refreshThread', 'params' => [], 'metadata' => []]], 'updates' => (object) []]],
+    ])->assertOk();
+
+    expect($response->json('components.0.effects.redirect'))->toBe(route('admin.telegram.chats'))
+        ->and($response->json('components.0.effects.html'))->toBeNull()
+        ->and($response->getContent())->not->toContain('Private Person');
+});
+
 it('has the delete texts and audit label in every locale', function (string $locale) {
-    foreach (['delete', 'delete_help', 'delete_confirm', 'delete_warn_banned', 'delete_warn_lead', 'delete_btn', 'delete_password'] as $key) {
+    foreach (['delete', 'delete_help', 'delete_confirm', 'delete_warn_banned', 'delete_warn_lead', 'delete_warn_bot_off', 'delete_btn', 'delete_password'] as $key) {
         expect(Lang::has('telegram_inbox.manage.'.$key, $locale, false))->toBeTrue();
     }
 
     expect(Lang::has('telegram_inbox.toasts.deleted', $locale, false))->toBeTrue()
+        ->and(Lang::has('telegram_inbox.toasts.chat_gone', $locale, false))->toBeTrue()
         ->and(Lang::has('enums.audit_action.deleted', $locale, false))->toBeTrue();
 })->with(['uz', 'ru', 'en']);
 

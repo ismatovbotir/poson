@@ -67,14 +67,18 @@ class Status extends Component
     }
 
     /**
+     * The manager's name comes by a join, not an eager load: with the page's count
+     * this stays at two queries per poll (T21-7).
+     *
      * @return LengthAwarePaginator<int, SettingsAudit>
      */
     private function inboxAudits(): LengthAwarePaginator
     {
         return SettingsAudit::query()
-            ->where('area', SettingsArea::TelegramInbox->value)
-            ->with('user:id,name')
-            ->latest('id')
-            ->paginate(self::AUDIT_PER_PAGE, ['id', 'user_id', 'key', 'action', 'created_at'], 'auditPage');
+            ->leftJoin('users', 'users.id', '=', 'settings_audits.user_id')
+            ->where('settings_audits.area', SettingsArea::TelegramInbox->value)
+            ->latest('settings_audits.created_at')
+            ->latest('settings_audits.id')
+            ->paginate(self::AUDIT_PER_PAGE, ['settings_audits.id', 'settings_audits.key', 'settings_audits.action', 'settings_audits.created_at', 'users.name as user_name'], 'auditPage');
     }
 }

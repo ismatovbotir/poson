@@ -237,7 +237,8 @@ it('keeps the draft on a failure after the claim point, and an immediate retry s
     });
 
     $component->call('sendReply', 'token-f')->assertDispatched('toast', type: 'error')->assertSet('reply', 'important text');
-    expect(TelegramMessage::query()->count())->toBe(0);
+    expect(TelegramMessage::query()->count())->toBe(0)
+        ->and((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(1);
 
     TelegramMessage::flushEventListeners();
 

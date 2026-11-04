@@ -155,13 +155,13 @@
                 <x-admin.card :title="__('crm.leads.from_telegram.title')" data-lead-telegram>
                     <ul class="space-y-2 text-sm">
                         @foreach ($telegramThreads as $thread)
-                            <li wire:key="telegram-thread-{{ $thread->id }}">
-                                @can('view', $thread)
+                            @can('view', $thread)
+                                <li wire:key="telegram-thread-{{ $thread->id }}">
                                     <a href="{{ route('admin.telegram.chats.show', $thread->id) }}" wire:navigate class="break-words font-semibold text-brand-700 hover:underline" data-telegram-thread-link>{{ \App\Support\Telegram\InboxMessage::displayName($thread) ?: __('crm.leads.from_telegram.open') }}</a>
-                                @else
-                                    <span class="text-slate-500" data-telegram-hidden>{{ __('crm.leads.from_telegram.hidden') }}</span>
-                                @endcan
-                            </li>
+                                </li>
+                            @else
+                                <li wire:key="telegram-thread-hidden-{{ $loop->index }}" class="text-slate-500" data-telegram-hidden>{{ __('crm.leads.from_telegram.hidden') }}</li>
+                            @endcan
                         @endforeach
                     </ul>
                 </x-admin.card>

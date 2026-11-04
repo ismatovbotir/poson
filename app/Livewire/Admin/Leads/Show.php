@@ -37,8 +37,8 @@ use Livewire\Component;
  * product), attribution, duplicate and customer badges, the activity
  * timeline and "add note" / "log call". The "From Telegram" block (plan 21 A7,
  * T21-18) links the source thread for telegram.inbox holders: no message text,
- * no telegram_id; empty until a thread is converted to a lead (B2). Read-only for users who may only
- * view the lead (a sales manager on a service request).
+ * no telegram_id; empty until a thread is converted to a lead (B2). Read-only
+ * for users who may only view the lead (a sales manager on a service request).
  *
  * Every write authorizes against LeadPolicy and goes through an action.
  */

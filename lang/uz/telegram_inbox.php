@@ -123,6 +123,7 @@ return [
         'verified' => 'Bogʻlanish tasdiqlandi.',
         'linked' => 'Chat bogʻlandi. Kim yozayotganini tekshirgach, bogʻlanishni tasdiqlang.',
         'deleted' => 'Chat oʻchirildi.',
+        'chat_gone' => 'Bu chat endi mavjud emas.',
     ],
     'manage' => [
         'title' => 'Boshqaruv',
@@ -141,6 +142,7 @@ return [
         'delete_confirm' => 'Bu chat butunlay oʻchirilsinmi?',
         'delete_warn_banned' => 'Bu mijoz bloklangan. Chat oʻchirilsa, blok ham yoʻqoladi va u botga yangi foydalanuvchi sifatida yoza oladi.',
         'delete_warn_lead' => 'Bu chat murojaatga bogʻlangan. Murojaat va undagi matn saqlanib qoladi.',
+        'delete_warn_bot_off' => 'Bot oʻchirilgan, shuning uchun xodimlar chatidagi nusxalar qoladi; ularni qoʻlda oʻchiring.',
         'delete_btn' => 'Butunlay oʻchirish',
         'delete_password' => 'Oʻchirishdan oldin parolingiz yana soʻraladi (15 daqiqa amal qiladi).',
     ],
