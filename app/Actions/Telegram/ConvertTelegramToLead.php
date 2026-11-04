@@ -7,6 +7,7 @@ use App\Data\Leads\LeadData;
 use App\Enums\ActivityType;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\Role;
 use App\Enums\TelegramDirection;
 use App\Models\Lead;
 use App\Models\TelegramMessage;
@@ -14,10 +15,13 @@ use App\Models\TelegramUser;
 use App\Models\User;
 use App\Support\Phone;
 use App\Support\Telegram\Bot\BotText;
+use App\Support\Telegram\Bot\LinkPhoneSignal;
 use App\Support\Telegram\InboxMessage;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 
 /**
  * Turn selected customer messages of one conversation into a CRM lead (plan 14
@@ -26,16 +30,20 @@ use Illuminate\Support\Facades\Gate;
  * Under the conversation row lock, then the message row locks: policy "convert"
  * plus LeadPolicy::create for the type, so an actor without the type is refused
  * rather than leaving an unassigned lead (Q7). Then what a policy cannot refuse
- * for an Admin: registered, a type staff may pick, a usable phone. An anonymous
- * +888 number is refused, because a lead needs a phone and that one never goes
- * to the CRM (TG-29).
+ * for an Admin: registered, not banned (T21-40), a type staff may pick, a usable
+ * phone. An anonymous +888 number is refused, because a lead needs a phone and
+ * that one never goes to the CRM (TG-29).
  *
  * Only ids and a type come from the caller. Every id must be an inbound message
  * of this thread with text. Any message already on a lead links nothing and
- * creates nothing, which is what a second or concurrent attempt finds.
+ * creates nothing, which is what a second or concurrent attempt finds. A selection
+ * longer than the lead keeps is refused, never cut. The per-user limit is hit last,
+ * so a refused call uses nothing (Admin exempt).
  *
  * The lead's phone and name come from the thread, its customer only from the
- * thread's link (never a phone match, so an unlinked thread gets no customer).
+ * thread's link (never a phone match, so an unlinked thread gets no customer),
+ * and only a verified link or one whose phone signal agrees (T21-39): otherwise a
+ * stranger's lead could reach a real customer's quote, Dealer prices and PDF.
  * Leads have no contact column, so the linked contact is recorded in the
  * Activity meta. The text is cleaned message text only: no media parameters.
  * CreateLead raises LeadCreated once, after this transaction commits.
@@ -46,10 +54,16 @@ class ConvertTelegramToLead
 {
     public const MAX_MESSAGES = 50;
 
+    public const PER_HOUR = 30;
+
+    public const LIMIT_KEY = 'telegram-convert:';
+
     /**
      * The types staff may pick, as on the lead form: checkout comes from the site only.
      */
     public const TYPES = [LeadType::Quote, LeadType::Callback, LeadType::ServiceRequest];
+
+    public const SEPARATOR = "\n\n";
 
     public function __construct(protected CreateLead $createLead) {}
 
@@ -70,6 +84,10 @@ class ConvertTelegramToLead
 
             if (! $locked->isRegistered()) {
                 throw new InboxRefused('unregistered');
+            }
+
+            if ($locked->isBanned()) {
+                throw new InboxRefused('banned');
             }
 
             if (! in_array($type, self::TYPES, true)) {
@@ -95,41 +113,98 @@ class ConvertTelegramToLead
                 return null;
             }
 
-            $lead = $this->createLead->handle(new LeadData(
-                source: LeadSource::Telegram,
-                type: $type,
-                name: $this->name($locked),
-                phone: $phone,
-                locale: $locked->locale ?? (string) config('app.locale'),
-                company: $locked->declared_company,
-                message: $messages->map(fn (TelegramMessage $message): string => $this->text($message))->implode("\n\n"),
-                managerId: $this->managerId($locked, $actor, $type),
-                createdById: $actor->id,
-                matchCustomer: false,
-                customerId: $locked->customer_id,
-            ));
+            $text = $messages->map(fn (TelegramMessage $message): string => $this->text($message))->implode(self::SEPARATOR);
 
-            // No timestamps: updated_at dates a stuck delivery or file copy, and this is neither.
-            TelegramMessage::query()->whereKey($ids)->whereNull('lead_id')->toBase()->update(['lead_id' => $lead->id]);
+            if (mb_strlen($text) > CreateLead::MESSAGE_LIMIT) {
+                throw new InboxRefused('text_too_long');
+            }
 
-            $locked->activities()->create([
-                'user_id' => $actor->id,
-                'type' => ActivityType::StatusChange,
-                'meta' => [
-                    'action' => 'convert',
-                    'lead_id' => $lead->id,
-                    'lead_type' => $type->value,
-                    'message_ids' => $ids,
-                    'customer_id' => $locked->customer_id,
-                    'contact_id' => $locked->contact_id,
-                    'link_verified' => $locked->isLinkVerified(),
-                    'account_changed' => $locked->account_changed,
-                ],
-                'created_at' => now(),
-            ]);
+            $managerId = $this->managerId($locked, $actor, $type);
+            [$attachCustomer, $signal] = self::customerDecision($locked);
+
+            // Admins are exempt. Atomic: the hit itself decides, after every refusal above.
+            $limited = ! $actor->hasRole(Role::Admin);
+
+            if ($limited && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
+                throw new InboxRefused('too_many_actions');
+            }
+
+            try {
+                $lead = $this->createLead->handle(new LeadData(
+                    source: LeadSource::Telegram,
+                    type: $type,
+                    name: $this->name($locked),
+                    phone: $phone,
+                    locale: $locked->locale ?? (string) config('app.locale'),
+                    company: $locked->declared_company,
+                    message: $text,
+                    managerId: $managerId,
+                    createdById: $actor->id,
+                    matchCustomer: false,
+                    customerId: $attachCustomer ? $locked->customer_id : null,
+                ));
+
+                // No timestamps: updated_at dates a stuck delivery or file copy, and this is neither.
+                TelegramMessage::query()->whereKey($ids)->whereNull('lead_id')->toBase()->update(['lead_id' => $lead->id]);
+
+                $locked->activities()->create([
+                    'user_id' => $actor->id,
+                    'type' => ActivityType::StatusChange,
+                    'meta' => [
+                        'action' => 'convert',
+                        'lead_id' => $lead->id,
+                        'lead_type' => $type->value,
+                        'message_ids' => $ids,
+                        'customer_id' => $locked->customer_id,
+                        'contact_id' => $locked->contact_id,
+                        'customer_attached' => $attachCustomer,
+                        'phone_signal' => $signal,
+                        'link_verified' => $locked->isLinkVerified(),
+                        'account_changed' => $locked->account_changed,
+                    ],
+                    'created_at' => now(),
+                ]);
+            } catch (Throwable $failed) {
+                if ($limited) {
+                    RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
+                }
+
+                throw $failed;
+            }
 
             return $lead;
         });
+    }
+
+    /**
+     * Whether the lead may carry the thread's linked customer (T21-39), and the
+     * phone signal behind that. Reads the customer and contact relations, so it
+     * queries: only under the action's lock, or while the control is open.
+     *
+     * @return array{0: bool, 1: ?string} attach, phone signal (null when unlinked)
+     */
+    public static function customerDecision(TelegramUser $conversation): array
+    {
+        $customer = $conversation->customer;
+
+        if ($customer === null) {
+            return [false, null];
+        }
+
+        $signal = LinkPhoneSignal::for($conversation->phone, $customer, $conversation->contact);
+
+        return [
+            $conversation->isLinkVerified() || in_array($signal, [LinkPhoneSignal::MATCHES, LinkPhoneSignal::MATCHES_OTHER], true),
+            $signal,
+        ];
+    }
+
+    /**
+     * Message text as the lead keeps it. Never cut: an over-long selection is refused.
+     */
+    public static function cleanText(?string $text): string
+    {
+        return BotText::caption($text, PHP_INT_MAX);
     }
 
     /**
@@ -200,7 +275,7 @@ class ConvertTelegramToLead
      */
     private function text(TelegramMessage $message): string
     {
-        $text = BotText::caption($message->text, CreateLead::MESSAGE_LIMIT);
+        $text = self::cleanText($message->text);
 
         if ($text === '') {
             throw new InboxRefused('no_text');

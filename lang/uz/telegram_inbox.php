@@ -114,6 +114,7 @@ return [
         'no_text' => 'Murojaat faqat matnli xabarlardan yaratiladi.',
         'no_phone' => 'Bu chatda murojaat uchun telefon raqami yoʻq.',
         'anonymous_number' => 'Telegramning anonim raqami (+888) CRMga oʻtkazilmaydi.',
+        'text_too_long' => 'Tanlangan matn murojaat uchun juda uzun. Kamroq xabar tanlang.',
     ],
     'toasts' => [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
@@ -194,6 +195,10 @@ return [
         'submit' => 'Yaratish',
         'cancel' => 'Bekor qilish',
         'no_phone' => 'Murojaat yaratib boʻlmaydi: chatda CRMga oʻtkazish mumkin boʻlgan telefon raqami yoʻq.',
+        'text_only' => 'Faqat matnli xabarlarni tanlash mumkin.',
+        'text_length' => 'Matn: :length / :max belgi',
+        'customer_not_attached' => 'Mijoz murojaatga biriktirilmaydi: Telegram raqami bogʻlangan mijozga mos kelmaydi va bogʻlanish tasdiqlanmagan.',
+        'recent_lead' => 'Bu chatdan oxirgi :days kun ichida murojaat yaratilgan.',
     ],
     'forward_lines' => [
         'pending' => 'koʻchirilishi kutilmoqda',

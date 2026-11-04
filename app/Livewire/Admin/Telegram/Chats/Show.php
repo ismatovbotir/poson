@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Telegram\Chats;
 
+use App\Actions\Leads\CreateLead;
 use App\Actions\Telegram\AssignConversation;
 use App\Actions\Telegram\ChangeConversationStatus;
 use App\Actions\Telegram\ConvertTelegramToLead;
@@ -414,20 +415,19 @@ class Show extends Component
             ->get();
 
         $hasOlder = $newestFirst->count() > $this->limit;
+        $messages = $newestFirst->take($this->limit)->reverse()->values();
         $replyRefusal = app(SendTelegramReply::class)->refusal($conversation);
 
         return view('livewire.admin.telegram.chats.show', [
             'conversation' => $conversation->loadMissing('manager:id,name,is_active', 'customer:id,name,manager_id,phone', 'contact:id,name,phone', 'linkVerifiedBy:id,name'),
-            'messages' => $newestFirst->take($this->limit)->reverse()->values(),
+            'messages' => $messages,
             'hasOlder' => $hasOlder && $this->limit < self::MAX_MESSAGES,
             'olderHidden' => $hasOlder && $this->limit >= self::MAX_MESSAGES,
             'polling' => $this->limit === self::PAGE_SIZE,
             'replyRefusal' => $replyRefusal,
             'forwardNotConfigured' => InboxChat::id() === null,
             ...$this->linkPicker($conversation),
-            'canConvert' => $conversation->isRegistered() && $this->user()->can('convert', $conversation) && $this->user()->can('create', Lead::class),
-            'convertPhoneUsable' => ConvertTelegramToLead::hasUsablePhone($conversation),
-            'convertTypes' => $this->convertOpen ? $this->convertTypes() : [],
+            ...$this->convertPanel($conversation, $messages),
             'canOpenLeads' => $this->user()->can('leads.view'),
             'candidates' => $this->assignOpen && $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
             'history' => $this->historyOpen ? $this->history($conversation) : [],
@@ -495,6 +495,75 @@ class Show extends Component
                 ? LinkPhoneSignal::for($conversation->phone, $conversation->customer, $conversation->contact)
                 : null,
         ];
+    }
+
+    /**
+     * Data for the convert control. The text lengths come from the rows already
+     * loaded, and the two queries behind the notices run only while it is open.
+     * Ticks that stopped being convertible, or scrolled out of the loaded rows
+     * with no checkbox left to untick, are dropped here. The action still checks
+     * what the client sends.
+     *
+     * @param  Collection<int, TelegramMessage>  $messages
+     * @return array{canConvert: bool, convertPhoneUsable: bool, convertTypes: list<LeadType>, convertLengths: array<int, int>, convertTextLength: int, convertTextTooLong: bool, convertCustomerSkipped: bool, convertHasRecentLead: bool}
+     */
+    private function convertPanel(TelegramUser $conversation, Collection $messages): array
+    {
+        $types = $this->convertTypes();
+        $canConvert = $conversation->isRegistered() && ! $conversation->isBanned() && $types !== [] && $this->user()->can('convert', $conversation);
+        $phoneUsable = ConvertTelegramToLead::hasUsablePhone($conversation);
+        $lengths = $canConvert && $phoneUsable ? $this->convertLengths($messages) : [];
+        $open = $this->convertOpen && $canConvert && $phoneUsable;
+
+        if ($this->convertOpen) {
+            $this->convertSelected = array_slice(array_values(array_filter(
+                $this->convertSelected,
+                fn (mixed $id): bool => (is_int($id) || (is_string($id) && ctype_digit($id))) && isset($lengths[(int) $id]),
+            )), 0, ConvertTelegramToLead::MAX_MESSAGES);
+        }
+
+        $selected = array_unique(array_map(intval(...), $this->convertSelected));
+        $length = array_sum(array_map(fn (int $id): int => $lengths[$id] ?? 0, $selected));
+        $length += max(0, count($selected) - 1) * mb_strlen(ConvertTelegramToLead::SEPARATOR);
+
+        return [
+            'canConvert' => $canConvert,
+            'convertPhoneUsable' => $phoneUsable,
+            'convertTypes' => $open ? $types : [],
+            'convertLengths' => $lengths,
+            'convertTextLength' => $length,
+            'convertTextTooLong' => $length > CreateLead::MESSAGE_LIMIT,
+            'convertCustomerSkipped' => $open && $conversation->customer_id !== null && ! ConvertTelegramToLead::customerDecision($conversation)[0],
+            'convertHasRecentLead' => $open && Lead::query()
+                ->whereIn('id', TelegramMessage::query()->select('lead_id')->where('telegram_user_id', $conversation->id)->whereNotNull('lead_id'))
+                ->where('created_at', '>=', now()->subDays(Lead::DUPLICATE_WINDOW_DAYS))
+                ->exists(),
+        ];
+    }
+
+    /**
+     * Cleaned text length per message a lead can be made from: inbound, on no lead, with text.
+     *
+     * @param  Collection<int, TelegramMessage>  $messages
+     * @return array<int, int>
+     */
+    private function convertLengths(Collection $messages): array
+    {
+        $lengths = [];
+
+        foreach ($messages as $message) {
+            if ($message->direction !== TelegramDirection::In || $message->lead_id !== null) {
+                continue;
+            }
+
+            $length = mb_strlen(ConvertTelegramToLead::cleanText($message->text));
+
+            if ($length > 0) {
+                $lengths[$message->id] = $length;
+            }
+        }
+
+        return $lengths;
     }
 
     /**

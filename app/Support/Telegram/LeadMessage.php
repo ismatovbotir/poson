@@ -5,6 +5,7 @@ namespace App\Support\Telegram;
 use App\Models\Lead;
 use App\Models\LeadItem;
 use App\Support\Phone;
+use App\Support\Telegram\Bot\BotText;
 use Illuminate\Support\Str;
 
 /**
@@ -78,8 +79,11 @@ final readonly class LeadMessage
             $lines[] = self::line('company', (string) $lead->company);
         }
 
-        if (filled($lead->message)) {
-            $lines[] = self::line('comment', Str::limit(trim((string) $lead->message), self::COMMENT_EXCERPT, '…'));
+        // One line, as in InboxMessage: a customer can't write lines that look like alert fields.
+        $comment = BotText::clean($lead->message);
+
+        if ($comment !== '') {
+            $lines[] = self::line('comment', Str::limit($comment, self::COMMENT_EXCERPT, '…'));
         }
 
         if ($lead->duplicate_of_id !== null) {

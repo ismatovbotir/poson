@@ -46,14 +46,22 @@
                     <div class="space-y-2" data-convert-form>
                         <p class="font-semibold">{{ __($t.'.convert.title') }}</p>
                         <p class="text-xs text-slate-500">{{ __($t.'.convert.hint') }}</p>
+                        <p class="text-xs text-slate-500" data-convert-text-only>{{ __($t.'.convert.text_only') }}</p>
+                        @if ($convertCustomerSkipped)
+                            <p class="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900" role="note" data-convert-no-customer>{{ __($t.'.convert.customer_not_attached') }}</p>
+                        @endif
+                        @if ($convertHasRecentLead)
+                            <p class="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900" role="note" data-convert-recent-lead>{{ __($t.'.convert.recent_lead', ['days' => \App\Models\Lead::DUPLICATE_WINDOW_DAYS]) }}</p>
+                        @endif
                         <x-admin.select wire:model="convertType" :label="__($t.'.convert.type')" data-convert-type>
                             @foreach ($convertTypes as $leadType)
                                 <option value="{{ $leadType->value }}" wire:key="convert-type-{{ $leadType->value }}">{{ $leadType->label() }}</option>
                             @endforeach
                         </x-admin.select>
                         <p class="text-xs text-slate-500" data-convert-count>{{ __($t.'.convert.selected', ['count' => count($convertSelected), 'max' => \App\Actions\Telegram\ConvertTelegramToLead::MAX_MESSAGES]) }}</p>
+                        <p @class(['text-xs', 'text-slate-500' => ! $convertTextTooLong, 'font-semibold text-danger' => $convertTextTooLong]) data-convert-length>{{ __($t.'.convert.text_length', ['length' => $convertTextLength, 'max' => \App\Actions\Leads\CreateLead::MESSAGE_LIMIT]) }}</p>
                         <div class="flex gap-2">
-                            <x-admin.button class="min-w-0 flex-1" wire:click="convert" loading="convert" :disabled="$convertSelected === []" data-convert-submit>{{ __($t.'.convert.submit') }}</x-admin.button>
+                            <x-admin.button class="min-w-0 flex-1" wire:click="convert" loading="convert" :disabled="$convertSelected === [] || $convertTextTooLong" data-convert-submit>{{ __($t.'.convert.submit') }}</x-admin.button>
                             <x-admin.button variant="secondary" wire:click="closeConvert" data-convert-cancel>{{ __($t.'.convert.cancel') }}</x-admin.button>
                         </div>
                     </div>

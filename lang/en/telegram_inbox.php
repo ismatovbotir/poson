@@ -114,6 +114,7 @@ return [
         'no_text' => 'A lead can only be made from messages with text.',
         'no_phone' => 'This chat has no phone for a lead.',
         'anonymous_number' => 'An anonymous Telegram number (+888) does not go to the CRM.',
+        'text_too_long' => 'The selected text is too long for a lead. Select fewer messages.',
     ],
     'toasts' => [
         'reply_queued' => 'The reply is queued for delivery.',
@@ -194,6 +195,10 @@ return [
         'submit' => 'Create',
         'cancel' => 'Cancel',
         'no_phone' => 'A lead cannot be created: this chat has no phone that may go to the CRM.',
+        'text_only' => 'Only messages with text can be selected.',
+        'text_length' => 'Text: :length of :max characters',
+        'customer_not_attached' => 'The customer will not be attached to the lead: the Telegram number does not match the linked customer and the link is not verified.',
+        'recent_lead' => 'This chat already has a lead from the last :days days.',
     ],
     'forward_lines' => [
         'pending' => 'waiting to be copied',

@@ -8,12 +8,14 @@ use App\Data\Leads\LeadData;
 use App\Enums\ActivityType;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\PriceLevel;
 use App\Enums\Role;
 use App\Enums\TelegramForwardStatus;
 use App\Enums\TelegramMessageKind;
 use App\Events\LeadCreated;
 use App\Listeners\SendLeadToTelegram;
 use App\Livewire\Admin\Leads\Show as LeadShow;
+use App\Livewire\Admin\Quotes\Form as QuoteForm;
 use App\Livewire\Admin\Telegram\Chats\Show;
 use App\Models\Activity;
 use App\Models\Contact;
@@ -22,14 +24,17 @@ use App\Models\Lead;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Support\Telegram\Bot\LinkPhoneSignal;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
@@ -135,21 +140,98 @@ it('does not touch updated_at on the linked message, which dates a stuck file co
 
 /* ---------------------------------------------------------- customer link */
 
-it('takes the customer from the thread link, not from a phone match', function () {
+/**
+ * @param  array<string, mixed>  $thread
+ */
+function tconvLinked(Customer $customer, ?Contact $contact = null, array $thread = []): TelegramUser
+{
+    $chat = tconvThread($thread);
+    $chat->forceFill(['customer_id' => $customer->id, 'contact_id' => $contact?->id])->save();
+
+    return $chat;
+}
+
+it('does not put an unverified no_match link on the lead (T21-39)', function () {
+    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 7]])]);
     $admin = staffUser();
-    Customer::factory()->create(['phone' => '+998901234567']);
-    $linked = Customer::factory()->create(['phone' => '+998907770000']);
-    $contact = Contact::factory()->create(['customer_id' => $linked->id]);
-    $chat = tconvThread();
-    $chat->forceFill(['customer_id' => $linked->id, 'contact_id' => $contact->id])->save();
+    $linked = Customer::factory()->create(['name' => 'Real Customer LLC', 'phone' => '+998907770000']);
+    $contact = Contact::factory()->create(['customer_id' => $linked->id, 'phone' => '+998907770001']);
+    $chat = tconvLinked($linked, $contact);
 
     $lead = tconvRun($chat, $admin);
-    $activity = $chat->activities()->sole();
+    $meta = $chat->activities()->sole()->meta;
+    $alert = collect(telegramApiCalls())->firstWhere('method', 'sendMessage')['data']['text'];
+
+    expect($lead->customer_id)->toBeNull()
+        ->and($meta['customer_attached'])->toBeFalse()
+        ->and($meta['phone_signal'])->toBe(LinkPhoneSignal::NO_MATCH)
+        ->and($meta['customer_id'])->toBe($linked->id)
+        ->and($meta['contact_id'])->toBe($contact->id)
+        ->and($meta['link_verified'])->toBeFalse()
+        ->and($alert)->not->toContain('Real Customer LLC')
+        ->and($chat->fresh()->customer_id)->toBe($linked->id);
+});
+
+it('attaches an unverified link when the phone agrees, never a phone match elsewhere (T21-39)', function (string $signal) {
+    $admin = staffUser();
+    Customer::factory()->create(['phone' => '+998901234567']);
+    $linked = Customer::factory()->create(['phone' => $signal === LinkPhoneSignal::MATCHES ? '+998901234567' : '+998907770000']);
+
+    if ($signal === LinkPhoneSignal::MATCHES_OTHER) {
+        Contact::factory()->create(['customer_id' => $linked->id, 'phone' => '+998901234567']);
+    }
+
+    $chat = tconvLinked($linked);
+    $lead = tconvRun($chat, $admin);
+    $meta = $chat->activities()->sole()->meta;
 
     expect($lead->customer_id)->toBe($linked->id)
-        ->and($activity->meta['customer_id'])->toBe($linked->id)
-        ->and($activity->meta['contact_id'])->toBe($contact->id)
-        ->and($activity->meta['link_verified'])->toBeFalse();
+        ->and($meta['customer_attached'])->toBeTrue()
+        ->and($meta['phone_signal'])->toBe($signal);
+})->with([LinkPhoneSignal::MATCHES, LinkPhoneSignal::MATCHES_OTHER]);
+
+it('attaches a verified link even with no_match (T21-39)', function () {
+    $admin = staffUser();
+    $linked = Customer::factory()->create(['phone' => '+998907770000']);
+    $chat = tconvLinked($linked);
+    $chat->forceFill(['link_verified_at' => now(), 'link_verified_by_id' => $admin->id])->save();
+
+    $lead = tconvRun($chat, $admin);
+    $meta = $chat->activities()->sole()->meta;
+
+    expect($lead->customer_id)->toBe($linked->id)
+        ->and($meta['customer_attached'])->toBeTrue()
+        ->and($meta['phone_signal'])->toBe(LinkPhoneSignal::NO_MATCH)
+        ->and($meta['link_verified'])->toBeTrue();
+});
+
+it('gives a no_match lead no quote path, customer or Dealer price level (T21-39)', function () {
+    $admin = staffUser();
+    $linked = Customer::factory()->priceLevel(PriceLevel::Dealer)->create(['phone' => '+998907770000']);
+    $lead = tconvRun(tconvLinked($linked), $admin);
+
+    expect(QuoteForm::canQuoteFromLead($admin, $lead))->toBeFalse();
+
+    $form = Livewire::withQueryParams(['lead' => $lead->id])->actingAs($admin)->test(QuoteForm::class)
+        ->assertSet('form.lead_id', '')
+        ->assertSet('form.customer_id', '');
+
+    expect($form->instance()->priceLevel())->toBe(PriceLevel::Retail);
+
+    $this->actingAs($admin)->get(route('admin.quotes.create', ['lead' => $lead->id]))->assertOk()->assertDontSee($linked->name);
+});
+
+it('warns in the panel that the customer will not be attached, only while open', function () {
+    $admin = staffUser();
+    $chat = tconvLinked(Customer::factory()->create(['phone' => '+998907770000']));
+    $message = tconvInbound($chat);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->assertDontSeeHtml('data-convert-no-customer')
+        ->call('openConvert', $message->id)
+        ->assertSeeHtml('data-convert-no-customer')
+        ->assertSee(__('telegram_inbox.convert.customer_not_attached'))
+        ->assertSee(__('telegram_inbox.convert.text_only'));
 });
 
 it('leaves an unlinked thread without a customer, even when the phone matches one', function () {
@@ -476,7 +558,7 @@ it('keeps the selection and shows a toast on a refusal from tampered state', fun
     expect(Lead::query()->count())->toBe(0);
 })->with([
     'type' => ['convertType', 'nonsense', 'invalid_type'],
-    'ids' => ['convertSelected', ['abc'], 'invalid_selection'],
+    'ids dropped at render' => ['convertSelected', ['abc'], 'nothing_selected'],
     'none' => ['convertSelected', [], 'nothing_selected'],
 ]);
 
@@ -524,18 +606,17 @@ it('adds no query to the poll while the control is closed', function () {
 
 /* --------------------------------------------------------------- retention */
 
-it('keeps a lead-linked thread through prune and scrub after a convert', function () {
+it('keeps a lead-linked thread through prune and scrub, also when banned after the convert', function () {
     $admin = staffUser();
     $silent = tconvThread(['last_message_at' => now()->subMonths(13)]);
     $silentMessage = tconvInbound($silent, 'kept silent');
     $banned = tconvThread(['last_message_at' => now()->subMonths(13)]);
     $bannedMessage = tconvInbound($banned, 'kept banned');
-    $banned->forceFill(['banned_at' => now()->subMonths(13), 'banned_by_id' => $admin->id])->save();
     $control = tconvThread(['last_message_at' => now()->subMonths(13)]);
 
     $silentLead = tconvRun($silent, $admin, [$silentMessage->id]);
     $bannedLead = tconvRun($banned, $admin, [$bannedMessage->id]);
-    TelegramUser::query()->whereKey([$silent->id, $banned->id])->update(['last_message_at' => now()->subMonths(13)]);
+    $banned->forceFill(['banned_at' => now()->subMonths(13), 'banned_by_id' => $admin->id])->save();
 
     Artisan::call('model:prune', ['--model' => [TelegramUser::class]]);
     app(ScrubBannedTelegramUsers::class)->handle();
@@ -549,6 +630,201 @@ it('keeps a lead-linked thread through prune and scrub after a convert', functio
         ->and(Activity::query()->where('subject_id', $silent->id)->where('subject_type', $silent->getMorphClass())->count())->toBe(1);
 });
 
+it('refuses a banned thread as Admin with no lead, and that row is still scrubbed (T21-40)', function () {
+    $admin = staffUser();
+    $chat = tconvThread(['last_message_at' => now()->subMonths(13)]);
+    $chat->forceFill(['banned_at' => now()->subMonths(13), 'banned_by_id' => $admin->id])->save();
+    $message = tconvInbound($chat);
+
+    tconvExpectRefused($chat, $admin, [$message->id], 'banned');
+
+    expect($message->fresh()->lead_id)->toBeNull();
+
+    app(ScrubBannedTelegramUsers::class)->handle();
+
+    expect($chat->fresh()->phone)->toBeNull()
+        ->and($chat->fresh()->banned_at)->not->toBeNull()
+        ->and(TelegramMessage::query()->whereKey($message->id)->exists())->toBeFalse();
+});
+
+it('hides the control on a banned thread and when the actor has no lead type', function () {
+    $admin = staffUser();
+    $banned = tconvThread();
+    $banned->forceFill(['banned_at' => now(), 'banned_by_id' => $admin->id])->save();
+    $bannedMessage = tconvInbound($banned);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $banned])
+        ->assertDontSeeHtml('data-convert-panel')
+        ->assertDontSeeHtml('data-convert-message="'.$bannedMessage->id.'"');
+
+    $manager = staffUser(Role::SalesManager);
+    $manager->roles->first()->revokePermissionTo('leads.sales');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $chat = tconvThread();
+    tconvInbound($chat);
+
+    Livewire::actingAs($manager->fresh())->test(Show::class, ['telegramUser' => $chat])
+        ->assertDontSeeHtml('data-convert-panel')
+        ->assertDontSeeHtml('data-convert-message');
+});
+
+/* ------------------------------------------------------------- limit */
+
+it('limits a manager to 30 converts an hour, atomically, with the over-limit call making nothing (T21-40)', function () {
+    $manager = staffUser(Role::SalesManager);
+    $chat = tconvThread([], $manager);
+    RateLimiter::increment(ConvertTelegramToLead::LIMIT_KEY.$manager->id, 3600, ConvertTelegramToLead::PER_HOUR - 1);
+
+    expect(tconvRun($chat, $manager))->toBeInstanceOf(Lead::class);
+
+    $message = tconvInbound($chat);
+
+    expect(fn () => tconvRun($chat, $manager, [$message->id]))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('too_many_actions'));
+
+    expect(Lead::query()->count())->toBe(1)
+        ->and($message->fresh()->lead_id)->toBeNull();
+});
+
+it('does not limit an Admin', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    RateLimiter::increment(ConvertTelegramToLead::LIMIT_KEY.$admin->id, 3600, ConvertTelegramToLead::PER_HOUR + 5);
+
+    expect(tconvRun($chat, $admin))->toBeInstanceOf(Lead::class);
+});
+
+it('uses nothing of the limit on a refused or repeated call', function () {
+    $manager = staffUser(Role::SalesManager);
+    $chat = tconvThread([], $manager);
+    $key = ConvertTelegramToLead::LIMIT_KEY.$manager->id;
+    $good = tconvInbound($chat);
+    $empty = TelegramMessage::factory()->for($chat)->inbound()->media(TelegramMessageKind::Photo)->create(['text' => null]);
+
+    foreach ([[$empty->id], ['abc'], [], [99999999]] as $ids) {
+        try {
+            tconvRun($chat, $manager, $ids);
+        } catch (InboxRefused) {
+        }
+    }
+
+    expect(RateLimiter::attempts($key))->toBe(0);
+
+    tconvRun($chat, $manager, [$good->id]);
+
+    expect(RateLimiter::attempts($key))->toBe(1)
+        ->and(tconvRun($chat, $manager, [$good->id]))->toBeNull()
+        ->and(RateLimiter::attempts($key))->toBe(1);
+});
+
+/* ------------------------------------------------------------- text limit */
+
+it('refuses a selection longer than the lead keeps, linking nothing (T21-40)', function () {
+    $manager = staffUser(Role::SalesManager);
+    $chat = tconvThread([], $manager);
+    $messages = collect(range(1, 3))->map(fn (): TelegramMessage => tconvInbound($chat, str_repeat('x', 2000)));
+
+    tconvExpectRefused($chat, $manager, $messages->pluck('id')->all(), 'text_too_long');
+
+    expect(TelegramMessage::query()->whereNotNull('lead_id')->count())->toBe(0)
+        ->and(RateLimiter::attempts(ConvertTelegramToLead::LIMIT_KEY.$manager->id))->toBe(0);
+});
+
+it('keeps a selection of exactly the limit whole', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    $first = tconvInbound($chat, str_repeat('a', 2499));
+    $second = tconvInbound($chat, str_repeat('b', 2499));
+
+    expect(mb_strlen(tconvRun($chat, $admin, [$first->id, $second->id])->message))->toBe(CreateLead::MESSAGE_LIMIT);
+});
+
+it('shows the text length and disables the button when over', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    $messages = collect(range(1, 3))->map(fn (): TelegramMessage => tconvInbound($chat, str_repeat('x', 2000)));
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->call('openConvert', $messages[0]->id)
+        ->assertSee(__('telegram_inbox.convert.text_length', ['length' => 2000, 'max' => CreateLead::MESSAGE_LIMIT]))
+        ->set('convertSelected', $messages->pluck('id')->all())
+        ->assertSeeHtml('font-semibold text-danger')
+        ->assertSee(__('telegram_inbox.convert.text_length', ['length' => 6004, 'max' => CreateLead::MESSAGE_LIMIT]))
+        ->call('convert')
+        ->assertDispatched('toast', type: 'error', title: __('telegram_inbox.refused.text_too_long'));
+
+    expect(Lead::query()->count())->toBe(0);
+});
+
+/* ------------------------------------------------------------- ticks */
+
+it('keeps ticks through the poll and drops those no longer convertible', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    $keep = tconvInbound($chat);
+    $gone = tconvInbound($chat);
+
+    $screen = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->call('openConvert', $keep->id)
+        ->call('refreshThread')
+        ->assertSet('convertSelected', [$keep->id])
+        ->set('convertSelected', [$keep->id, $gone->id])
+        ->assertSet('convertSelected', [$keep->id, $gone->id]);
+
+    tconvRun($chat, $admin, [$gone->id]);
+
+    $screen->call('refreshThread')->assertSet('convertSelected', [$keep->id]);
+
+    $screen->set('convertSelected', [$keep->id, 'abc', [1], 99999999])->assertSet('convertSelected', [$keep->id]);
+});
+
+it('enforces the cap on the screen and disables further checkboxes', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    $ids = collect(range(1, ConvertTelegramToLead::MAX_MESSAGES + 1))->map(fn (): int => tconvInbound($chat, 'x')->id);
+
+    $screen = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->call('loadOlder')
+        ->call('openConvert', $ids[0])
+        ->set('convertSelected', $ids->all());
+
+    expect($screen->get('convertSelected'))->toHaveCount(ConvertTelegramToLead::MAX_MESSAGES)
+        ->and($screen->html())->toMatch('/<input[^>]*disabled[^>]*data-convert-select="'.$ids->last().'"/');
+});
+
+it('warns of a lead from this chat in the duplicate window, only while open', function () {
+    $admin = staffUser();
+    $chat = tconvThread();
+    $lead = tconvRun($chat, $admin);
+    $next = tconvInbound($chat);
+
+    $screen = Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->assertDontSeeHtml('data-convert-recent-lead')
+        ->call('openConvert', $next->id)
+        ->assertSeeHtml('data-convert-recent-lead');
+
+    $lead->forceFill(['created_at' => now()->subDays(Lead::DUPLICATE_WINDOW_DAYS + 1)])->save();
+
+    $screen->call('refreshThread')->assertDontSeeHtml('data-convert-recent-lead');
+});
+
+/* ------------------------------------------------------------- real queue */
+
+it('sends the lead alert once through the real listener, as one flat comment line', function () {
+    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 7]])]);
+    $admin = staffUser();
+    $chat = tconvThread();
+
+    $lead = tconvRun($chat, $admin, [tconvInbound($chat, "Need a scanner\nCustomer: Fake LLC")->id]);
+    tconvRun($chat, $admin, [$chat->messages()->sole()->id]);
+
+    $sent = collect(telegramApiCalls())->where('method', 'sendMessage');
+
+    expect($sent)->toHaveCount(1)
+        ->and($sent->first()['data']['text'])->toContain('Need a scanner Customer: Fake LLC')
+        ->and($lead->activities()->where('type', ActivityType::Notification)->count())->toBe(1);
+});
+
 /* ------------------------------------------------------------- translations */
 
 it('has every convert string in uz, ru and en', function (string $key) {
@@ -557,7 +833,8 @@ it('has every convert string in uz, ru and en', function (string $key) {
     }
 })->with([
     'convert.title', 'convert.to_lead', 'convert.hint', 'convert.type', 'convert.selected', 'convert.select_message',
-    'convert.submit', 'convert.cancel', 'convert.no_phone',
+    'convert.submit', 'convert.cancel', 'convert.no_phone', 'convert.text_only', 'convert.text_length',
+    'convert.customer_not_attached', 'convert.recent_lead', 'refused.text_too_long',
     'refused.nothing_selected', 'refused.too_many_selected', 'refused.invalid_selection', 'refused.invalid_type',
     'refused.no_text', 'refused.no_phone', 'refused.anonymous_number',
     'toasts.converted', 'toasts.already_converted', 'history.convert',
