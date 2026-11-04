@@ -122,6 +122,7 @@ return [
         'unbanned' => 'The ban is lifted.',
         'verified' => 'The link is verified.',
         'linked' => 'The chat is linked. Verify the link once you have checked who is writing.',
+        'deleted' => 'The chat is deleted.',
     ],
     'manage' => [
         'title' => 'Manage',
@@ -135,6 +136,13 @@ return [
         'unban' => 'Lift ban',
         'ban_confirm' => 'Ban this customer? Their messages will no longer be accepted.',
         'unban_confirm' => 'Lift the ban on this customer?',
+        'delete' => 'Delete chat',
+        'delete_help' => 'The chat’s messages and history are removed from the admin for good. Copies in the staff chat may stay there.',
+        'delete_confirm' => 'Delete this chat for good?',
+        'delete_warn_banned' => 'This customer is banned. Deleting the chat also loses the ban, and they can write to the bot again as a new visitor.',
+        'delete_warn_lead' => 'This chat is linked to a lead. The lead and its text remain.',
+        'delete_btn' => 'Delete for good',
+        'delete_password' => 'Deleting asks for your password again (valid for 15 minutes).',
     ],
     'crm' => [
         'title' => 'CRM link',

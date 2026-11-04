@@ -150,6 +150,23 @@
                 </div>
             </x-admin.card>
 
+            {{-- From Telegram (plan 21 A7) --}}
+            @if ($telegramThreads->isNotEmpty())
+                <x-admin.card :title="__('crm.leads.from_telegram.title')" data-lead-telegram>
+                    <ul class="space-y-2 text-sm">
+                        @foreach ($telegramThreads as $thread)
+                            <li wire:key="telegram-thread-{{ $thread->id }}">
+                                @can('view', $thread)
+                                    <a href="{{ route('admin.telegram.chats.show', $thread->id) }}" wire:navigate class="break-words font-semibold text-brand-700 hover:underline" data-telegram-thread-link>{{ \App\Support\Telegram\InboxMessage::displayName($thread) ?: __('crm.leads.from_telegram.open') }}</a>
+                                @else
+                                    <span class="text-slate-500" data-telegram-hidden>{{ __('crm.leads.from_telegram.hidden') }}</span>
+                                @endcan
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-admin.card>
+            @endif
+
             {{-- Manager --}}
             <x-admin.card :title="__('crm.leads.fields.manager')">
                 @include('livewire.admin.leads.partials.manager', ['lead' => $lead])

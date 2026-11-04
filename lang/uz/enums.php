@@ -243,6 +243,7 @@ return [
         'verified' => 'Tasdiqlandi',
         'retry_forward' => 'Fayl qayta koʻchirildi',
         'linked' => 'Bogʻlandi',
+        'deleted' => 'Oʻchirildi',
     ],
 
     'price_sync_status' => [

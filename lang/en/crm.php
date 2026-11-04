@@ -74,6 +74,11 @@ return [
             'closed_at' => 'Closed',
         ],
 
+        'from_telegram' => [
+            'title' => 'From Telegram',
+            'open' => 'Open chat',
+            'hidden' => 'Another manager handles this chat',
+        ],
         'sections' => [
             'contact' => 'Contact',
             'request' => 'Request',
@@ -232,6 +237,11 @@ return [
             'manager_id' => 'Manager',
             'price_level' => 'Price level',
             'created_at' => 'Added',
+        ],
+        'telegram_block' => [
+            'title' => 'Telegram',
+            'open' => 'Open chat',
+            'hidden' => 'Linked account, another manager handles this chat',
         ],
         'sections' => [
             'requisites' => 'Details',

@@ -2,10 +2,14 @@
 
 namespace App\Livewire\Admin\Telegram;
 
+use App\Enums\SettingsArea;
+use App\Models\SettingsAudit;
 use App\Support\Telegram\Bot\TelegramStatus;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Throwable;
 
 /**
@@ -16,12 +20,19 @@ use Throwable;
  * "Check now" is the one action that calls Telegram (3 s timeouts), limited
  * to about 3 per minute per user and one run at a time.
  *
+ * Also lists the staff inbox audit rows (SettingsArea::TelegramInbox, T21-35,
+ * plan 21 A7): key, action, who and when, never the IP or any content.
+ *
  * Admin only (telegram.bot), authorized on every request (boot, so Livewire
  * updates and polls are covered too).
  */
 #[Layout('layouts::admin')]
 class Status extends Component
 {
+    use WithPagination;
+
+    public const AUDIT_PER_PAGE = 15;
+
     public function boot(): void
     {
         $this->authorize('telegram.bot');
@@ -51,7 +62,19 @@ class Status extends Component
             $result = ['rows' => [], 'counts' => null, 'checked_at' => null];
         }
 
-        return view('livewire.admin.telegram.status', ['result' => $result, 'links' => TelegramStatus::links()])
+        return view('livewire.admin.telegram.status', ['result' => $result, 'links' => TelegramStatus::links(), 'inboxAudits' => $this->inboxAudits()])
             ->title(__('telegram_status.title'));
+    }
+
+    /**
+     * @return LengthAwarePaginator<int, SettingsAudit>
+     */
+    private function inboxAudits(): LengthAwarePaginator
+    {
+        return SettingsAudit::query()
+            ->where('area', SettingsArea::TelegramInbox->value)
+            ->with('user:id,name')
+            ->latest('id')
+            ->paginate(self::AUDIT_PER_PAGE, ['id', 'user_id', 'key', 'action', 'created_at'], 'auditPage');
     }
 }

@@ -36,6 +36,23 @@
                 <x-admin.button variant="danger" class="w-full" wire:click="ban" wire:confirm="{{ __($t.'.manage.ban_confirm') }}" loading="ban" data-action-ban>{{ __($t.'.manage.ban') }}</x-admin.button>
             @endif
         @endcan
+        @can('delete', $conversation)
+            <div class="border-t border-slate-100 pt-3">
+                <button type="button" wire:click="$toggle('deleteOpen')" class="font-semibold text-danger hover:underline" aria-expanded="{{ $deleteOpen ? 'true' : 'false' }}" data-delete-toggle>{{ __($t.'.manage.delete') }}</button>
+                @if ($deleteOpen)
+                    <div class="mt-2 space-y-2" data-delete-panel>
+                        <p class="text-xs text-slate-500">{{ __($t.'.manage.delete_help') }}</p>
+                        @foreach ($deleteWarnings as $warning)
+                            <p class="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900" role="note" wire:key="delete-warning-{{ $loop->index }}" data-delete-warning>{{ $warning }}</p>
+                        @endforeach
+                        @unless ($passwordConfirmed)
+                            <p class="text-xs text-slate-500" data-password-required>{{ __($t.'.manage.delete_password') }}</p>
+                        @endunless
+                        <x-admin.button variant="danger" class="w-full" wire:click="deleteConversation" wire:confirm="{{ implode(' ', [__($t.'.manage.delete_confirm'), ...$deleteWarnings]) }}" loading="deleteConversation" data-action-delete>{{ __($t.'.manage.delete_btn') }}</x-admin.button>
+                    </div>
+                @endif
+            </div>
+        @endcan
         <div class="border-t border-slate-100 pt-3">
             <button type="button" wire:click="$toggle('historyOpen')" class="font-semibold text-brand-700 hover:underline" aria-expanded="{{ $historyOpen ? 'true' : 'false' }}" data-history-toggle>{{ __($t.'.history.title') }}</button>
             @if ($historyOpen)

@@ -158,6 +158,9 @@ return [
             'next' => 'Set QUEUE_CONNECTION=database in the server .env file, rebuild the cached config ("php artisan config:cache") and start a queue worker.',
         ],
     ],
+    'inbox_audit_title' => 'Staff actions in chats',
+    'inbox_audit_subtitle' => 'Who did what and when. Message text and customer names are not kept.',
+    'inbox_audit_empty' => 'No actions yet.',
     'counts_title' => 'Bot activity',
     'counts' => [
         'registered' => 'Registered users',

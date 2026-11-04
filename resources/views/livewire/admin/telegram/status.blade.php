@@ -84,5 +84,46 @@
             </dl>
         </x-admin.card>
         @endif
+
+        {{-- Staff inbox actions (T21-35): key, action, who, when. Never the IP or any content. --}}
+        <section aria-labelledby="inbox-audit-title" data-inbox-audit>
+            <h2 id="inbox-audit-title" class="text-lg font-bold tracking-tight">{{ __($t.'.inbox_audit_title') }}</h2>
+            <p class="mt-0.5 text-sm text-slate-500">{{ __($t.'.inbox_audit_subtitle') }}</p>
+            @if ($inboxAudits->isEmpty())
+                <p class="mt-4 text-sm text-slate-500" data-inbox-audit-empty>{{ __($t.'.inbox_audit_empty') }}</p>
+            @else
+                <x-admin.table class="mt-4">
+                    <x-slot:caption>{{ __($t.'.inbox_audit_title') }}</x-slot:caption>
+                    <x-slot:head>
+                        <th class="px-4 py-3">{{ __('admin.settings.integrations.audit.when') }}</th>
+                        <th class="px-4 py-3">{{ __('admin.settings.integrations.audit.user') }}</th>
+                        <th class="px-4 py-3">{{ __('admin.settings.integrations.audit.key') }}</th>
+                        <th class="px-4 py-3">{{ __('admin.settings.integrations.audit.action') }}</th>
+                    </x-slot:head>
+                    @foreach ($inboxAudits as $audit)
+                        <tr wire:key="inbox-audit-{{ $audit->id }}" data-inbox-audit-row>
+                            <td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ $audit->created_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
+                            <td class="px-4 py-3">{{ $audit->user?->name ?? $dash }}</td>
+                            <td class="px-4 py-3 font-mono text-xs">{{ $audit->key }}</td>
+                            <td class="px-4 py-3"><x-admin.badge color="slate">{{ $audit->action->label() }}</x-admin.badge></td>
+                        </tr>
+                    @endforeach
+                </x-admin.table>
+
+                <x-admin.mobile-list class="mt-4">
+                    @foreach ($inboxAudits as $audit)
+                        <article wire:key="inbox-audit-m-{{ $audit->id }}" class="rounded-2xl border border-slate-200 bg-white p-3.5 text-sm">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-mono text-xs">{{ $audit->key }}</span>
+                                <x-admin.badge color="slate">{{ $audit->action->label() }}</x-admin.badge>
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">{{ $audit->user?->name ?? $dash }} · {{ $audit->created_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</p>
+                        </article>
+                    @endforeach
+                </x-admin.mobile-list>
+
+                {{ $inboxAudits->links() }}
+            @endif
+        </section>
     </div>
 </div>

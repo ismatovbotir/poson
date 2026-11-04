@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Telegram\Chats;
 
 use App\Actions\Telegram\AssignConversation;
 use App\Actions\Telegram\ChangeConversationStatus;
+use App\Actions\Telegram\DeleteConversation;
 use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\LinkConversationToCustomer;
 use App\Actions\Telegram\MarkConversationRead;
@@ -21,6 +22,7 @@ use App\Models\Customer;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Support\Admin\PasswordConfirmation;
 use App\Support\Telegram\Bot\InboxChat;
 use App\Support\Telegram\Bot\LinkPhoneSignal;
 use Closure;
@@ -32,14 +34,14 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Conversation (plan 14 v2 §9, plan 21 A1 to A5): the latest 50 messages with
+ * Conversation (plan 14 v2 §9, plan 21 A1 to A5, A7): the latest 50 messages with
  * "load older", a profile panel, stuck deliveries highlighted, the reply box,
  * resend of undelivered replies, assign / take, close / reopen, ban, the CRM
- * link and retry of customer files. Opening it marks the thread read. Writes go
+ * link, retry of customer files and the Admin delete. Opening it marks the thread read. Writes go
  * through actions, which check policy and state again.
  *
- * The thread polls every 10 s, so the manager list, customer picker and history
- * are queried only while their control is open.
+ * The thread polls every 10 s, so the manager list, customer picker, history and
+ * delete warnings are queried only while their control is open.
  *
  * Only the conversation id is held in state (T21-10): the row is loaded on
  * every request without telegram_id, and hydrate() authorizes "view" again,
@@ -80,6 +82,8 @@ class Show extends Component
     public bool $linkOpen = false;
 
     public bool $historyOpen = false;
+
+    public bool $deleteOpen = false;
 
     public string $customerSearch = '';
 
@@ -258,6 +262,25 @@ class Show extends Component
         }, 'linked');
     }
 
+    /**
+     * Admin only, with a password confirmation from the last 15 minutes (T21-18).
+     */
+    public function deleteConversation(DeleteConversation $delete): void
+    {
+        $this->authorize('delete', $this->conversation());
+
+        if (! PasswordConfirmation::isRecent()) {
+            $this->redirect(PasswordConfirmation::url(route('admin.telegram.chats.show', $this->conversationId)), navigate: false);
+
+            return;
+        }
+
+        $delete->handle($this->conversation(), $this->user(), request()->ip());
+
+        session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => __('telegram_inbox.toasts.deleted'), 'type' => 'success']);
+        $this->redirectRoute('admin.telegram.chats', navigate: true);
+    }
+
     public function render(): View
     {
         $conversation = $this->conversation();
@@ -287,6 +310,8 @@ class Show extends Component
             ...$this->linkPicker($conversation),
             'candidates' => $this->assignOpen && $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
             'history' => $this->historyOpen ? $this->history($conversation) : [],
+            'deleteWarnings' => $this->deleteOpen ? $this->deleteWarnings($conversation) : [],
+            'passwordConfirmed' => PasswordConfirmation::isRecent(),
         ])->title(__('telegram_inbox.show.title'));
     }
 
@@ -349,6 +374,24 @@ class Show extends Component
                 ? LinkPhoneSignal::for($conversation->phone, $conversation->customer, $conversation->contact)
                 : null,
         ];
+    }
+
+    /**
+     * What the delete loses or leaves behind. Queried only while the control is
+     * open and only for those who may delete.
+     *
+     * @return list<string>
+     */
+    private function deleteWarnings(TelegramUser $conversation): array
+    {
+        if (! $this->user()->can('delete', $conversation)) {
+            return [];
+        }
+
+        return array_values(array_filter([
+            $conversation->isBanned() ? __('telegram_inbox.manage.delete_warn_banned') : null,
+            $conversation->messages()->whereNotNull('lead_id')->exists() ? __('telegram_inbox.manage.delete_warn_lead') : null,
+        ]));
     }
 
     /**

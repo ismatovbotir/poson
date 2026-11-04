@@ -122,6 +122,7 @@ return [
         'unbanned' => 'Blok olib tashlandi.',
         'verified' => 'Bogʻlanish tasdiqlandi.',
         'linked' => 'Chat bogʻlandi. Kim yozayotganini tekshirgach, bogʻlanishni tasdiqlang.',
+        'deleted' => 'Chat oʻchirildi.',
     ],
     'manage' => [
         'title' => 'Boshqaruv',
@@ -135,6 +136,13 @@ return [
         'unban' => 'Blokni olib tashlash',
         'ban_confirm' => 'Mijoz bloklansinmi? Uning xabarlari endi qabul qilinmaydi.',
         'unban_confirm' => 'Mijozdan blok olib tashlansinmi?',
+        'delete' => 'Chatni oʻchirish',
+        'delete_help' => 'Chat xabarlari va tarixi admin paneldan butunlay oʻchiriladi. Xodimlar chatidagi nusxalar u yerda qolishi mumkin.',
+        'delete_confirm' => 'Bu chat butunlay oʻchirilsinmi?',
+        'delete_warn_banned' => 'Bu mijoz bloklangan. Chat oʻchirilsa, blok ham yoʻqoladi va u botga yangi foydalanuvchi sifatida yoza oladi.',
+        'delete_warn_lead' => 'Bu chat murojaatga bogʻlangan. Murojaat va undagi matn saqlanib qoladi.',
+        'delete_btn' => 'Butunlay oʻchirish',
+        'delete_password' => 'Oʻchirishdan oldin parolingiz yana soʻraladi (15 daqiqa amal qiladi).',
     ],
     'crm' => [
         'title' => 'CRM bilan bogʻlanish',

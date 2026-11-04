@@ -243,6 +243,7 @@ return [
         'verified' => 'Verified',
         'retry_forward' => 'File copy retried',
         'linked' => 'Linked',
+        'deleted' => 'Deleted',
     ],
 
     'price_sync_status' => [
