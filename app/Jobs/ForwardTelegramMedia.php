@@ -53,10 +53,11 @@ use Throwable;
  *
  * Failures (B4-S8): 429 → back to pending, released for retry_after (the
  * release counts as an attempt, but only retryUntil and $maxExceptions end
- * the job, so a 429 never uses up a real retry); every other 4xx → failed + code, a 400 / 403
- * drops the cached chat check, a 403, any 400 on the header or the third copy 400 in an hour alerts
- * the management chat as lost_target on a 403 or 400 of the header only (deduped); a copy
- * 400 / 403 re-verifies the chat at once and alerts refused_target when it fails (T21-29);
+ * the job, so a 429 never uses up a real retry); every other 4xx → failed + code.
+ * A 400 / 403 drops the cached chat check. A 403 or any 400 on the header
+ * alerts the management chat as lost_target (deduped); a 400 / 403 on the
+ * copy re-verifies the chat at once and alerts refused_target only when the
+ * check fails (T21-29).
  * 5xx / timeout → back to pending and thrown (backoff 30/120/600/1800),
  * failed after $maxExceptions. Any other error after the claim (database,
  * bug) also puts the row back to pending and is rethrown, so nothing stays
@@ -92,7 +93,7 @@ class ForwardTelegramMedia implements ShouldQueueAfterCommit
     public int $maxExceptions = 5;
 
     /**
-     * Seconds a run may take (getChat + header + copy, 10 s each at most);
+     * Seconds a run may take (getChat + header + copy + the re-verify getChat after a copy 400 / 403, 10 s each at most);
      * a run killed by the timeout is failed, not retried (L2), so a copy
      * that may have reached Telegram is never sent twice automatically.
      */

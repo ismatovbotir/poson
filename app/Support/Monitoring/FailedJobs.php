@@ -66,6 +66,24 @@ final class FailedJobs
     }
 
     /**
+     * Whether any of these failed jobs is an inbox alert (SendTelegramMessage
+     * serialized with inbox = true). The database searches the command string;
+     * the payload is never selected or unserialized (T21-31).
+     *
+     * @param  list<string>  $uuids
+     */
+    public static function hasInboxAlert(array $uuids): bool
+    {
+        $command = DB::getDriverName() === 'sqlite'
+            ? "json_extract(payload, '$.data.command')"
+            : "JSON_UNQUOTE(JSON_EXTRACT(payload, '$.data.command'))";
+
+        return DB::table('failed_jobs')->whereIn('uuid', $uuids)
+            ->whereRaw("{$command} like ?", ['%s:5:"inbox";b:1;%'])
+            ->exists();
+    }
+
+    /**
      * Failed jobs of the given classes (a fixed list, never user input) from
      * the last $days days, by failed_at: their number and the newest
      * failure's time. One aggregate query; the database extracts displayName

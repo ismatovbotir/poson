@@ -1,7 +1,12 @@
 <?php
 
+use App\Actions\Monitoring\MonitoringActionException;
+use App\Actions\Monitoring\RetryFailedJobs;
+use App\Jobs\SendTelegramMessage;
+use App\Livewire\Admin\System\Monitoring;
 use App\Models\Activity;
 use App\Models\Lead;
+use App\Models\MonitoringAction;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
@@ -10,6 +15,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 
 /**
  * Plan 21 B3 (TG-27 amended, T21-20): retention schedule and the shared
@@ -117,4 +124,52 @@ it('prunes failed jobs older than 30 days only', function () {
     Artisan::call('queue:prune-failed', ['--hours' => 720]);
 
     expect(DB::table('failed_jobs')->pluck('uuid')->all())->toBe(['new-job']);
+});
+
+it('never prunes a banned row, unregistered or silent, and the ban still works', function (string $kind) {
+    $row = $kind === 'unregistered'
+        ? TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60)])
+        : TelegramUser::factory()->registered()->create(['last_message_at' => now()->subMonths(14)]);
+    $row->forceFill(['banned_at' => now()])->save();
+    TelegramMessage::factory()->create(['telegram_user_id' => $row->id]);
+
+    retentionPruneModels();
+
+    expect(TelegramUser::query()->find($row->id)?->isBanned())->toBeTrue()
+        ->and(TelegramMessage::query()->where('telegram_user_id', $row->id)->exists())->toBeTrue();
+})->with(['unregistered', 'silent']);
+
+it('counts the 30 unregistered days from the last message', function () {
+    $recent = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => now()->subDays(5)]);
+    $idle = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => now()->subDays(40)]);
+    $never = TelegramUser::factory()->unregistered()->create(['created_at' => now()->subDays(60), 'last_message_at' => null]);
+
+    retentionPruneModels();
+
+    expect(TelegramUser::query()->pluck('id')->all())->toBe([$recent->id])
+        ->and(TelegramUser::query()->whereKey([$idle->id, $never->id])->exists())->toBeFalse();
+});
+
+it('refuses to retry an inbox alert from failed jobs and still retries a sales alert (T21-31)', function () {
+    $queue = fn (SendTelegramMessage $job, string $uuid) => DB::table('failed_jobs')->insert([
+        'uuid' => $uuid, 'connection' => 'database', 'queue' => 'default',
+        'payload' => json_encode(['displayName' => SendTelegramMessage::class, 'data' => ['commandName' => SendTelegramMessage::class, 'command' => serialize($job)]]),
+        'exception' => 'x', 'failed_at' => now(),
+    ]);
+    $inbox = (string) Str::uuid();
+    $sales = (string) Str::uuid();
+    $queue(new SendTelegramMessage('sales', 'CUSTOMER SECRET TEXT', [], 'TelegramInboxMessage', inbox: true), $inbox);
+    $queue(new SendTelegramMessage('sales', 'order text'), $sales);
+    $admin = staffUser();
+    confirmAdminPassword();
+
+    expect(fn () => app(RetryFailedJobs::class)->handle($admin, [$inbox]))->toThrow(MonitoringActionException::class);
+    expect(DB::table('failed_jobs')->where('uuid', $inbox)->exists())->toBeTrue()
+        ->and(MonitoringAction::query()->count())->toBe(0);
+
+    $screen = Livewire::actingAs($admin)->test(Monitoring::class)->call('retryOne', $inbox)->assertDispatched('toast', body: __('monitoring.errors.inbox_alert'), type: 'error')->assertDontSee('CUSTOMER SECRET TEXT');
+    expect(DB::table('failed_jobs')->where('uuid', $inbox)->exists())->toBeTrue();
+
+    expect(app(RetryFailedJobs::class)->handle($admin, [$sales]))->toBe(1)
+        ->and(DB::table('failed_jobs')->where('uuid', $sales)->exists())->toBeFalse();
 });
