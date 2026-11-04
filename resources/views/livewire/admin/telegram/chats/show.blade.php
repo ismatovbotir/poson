@@ -32,6 +32,9 @@
             @if ($conversation->customer_id !== null && ! $conversation->isLinkVerified())
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="unverified"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.unverified') }}</p>
             @endif
+            @if ($forwardNotConfigured)
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="forward-not-configured"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.forward_not_configured') }}</p>
+            @endif
             @if ($replyRefusal === 'bot_off')
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="bot-off"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.bot_off') }}</p>
             @endif
@@ -87,13 +90,18 @@
                                             <button type="button" wire:click="resend({{ $message->id }})" @if ($message->status === \App\Enums\TelegramMessageStatus::Sending) wire:confirm="{{ __($t.'.resend.duplicate_warning') }}" @endif wire:loading.attr="disabled" wire:target="resend({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-resend="{{ $message->id }}">{{ $message->status === \App\Enums\TelegramMessageStatus::Sending ? __($t.'.resend.resend') : __($t.'.resend.retry') }}</button>
                                         @endcan
                                     @endif
-                                    @if ($message->forward_status !== null)
-                                        <x-admin.badge :color="$message->forward_status === \App\Enums\TelegramForwardStatus::Forwarded ? 'brand' : ($message->forward_status === \App\Enums\TelegramForwardStatus::Failed ? 'red' : 'muted')">{{ __($t.'.show.forward') }}: {{ $message->forward_status->label() }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</x-admin.badge>
-                                    @endif
                                     @if ($stuckRow)
                                         <x-admin.badge color="amber">{{ __($t.'.badges.stuck') }}</x-admin.badge>
                                     @endif
                                 </p>
+                                @if ($message->forward_status !== null)
+                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]" data-forward-line="{{ $message->forward_status->value }}">
+                                        <span @class(['font-semibold', 'text-danger' => $message->forward_status === \App\Enums\TelegramForwardStatus::Failed, 'text-slate-500' => $message->forward_status !== \App\Enums\TelegramForwardStatus::Failed])>{{ __($t.'.show.forward') }}: {{ __($t.'.forward_lines.'.$message->forward_status->value) }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</span>
+                                        @if (! in_array($replyRefusal, ['banned', 'bot_off'], true) && $message->isForwardRetryable())
+                                            <button type="button" wire:click="retryForward({{ $message->id }})" wire:loading.attr="disabled" wire:target="retryForward({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-retry-forward="{{ $message->id }}">{{ __($t.'.forward_retry') }}</button>
+                                        @endif
+                                    </p>
+                                @endif
                             </div>
                         </div>
                     @empty

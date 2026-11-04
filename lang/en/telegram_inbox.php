@@ -50,6 +50,7 @@ return [
         'account_changed' => 'This customer\'s Telegram account has changed. Check who is writing before sharing details.',
         'bot_off' => 'The bot is off or not configured, so replies cannot be sent.',
         'unverified' => 'This account is linked to a customer but not verified. Check who is writing before sharing details.',
+        'forward_not_configured' => 'The team chat is not set up, so customer files are not copied there.',
         'unregistered' => 'This visitor has not finished registration in the bot.',
     ],
     'show' => [
@@ -98,6 +99,7 @@ return [
         'invalid_text' => 'The message is empty or too long.',
         'taken' => 'Another manager has taken this conversation.',
         'not_retryable' => 'This message cannot be sent again.',
+        'forward_not_retryable' => 'This file cannot be retried now. Try again in a minute.',
         'invalid_target' => 'This manager is not available for chats.',
         'no_customer' => 'This chat is not linked to a customer.',
         'invalid_customer' => 'This customer is not available.',
@@ -106,6 +108,7 @@ return [
     'toasts' => [
         'reply_queued' => 'The reply is queued for delivery.',
         'resent' => 'The message is queued for delivery again.',
+        'forward_retried' => 'The file is queued for copying again.',
         'assigned' => 'The chat is assigned.',
         'taken' => 'The chat is now yours.',
         'closed' => 'The chat is closed.',
@@ -147,6 +150,15 @@ return [
         'link' => 'Link',
         'relink' => 'Change link',
         'relink_confirm' => 'Change the link? The verification will be cleared.',
+    ],
+    'forward_retry' => 'Try again',
+    'forward_lines' => [
+        'pending' => 'waiting to be copied',
+        'sending' => 'copying',
+        'forwarded' => 'copied',
+        'not_configured' => 'not copied, the chat is not set up',
+        'limited' => 'not copied, the limit is reached',
+        'failed' => 'not copied, error',
     ],
 
 ];

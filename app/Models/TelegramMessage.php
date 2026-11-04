@@ -131,6 +131,22 @@ class TelegramMessage extends Model
     }
 
     /**
+     * A customer file a person may try to copy to the team chat again: failed,
+     * not configured or limited, or left pending / sending for more than
+     * STUCK_MINUTES. Used by RetryForward and the retry button on Show.
+     */
+    public function isForwardRetryable(): bool
+    {
+        if ($this->direction !== TelegramDirection::In || ! $this->kind->isForwardable()) {
+            return false;
+        }
+
+        return in_array($this->forward_status, [TelegramForwardStatus::Failed, TelegramForwardStatus::NotConfigured, TelegramForwardStatus::Limited], true)
+            || (in_array($this->forward_status, [TelegramForwardStatus::Sending, TelegramForwardStatus::Pending], true)
+                && $this->updated_at?->lt(now()->subMinutes(self::STUCK_MINUTES)) === true);
+    }
+
+    /**
      * @return BelongsTo<TelegramUser, $this>
      */
     public function telegramUser(): BelongsTo

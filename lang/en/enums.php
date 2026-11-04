@@ -240,6 +240,7 @@ return [
         'banned' => 'Banned',
         'unbanned' => 'Ban lifted',
         'verified' => 'Verified',
+        'retry_forward' => 'Forward retried',
     ],
 
     'price_sync_status' => [

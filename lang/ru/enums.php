@@ -240,6 +240,7 @@ return [
         'banned' => 'Заблокирован',
         'unbanned' => 'Блокировка снята',
         'verified' => 'Подтверждено',
+        'retry_forward' => 'Повтор пересылки',
     ],
 
     'price_sync_status' => [

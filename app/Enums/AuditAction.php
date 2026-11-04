@@ -50,6 +50,7 @@ enum AuditAction: string
     case Banned = 'banned';
     case Unbanned = 'unbanned';
     case Verified = 'verified';
+    case RetryForward = 'retry_forward';
 
     public function label(): string
     {

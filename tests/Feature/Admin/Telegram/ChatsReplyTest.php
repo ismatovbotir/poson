@@ -19,6 +19,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Testing\TestResponse;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -489,4 +490,48 @@ it('resends through the screen', function () {
 
     Bus::assertDispatchedTimes(DeliverBotMessage::class, 1);
     expect($row->fresh()->status)->toBe(TelegramMessageStatus::Pending);
+});
+
+/**
+ * Real Livewire update request calling sendReply; Livewire::test() would skip the persistent middleware.
+ */
+function replyUpdateRequest(User $user, TelegramUser $chat, bool $deactivate): TestResponse
+{
+    $html = test()->actingAs($user)->get(route('admin.telegram.chats.show', $chat))->assertOk()->getContent();
+    preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+
+    $snapshot = collect($matches[1])
+        ->map(fn (string $raw) => html_entity_decode($raw, ENT_QUOTES))
+        ->first(fn (string $candidate) => array_key_exists('conversationId', json_decode($candidate, true)['data'] ?? []));
+    expect($snapshot)->not->toBeNull();
+
+    if ($deactivate) {
+        $user->forceFill(['is_active' => false])->save();
+    }
+
+    return test()->withHeaders(['X-Livewire' => '1'])->postJson(app('livewire')->getUpdateUri(), [
+        'components' => [['snapshot' => $snapshot, 'calls' => [['method' => 'sendReply', 'params' => [], 'metadata' => []]], 'updates' => ['reply' => 'real request']]],
+    ]);
+}
+
+it('returns 403 to a real reply request after the manager is deactivated', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+
+    replyUpdateRequest($user, $chat, deactivate: true)->assertForbidden();
+
+    expect(TelegramMessage::query()->count())->toBe(0);
+    Bus::assertNotDispatched(DeliverBotMessage::class);
+});
+
+it('accepts a real reply request from an active manager', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+
+    replyUpdateRequest($user, $chat, deactivate: false)->assertOk();
+
+    expect(TelegramMessage::query()->sole()->text)->toBe('real request');
+    Bus::assertDispatchedTimes(DeliverBotMessage::class, 1);
 });

@@ -240,6 +240,7 @@ return [
         'banned' => 'Bloklandi',
         'unbanned' => 'Blok olib tashlandi',
         'verified' => 'Tasdiqlandi',
+        'retry_forward' => 'Fayl qayta yuborildi',
     ],
 
     'price_sync_status' => [

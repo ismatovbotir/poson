@@ -8,6 +8,7 @@ use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\LinkConversationToCustomer;
 use App\Actions\Telegram\MarkConversationRead;
 use App\Actions\Telegram\ResendTelegramMessage;
+use App\Actions\Telegram\RetryForward;
 use App\Actions\Telegram\SendTelegramReply;
 use App\Actions\Telegram\SetConversationBan;
 use App\Actions\Telegram\VerifyConversationLink;
@@ -17,6 +18,7 @@ use App\Models\Customer;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Support\Telegram\Bot\InboxChat;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,9 +27,9 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Conversation (plan 14 v2 §9, plan 21 A1 to A4): the latest 50 messages with
+ * Conversation (plan 14 v2 §9, plan 21 A1 to A5): the latest 50 messages with
  * "load older", a profile panel, stuck deliveries highlighted, the reply box,
- * resend of undelivered replies, assign / take, close / reopen, ban, and the CRM link. Opening it marks the thread read. Writes
+ * resend of undelivered replies, assign / take, close / reopen, ban, the CRM link and retry of customer files. Opening it marks the thread read. Writes
  * go through actions, which check policy and state again.
  *
  * Only the conversation id is held in state (T21-10): the row is loaded on
@@ -128,6 +130,22 @@ class Show extends Component
         }, 'resent');
     }
 
+    public function retryForward(int $messageId, RetryForward $retry): void
+    {
+        $this->authorize('view', $this->conversation());
+
+        $message = TelegramMessage::query()
+            ->where('telegram_user_id', $this->conversationId)
+            ->where('direction', TelegramDirection::In)
+            ->findOrFail($messageId);
+
+        $this->attempt(function () use ($retry, $message): void {
+            if (! $retry->handle($this->user(), $message, request()->ip())) {
+                throw new InboxRefused('forward_not_retryable');
+            }
+        }, 'forward_retried');
+    }
+
     public function assign(AssignConversation $assign): void
     {
         $this->authorize('assign', $this->conversation());
@@ -222,6 +240,7 @@ class Show extends Component
             ->get();
 
         $hasOlder = $newestFirst->count() > $this->limit;
+        $replyRefusal = app(SendTelegramReply::class)->refusal($conversation);
 
         return view('livewire.admin.telegram.chats.show', [
             'conversation' => $conversation->loadMissing('manager:id,name,is_active', 'customer:id,name,manager_id', 'contact:id,name', 'linkVerifiedBy:id,name'),
@@ -229,7 +248,8 @@ class Show extends Component
             'hasOlder' => $hasOlder && $this->limit < self::MAX_MESSAGES,
             'olderHidden' => $hasOlder && $this->limit >= self::MAX_MESSAGES,
             'polling' => $this->limit === self::PAGE_SIZE,
-            'replyRefusal' => app(SendTelegramReply::class)->refusal($conversation),
+            'replyRefusal' => $replyRefusal,
+            'forwardNotConfigured' => InboxChat::id() === null,
             ...$this->linkPicker($conversation),
             'candidates' => $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
         ])->title(__('telegram_inbox.show.title'));

@@ -50,6 +50,7 @@ return [
         'account_changed' => 'Mijozning Telegram akkaunti oʻzgargan. Maʼlumot berishdan oldin kim yozayotganini tekshiring.',
         'bot_off' => 'Bot oʻchirilgan yoki sozlanmagan, shuning uchun javob yuborib boʻlmaydi.',
         'unverified' => 'Akkaunt mijozga bogʻlangan, lekin tasdiqlanmagan. Maʼlumot berishdan oldin kim yozayotganini tekshiring.',
+        'forward_not_configured' => 'Jamoa chati sozlanmagan, shuning uchun mijoz fayllari u yerga koʻchirilmaydi.',
         'unregistered' => 'Tashrifchi botda roʻyxatdan oʻtishni tugatmagan.',
     ],
     'show' => [
@@ -98,6 +99,7 @@ return [
         'invalid_text' => 'Xabar boʻsh yoki juda uzun.',
         'taken' => 'Bu suhbatni boshqa menejer olgan.',
         'not_retryable' => 'Bu xabarni qayta yuborib boʻlmaydi.',
+        'forward_not_retryable' => 'Bu faylni hozir qayta yuborib boʻlmaydi. Bir daqiqadan keyin urinib koʻring.',
         'invalid_target' => 'Bu menejerga chat tayinlab boʻlmaydi.',
         'no_customer' => 'Chat mijozga bogʻlanmagan.',
         'invalid_customer' => 'Bu mijoz mavjud emas.',
@@ -106,6 +108,7 @@ return [
     'toasts' => [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
         'resent' => 'Xabar yana yetkazish navbatiga qoʻyildi.',
+        'forward_retried' => 'Fayl yana koʻchirish navbatiga qoʻyildi.',
         'assigned' => 'Chat tayinlandi.',
         'taken' => 'Chat endi sizniki.',
         'closed' => 'Chat yopildi.',
@@ -147,6 +150,15 @@ return [
         'link' => 'Bogʻlash',
         'relink' => 'Bogʻlanishni oʻzgartirish',
         'relink_confirm' => 'Bogʻlanish oʻzgartirilsinmi? Tasdiq bekor qilinadi.',
+    ],
+    'forward_retry' => 'Qayta urinish',
+    'forward_lines' => [
+        'pending' => 'koʻchirilishi kutilmoqda',
+        'sending' => 'koʻchirilmoqda',
+        'forwarded' => 'koʻchirildi',
+        'not_configured' => 'koʻchirilmadi, chat sozlanmagan',
+        'limited' => 'koʻchirilmadi, limitga yetildi',
+        'failed' => 'koʻchirilmadi, xatolik',
     ],
 
 ];
