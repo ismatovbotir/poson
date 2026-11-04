@@ -720,21 +720,23 @@ it('marks every 400 failed with its code, no retry (B4-S8)', function () {
         ->and(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toBe([]);
 });
 
-it('alerts the management chat once when the bot lost the inbox chat (403)', function () {
-    inboxApi(['copyMessage' => 403]);
+it('does not alert on a copy 403 while the chat still verifies, and alerts refused_target when it does not (T21-29)', function (bool $chatOk) {
+    // The check passes before the copy; after the 403 drops it, the chat is refused (or still fine).
+    $checks = 0;
+    inboxApi(['copyMessage' => 403, 'getChat' => function () use (&$checks, $chatOk) {
+        return ++$checks === 1 || $chatOk ? ['id' => -1, 'type' => 'supergroup'] : ['id' => -1, 'type' => 'channel'];
+    }]);
     inboxUser();
 
     inboxSend(inboxPhoto());
-    inboxSend(inboxDocument());
 
     $alerts = inboxCalls('sendMessage', TG_MANAGEMENT_CHAT);
+    $texts = collect($alerts)->pluck('data.text')->implode("\n");
 
-    expect(TelegramMessage::query()->where('forward_status', TelegramForwardStatus::Failed)->where('forward_error_code', 403)->count())->toBe(2)
-        ->and($alerts)->toHaveCount(1)
-        ->and($alerts[0]['data']['text'])->toContain(e(__('telegram.monitoring.events.telegram_forward', [], 'uz')))
-        ->and($alerts[0]['data']['text'])->toContain(e(__('telegram.monitoring.forward_reasons.lost_target', [], 'uz')))
-        ->and($alerts[0]['data']['text'])->not->toContain(INBOX_SALES_CHAT);
-});
+    expect(TelegramMessage::query()->where('forward_status', TelegramForwardStatus::Failed)->where('forward_error_code', 403)->count())->toBe(1)
+        ->and($texts)->not->toContain(e(__('telegram.monitoring.forward_reasons.lost_target', [], 'uz')))
+        ->and($alerts)->toHaveCount($chatOk ? 0 : 1);
+})->with([true, false]);
 
 it('releases a 429 back to pending for retry_after without using a retry (B4-S8)', function () {
     Bus::fake([ForwardTelegramMedia::class]);
@@ -1345,20 +1347,82 @@ it('alerts lost_target once for a 400 on the header, however many files follow (
         ->and($alerts[0]['data']['text'])->toContain(e(__('telegram.monitoring.forward_reasons.lost_target', [], 'uz')));
 });
 
-it('does not alert for an ordinary copy 400 such as a deleted message, only for the third within an hour (A6/L4)', function () {
+it('never alerts lost_target for copy 400s however many, while the chat verifies (T21-29)', function () {
     inboxApi(['copyMessage' => 400]);
     inboxUser();
 
-    inboxSend(inboxPhoto());
-    inboxSend(inboxPhoto(['caption' => 'two']));
+    foreach (['one', 'two', 'three', 'four'] as $caption) {
+        inboxSend(inboxPhoto(['caption' => $caption]));
+    }
 
     expect(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toBe([])
-        ->and(TelegramMessage::query()->where('forward_error_code', 400)->count())->toBe(2);
-
-    inboxSend(inboxPhoto(['caption' => 'three']));
-
-    expect(inboxCalls('sendMessage', TG_MANAGEMENT_CHAT))->toHaveCount(1);
+        ->and(TelegramMessage::query()->where('forward_status', TelegramForwardStatus::Failed)->where('forward_error_code', 400)->count())->toBe(4);
 });
+
+it('unserializes an inbox-less SendTelegramMessage payload queued before the deploy and sends by chat key (T21-30)', function (string $chat) {
+    telegramBotConfigured(['services.telegram.chats.finance' => '-1003333333333']);
+    inboxApi();
+    $payload = serialize(new SendTelegramMessage($chat, 'old payload', [], 'OrderPaid'));
+    // A job without the inbox flag serializes without it, exactly like a payload queued before the deploy.
+    $old = $payload;
+    $job = unserialize($old);
+    $job->handle(app(TelegramClient::class));
+
+    expect($payload)->not->toContain('inbox')
+        ->and($job->inbox)->toBeFalse()
+        ->and(inboxCalls('getChat'))->toBe([])
+        ->and(inboxCalls('sendMessage', $chat === 'sales' ? INBOX_SALES_CHAT : '-1003333333333'))->toHaveCount(1);
+})->with(['sales', 'finance']);
+
+it('sends no inbox alert from the job when the bot is off or telegram.notify_inbox is off (T21-30)', function (string $off) {
+    telegramBotConfigured();
+    inboxApi();
+
+    if ($off === 'switch') {
+        inboxBotOn(false);
+    } else {
+        inboxBotOn();
+        freshSecrets(['services.telegram.notify_inbox' => 'false']);
+    }
+
+    (new SendTelegramMessage('sales', 'alert', [], 'TelegramInboxMessage', inbox: true))->handle(app(TelegramClient::class));
+
+    expect(inboxCalls('sendMessage', INBOX_SALES_CHAT))->toBe([])
+        ->and(inboxCalls('getChat'))->toBe([]);
+})->with(['switch', 'notify_inbox']);
+
+it('drops the cached chat verdict on a 400 / 403 from the inbox alert send, but not for other alerts (T21-30)', function (int $status, bool $inbox, int $getChats) {
+    telegramBotConfigured();
+    inboxBotOn();
+    inboxApi(['sendMessage' => $status]);
+    $job = fn () => (new SendTelegramMessage('sales', 'alert', [], 'x', inbox: $inbox))->withFakeQueueInteractions();
+
+    foreach ([1, 2] as $_) {
+        $job()->handle(app(TelegramClient::class));
+    }
+
+    expect(inboxCalls('getChat'))->toHaveCount($getChats);
+})->with([
+    'inbox 400' => [400, true, 2],
+    'inbox 403' => [403, true, 2],
+    'other 400' => [400, false, 0],
+]);
+
+it('stores the chat id columns only inside the signed bigint range (T21-9)', function (string $chat, ?int $expected) {
+    telegramBotConfigured(['services.telegram.chats.inbox' => $chat]);
+    inboxApi();
+    inboxUser();
+
+    inboxSend(inboxPhoto());
+
+    expect(inboxLastInbound()->forward_status)->toBe(TelegramForwardStatus::Forwarded)
+        ->and(inboxLastInbound()->forwarded_chat_id)->toBe($expected)
+        ->and(TelegramUser::query()->sole()->forward_header_chat_id)->toBe($expected);
+})->with([
+    'min int64' => ['-9223372036854775808', PHP_INT_MIN],
+    'one below' => ['-9223372036854775809', null],
+    'twenty digits' => ['-99999999999999999999', null],
+]);
 
 /* ------------------------------------------- plan 21 B1: forwarded_chat_id */
 

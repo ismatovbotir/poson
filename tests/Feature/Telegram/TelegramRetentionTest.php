@@ -30,7 +30,7 @@ it('schedules the Telegram prune lines on one server without overlap (T21-20)', 
     Artisan::call('schedule:list');
     $events = MonitoredTasks::events();
 
-    expect($events->keys()->all())->toContain('queue:prune-failed --hours=720');
+    expect($events->keys()->all())->toContain('queue:prune-failed --hours=720', 'model:prune --model=App\Models\TelegramUser --model=App\Models\TelegramUpdate');
 
     $prune = $events->first(fn ($event, $key) => str_starts_with($key, 'model:prune') && str_contains($key, 'TelegramUser'));
     $failed = $events->get('queue:prune-failed --hours=720');

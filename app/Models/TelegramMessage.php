@@ -41,7 +41,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'telegram_user_id', 'direction', 'kind', 'text', 'media', 'media_group_id',
     'telegram_message_id', 'user_id', 'status', 'error_code', 'sent_at',
-    'forward_status', 'forwarded_message_id', 'forwarded_chat_id', 'forward_error_code',
+    'forward_status', 'forwarded_message_id', 'forward_error_code',
 ])]
 class TelegramMessage extends Model
 {

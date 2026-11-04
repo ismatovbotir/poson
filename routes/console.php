@@ -140,7 +140,7 @@ Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverl
 | (dedupe rows after 3 days). No Telegram call: copies in the staff chat
 | are not removed by retention. queue:prune-failed --hours=720 keeps failed
 | jobs 30 days (their payloads can hold customer excerpts; provisional owner
-| decision). Task keys: "model:prune --model=...TelegramUser,...TelegramUpdate"
+| decision). Task keys: "model:prune --model=App\Models\TelegramUser --model=App\Models\TelegramUpdate"
 | and "queue:prune-failed --hours=720".
 */
 

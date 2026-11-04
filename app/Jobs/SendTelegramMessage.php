@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Secrets;
+use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\ForwardAlerts;
 use App\Support\Telegram\Bot\InboxChat;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,6 +33,12 @@ class SendTelegramMessage implements ShouldQueue
     public int $tries = 5;
 
     /**
+     * A normal property with a default (not promoted): payloads queued before
+     * this field existed unserialize without it and must still run (T21-30).
+     */
+    public bool $inbox = false;
+
+    /**
      * @param  list<array{text: string, url: string}>  $buttons
      */
     public function __construct(
@@ -39,8 +46,10 @@ class SendTelegramMessage implements ShouldQueue
         public string $html,
         public array $buttons = [],
         public string $context = 'alert',
-        public bool $inbox = false,
-    ) {}
+        bool $inbox = false,
+    ) {
+        $this->inbox = $inbox;
+    }
 
     /**
      * @return list<int>
@@ -52,6 +61,10 @@ class SendTelegramMessage implements ShouldQueue
 
     public function handle(TelegramClient $client): void
     {
+        if ($this->inbox && (! BotSwitch::isEnabled() || Secrets::get('telegram.notify_inbox') === false)) {
+            return;
+        }
+
         $chatId = $this->inbox ? InboxChat::id() : Secrets::get('telegram.chats.'.$this->chat);
 
         if (! $client->isConfigured() || ! is_string($chatId) || $chatId === '') {
@@ -71,6 +84,10 @@ class SendTelegramMessage implements ShouldQueue
 
             $client->sendMessage($chatId, $this->html, $this->buttons);
         } catch (TelegramException $exception) {
+            if ($this->inbox && in_array($exception->status, [400, 403], true)) {
+                InboxChat::invalidate($chatId);
+            }
+
             Log::warning('Telegram alert failed', ['context' => $this->context, 'chat' => $this->chat, 'code' => $exception->code()]);
 
             if ($exception->isRateLimited()) {
