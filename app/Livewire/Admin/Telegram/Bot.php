@@ -78,6 +78,12 @@ class Bot extends Component
     public bool $loaded = false;
 
     /**
+     * The last chat verification hit a transient Telegram failure (not a verdict).
+     */
+    #[Locked]
+    public bool $chatUnverified = false;
+
+    /**
      * Error code of the last failed Telegram call while loading (HTTP code / timeout).
      */
     #[Locked]
@@ -124,6 +130,10 @@ class Bot extends Component
 
         $t = 'admin.telegram_bot.chat_check.';
         $outcome = $status->refresh(auth()->id());
+
+        if ($outcome === TelegramStatus::REFRESHED) {
+            $this->load();
+        }
 
         match ($outcome) {
             TelegramStatus::REFRESHED => $this->dispatch('toast', title: __('admin.toast.done'), body: __($t.'done'), type: 'success'),
@@ -221,7 +231,9 @@ class Bot extends Component
             }
         }
 
-        $this->checklist = app(BotChecklist::class)->evaluate($info ?? ['url' => '']);
+        $checklist = app(BotChecklist::class);
+        $this->checklist = $checklist->evaluate($info ?? ['url' => '']);
+        $this->chatUnverified = $checklist->chatUnavailable();
         $this->loaded = true;
     }
 

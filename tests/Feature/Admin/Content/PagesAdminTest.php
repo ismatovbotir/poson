@@ -321,6 +321,58 @@ describe('form', function () {
         expect($page->refresh()->needs_review)->toBeTrue()->and(SettingsAudit::query()->count())->toBe(0);
     });
 
+    it('raises the review flag again when a content manager changes approved legal text', function (string $slug) {
+        $page = Page::factory()->system($slug)->create(['title' => ['uz' => 'Eski']]);
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', 'Yangi sarlavha')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $audit = SettingsAudit::query()->sole();
+
+        expect($page->refresh()->needs_review)->toBeTrue()
+            ->and($audit->key)->toBe("pages.{$slug}.review_reraised")
+            ->and($audit->area)->toBe(SettingsArea::Legal)
+            ->and(json_encode($audit->getAttributes()))->not->toContain('Yangi');
+    })->with(['privacy', 'offer']);
+
+    it('does not re-raise the flag on a whitespace-only or SEO-only edit', function () {
+        $page = Page::factory()->system('privacy')->create(['title' => ['uz' => 'Maxfiylik']]);
+
+        Livewire::actingAs(staffUser(Role::ContentManager))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', ' Maxfiylik ')
+            ->set('form.meta_title.uz', 'Maxfiylik — Poson')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->needs_review)->toBeFalse()->and(SettingsAudit::query()->count())->toBe(0);
+    });
+
+    it('keeps the flag off for an admin text edit of approved legal text and audits it', function () {
+        $page = Page::factory()->system('offer')->create(['title' => ['uz' => 'Oferta']]);
+
+        Livewire::actingAs(staffUser(Role::Admin))
+            ->test(Form::class, ['page' => $page])
+            ->set('form.title.uz', 'Oferta yangi')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        expect($page->refresh()->needs_review)->toBeFalse()
+            ->and(SettingsAudit::query()->sole()->key)->toBe('pages.offer.approved_text_changed');
+    });
+
+    it('locks the review toggle for a content manager on legal pages only', function () {
+        $legal = Page::factory()->system('privacy')->needsReview()->create();
+        $other = Page::factory()->system('about')->create();
+
+        Livewire::actingAs(staffUser(Role::ContentManager))->test(Form::class, ['page' => $legal])->assertSeeHtml('data-review-toggle')->assertSee(__('admin.pages.review_admin_only_hint'));
+        Livewire::actingAs(staffUser(Role::ContentManager))->test(Form::class, ['page' => $other])->assertDontSee(__('admin.pages.review_admin_only_hint'));
+        Livewire::actingAs(staffUser(Role::Admin))->test(Form::class, ['page' => $legal])->assertDontSee(__('admin.pages.review_admin_only_hint'));
+    });
+
     it('stores an optional cover image privately with WebP conversions and alt per locale', function () {
         Storage::fake('public');
         Storage::fake('local');

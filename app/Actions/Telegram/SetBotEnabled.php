@@ -42,7 +42,7 @@ class SetBotEnabled
 
         $failing = BotChecklist::failing($this->checklist->evaluate());
 
-        if (in_array('chat', $failing, true) && $this->checklist->chatUnavailable()) {
+        if (in_array('chat', $failing, true) && $this->checklist->chatUnavailable() && array_diff($failing, ['chat', 'webhook']) === []) {
             throw new TelegramBotException('chat_unavailable', $failing);
         }
 

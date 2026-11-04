@@ -106,6 +106,8 @@
                             <span class="font-medium">{{ __($t.'.checks.'.$item) }}</span>
                             @if ($ok === null)
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checking') }}</span>
+                            @elseif (! $ok && $item === 'chat' && $chatUnverified)
+                                <span class="mt-0.5 block text-slate-500" data-chat-unverified>{{ __($t.'.chat_check.unverified') }}</span>
                             @elseif (! $ok)
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checks_fix.'.$item) }}</span>
                                 @if (in_array($item, ['token', 'webhook_secret', 'chat'], true))

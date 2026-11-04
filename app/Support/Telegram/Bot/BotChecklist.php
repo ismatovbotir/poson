@@ -50,6 +50,7 @@ final class BotChecklist
      */
     public function evaluate(?array $webhookInfo = null): array
     {
+        $this->chatUnavailable = false;
         $items = $this->local();
         $items['webhook'] = $items['token'] && $this->webhookMatches($webhookInfo);
         $items['chat'] = $items['chat'] && $items['token'] && $this->chatVerified();
@@ -100,8 +101,9 @@ final class BotChecklist
 
         try {
             return InboxChat::verify($this->client->withTimeout(self::CHAT_TIMEOUT, self::CHAT_TIMEOUT), $chatId) === true;
-        } catch (TelegramException) {
-            $this->chatUnavailable = true;
+        } catch (TelegramException $exception) {
+            // A bad token (401 / 404) is not "try again": the token banner explains it.
+            $this->chatUnavailable = ! in_array($exception->status, [401, 404], true);
 
             return false;
         }

@@ -746,6 +746,7 @@ return [
         'needs_review_hint' => 'Keep it on until the lawyer has approved the text.',
         'needs_review_notice' => 'This text is a draft and must be checked by the lawyer before it is final.',
         'review_admin_only' => 'Your other changes were saved, but only an Admin can mark the privacy or offer text as reviewed. The review flag stays on.',
+        'review_admin_only_hint' => 'This text is locked: only an Admin can mark the privacy or offer text as reviewed.',
         'cover_help' => 'Optional. Shown at the top of the page and in link previews. JPG, PNG or WebP.',
         'view_on_site' => 'Open on the site',
         'delete_title' => 'Delete the page?',
@@ -1477,7 +1478,8 @@ return [
         ],
         'chat_check' => [
             'title' => 'Inbox chat check',
-            'hint' => 'Result of the last check. Informational only: enabling the bot always checks the chat again.',
+            'hint' => 'Result of the last check. Informational only: enabling the bot uses a check from the last 10 minutes or runs a new one.',
+            'unverified' => 'Not verified, try again in a minute.',
             'button' => 'Check now',
             'pass' => 'Chat is fine',
             'fail' => 'Chat refused',

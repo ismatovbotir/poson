@@ -79,7 +79,8 @@
                     @endif
                     <x-admin.input wire:model="form.sort" type="number" min="0" inputmode="numeric" :label="__('admin.catalog.sort')" :hint="__('admin.catalog.sort_hint')" />
                     <x-admin.toggle wire:model="form.is_active" :label="__('admin.pages.fields.is_active')" :description="__('admin.pages.is_active_hint')" />
-                    <x-admin.toggle wire:model="form.needs_review" :label="__('admin.pages.needs_review')" :description="__('admin.pages.needs_review_hint')" />
+                    @php($reviewLocked = \App\Actions\Pages\SavePage::isReviewLockedFor(auth()->user(), $page))
+                    <x-admin.toggle wire:model="form.needs_review" :label="__('admin.pages.needs_review')" :description="$reviewLocked ? __('admin.pages.review_admin_only_hint') : __('admin.pages.needs_review_hint')" :disabled="$reviewLocked" data-review-toggle />
                     @if ($publicUrl)
                         <a href="{{ $publicUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline" data-public-url>
                             <x-admin.icon name="external" size="size-4" />{{ __('admin.pages.view_on_site') }}

@@ -746,6 +746,7 @@ return [
         'needs_review_hint' => 'Yurist matnni tasdiqlamaguncha belgini olib tashlamang.',
         'needs_review_notice' => 'Bu qoralama: matn yakuniy boʻlishidan oldin uni yurist tekshirishi kerak.',
         'review_admin_only' => 'Boshqa oʻzgarishlar saqlandi, lekin maxfiylik siyosati yoki oferta matnini tekshirilgan deb belgilashni faqat administrator qila oladi. Tekshiruv belgisi saqlanib qoldi.',
+        'review_admin_only_hint' => 'Belgi bloklangan: maxfiylik siyosati yoki oferta matnini tekshirilgan deb belgilashni faqat administrator qila oladi.',
         'cover_help' => 'Ixtiyoriy. Sahifa yuqorisida va havola ulashilganda chiqadigan oldindan koʻrishda koʻrsatiladi. JPG, PNG yoki WebP.',
         'view_on_site' => 'Saytda ochish',
         'delete_title' => 'Sahifa oʻchirilsinmi?',
@@ -1477,7 +1478,8 @@ return [
         ],
         'chat_check' => [
             'title' => 'Kiruvchi xabarlar chatini tekshirish',
-            'hint' => 'Oxirgi tekshiruv natijasi. Faqat maʼlumot uchun: botni yoqishda chat yana tekshiriladi.',
+            'hint' => 'Oxirgi tekshiruv natijasi. Faqat maʼlumot uchun: botni yoqishda oxirgi 10 daqiqadagi tekshiruv ishlatiladi yoki yangisi bajariladi.',
+            'unverified' => 'Tekshirilmadi, bir daqiqadan soʻng qayta urinib koʻring.',
             'button' => 'Hozir tekshirish',
             'pass' => 'Chat joyida',
             'fail' => 'Chat rad etildi',

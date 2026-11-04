@@ -90,6 +90,7 @@ it('limits refreshes to 10 per minute per user', function () {
     $calls = count(telegramApiCalls());
     $component->call('refresh')->assertDispatched('toast', type: 'error');
 
+    // 10 refreshes x (getMe + getWebhookInfo) = 20, plus one getChat: its pass is cached for 10 minutes.
     expect(count(telegramApiCalls()))->toBe($calls)->toBe(21);
 });
 
@@ -213,7 +214,7 @@ it('refuses to enable when Telegram points the webhook elsewhere', function () {
     $admin = staffUser();
 
     expect(fn () => app(SetBotEnabled::class)->enable($admin, null))
-        ->toThrow(fn (TelegramBotException $exception) => expect($exception->failing)->toContain('webhook'));
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->failing)->toBe(['webhook']));
 
     expect(BotSwitch::isEnabled())->toBeFalse();
 });
@@ -381,4 +382,40 @@ it('shows a failing chat verdict from the check', function () {
 
 it('forbids the chat check for non-admins', function () {
     Livewire::actingAs(staffUser(Role::ContentManager))->test(Bot::class)->assertForbidden();
+});
+
+it('reports not_ready, not try again, when getChat answers 401 (bad token)', function () {
+    privacyPage();
+    // plan21/jobs makes InboxChat::verify() rethrow 401/404; the checklist must then still say not_ready.
+    botPageChatAnswers(Http::response(['ok' => false, 'error_code' => 401], 401));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready'));
+});
+
+it('puts a failing privacy page ahead of a chat 503', function () {
+    privacyPage(needsReview: true);
+    botPageChatAnswers(Http::response(['ok' => false], 503));
+
+    expect(fn () => app(SetBotEnabled::class)->enable(staffUser(), null))
+        ->toThrow(fn (TelegramBotException $exception) => expect($exception->reason)->toBe('not_ready')->and($exception->failing)->toContain('privacy'));
+});
+
+it('shows a neutral not verified text for a chat 503 and syncs the checklist after check now', function () {
+    privacyPage();
+    $recovered = false;
+    botPageChatAnswers(function () use (&$recovered) {
+        return $recovered
+            ? Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']])
+            : Http::response(['ok' => false], 503);
+    });
+
+    $component = Livewire::actingAs(staffUser())->test(Bot::class)
+        ->call('refresh')
+        ->assertSeeHtml('data-chat-unverified')
+        ->assertSet('checklist.chat', false);
+
+    $recovered = true;
+
+    $component->call('checkChat')->assertSet('checklist.chat', true)->assertDontSeeHtml('data-chat-unverified');
 });

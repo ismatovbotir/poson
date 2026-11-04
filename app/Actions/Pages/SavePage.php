@@ -28,6 +28,9 @@ use Illuminate\Validation\ValidationException;
  * sort, active and the review flag change there). A generated slug taken
  * concurrently is regenerated once (Slug::saveGenerated).
  *
+ * Legal text (privacy, offer): a non-Admin change of the title or body on an
+ * approved page raises needs_review again (audited, no content); an Admin's
+ * own text edit of an approved page keeps the flag off and is audited too.
  * Clearing needs_review on the privacy or offer page is Admin only (T21-24):
  * for anyone else (or no actor) the flag is kept as it was and the rest of
  * the save goes through; an Admin's clearing writes a SettingsAudit row
@@ -62,9 +65,12 @@ class SavePage
         $this->check($data, $body);
 
         return DB::transaction(function () use ($page, $data, $body, $actor, $ip): Page {
+            $isAdmin = (bool) $actor?->hasRole(Role::Admin->value);
+            $reraised = false;
+            $approvedBefore = $page->exists && ! $page->needs_review;
             $clearsLegalReview = $this->clearsLegalReview($page, (bool) $data['needs_review']);
 
-            if ($clearsLegalReview && ! $actor?->hasRole(Role::Admin->value)) {
+            if ($clearsLegalReview && ! $isAdmin) {
                 $data['needs_review'] = true;
                 $clearsLegalReview = false;
             }
@@ -76,6 +82,13 @@ class SavePage
 
             if (! $page->exists || $this->content($page) !== $contentBefore) {
                 $page->content_updated_at = now();
+            }
+
+            $legalContentChanged = $page->exists && $this->isLegalReviewPage($page) && $this->content($page) !== $contentBefore;
+
+            if ($legalContentChanged && ! $isAdmin) {
+                $reraised = ! $page->needs_review;
+                $data['needs_review'] = true;
             }
 
             $page->storeTranslations('meta_title', $data['meta_title'] ?? []);
@@ -100,8 +113,24 @@ class SavePage
                 SettingsAudit::record(SettingsArea::Legal, 'pages.'.$page->slug.'.needs_review', AuditAction::Cleared, $actor, $ip);
             }
 
+            if ($reraised) {
+                SettingsAudit::record(SettingsArea::Legal, 'pages.'.$page->slug.'.review_reraised', AuditAction::Updated, $actor, $ip);
+            } elseif ($legalContentChanged && $isAdmin && $approvedBefore) {
+                SettingsAudit::record(SettingsArea::Legal, 'pages.'.$page->slug.'.approved_text_changed', AuditAction::Updated, $actor, $ip);
+            }
+
             return $page;
         });
+    }
+
+    public static function isReviewLockedFor(?User $user, ?Page $page): bool
+    {
+        return $page !== null && in_array($page->slug, self::LEGAL_REVIEW_SLUGS, true) && ! $user?->hasRole(Role::Admin->value);
+    }
+
+    private function isLegalReviewPage(Page $page): bool
+    {
+        return in_array($page->slug, self::LEGAL_REVIEW_SLUGS, true);
     }
 
     /**
