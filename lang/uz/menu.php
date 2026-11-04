@@ -39,6 +39,8 @@ return [
         'telegram_bot' => 'Bot',
         'telegram_mini_app' => 'Mini App',
         'telegram_chats' => 'Chatlar',
+        'telegram_status' => 'Holat',
+        'telegram_settings' => 'Sozlamalar',
         'company' => 'Kompaniya',
         'users' => 'Foydalanuvchilar va rollar',
         'checkout' => 'Buyurtma rasmiylashtirish',

@@ -83,10 +83,13 @@ final class Menu
             ]),
 
             new MenuGroup('telegram', 'menu.groups.telegram', [
+                // Plan 21 S0: status and settings stay "soon" until their routes land.
+                new MenuItem('telegram-status', 'menu.items.telegram_status', 'radar', 'admin.telegram.status', permission: 'telegram.bot'),
                 // Plan 14 v2 B2: bot setup page (telegram.bot, Admin only).
                 new MenuItem('telegram-bot', 'menu.items.telegram_bot', 'bot', 'admin.telegram.bot', permission: 'telegram.bot'),
                 new MenuItem('telegram-mini-app', 'menu.items.telegram_mini_app', 'smartphone', 'admin.telegram.mini-app', roles: $admin),
-                new MenuItem('telegram-chats', 'menu.items.telegram_chats', 'message', 'admin.telegram.chats', roles: $sales),
+                new MenuItem('telegram-chats', 'menu.items.telegram_chats', 'message', 'admin.telegram.chats', permission: 'telegram.inbox', active: 'admin.telegram.chats*'),
+                new MenuItem('telegram-settings', 'menu.items.telegram_settings', 'settings', 'admin.telegram.settings', permission: 'settings.integrations'),
             ]),
 
             new MenuGroup('settings', 'menu.groups.settings', [

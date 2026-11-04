@@ -39,6 +39,8 @@ return [
         'telegram_bot' => 'Бот',
         'telegram_mini_app' => 'Mini App',
         'telegram_chats' => 'Чаты',
+        'telegram_status' => 'Статус',
+        'telegram_settings' => 'Настройки',
         'company' => 'Компания',
         'users' => 'Пользователи и роли',
         'checkout' => 'Оформление заказа',

@@ -54,7 +54,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'service' => ['service-requests', 'repairs'],
         'content' => ['pages', 'news', 'articles', 'banners'],
         'seo' => ['sitemap'],
-        'telegram' => ['telegram-bot', 'telegram-mini-app', 'telegram-chats'],
+        'telegram' => ['telegram-status', 'telegram-bot', 'telegram-mini-app', 'telegram-chats', 'telegram-settings'],
         'settings' => ['company', 'users', 'checkout', 'indexing', 'integrations', 'api-tokens', 'mcp'],
         'system' => ['monitoring', 'commands'],
     ]],
@@ -240,3 +240,16 @@ it('expands only the group of the current page', function (string $route, ?strin
     'leads: sales open' => ['admin.leads.index', 'sales'],
     'pages: content open' => ['admin.pages.index', 'content'],
 ]);
+
+it('never shows telegram-settings through telegram.bot alone', function () {
+    $user = staffUser(Role::ContentManager);
+    $user->givePermissionTo('telegram.bot');
+
+    $items = collect(Menu::for($user))->flatMap(fn (MenuGroup $group): array => array_map(fn (MenuItem $item): string => $item->key, $group->items));
+
+    expect($items)->toContain('telegram-status')->not->toContain('telegram-settings');
+});
+
+it('gives content manager and service engineer none of the new telegram items', function (Role $role) {
+    expect(menuTree($role))->not->toHaveKey('telegram');
+})->with([Role::ContentManager, Role::ServiceEngineer]);
