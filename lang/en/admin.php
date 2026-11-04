@@ -745,6 +745,7 @@ return [
         'is_active_hint' => 'Hidden pages return “not found”; menu links fall back to the contacts block.',
         'needs_review_hint' => 'Keep it on until the lawyer has approved the text.',
         'needs_review_notice' => 'This text is a draft and must be checked by the lawyer before it is final.',
+        'review_admin_only' => 'Your other changes were saved, but only an Admin can mark the privacy or offer text as reviewed. The review flag stays on.',
         'cover_help' => 'Optional. Shown at the top of the page and in link previews. JPG, PNG or WebP.',
         'view_on_site' => 'Open on the site',
         'delete_title' => 'Delete the page?',

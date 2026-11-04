@@ -745,6 +745,7 @@ return [
         'is_active_hint' => 'Yashirin sahifa “topilmadi” deb javob beradi; menyu havolalari kontaktlar blokiga olib boradi.',
         'needs_review_hint' => 'Yurist matnni tasdiqlamaguncha belgini olib tashlamang.',
         'needs_review_notice' => 'Bu qoralama: matn yakuniy boʻlishidan oldin uni yurist tekshirishi kerak.',
+        'review_admin_only' => 'Boshqa oʻzgarishlar saqlandi, lekin maxfiylik siyosati yoki oferta matnini tekshirilgan deb belgilashni faqat administrator qila oladi. Tekshiruv belgisi saqlanib qoldi.',
         'cover_help' => 'Ixtiyoriy. Sahifa yuqorisida va havola ulashilganda chiqadigan oldindan koʻrishda koʻrsatiladi. JPG, PNG yoki WebP.',
         'view_on_site' => 'Saytda ochish',
         'delete_title' => 'Sahifa oʻchirilsinmi?',

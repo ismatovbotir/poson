@@ -84,7 +84,7 @@ class Form extends Component
 
         // All or nothing: a rejected cover rolls the page save back.
         $page = $this->runFormAction(fn (): Page => DB::transaction(function () use ($savePage, $updateImage): Page {
-            $page = $savePage->handle($this->page, $this->form->pageData());
+            $page = $savePage->handle($this->page, $this->form->pageData(), auth()->user(), request()->ip());
             $updateImage->handle($page, $this->form->image, $this->form->image_alt, $this->form->remove_image);
 
             return $page;
@@ -97,10 +97,16 @@ class Form extends Component
             return;
         }
 
+        $reviewKept = $page->needs_review && ! $this->form->needs_review;
+
         $this->page = $page->fresh();
         $this->form->setPage($this->page);
 
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.pages.saved', ['name' => (string) $page->title]));
+
+        if ($reviewKept) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.pages.review_admin_only'), type: 'error');
+        }
     }
 
     public function delete(DeletePage $deletePage): void

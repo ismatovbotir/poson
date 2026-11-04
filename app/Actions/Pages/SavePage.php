@@ -2,8 +2,13 @@
 
 namespace App\Actions\Pages;
 
+use App\Enums\AuditAction;
 use App\Enums\PageTemplate;
+use App\Enums\Role;
+use App\Enums\SettingsArea;
 use App\Models\Page;
+use App\Models\SettingsAudit;
+use App\Models\User;
 use App\Rules\BrandSafeText;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\StructuredData;
@@ -23,11 +28,18 @@ use Illuminate\Validation\ValidationException;
  * sort, active and the review flag change there). A generated slug taken
  * concurrently is regenerated once (Slug::saveGenerated).
  *
+ * Clearing needs_review on the privacy or offer page is Admin only (T21-24):
+ * for anyone else (or no actor) the flag is kept as it was and the rest of
+ * the save goes through; an Admin's clearing writes a SettingsAudit row
+ * (who, when, IP; never page content).
+ *
  * content_updated_at is set on create and whenever the title or body
  * actually change (not on SEO, sort, active or review-flag edits).
  */
 class SavePage
 {
+    public const LEGAL_REVIEW_SLUGS = ['privacy', 'offer'];
+
     /**
      * @param  array{
      *     title: array<string, string|null>,
@@ -42,14 +54,21 @@ class SavePage
      *
      * @throws ValidationException
      */
-    public function handle(?Page $page, array $data): Page
+    public function handle(?Page $page, array $data, ?User $actor = null, ?string $ip = null): Page
     {
         $page ??= new Page;
         $body = array_map(HtmlSanitizer::cleanOrNull(...), $data['body'] ?? []);
 
         $this->check($data, $body);
 
-        return DB::transaction(function () use ($page, $data, $body): Page {
+        return DB::transaction(function () use ($page, $data, $body, $actor, $ip): Page {
+            $clearsLegalReview = $this->clearsLegalReview($page, (bool) $data['needs_review']);
+
+            if ($clearsLegalReview && ! $actor?->hasRole(Role::Admin->value)) {
+                $data['needs_review'] = true;
+                $clearsLegalReview = false;
+            }
+
             $contentBefore = $this->content($page);
 
             $page->storeTranslations('title', $data['title']);
@@ -77,8 +96,23 @@ class SavePage
             // A page created concurrently with the same title: next free slug, once.
             Slug::saveGenerated($page, $generated, fn (string $clashed): string => $this->slug($page, $data, $clashed));
 
+            if ($clearsLegalReview) {
+                SettingsAudit::record(SettingsArea::Legal, 'pages.'.$page->slug.'.needs_review', AuditAction::Cleared, $actor, $ip);
+            }
+
             return $page;
         });
+    }
+
+    /**
+     * Whether this save turns needs_review off on the privacy or offer page.
+     */
+    private function clearsLegalReview(Page $page, bool $needsReview): bool
+    {
+        return $page->exists
+            && ! $needsReview
+            && $page->needs_review
+            && in_array($page->slug, self::LEGAL_REVIEW_SLUGS, true);
     }
 
     /**
