@@ -16,13 +16,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 /**
  * Plan 21 A1: abuse cases for the staff inbox (Index and read-only Show).
  * Complements tests/Feature/Admin/Telegram/ChatsInboxTest.php.
  */
+/**
+ * Trusted hosts are static on the Symfony request and leak between tests that make web requests;
+ * reset them before and after so no test depends on file order.
+ */
 beforeEach(function () {
     Http::fake();
+    SymfonyRequest::setTrustedHosts([]);
+});
+
+afterEach(function () {
+    SymfonyRequest::setTrustedHosts([]);
 });
 
 function abuseManager(): User
@@ -496,6 +506,8 @@ it('builds the alert button from APP_URL only and only over https', function (st
 ]);
 
 it('ignores a forged request Host when building the alert URL', function (string $appUrl, bool $button) {
+    // Trusted hosts are static on the Symfony request and leak from earlier web requests in the same process.
+    SymfonyRequest::setTrustedHosts([]);
     config(['app.url' => $appUrl]);
     $chat = abuseThread();
     $message = TelegramMessage::factory()->for($chat)->create(['text' => 'hello']);
