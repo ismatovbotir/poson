@@ -58,7 +58,7 @@ return [
             'problem' => 'The token is missing, malformed or refused by Telegram.',
             'unknown' => 'No fresh answer from Telegram yet.',
             'neutral' => 'No token set. Not needed while the bot is off.',
-            'next' => 'Get a valid token from @BotFather in Telegram (send /mybots, pick the bot, API Token; /revoke issues a new one), save it in Settings → Integrations, then press "Check now".',
+            'next' => 'Get a valid token from @BotFather in Telegram (send /mybots, pick the bot, API Token; /revoke issues a new one), save it in Telegram → Settings, then press "Check now".',
         ],
         'webhook' => [
             'label' => 'Webhook',
@@ -73,9 +73,9 @@ return [
             'pending' => 'Updates waiting: :pending.',
             'next' => 'Open the Bot page, check the webhook there and press "Set webhook".',
             'next_url_mismatch' => 'Open the Bot page and press "Set webhook" so Telegram sends updates to this site.',
-            'next_url_unexpected' => 'Someone else may control this bot. Open the Bot page and press "Delete webhook", then replace the bot token in Settings → Integrations (@BotFather → /revoke).',
-            'next_delivery_errors' => 'Check that the site is reachable over https and the queue worker runs (the server command "php artisan queue:work" keeps jobs moving), then press "Check now".',
-            'next_backlog' => 'Make sure the site answers Telegram quickly and the queue worker is running; updates are delivered once the site responds.',
+            'next_url_unexpected' => 'Someone else may control this bot. Open the Bot page and press "Delete webhook", then revoke the token in @BotFather (/revoke), so the other party loses access, and save the new token in Telegram → Settings.',
+            'next_delivery_errors' => 'Check that the site is reachable over https and that the server is running `php artisan queue:work`, then press "Check now".',
+            'next_backlog' => 'Make sure the site answers Telegram quickly (check the site\'s response time and the web server error log) and that the queue worker is running; updates are delivered once the site responds.',
         ],
         'chat' => [
             'label' => 'Inbox chat',
@@ -83,14 +83,14 @@ return [
             'problem' => 'The inbox (or sales) chat is missing, is not a numeric group id, or Telegram refuses it.',
             'unknown' => 'The chat has not been verified recently.',
             'neutral' => 'No inbox chat yet. Needed once the bot is on.',
-            'next' => 'Set a private group chat id in Settings → Integrations and add the bot to that group.',
+            'next' => 'Set a private group chat id in Telegram → Settings and add the bot to that group.',
         ],
         'management_chat' => [
             'label' => 'Management chat',
             'ok' => 'A management chat and a bot token are set. Delivery is not tested here.',
             'problem' => 'No management chat or no bot token: monitoring alerts cannot be delivered.',
             'neutral' => 'Not set yet. It receives monitoring alerts once you set it.',
-            'next' => 'Set the management chat id in Settings → Integrations.',
+            'next' => 'Set the management chat id in Telegram → Settings.',
         ],
         'privacy' => [
             'label' => 'Privacy policy page',
@@ -108,8 +108,8 @@ return [
             'cron_dead' => 'Not measurable: the scheduler (cron) is not running.',
             'never' => 'The worker has not reported yet.',
             'next' => 'Restart the queue worker on the server (supervisor keeps "php artisan queue:work" running), then check again.',
-            'next_not_database' => 'Nothing to do here: this panel only measures the database queue. Use the tools of your queue system.',
-            'next_cron_dead' => 'Check the scheduler (cron) row first; the worker is judged only while cron runs.',
+            'next_not_database' => 'This panel only measures the database queue. To check your queue, use your queue system\'s own tools.',
+            'next_cron_dead' => 'Check the scheduler (cron) row first; the worker is judged only while cron runs. The crontab must contain `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1`.',
             'next_never' => 'Make sure a queue worker is started on the server (supervisor keeps "php artisan queue:work" running). A new worker reports within a minute.',
         ],
         'cron' => [
@@ -119,8 +119,8 @@ return [
             'never_dead' => 'The scheduler has never ticked.',
             'unknown' => 'The scheduler has not ticked yet.',
             'never' => 'The scheduler has not ticked yet. Right after a deploy this is normal for a few minutes.',
-            'next' => 'Check the server cron entry that runs "php artisan schedule:run" every minute.',
-            'next_never' => 'If it stays unknown after a few minutes, check the server cron entry that runs "php artisan schedule:run" every minute.',
+            'next' => 'Check the server crontab: it must contain the line `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1`.',
+            'next_never' => 'If it stays unknown after a few minutes, check the server crontab: it must contain the line `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1`.',
         ],
         'oldest_job' => [
             'label' => 'Oldest waiting job',
@@ -134,8 +134,8 @@ return [
         'failed_jobs' => [
             'label' => 'Failed Telegram jobs',
             'ok' => 'None in the last :days days.',
-            'problem' => ':count failed Telegram jobs in the last :days days; the newest is :hours h old.',
-            'next' => 'Open System → Monitoring, read the failure, then retry or forget the jobs.',
+            'problem' => ':count failed Telegram jobs in the last :days days; the newest failed :hours h ago.',
+            'next' => 'Open System → Monitoring, read the failure, then retry or forget the jobs. Alternatively, on the server run `php artisan queue:failed` and `php artisan queue:retry all`.',
         ],
         'invalid_env' => [
             'label' => 'TELEGRAM_* values in .env',
@@ -143,6 +143,7 @@ return [
             'problem' => ':count .env values cannot be used.',
             'unknown' => 'The .env values could not be checked.',
             'next' => 'Fix the listed values in the server .env file, then rebuild the cached config ("php artisan config:cache") and restart the queue workers so they read it.',
+            'next_unknown' => 'The .env values could not be read. Check the log (`storage/logs/laravel.log`), then rebuild the cached config with "php artisan config:cache".',
         ],
         'inbox_listener' => [
             'label' => 'Inbox alert listener',

@@ -75,7 +75,7 @@ return [
     'job_labels' => [
         'send_telegram_message' => 'Telegram xabari',
         'send_telegram_alerts' => 'Telegram ogohlantirishlari',
-        'send_lead_to_telegram' => 'Yangi soʻrov haqida ogohlantirish',
+        'send_lead_to_telegram' => 'Yangi murojaat haqida ogohlantirish',
         'notify_finance_of_price_sync_issues' => 'Narxlarni sinxronlash ogohlantirishi',
         'send_telegram_inbox_alert' => 'Mijoz xabari haqida ogohlantirish',
         'forward_telegram_media' => 'Mijoz faylini nusxalash',

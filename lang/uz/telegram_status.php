@@ -58,7 +58,7 @@ return [
             'problem' => 'Token kiritilmagan, formati notoʻgʻri yoki Telegram uni rad etmoqda.',
             'unknown' => 'Telegramdan yangi javob hali yoʻq.',
             'neutral' => 'Token kiritilmagan. Bot oʻchiq ekan, kerak emas.',
-            'next' => 'Telegramdagi @BotFather dan amaldagi tokenni oling (/mybots buyrugʻi, botni tanlang, API Token; /revoke yangisini beradi), Sozlamalar → Integratsiyalar boʻlimida saqlang va «Hozir tekshirish» tugmasini bosing.',
+            'next' => 'Telegramdagi @BotFather dan amaldagi tokenni oling (/mybots buyrugʻi, botni tanlang, API Token; /revoke yangisini beradi), Telegram → Sozlamalar boʻlimida saqlang va «Hozir tekshirish» tugmasini bosing.',
         ],
         'webhook' => [
             'label' => 'Webhook',
@@ -73,9 +73,9 @@ return [
             'pending' => 'Kutayotgan yangilanishlar: :pending.',
             'next' => 'Bot sahifasini oching, webhookni tekshiring va «Webhookni oʻrnatish» tugmasini bosing.',
             'next_url_mismatch' => 'Bot sahifasini oching va Telegram yangilanishlarni shu saytga yuborishi uchun «Webhookni oʻrnatish» tugmasini bosing.',
-            'next_url_unexpected' => 'Botni boshqa kimdir boshqarayotgan boʻlishi mumkin. Bot sahifasini oching, «Webhookni oʻchirish» tugmasini bosing, soʻng Sozlamalar → Integratsiyalar boʻlimida bot tokenini almashtiring (@BotFather → /revoke).',
-            'next_delivery_errors' => 'Sayt https orqali ochilishini va navbat ishchisi ishlayotganini tekshiring (serverdagi «php artisan queue:work» buyrugʻi vazifalarni harakatda ushlaydi), soʻng «Hozir tekshirish» tugmasini bosing.',
-            'next_backlog' => 'Sayt Telegramga tez javob berishini va navbat ishchisi ishlayotganini tekshiring; sayt javob bergach, yangilanishlar yetkaziladi.',
+            'next_url_unexpected' => 'Botni boshqa kimdir boshqarayotgan boʻlishi mumkin. Bot sahifasini oching, «Webhookni oʻchirish» tugmasini bosing, soʻng @BotFather da tokenni bekor qiling (/revoke), shunda begona tomon kirish huquqini yoʻqotadi, va yangi tokenni Telegram → Sozlamalar boʻlimida saqlang.',
+            'next_delivery_errors' => 'Sayt https orqali ochilishini va serverda «php artisan queue:work» ishlab turishi kerakligini tekshiring, soʻng «Hozir tekshirish» tugmasini bosing.',
+            'next_backlog' => 'Sayt Telegramga tez javob berishini (saytning javob vaqtini va veb-server xatolar jurnalini tekshiring) va navbat ishchisi ishlayotganini tekshiring; sayt javob bergach, yangilanishlar yetkaziladi.',
         ],
         'chat' => [
             'label' => 'Kiruvchi xabarlar chati',
@@ -83,14 +83,14 @@ return [
             'problem' => 'Kiruvchi (yoki sotuv) chati kiritilmagan, u raqamli guruh id emas yoki Telegram uni rad etmoqda.',
             'unknown' => 'Chat yaqinda tekshirilmagan.',
             'neutral' => 'Kiruvchi chat hali kiritilmagan. Bot yoqilganda kerak boʻladi.',
-            'next' => 'Sozlamalar → Integratsiyalar boʻlimida yopiq guruh id sini kiriting va botni shu guruhga qoʻshing.',
+            'next' => 'Telegram → Sozlamalar boʻlimida yopiq guruh id sini kiriting va botni shu guruhga qoʻshing.',
         ],
         'management_chat' => [
             'label' => 'Boshqaruv chati',
             'ok' => 'Boshqaruv chati va bot tokeni kiritilgan. Yetkazish bu yerda sinalmaydi.',
             'problem' => 'Boshqaruv chati yoki bot tokeni yoʻq: monitoring ogohlantirishlari yetkazilmaydi.',
             'neutral' => 'Hali kiritilmagan. Kiritganingizdan soʻng monitoring ogohlantirishlarini oladi.',
-            'next' => 'Sozlamalar → Integratsiyalar boʻlimida boshqaruv chati id sini kiriting.',
+            'next' => 'Telegram → Sozlamalar boʻlimida boshqaruv chati id sini kiriting.',
         ],
         'privacy' => [
             'label' => 'Maxfiylik siyosati sahifasi',
@@ -108,8 +108,8 @@ return [
             'cron_dead' => 'Oʻlchanmaydi: rejalashtiruvchi (cron) ishlamayapti.',
             'never' => 'Ishchi hali signal bermagan.',
             'next' => 'Serverda navbat ishchisini qayta ishga tushiring (supervisor «php artisan queue:work» ni ishlatib turadi) va qayta tekshiring.',
-            'next_not_database' => 'Bu yerda qiladigan ish yoʻq: panel faqat maʼlumotlar bazasidagi navbatni oʻlchaydi. Navbat tizimingiz vositalaridan foydalaning.',
-            'next_cron_dead' => 'Avval rejalashtiruvchi (cron) qatorini koʻring: ishchi faqat cron ishlayotganda baholanadi.',
+            'next_not_database' => 'Panel faqat maʼlumotlar bazasidagi navbatni oʻlchaydi. Navbat holatini oʻz tizimingiz vositalari bilan tekshiring.',
+            'next_cron_dead' => 'Avval rejalashtiruvchi (cron) qatorini koʻring: ishchi faqat cron ishlayotganda baholanadi. Crontabda `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1` qatori boʻlishi kerak.',
             'next_never' => 'Serverda navbat ishchisi ishga tushirilganini tekshiring (supervisor «php artisan queue:work» ni ishlatib turadi). Yangi ishchi bir daqiqa ichida signal beradi.',
         ],
         'cron' => [
@@ -119,8 +119,8 @@ return [
             'never_dead' => 'Rejalashtiruvchi hech qachon ishga tushmagan.',
             'unknown' => 'Rejalashtiruvchi hali ishga tushmagan.',
             'never' => 'Rejalashtiruvchi hali ishga tushmagan. Joylangandan keyin bir necha daqiqa bu normal.',
-            'next' => 'Serverdagi cron yozuvini tekshiring: «php artisan schedule:run» har daqiqada.',
-            'next_never' => 'Bir necha daqiqadan keyin ham nomaʼlum boʻlsa, serverdagi cron yozuvini tekshiring: «php artisan schedule:run» har daqiqada.',
+            'next' => 'Serverdagi crontabni tekshiring: unda `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1` qatori boʻlishi kerak.',
+            'next_never' => 'Bir necha daqiqadan keyin ham nomaʼlum boʻlsa, serverdagi crontabni tekshiring: unda `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1` qatori boʻlishi kerak.',
         ],
         'oldest_job' => [
             'label' => 'Navbatdagi eng eski vazifa',
@@ -134,8 +134,8 @@ return [
         'failed_jobs' => [
             'label' => 'Bajarilmagan Telegram vazifalari',
             'ok' => 'Oxirgi :days kunda yoʻq.',
-            'problem' => 'Oxirgi :days kunda bajarilmagan Telegram vazifalari: :count; eng yangisi :hours soat oldin.',
-            'next' => 'Tizim → Monitoring boʻlimini oching, sababini oʻqing, soʻng vazifalarni qayta urining yoki oʻchiring.',
+            'problem' => 'Oxirgi :days kunda bajarilmagan Telegram vazifalari: :count; eng yangisi :hours soat oldin boʻlgan.',
+            'next' => 'Tizim → Monitoring boʻlimini oching, sababini oʻqing, soʻng vazifalarni qayta urining yoki oʻchiring. Yoki serverda `php artisan queue:failed` va `php artisan queue:retry all` buyruqlarini bajaring.',
         ],
         'invalid_env' => [
             'label' => '.env dagi TELEGRAM_* qiymatlari',
@@ -143,6 +143,7 @@ return [
             'problem' => '.env dagi yaroqsiz qiymatlar: :count.',
             'unknown' => '.env qiymatlarini tekshirib boʻlmadi.',
             'next' => 'Koʻrsatilgan qiymatlarni serverdagi .env faylida toʻgʻrilang, soʻng konfiguratsiya keshini qayta yigʻing («php artisan config:cache») va navbat ishchilarini qayta ishga tushiring, ular uni oʻqisin.',
+            'next_unknown' => '.env qiymatlarini oʻqib boʻlmadi. Jurnalni (`storage/logs/laravel.log`) tekshiring, soʻng konfiguratsiya keshini «php artisan config:cache» buyrugʻi bilan qayta yigʻing.',
         ],
         'inbox_listener' => [
             'label' => 'Kiruvchi xabar ogohlantirishi',

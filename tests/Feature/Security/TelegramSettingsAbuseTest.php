@@ -27,7 +27,7 @@ const TSA_TOKEN = '123456789:AAAbuseTokenAbuseTokenAbuseTokenAb9876';
 
 const TSA_PAYME_KEY = 'fake-payme-key-1111111';
 
-function tsaScreen(string $class, ?User $user = null): Testable
+function tsetScreen(string $class, ?User $user = null): Testable
 {
     return Livewire::actingAs($user ?? staffUser())->test($class);
 }
@@ -35,7 +35,7 @@ function tsaScreen(string $class, ?User $user = null): Testable
 /**
  * The HTML, snapshot and effects the browser would receive.
  */
-function tsaPayload(Testable $component): string
+function tsetPayload(Testable $component): string
 {
     return $component->html().json_encode($component->snapshot).json_encode($component->effects);
 }
@@ -43,7 +43,7 @@ function tsaPayload(Testable $component): string
 /**
  * @return array<string, mixed>
  */
-function tsaStateOf(): array
+function tsetStateOf(): array
 {
     return [
         'secrets' => IntegrationSecret::query()->orderBy('key')->get()->map->getAttributes()->all(),
@@ -55,7 +55,7 @@ function tsaStateOf(): array
 /**
  * GET the page, return the snapshot of the component whose data has $dataKey.
  */
-function tsaSnapshot(string $url, string $dataKey): string
+function tsetSnapshot(string $url, string $dataKey): string
 {
     $html = test()->get($url)->assertOk()->getContent();
 
@@ -77,7 +77,7 @@ function tsaSnapshot(string $url, string $dataKey): string
  *
  * @param  list<mixed>  $params
  */
-function tsaUpdateRequest(string $snapshot, string $method, array $params = []): TestResponse
+function tsetUpdateRequest(string $snapshot, string $method, array $params = []): TestResponse
 {
     return test()->withHeaders(['X-Livewire' => '1'])
         ->postJson(app('livewire')->getUpdateUri(), [
@@ -101,23 +101,23 @@ describe('lifecycle hooks', function () {
         IntegrationSecret::factory()->withValue('payme.key', TSA_PAYME_KEY)->create();
         Secrets::flush();
         confirmAdminPassword();
-        $before = tsaStateOf();
+        $before = tsetStateOf();
 
-        $component = tsaScreen($class);
+        $component = tsetScreen($class);
         $values = $component->get('form.values');
 
         expect(fn () => $component->call($hook))->toThrow(DirectlyCallingLifecycleHooksNotAllowedException::class);
 
         expect($component->get('form.values'))->toBe($values)
-            ->and(tsaStateOf())->toBe($before)
+            ->and(tsetStateOf())->toBe($before)
             ->and(Secrets::get('telegram.bot_token'))->toBe(TSA_TOKEN)
-            ->and(tsaPayload($component))->not->toContain('AAAbuseToken')->not->toContain(TSA_PAYME_KEY);
+            ->and(tsetPayload($component))->not->toContain('AAAbuseToken')->not->toContain(TSA_PAYME_KEY);
     })->with(TSA_SCREENS)->with(['mount', 'boot', 'dehydrate', 'hydrate']);
 });
 
 describe('test results lock', function () {
     it('refuses every forged shape and renders none of it', function (string $class, mixed $forged) {
-        $component = tsaScreen($class);
+        $component = tsetScreen($class);
 
         expect(fn () => $component->set('testResults', $forged))->toThrow(CannotUpdateLockedPropertyException::class);
 
@@ -131,7 +131,7 @@ describe('test results lock', function () {
     ]);
 
     it('refuses a forged nested key', function (string $class, string $path) {
-        $component = tsaScreen($class);
+        $component = tsetScreen($class);
 
         expect(fn () => $component->set($path, 'FORGED-MARKER'))->toThrow(CannotUpdateLockedPropertyException::class);
 
@@ -139,7 +139,7 @@ describe('test results lock', function () {
     })->with(TSA_SCREENS)->with(['ok' => 'testResults.telegram_bot_token.ok', 'message' => 'testResults.uzqr_connection.message']);
 
     it('refuses a direct call of forgetTestResults', function (string $class) {
-        expect(fn () => tsaScreen($class)->call('forgetTestResults', 'telegram'))->toThrow('Public method [forgetTestResults] not found');
+        expect(fn () => tsetScreen($class)->call('forgetTestResults', 'telegram'))->toThrow('Public method [forgetTestResults] not found');
     })->with(TSA_SCREENS);
 });
 
@@ -147,7 +147,7 @@ describe('cross-screen writes', function () {
     it('writes nothing for payment values sent to the Telegram page', function () {
         confirmAdminPassword();
 
-        tsaScreen(Settings::class)
+        tsetScreen(Settings::class)
             ->set('form.values.payme.mode', 'prod')
             ->set('form.values.uzqr.mode', 'prod')
             ->call('save', 'telegram')
@@ -160,7 +160,7 @@ describe('cross-screen writes', function () {
     it('writes no Telegram row when Telegram values are sent to another section', function (string $group) {
         confirmAdminPassword();
 
-        tsaScreen(Integrations::class)
+        tsetScreen(Integrations::class)
             ->set('form.values.telegram.chats.sales', '-1009999999999')
             ->call('save', $group);
 
@@ -171,7 +171,7 @@ describe('cross-screen writes', function () {
     it('stores no foreign input when another secret is replaced', function () {
         confirmAdminPassword();
 
-        $component = tsaScreen(Integrations::class)->update(
+        $component = tsetScreen(Integrations::class)->update(
             calls: [['method' => 'replaceSecret', 'params' => ['payme.key'], 'path' => '']],
             updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN, 'secretInputs.payme.key' => TSA_PAYME_KEY],
         );
@@ -180,13 +180,13 @@ describe('cross-screen writes', function () {
             ->and(Secrets::isConfigured('telegram.bot_token'))->toBeFalse()
             ->and(IntegrationSecret::query()->pluck('key')->all())->toBe(['payme.key'])
             ->and(SettingsAudit::query()->pluck('key')->all())->toBe(['payme.key'])
-            ->and(tsaPayload($component))->not->toContain('AAAbuseToken')->not->toContain(TSA_PAYME_KEY);
+            ->and(tsetPayload($component))->not->toContain('AAAbuseToken')->not->toContain(TSA_PAYME_KEY);
     });
 
     it('does not fall back to another secret input when its own is empty', function () {
         confirmAdminPassword();
 
-        tsaScreen(Integrations::class)->update(
+        tsetScreen(Integrations::class)->update(
             calls: [['method' => 'replaceSecret', 'params' => ['payme.key'], 'path' => '']],
             updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN],
         );
@@ -204,7 +204,7 @@ describe('stale tab', function () {
             $logged[] = $event->message.json_encode($event->context);
         });
 
-        $component = tsaScreen(Integrations::class)->update(
+        $component = tsetScreen(Integrations::class)->update(
             calls: [['method' => 'replaceSecret', 'params' => ['telegram.bot_token'], 'path' => '']],
             updates: ['secretInputs.telegram.bot_token' => TSA_TOKEN],
         )->assertNotFound();
@@ -212,7 +212,7 @@ describe('stale tab', function () {
         expect(IntegrationSecret::query()->count())->toBe(0)
             ->and(SettingsAudit::query()->count())->toBe(0)
             ->and(implode("\n", $logged))->not->toContain('AAAbuseToken')
-            ->and(tsaPayload($component))->not->toContain('AAAbuseToken');
+            ->and(tsetPayload($component))->not->toContain('AAAbuseToken');
     });
 });
 
@@ -221,16 +221,16 @@ describe('password confirmation', function () {
         confirmAdminPassword();
         $user = staffUser();
 
-        tsaScreen(Integrations::class, $user)->call('save', 'payme')->assertNoRedirect();
-        tsaScreen(Settings::class, $user)->call('save', 'telegram')->assertNoRedirect();
+        tsetScreen(Integrations::class, $user)->call('save', 'payme')->assertNoRedirect();
+        tsetScreen(Settings::class, $user)->call('save', 'telegram')->assertNoRedirect();
     });
 
     it('blocks actions on both screens once the window expired', function (string $class, string $method, array $params) {
         confirmAdminPassword(PasswordConfirmation::timeout() + 1);
 
-        tsaScreen($class)->call($method, ...$params)->assertRedirect(route('admin.confirm-password'));
+        tsetScreen($class)->call($method, ...$params)->assertRedirect(route('admin.confirm-password'));
 
-        expect(tsaStateOf()['audits'])->toBe(0)
+        expect(tsetStateOf()['audits'])->toBe(0)
             ->and(IntegrationSecret::query()->count())->toBe(0);
     })->with([
         'integrations save' => [Integrations::class, 'save', ['payme']],
@@ -264,9 +264,9 @@ describe('password confirmation', function () {
             ->get(route('admin.telegram.settings').'?return=https://evil.test')
             ->assertOk();
 
-        $snapshot = tsaSnapshot(route('admin.telegram.settings'), 'secretInputs');
+        $snapshot = tsetSnapshot(route('admin.telegram.settings'), 'secretInputs');
 
-        tsaUpdateRequest($snapshot, 'confirmPassword')->assertOk();
+        tsetUpdateRequest($snapshot, 'confirmPassword')->assertOk();
 
         expect(session('url.intended'))->toBe(route('admin.telegram.settings'));
     });
@@ -281,7 +281,7 @@ describe('test rate limit', function () {
         Setting::factory()->create(['key' => 'telegram.chats.sales', 'group' => 'integrations', 'value' => '-100123']);
         Secrets::flush();
 
-        $integrations = tsaScreen(Integrations::class, $user);
+        $integrations = tsetScreen(Integrations::class, $user);
 
         foreach (range(1, 5) as $ignored) {
             $integrations->call('test', 'uzqr');
@@ -289,7 +289,7 @@ describe('test rate limit', function () {
 
         Http::fake();
 
-        $page = tsaScreen(Settings::class, $user)->call('test', 'telegram_chat', 'sales');
+        $page = tsetScreen(Settings::class, $user)->call('test', 'telegram_chat', 'sales');
 
         expect($page->get('testResults.telegram_chats_sales.ok'))->toBeFalse()
             ->and($page->get('testResults.telegram_chats_sales.message'))->toBeString()
@@ -303,7 +303,7 @@ describe('env lock', function () {
         IntegrationSecret::factory()->withValue('telegram.webhook_secret', str_repeat('Stored', 8))->create();
         confirmAdminPassword();
 
-        tsaScreen(Settings::class)->call('clearSecret', 'telegram.webhook_secret');
+        tsetScreen(Settings::class)->call('clearSecret', 'telegram.webhook_secret');
 
         expect(IntegrationSecret::query()->where('key', 'telegram.webhook_secret')->count())->toBe(1)
             ->and(SettingsAudit::query()->count())->toBe(0)
@@ -321,17 +321,17 @@ describe('deactivated admin with an open snapshot', function () {
 
         $user = staffUser();
         $this->actingAs($user);
-        $snapshot = tsaSnapshot(route('admin.telegram.settings'), 'secretInputs');
-        $before = tsaStateOf();
+        $snapshot = tsetSnapshot(route('admin.telegram.settings'), 'secretInputs');
+        $before = tsetStateOf();
 
         $user->forceFill(['is_active' => false])->save();
 
         $this->withSession([PasswordConfirmation::SESSION_KEY => now()->unix()]);
 
-        tsaUpdateRequest($snapshot, $method, $params)->assertForbidden();
+        tsetUpdateRequest($snapshot, $method, $params)->assertForbidden();
 
         $this->assertGuest();
-        expect(tsaStateOf())->toBe($before);
+        expect(tsetStateOf())->toBe($before);
         Http::assertNothingSent();
     })->with([
         'generate' => ['generateWebhookSecret', []],
@@ -365,7 +365,7 @@ describe('stale results after generating', function () {
         confirmAdminPassword();
         Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['username' => 'poson_bot']])]);
 
-        tsaScreen(Settings::class)
+        tsetScreen(Settings::class)
             ->call('test', 'telegram')
             ->call('test', 'telegram_chat', 'sales')
             ->assertSet('testResults.telegram_bot_token.ok', true)
@@ -378,7 +378,7 @@ describe('stale results after generating', function () {
         confirmAdminPassword();
         Http::fake();
 
-        $component = tsaScreen(Integrations::class)->call('test', 'uzqr')->call('test', 'indexnow');
+        $component = tsetScreen(Integrations::class)->call('test', 'uzqr')->call('test', 'indexnow');
 
         expect($component->get('testResults'))->toHaveKeys(['uzqr_connection', 'indexnow_key']);
 

@@ -140,19 +140,16 @@ final class TelegramStatus
     }
 
     /**
-     * Where each row's link points; null when the route does not exist
-     * (the settings page moves with plan 21 stream C). The view still checks
+     * Where each row's link points; null when the route does not exist. The view still checks
      * the ability with @can.
      *
      * @return array<string, array{route: string|null, can: string}>
      */
     public static function links(): array
     {
-        $settings = Route::has('admin.telegram.settings') ? 'admin.telegram.settings' : (Route::has('admin.settings.integrations') ? 'admin.settings.integrations' : null);
-
         return [
             'bot' => ['route' => 'admin.telegram.bot', 'can' => 'telegram.bot'],
-            'settings' => ['route' => $settings, 'can' => 'settings.integrations'],
+            'settings' => ['route' => Route::has('admin.telegram.settings') ? 'admin.telegram.settings' : null, 'can' => 'settings.integrations'],
             'monitoring' => ['route' => Route::has('admin.monitoring') ? 'admin.monitoring' : null, 'can' => 'monitoring.view'],
         ];
     }
@@ -566,7 +563,7 @@ final class TelegramStatus
         return $this->row('invalid_env', $onlyUnknown ? self::UNKNOWN : self::PROBLEM, ['count' => count($items)], items: array_map(fn (array $item): array => [
             'env' => $item['env'],
             'reason' => in_array($item['reason'], ['format', 'ignored', 'unknown'], true) ? $item['reason'] : 'unknown',
-        ], $items));
+        ], $items), variant: $onlyUnknown ? 'unknown' : null);
     }
 
     /**
