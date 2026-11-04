@@ -75,6 +75,13 @@ class Show extends Component
     #[Locked]
     public int $conversationId = 0;
 
+    /**
+     * Whose snapshot this is: another user replaying it gets 403 before any lookup.
+     * A snapshot from before this property reads as 0 and is refused, so a reload fixes it.
+     */
+    #[Locked]
+    public int $viewerId = 0;
+
     #[Locked]
     public int $limit = self::PAGE_SIZE;
 
@@ -109,14 +116,20 @@ class Show extends Component
     /**
      * Not a bound model on the route: Livewire binds the route again on every
      * update, which would turn a chat deleted meanwhile into a 404 and an error
-     * modal before hydrate() could redirect.
+     * modal before hydrate() could redirect. A missing id looks the same as a
+     * foreign thread to anyone without telegram.inbox-all (403).
      */
     public function mount(TelegramUser|int|string $telegramUser, MarkConversationRead $markRead): void
     {
-        $telegramUser = $telegramUser instanceof TelegramUser ? $telegramUser : TelegramUser::query()->findOrFail($telegramUser);
+        $telegramUser = $telegramUser instanceof TelegramUser ? $telegramUser : TelegramUser::query()->find($telegramUser);
+
+        if ($telegramUser === null) {
+            abort($this->user()->can('telegram.inbox-all') ? 404 : 403);
+        }
 
         $this->authorize('view', $telegramUser);
         $this->conversationId = $telegramUser->id;
+        $this->viewerId = $this->user()->id;
 
         $markRead->handle($telegramUser, $this->user());
     }
@@ -125,9 +138,14 @@ class Show extends Component
      * A chat deleted meanwhile redirects to the list with a notice instead of the
      * error modal, and nothing is rendered. The call in this request fails on the
      * missing row before it does anything, and exception() ends it quietly.
+     * Someone who lost inbox access gets 403 first, and learns nothing of the row.
      */
     public function hydrate(): void
     {
+        abort_unless($this->viewerId === (int) auth()->id(), 403);
+
+        $this->authorize('viewAny', TelegramUser::class);
+
         $this->loaded = TelegramUser::query()->select(self::COLUMNS)->find($this->conversationId);
 
         if ($this->loaded === null) {

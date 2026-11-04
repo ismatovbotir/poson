@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
+use Livewire\Mechanisms\HandleComponents\Checksum;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Plan 21 A7 (T21-18, T21-20, T21-35): Admin delete of a conversation and the
@@ -260,6 +262,70 @@ it('renders nothing for a real poll after the chat was deleted', function () {
         ->and($response->getContent())->not->toContain('Private Person');
 });
 
+it('gives a manager and a Content manager 403 for a missing id and another manager\'s thread', function (Role $role) {
+    $user = staffUser($role);
+    $foreign = TelegramUser::factory()->registered()->assigned(staffUser(Role::SalesManager))->create();
+
+    $this->actingAs($user)->get(route('admin.telegram.chats.show', 999999))->assertForbidden();
+    $this->actingAs($user)->get(route('admin.telegram.chats.show', $foreign))->assertForbidden();
+})->with([Role::SalesManager, Role::ContentManager]);
+
+it('still gives an Admin 404 for a missing id', function () {
+    $this->actingAs(staffUser(Role::Admin))->get(route('admin.telegram.chats.show', 999999))->assertNotFound();
+});
+
+it('gives 404 for a non-numeric id, by the route', function () {
+    $this->actingAs(staffUser(Role::SalesManager))->get('/admin/telegram/chats/1abc')->assertNotFound();
+});
+
+it('gives 403 and no notice on a stale tab of someone who lost inbox access, deleted chat or not', function (bool $deleted) {
+    $manager = staffUser(Role::SalesManager);
+    $chat = TelegramUser::factory()->registered()->assigned($manager)->create();
+    $page = Livewire::actingAs($manager)->test(Show::class, ['telegramUser' => $chat]);
+
+    $manager->syncRoles([Role::ContentManager->value]);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    if ($deleted) {
+        TelegramUser::query()->whereKey($chat->id)->delete();
+    }
+
+    $page->call('refreshThread')->assertForbidden();
+
+    expect(session('toast'))->toBeNull();
+})->with(['deleted chat' => [true], 'existing chat' => [false]]);
+
+it('keeps the redirect and notice for a manager who still holds inbox access', function () {
+    $manager = staffUser(Role::SalesManager);
+    $chat = TelegramUser::factory()->registered()->assigned($manager)->create();
+    $page = Livewire::actingAs($manager)->test(Show::class, ['telegramUser' => $chat]);
+
+    TelegramUser::query()->whereKey($chat->id)->delete();
+
+    $page->call('refreshThread')->assertRedirect(route('admin.telegram.chats'));
+
+    expect(session('toast')['title'])->toBe(__('telegram_inbox.toasts.chat_gone'));
+});
+
+it('refuses a snapshot from before the viewer id existed, with no notice', function () {
+    $manager = staffUser(Role::SalesManager);
+    $chat = TelegramUser::factory()->registered()->assigned($manager)->create();
+    $html = $this->actingAs($manager)->get(route('admin.telegram.chats.show', $chat))->assertOk()->getContent();
+    preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+    $current = collect($matches[1])
+        ->map(fn (string $raw) => json_decode(html_entity_decode($raw, ENT_QUOTES), true))
+        ->first(fn (array $candidate) => array_key_exists('conversationId', $candidate['data'] ?? []));
+
+    unset($current['data']['viewerId'], $current['checksum']);
+    $current['checksum'] = Checksum::generate($current);
+
+    $this->withHeaders(['X-Livewire' => '1'])->postJson(app('livewire')->getUpdateUri(), [
+        'components' => [['snapshot' => json_encode($current), 'calls' => [['method' => 'refreshThread', 'params' => [], 'metadata' => []]], 'updates' => (object) []]],
+    ])->assertForbidden();
+
+    expect(session('toast'))->toBeNull();
+});
+
 it('has the delete texts and audit label in every locale', function (string $locale) {
     foreach (['delete', 'delete_help', 'delete_confirm', 'delete_warn_banned', 'delete_warn_lead', 'delete_warn_bot_off', 'delete_btn', 'delete_password'] as $key) {
         expect(Lang::has('telegram_inbox.manage.'.$key, $locale, false))->toBeTrue();
@@ -306,6 +372,24 @@ it('paginates the inbox audit rows and shows an empty state', function () {
 
     $second = $first->call('gotoPage', 2, 'auditPage');
     expect(substr_count($second->html(), 'data-inbox-audit-row'))->toBe(2);
+});
+
+it('keeps an audit row with a dash after its actor is deleted', function () {
+    $admin = staffUser(Role::Admin);
+    $actor = staffUser(Role::SalesManager);
+    SettingsAudit::record(SettingsArea::TelegramInbox, 'telegram.conversation.77', AuditAction::Banned, $actor, null);
+    $actorName = $actor->name;
+
+    $actor->delete();
+
+    $page = Livewire::actingAs($admin)->test(Status::class)
+        ->assertOk()
+        ->assertSee('telegram.conversation.77')
+        ->assertDontSee($actorName);
+
+    expect(SettingsAudit::query()->sole()->user_id)->toBeNull()
+        ->and(substr_count($page->html(), 'data-inbox-audit-row'))->toBe(1)
+        ->and($page->html())->toMatch('/<td[^>]*>\s*'.preg_quote(e(__('admin.common.empty_value')), '/').'\s*<\/td>/');
 });
 
 it('keeps the inbox audit list Admin only', function (Role $role) {

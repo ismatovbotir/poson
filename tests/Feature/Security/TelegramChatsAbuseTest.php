@@ -402,6 +402,7 @@ it('refuses direct calls to lifecycle and private component methods', function (
     'index user' => [Index::class, 'user'],
     'show mount' => [Show::class, 'mount'],
     'show hydrate' => [Show::class, 'hydrate'],
+    'show exception' => [Show::class, 'exception'],
     'show conversation' => [Show::class, 'conversation'],
     'show user' => [Show::class, 'user'],
 ]);
