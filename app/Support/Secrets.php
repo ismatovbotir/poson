@@ -395,6 +395,15 @@ final class Secrets
 
         $this->invalidEnvReported[$field->key] = true;
 
+        // Runs in boot: a cache store failure must never take the site down.
+        try {
+            if (! Cache::add('integration_invalid_env:'.$field->key, true, 3600)) {
+                return;
+            }
+        } catch (Throwable) {
+            // Report anyway.
+        }
+
         report(new RuntimeException("Integration setting [{$field->key}] has an invalid .env value ({$field->env}); it is ignored."));
     }
 

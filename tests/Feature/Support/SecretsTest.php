@@ -6,6 +6,7 @@ use App\Models\Setting;
 use App\Support\CompanySettings;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Cache;
@@ -197,6 +198,59 @@ it('ignores a .env value of a select field outside its options and reports the k
 
     Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[payme.mode]') && ! str_contains($e->getMessage(), 'SECRETISH'));
     Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[telegram.locale]'));
+});
+
+describe('invalid .env values', function () {
+    it('reports an invalid .env value once an hour across fresh instances, by key and env name only', function () {
+        Exceptions::fake();
+
+        freshSecrets(['services.payme.mode' => 'live-SECRETISH']);
+        Secrets::get('payme.mode');
+        freshSecrets(['services.payme.mode' => 'live-SECRETISH']);
+        Secrets::get('payme.mode');
+
+        Exceptions::assertReportedCount(1);
+        Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[payme.mode]')
+            && str_contains($e->getMessage(), IntegrationRegistry::field('payme.mode')->env)
+            && ! str_contains($e->getMessage(), 'SECRETISH'));
+    });
+
+    it('reports again for another key and after the hour', function () {
+        Exceptions::fake();
+
+        freshSecrets(['services.payme.mode' => 'bad', 'services.telegram.locale' => 'klingon']);
+        Secrets::get('payme.mode');
+        Secrets::get('telegram.locale');
+
+        Exceptions::assertReportedCount(2);
+
+        $this->travel(61)->minutes();
+        freshSecrets(['services.payme.mode' => 'bad']);
+        Secrets::get('payme.mode');
+
+        Exceptions::assertReportedCount(3);
+    });
+
+    it('still reports and does not break when the cache store fails', function () {
+        Exceptions::fake();
+        $GLOBALS['secrets_test_add_attempts'] = [];
+        Cache::extend('failing-add', fn () => Cache::repository(new class extends ArrayStore
+        {
+            public function add($key, $value, $seconds): bool
+            {
+                $GLOBALS['secrets_test_add_attempts'][] = $key;
+
+                throw new RuntimeException('cache down');
+            }
+        }));
+        config(['cache.stores.failing-add' => ['driver' => 'failing-add'], 'cache.default' => 'failing-add']);
+
+        freshSecrets(['services.payme.mode' => 'live-SECRETISH']);
+
+        expect(Secrets::get('payme.mode'))->toBe('test')
+            ->and($GLOBALS['secrets_test_add_attempts'])->toContain('integration_invalid_env:payme.mode');
+        Exceptions::assertReported(fn (RuntimeException $e): bool => str_contains($e->getMessage(), '[payme.mode]'));
+    });
 });
 
 it('declares every integration field in config without a default and in .env.example', function () {
