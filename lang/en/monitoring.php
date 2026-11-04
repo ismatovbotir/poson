@@ -30,6 +30,7 @@ return [
         'configured' => 'Configured',
         'not_configured' => 'Not set',
         'set_up' => 'Set up in Integrations',
+        'set_up_telegram' => 'Set up in Telegram settings',
     ],
 
     'tasks' => [

@@ -1150,7 +1150,7 @@ return [
 
         'integrations' => [
             'title' => 'Integratsiyalar',
-            'subtitle' => 'API kalitlari: Telegram, Payme va Click',
+            'subtitle' => 'API kalitlari: Payme, Click va UzQR',
             'sections_label' => 'Integratsiya boʻlimlari',
             'saved' => '“:section” boʻlimi saqlandi.',
             'no_changes' => 'Hech narsa oʻzgarmadi.',
@@ -1456,6 +1456,14 @@ return [
         ],
     ],
 
+    // Plan 21 stream C: Telegram → Settings page.
+    'telegram_settings' => [
+        'title' => 'Telegram sozlamalari',
+        'subtitle' => 'Bot tokeni, webhook siri, chat IDlari va ogohlantirish kalitlari.',
+        'audit_subtitle' => 'Telegram sozlamalaridagi soʻnggi :count ta oʻzgarish. Qiymatlar koʻrsatilmaydi.',
+        'open' => 'Telegram sozlamalarini ochish',
+    ],
+
     // Plan 14 v2 B2: Telegram → Bot page.
     'telegram_bot' => [
         'title' => 'Telegram bot',
@@ -1464,7 +1472,7 @@ return [
         'checking' => 'Telegramda tekshirilmoqda…',
         'problem_hints' => [
             'telegram_webhook' => 'Quyidagi webhookni tekshiring va u boshqa manzilga yoʻnaltirilgan boʻlsa «Webhookni oʻrnatish» tugmasini bosing.',
-            'telegram_token' => 'Bot tokenini Sozlamalar → Integratsiyalar boʻlimida almashtiring (BotFather → /revoke yangisini beradi).',
+            'telegram_token' => 'Bot tokenini Telegram → Sozlamalar boʻlimida almashtiring (BotFather → /revoke yangisini beradi).',
         ],
         'refresh' => 'Yangilash',
         'password_hint' => 'Bu sahifadagi har bir oʻzgarish parolni qayta soʻraydi (15 daqiqa amal qiladi).',
@@ -1494,11 +1502,11 @@ return [
             'privacy' => 'Maxfiylik siyosati sahifasi faol va tekshirilgan',
         ],
         'checks_fix' => [
-            'token' => 'Sozlamalar → Integratsiyalar → Telegram: BotFatherʼdan olingan tokenni kiriting.',
-            'webhook_secret' => 'Sozlamalar → Integratsiyalar → Telegram: webhook sirini yarating.',
+            'token' => 'Telegram → Sozlamalar: BotFatherʼdan olingan tokenni kiriting.',
+            'webhook_secret' => 'Telegram → Sozlamalar: webhook sirini yarating.',
             'app_url' => 'APP_URLʼda saytning ochiq https manzilini koʻrsating.',
             'webhook' => 'Quyidagi «Webhookni oʻrnatish» tugmasini bosing.',
-            'chat' => 'Sozlamalar → Integratsiyalar → Telegram: kiruvchi xabarlar chati yoki savdo chati uchun yopiq guruh IDsini koʻrsating (-1001234567890 kabi).',
+            'chat' => 'Telegram → Sozlamalar: kiruvchi xabarlar chati yoki savdo chati uchun yopiq guruh IDsini koʻrsating (-1001234567890 kabi).',
             'privacy' => 'Kontent → Sahifalar: Telegram boʻlimi bilan maxfiylik sahifasini eʼlon qiling va «tekshiruv kerak» belgisini olib tashlang.',
         ],
         'webhook_title' => 'Webhook',
@@ -1529,8 +1537,8 @@ return [
         'errors' => [
             'too_many_refreshes' => 'Juda koʻp yangilash. :seconds soniyadan keyin qayta urinib koʻring.',
             'not_https' => 'APP_URL ochiq https manzil boʻlishi kerak.',
-            'no_secret' => 'Avval webhook sirini yarating (Sozlamalar → Integratsiyalar).',
-            'no_token' => 'Bot tokeni kiritilmagan (Sozlamalar → Integratsiyalar).',
+            'no_secret' => 'Avval webhook sirini yarating (Telegram → Sozlamalar).',
+            'no_token' => 'Bot tokeni kiritilmagan (Telegram → Sozlamalar).',
             'not_ready' => 'Botni yoqib boʻlmaydi: baʼzi tekshiruvlardan oʻtmadi.',
             'telegram_error' => 'Telegram soʻrovni qabul qilmadi (:code).',
         ],

@@ -1150,7 +1150,7 @@ return [
 
         'integrations' => [
             'title' => 'Integrations',
-            'subtitle' => 'API keys: Telegram, Payme and Click',
+            'subtitle' => 'API keys: Payme, Click and UzQR',
             'sections_label' => 'Integration sections',
             'saved' => ':section saved.',
             'no_changes' => 'Nothing changed.',
@@ -1456,6 +1456,14 @@ return [
         ],
     ],
 
+    // Plan 21 stream C: Telegram → Settings page.
+    'telegram_settings' => [
+        'title' => 'Telegram settings',
+        'subtitle' => 'Bot token, webhook secret, chat IDs and alert switches.',
+        'audit_subtitle' => 'Latest :count changes to the Telegram settings. Values are never shown.',
+        'open' => 'Open Telegram settings',
+    ],
+
     // Plan 14 v2 B2: Telegram → Bot page.
     'telegram_bot' => [
         'title' => 'Telegram bot',
@@ -1464,7 +1472,7 @@ return [
         'checking' => 'Checking with Telegram…',
         'problem_hints' => [
             'telegram_webhook' => 'Check the webhook below and press "Set webhook" if it points elsewhere.',
-            'telegram_token' => 'Replace the bot token in Settings → Integrations (BotFather → /revoke gives a new one).',
+            'telegram_token' => 'Replace the bot token in Telegram → Settings (BotFather → /revoke gives a new one).',
         ],
         'refresh' => 'Refresh',
         'password_hint' => 'Every change on this page asks for your password again (valid for 15 minutes).',
@@ -1494,11 +1502,11 @@ return [
             'privacy' => 'Privacy policy page is active and reviewed',
         ],
         'checks_fix' => [
-            'token' => 'Settings → Integrations → Telegram: add the token from BotFather.',
-            'webhook_secret' => 'Settings → Integrations → Telegram: generate the webhook secret.',
+            'token' => 'Telegram → Settings: add the token from BotFather.',
+            'webhook_secret' => 'Telegram → Settings: generate the webhook secret.',
             'app_url' => 'Set APP_URL to the public https address of the site.',
             'webhook' => 'Press "Set webhook" below.',
-            'chat' => 'Settings → Integrations → Telegram: set a private group ID (like -1001234567890) for the inbox chat or the sales chat.',
+            'chat' => 'Telegram → Settings: set a private group ID (like -1001234567890) for the inbox chat or the sales chat.',
             'privacy' => 'Content → Pages: publish the privacy page with the Telegram section and clear "needs review".',
         ],
         'webhook_title' => 'Webhook',
@@ -1529,8 +1537,8 @@ return [
         'errors' => [
             'too_many_refreshes' => 'Too many refreshes. Try again in :seconds s.',
             'not_https' => 'APP_URL must be a public https address.',
-            'no_secret' => 'Generate the webhook secret first (Settings → Integrations).',
-            'no_token' => 'The bot token is not set (Settings → Integrations).',
+            'no_secret' => 'Generate the webhook secret first (Telegram → Settings).',
+            'no_token' => 'The bot token is not set (Telegram → Settings).',
             'not_ready' => 'The bot cannot be enabled: some checks failed.',
             'telegram_error' => 'Telegram did not accept the request (:code).',
         ],

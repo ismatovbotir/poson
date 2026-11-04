@@ -25,7 +25,13 @@
         @foreach ($problems as $event => $since)
             <p wire:key="problem-{{ $event }}" class="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert" data-problem="{{ $event }}">
                 <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />
-                <span>{{ __('telegram.monitoring.events.'.$event) }} · {{ $since->timezone(config('app.timezone'))->format('d.m.Y H:i') }}. {{ __($t.'.problem_hints.'.$event) }}</span>
+                <span>{{ __('telegram.monitoring.events.'.$event) }} · {{ $since->timezone(config('app.timezone'))->format('d.m.Y H:i') }}. {{ __($t.'.problem_hints.'.$event) }}
+                    @if ($event === 'telegram_token')
+                        @can('settings.integrations')
+                            <a href="{{ route('admin.telegram.settings') }}" wire:navigate class="font-semibold underline hover:no-underline" data-settings-link>{{ __('admin.telegram_settings.open') }}</a>
+                        @endcan
+                    @endif
+                </span>
             </p>
         @endforeach
 
@@ -94,6 +100,11 @@
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checking') }}</span>
                             @elseif (! $ok)
                                 <span class="mt-0.5 block text-slate-500">{{ __($t.'.checks_fix.'.$item) }}</span>
+                                @if (in_array($item, ['token', 'webhook_secret', 'chat'], true))
+                                    @can('settings.integrations')
+                                        <a href="{{ route('admin.telegram.settings') }}" wire:navigate class="mt-0.5 block font-semibold text-brand-700 hover:underline" data-settings-link>{{ __('admin.telegram_settings.open') }}</a>
+                                    @endcan
+                                @endif
                             @endif
                         </span>
                     </li>

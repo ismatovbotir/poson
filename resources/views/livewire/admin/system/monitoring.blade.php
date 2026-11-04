@@ -63,9 +63,12 @@
             <dd class="mt-2 space-y-1.5 text-sm text-slate-600">
                 <p class="flex items-center gap-2">Telegram <x-admin.badge :color="$telegramConfigured ? 'brand' : 'amber'">{{ $telegramConfigured ? __($t.'.cards.configured') : __($t.'.cards.not_configured') }}</x-admin.badge></p>
                 <p class="flex items-center gap-2">{{ __($t.'.cards.ping') }} <x-admin.badge :color="$pingConfigured ? 'brand' : 'muted'">{{ $pingConfigured ? __($t.'.cards.configured') : __($t.'.cards.not_configured') }}</x-admin.badge></p>
-                @if (! $telegramConfigured || ! $pingConfigured)
+                @unless ($telegramConfigured)
+                    <p class="text-xs"><a href="{{ route('admin.telegram.settings') }}" wire:navigate class="font-semibold text-brand-700 hover:underline">{{ __($t.'.cards.set_up_telegram') }}</a></p>
+                @endunless
+                @unless ($pingConfigured)
                     <p class="text-xs"><a href="{{ route('admin.settings.integrations') }}" wire:navigate class="font-semibold text-brand-700 hover:underline">{{ __($t.'.cards.set_up') }}</a></p>
-                @endif
+                @endunless
             </dd>
         </div>
     </dl>

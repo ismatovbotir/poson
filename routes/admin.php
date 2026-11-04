@@ -163,6 +163,8 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
     // Telegram bot page (plan 14 v2 §9): telegram.bot (Admin only), password re-confirmation on every write.
     Route::livewire('/telegram/bot', Telegram\Bot::class)->name('telegram.bot');
+    // Plan 21 stream C: settings.integrations (Admin only), authorized in the component.
+    Route::livewire('/telegram/settings', Telegram\Settings::class)->name('telegram.settings');
     // Plan 21: telegram.status (telegram.bot), telegram.settings (settings.integrations), telegram.chats (telegram.inbox) routes go here.
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');

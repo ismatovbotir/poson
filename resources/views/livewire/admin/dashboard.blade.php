@@ -30,7 +30,7 @@
                     @endforeach
                 </p>
             </div>
-            <x-admin.button size="sm" variant="secondary" :href="route('admin.settings.integrations').'#section-telegram'" wire:navigate>{{ __('crm.dashboard.telegram_failures.settings') }}</x-admin.button>
+            <x-admin.button size="sm" variant="secondary" :href="route('admin.telegram.settings')" wire:navigate>{{ __('crm.dashboard.telegram_failures.settings') }}</x-admin.button>
         </section>
     @endif
 

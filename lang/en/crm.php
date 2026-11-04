@@ -481,7 +481,7 @@ return [
         'telegram_failures' => [
             'title' => 'Telegram alerts failed',
             'body' => ':count lead alerts in the last 7 days didn’t reach Telegram. Check the integration settings.',
-            'settings' => 'Open integrations',
+            'settings' => 'Open Telegram settings',
         ],
         'leads_label' => 'Leads',
         'recent' => 'Latest leads',

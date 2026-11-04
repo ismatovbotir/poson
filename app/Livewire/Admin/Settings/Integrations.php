@@ -3,10 +3,7 @@
 namespace App\Livewire\Admin\Settings;
 
 use App\Actions\Settings\GenerateIndexNowKey;
-use App\Actions\Settings\GenerateWebhookSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
-use App\Actions\Settings\TestIntegrationConnection;
-use App\Actions\Telegram\ConfigureTelegramWebhook;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymentMode;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
@@ -28,19 +25,10 @@ use Livewire\Component;
 
 /**
  * Settings → Integrations (/admin/settings/integrations, plan 04b T7).
- * Sections Telegram · Payme · Click (each provider with a test / prod
- * mode, plan 11 v2 §1.8), plus the settings
- * audit history (all areas, latest 50).
- *
- * Security (plan 04 S5, S7):
- * - settings.integrations (Admin only), authorized in boot() — so on every
- *   request — and again before each write;
- * - every save, clear, generate and test needs a password confirmation from
- *   the last 15 minutes, else the user is sent to /admin/confirm-password;
- * - secrets are write-only: typed into $secretInputs, which is reset after
- *   every attempt and in dehydrate() before every response, so a typed or
- *   saved value is never held in a public property, the snapshot or the HTML. Only the status
- *   (.env / ••••1234 / not set) is rendered.
+ * Sections Payme · Click · UzQR (each with a test / prod mode, plan 11 v2
+ * §1.8) · Monitoring · IndexNow, plus the settings audit history (all areas,
+ * latest 50). Telegram lives at /admin/telegram/settings: its keys and test
+ * targets are a 404 here. Security rules: ManagesIntegrationSettings.
  */
 #[Layout('layouts::admin')]
 class Integrations extends Component
@@ -62,13 +50,14 @@ class Integrations extends Component
     public ?string $prodConfirmGroup = null;
 
     /**
-     * The sections of this screen: every registry group.
+     * The sections of this screen: every registry group except Telegram,
+     * which has its own page (Telegram\Settings, plan 21 stream C).
      *
      * @return list<string>
      */
     protected function integrationGroups(): array
     {
-        return IntegrationRegistry::GROUPS;
+        return array_values(array_diff(IntegrationRegistry::GROUPS, ['telegram']));
     }
 
     /**
@@ -76,7 +65,7 @@ class Integrations extends Component
      */
     protected function allowedTestTargets(): array
     {
-        return TestIntegrationConnection::TARGETS;
+        return ['uzqr', 'indexnow'];
     }
 
     protected function returnRouteName(): string
@@ -132,35 +121,6 @@ class Integrations extends Component
         }
 
         $this->persist($group, $this->form->valuesFor($group), $saveSettings);
-    }
-
-    /**
-     * New Telegram webhook secret (called from the confirm dialog).
-     */
-    public function generateWebhookSecret(GenerateWebhookSecret $generate, ConfigureTelegramWebhook $configureWebhook): void
-    {
-        $this->resetSecretInputs();
-
-        $this->authorize('manageIntegrations', Setting::class);
-
-        if (! $this->ensurePasswordConfirmed()) {
-            return;
-        }
-
-        if (Secrets::source(GenerateWebhookSecret::KEY) === IntegrationSource::Env) {
-            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.settings.integrations.locked_hint', ['env' => IntegrationRegistry::field(GenerateWebhookSecret::KEY)->env]), type: 'error');
-
-            return;
-        }
-
-        $generate->handle(auth()->user(), request()->ip());
-
-        $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.telegram.webhook_generated'), type: 'success');
-
-        // Plan 14 v2 condition 1: re-register the webhook with the new (committed) secret; failure is a warning, never an exception.
-        if ($configureWebhook->afterSecretGenerated(auth()->user(), request()->ip()) === ConfigureTelegramWebhook::FAILED) {
-            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.telegram_bot.flash.webhook_reset_failed'), type: 'error');
-        }
     }
 
     /**

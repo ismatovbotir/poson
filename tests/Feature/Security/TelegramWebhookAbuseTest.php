@@ -6,8 +6,8 @@ use App\Actions\Telegram\SetBotEnabled;
 use App\Actions\Telegram\TelegramUpdateFailed;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
-use App\Livewire\Admin\Settings\Integrations;
 use App\Livewire\Admin\Telegram\Bot;
+use App\Livewire\Admin\Telegram\Settings as TelegramSettings;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
@@ -118,20 +118,20 @@ it('registers only APP_URL plus the fixed path whatever Host headers the admin r
     Livewire::actingAs($admin)->test(Bot::class)->call('setWebhook');
 
     telegramBotConfigured(['services.telegram.webhook_secret' => null]);
-    Livewire::actingAs($admin)->test(Integrations::class)->call('generateWebhookSecret');
+    Livewire::actingAs($admin)->test(TelegramSettings::class)->call('generateWebhookSecret');
 
     expect(abuseSetWebhookUrls())->toBe([ABUSE_EXPECTED_URL, ABUSE_EXPECTED_URL])
         ->and(collect(telegramApiCalls())->pluck('data')->toJson())->not->toContain('evil.example.com');
 });
 
 // 4. A webhook that points elsewhere is never taken over by a secret rotation (action level: TelegramWebhookSetupTest).
-it('skips the re-registration from the Integrations screen when Telegram points elsewhere', function (string $current) {
+it('skips the re-registration from the Telegram settings page when Telegram points elsewhere', function (string $current) {
     abuseTelegramWebhookAt($current);
     confirmAdminPassword();
     $admin = staffUser();
     telegramBotConfigured(['services.telegram.webhook_secret' => null]);
 
-    Livewire::actingAs($admin)->test(Integrations::class)
+    Livewire::actingAs($admin)->test(TelegramSettings::class)
         ->call('generateWebhookSecret')
         ->assertNotDispatched('toast', type: 'error');
 

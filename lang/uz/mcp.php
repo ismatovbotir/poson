@@ -14,9 +14,9 @@ return [
     ],
 
     'confirm_required' => 'Bu sahifadagi har bir oʻzgarish uchun soʻnggi :minutes daqiqada tasdiqlangan parol kerak.',
-    'management_missing' => 'Telegram rahbariyat chati sozlanmagan. MCP ogohlantirishlari (yangi tokenlar, yangi IP manzillar, bekor qilishlar) hech kimga yetib bormaydi. Uni Sozlamalar → Integratsiyalar boʻlimida koʻrsating.',
+    'management_missing' => 'Telegram rahbariyat chati sozlanmagan. MCP ogohlantirishlari (yangi tokenlar, yangi IP manzillar, bekor qilishlar) hech kimga yetib bormaydi. Uni Telegram → Sozlamalar boʻlimida koʻrsating.',
     'management_missing_production' => 'Ishchi muhitda bot va rahbariyat chati sozlanmaguncha token yaratib boʻlmaydi.',
-    'integrations_link' => 'Integratsiyalarni ochish',
+    'integrations_link' => 'Telegram sozlamalarini ochish',
 
     'holder' => [
         'title' => 'Kirish egasi',
@@ -139,7 +139,7 @@ return [
         'not_single_holder' => 'MCP kirish yana bir foydalanuvchida bor. Barcha kirishni bekor qiling va qaytadan bering.',
         'too_many_tokens' => 'Koʻpi bilan :max ta faol token. Avval bittasini bekor qiling.',
         'invalid_ip' => '“:value” IP manzil yoki diapazon emas.',
-        'management_chat_missing' => 'MCP tokenlarini yaratishdan oldin Telegram bot va rahbariyat chatini sozlang (Sozlamalar → Integratsiyalar).',
+        'management_chat_missing' => 'MCP tokenlarini yaratishdan oldin Telegram bot va rahbariyat chatini sozlang (Telegram → Sozlamalar).',
         'token_inactive' => 'Bu token endi faol emas.',
     ],
 ];

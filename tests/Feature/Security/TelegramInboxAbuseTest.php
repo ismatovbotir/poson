@@ -16,7 +16,7 @@ use App\Jobs\DeliverBotMessage;
 use App\Jobs\ForwardTelegramMedia;
 use App\Jobs\SendTelegramMessage;
 use App\Listeners\SendTelegramInboxAlert;
-use App\Livewire\Admin\Settings\Integrations;
+use App\Livewire\Admin\Telegram\Settings as TelegramSettings;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\TelegramMessage;
@@ -999,10 +999,10 @@ it('case 28: stores and forwards nothing from a user who is still registering', 
 
 /* ------------------------------------------------------ 29 settings access */
 
-// 29. The inbox switches are Admin-only settings (generic access tests: IntegrationsScreenTest "access").
+// 29. The inbox switches are Admin-only settings (generic access tests: Admin/Telegram/SettingsScreenTest "access").
 it('case 29: refuses telegram.notify_inbox and telegram.chats.inbox changes to other staff roles', function (Role $role) {
     confirmAdminPassword();
-    $component = Livewire::actingAs(staffUser())->test(Integrations::class)
+    $component = Livewire::actingAs(staffUser())->test(TelegramSettings::class)
         ->set('form.values.telegram.notify_inbox', false)
         ->set('form.values.telegram.chats.inbox', '-1002222222222');
 
@@ -1019,7 +1019,7 @@ it('case 29: audits an Admin change of the inbox switches by key, never with the
     confirmAdminPassword();
     $admin = staffUser();
 
-    Livewire::actingAs($admin)->test(Integrations::class)
+    Livewire::actingAs($admin)->test(TelegramSettings::class)
         ->set('form.values.telegram.notify_inbox', false)
         ->set('form.values.telegram.chats.inbox', '-1002222222222')
         ->call('save', 'telegram')

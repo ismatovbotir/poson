@@ -30,6 +30,7 @@ return [
         'configured' => 'Sozlangan',
         'not_configured' => 'Kiritilmagan',
         'set_up' => 'Integratsiyalarda sozlash',
+        'set_up_telegram' => 'Telegram sozlamalarida sozlash',
     ],
 
     'tasks' => [

@@ -30,6 +30,7 @@ return [
         'configured' => 'Настроено',
         'not_configured' => 'Не задано',
         'set_up' => 'Настроить в Интеграциях',
+        'set_up_telegram' => 'Настроить в разделе Telegram',
     ],
 
     'tasks' => [

@@ -129,6 +129,9 @@ trait ManagesIntegrationSettings
         try {
             $field = $this->secretField($key);
 
+            // Generated values (webhook secret, IndexNow key) are never typed in.
+            abort_if($field->generated, 404);
+
             $this->authorize('manageIntegrations', Setting::class);
 
             if (! $this->ensurePasswordConfirmed()) {

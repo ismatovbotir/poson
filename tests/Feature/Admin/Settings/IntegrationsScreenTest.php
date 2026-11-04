@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\Settings\SetSecret;
-use App\Actions\Settings\TestIntegrationConnection;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
@@ -18,8 +17,6 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -69,9 +66,12 @@ describe('access', function () use ($otherRoles) {
             ->assertSeeLivewire(Integrations::class)
             ->getContent();
 
-        foreach (['telegram', 'payme', 'click'] as $group) {
+        foreach (['payme', 'click', 'uzqr', 'monitoring', 'indexnow'] as $group) {
             expect($html)->toContain('data-section="'.$group.'"');
         }
+
+        // Telegram has its own page: Admin/Telegram/SettingsScreenTest.
+        expect($html)->not->toContain('data-section="telegram"');
 
         // The AI assistant and remove.bg are gone (decision 2026-10-28).
         expect($html)->not->toContain('data-section="ai"')
@@ -97,11 +97,11 @@ describe('access', function () use ($otherRoles) {
             ->and(Setting::query()->count())->toBe(0)
             ->and(SettingsAudit::query()->count())->toBe(0);
     })->with($otherRoles)->with([
-        'save' => ['save', ['telegram']],
+        'save' => ['save', ['payme']],
         'replace' => ['replaceSecret', ['payme.key']],
         'clear' => ['clearSecret', ['payme.key']],
-        'generate' => ['generateWebhookSecret', []],
-        'test' => ['test', ['telegram']],
+        'generate' => ['generateIndexNowKey', []],
+        'test' => ['test', ['uzqr']],
     ]);
 
     it('shows the menu item by the settings.integrations permission', function () {
@@ -121,7 +121,7 @@ describe('password confirmation', function () {
     it('asks for the password before any write and returns here afterwards', function (string $method, array $params) {
         integrationsScreen()
             ->set('secretInputs.payme.key', SCREEN_SECRET)
-            ->set('form.values.telegram.chats.sales', '-1001234567890')
+            ->set('form.values.click.service_id', '12345')
             ->call($method, ...$params)
             ->assertRedirect(route('admin.confirm-password'));
 
@@ -129,11 +129,11 @@ describe('password confirmation', function () {
             ->and(IntegrationSecret::query()->count())->toBe(0)
             ->and(Setting::query()->count())->toBe(0);
     })->with([
-        'save' => ['save', ['telegram']],
+        'save' => ['save', ['payme']],
         'replace' => ['replaceSecret', ['payme.key']],
         'clear' => ['clearSecret', ['payme.key']],
-        'generate' => ['generateWebhookSecret', []],
-        'test' => ['test', ['telegram']],
+        'generate' => ['generateIndexNowKey', []],
+        'test' => ['test', ['uzqr']],
     ]);
 
     it('shows the confirmation banner and disables the forms until confirmed', function () {
@@ -152,21 +152,21 @@ describe('password confirmation', function () {
         confirmAdminPassword(14 * 60);
 
         integrationsScreen()
-            ->set('form.values.telegram.chats.sales', '-1001234567890')
-            ->call('save', 'telegram')
+            ->set('form.values.click.service_id', '12345')
+            ->call('save', 'click')
             ->assertNoRedirect()
             ->assertHasNoErrors();
 
-        expect(config('services.telegram.chats.sales'))->toBe('-1001234567890');
+        expect(config('services.click.service_id'))->toBe('12345');
 
         $this->travel(2)->minutes();
 
         integrationsScreen()
-            ->set('form.values.telegram.chats.sales', '-1009999999999')
-            ->call('save', 'telegram')
+            ->set('form.values.click.service_id', '67890')
+            ->call('save', 'click')
             ->assertRedirect(route('admin.confirm-password'));
 
-        expect(config('services.telegram.chats.sales'))->toBe('-1001234567890');
+        expect(config('services.click.service_id'))->toBe('12345');
     });
 });
 
@@ -229,7 +229,7 @@ describe('secrets', function () {
         expect(browserPayload($component))->not->toContain('SCREENSECRET');
 
         $component->set('secretInputs.click.secret_key', 'fake-click-TYPEDONLY-000000000000000')
-            ->set('form.values.telegram.chats.sales', '-100123');
+            ->set('form.values.click.service_id', '12345');
 
         expect(browserPayload($component))->not->toContain('TYPEDONLY')->not->toContain('SCREENSECRET');
     });
@@ -241,9 +241,9 @@ describe('secrets', function () {
     it('resets the input and keeps the old value on a validation error', function () {
         confirmAdminPassword();
 
-        $component = typeAndReplaceSecret(integrationsScreen(), 'telegram.bot_token', 'broken-TOKENPART')
-            ->assertHasErrors('secretInputs.telegram.bot_token')
-            ->assertSet('secretInputs.telegram.bot_token', '');
+        $component = typeAndReplaceSecret(integrationsScreen(), 'payme.key', 'broken TOKENPART')
+            ->assertHasErrors('secretInputs.payme.key')
+            ->assertSet('secretInputs.payme.key', '');
 
         expect(browserPayload($component))->not->toContain('TOKENPART')
             ->and(IntegrationSecret::query()->count())->toBe(0);
@@ -282,14 +282,6 @@ describe('secrets', function () {
             ->and(SettingsAudit::query()->sole()->action)->toBe(AuditAction::Cleared);
     });
 
-    it('generates the Telegram webhook secret', function () {
-        confirmAdminPassword();
-
-        integrationsScreen()->call('generateWebhookSecret')->assertDispatched('toast', type: 'success');
-
-        expect(Secrets::get('telegram.webhook_secret'))->toMatch('/^[A-Za-z0-9]{48}$/');
-    });
-
     it('404s for a key that is not a secret', function () {
         confirmAdminPassword();
 
@@ -302,40 +294,40 @@ describe('settings', function () {
         confirmAdminPassword();
 
         integrationsScreen()
-            ->set('form.values.telegram.notify_new_leads', false)
-            ->set('form.values.telegram.locale', 'ru')
-            ->call('save', 'telegram')
+            ->set('form.values.click.service_id', '12345')
+            ->set('form.values.click.merchant_id', '67890')
+            ->call('save', 'click')
             ->assertHasNoErrors()
-            ->assertSet('form.values.telegram.locale', 'ru')
+            ->assertSet('form.values.click.service_id', '12345')
             ->assertDispatched('toast', type: 'success');
 
-        expect(config('services.telegram.notify_new_leads'))->toBeFalse()
-            ->and(config('services.telegram.locale'))->toBe('ru')
-            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['telegram.locale', 'telegram.notify_new_leads']);
+        expect(config('services.click.service_id'))->toBe('12345')
+            ->and(config('services.click.merchant_id'))->toBe('67890')
+            ->and(SettingsAudit::query()->where('area', SettingsArea::Integrations)->pluck('key')->sort()->values()->all())->toBe(['click.merchant_id', 'click.service_id']);
     });
 
     it('shows validation errors under the field', function () {
         confirmAdminPassword();
 
         integrationsScreen()
-            ->set('form.values.telegram.chats.sales', 'sales chat')
-            ->call('save', 'telegram')
-            ->assertHasErrors('form.values.telegram.chats.sales');
+            ->set('form.values.click.service_id', 'not digits')
+            ->call('save', 'click')
+            ->assertHasErrors('form.values.click.service_id');
 
         expect(Setting::query()->count())->toBe(0);
     });
 
     it('does not send fields locked by .env', function () {
-        freshSecrets(['services.telegram.chats.sales' => '-100777']);
+        freshSecrets(['services.click.service_id' => '777']);
         confirmAdminPassword();
 
         integrationsScreen()
-            ->assertSet('form.values.telegram.chats.sales', '-100777')
-            ->set('form.values.telegram.chats.sales', '-100888')
-            ->call('save', 'telegram');
+            ->assertSet('form.values.click.service_id', '777')
+            ->set('form.values.click.service_id', '888')
+            ->call('save', 'click');
 
-        expect(Setting::query()->where('key', 'telegram.chats.sales')->exists())->toBeFalse()
-            ->and(config('services.telegram.chats.sales'))->toBe('-100777');
+        expect(Setting::query()->where('key', 'click.service_id')->exists())->toBeFalse()
+            ->and(config('services.click.service_id'))->toBe('777');
     });
 
     it('404s for an unknown section', function () {
@@ -481,67 +473,11 @@ describe('payme mode', function () {
 });
 
 describe('connection tests', function () {
-    it('tests the saved token and shows a safe result', function () {
-        IntegrationSecret::factory()->withValue('telegram.bot_token', SCREEN_BOT_TOKEN)->create();
-        Secrets::flush();
-        confirmAdminPassword();
-        Http::fake(['api.telegram.org/*' => Http::response(['ok' => false], 401)]);
-
-        $component = integrationsScreen()
-            ->set('secretInputs.telegram.bot_token', '999:typed-but-not-saved')
-            ->call('test', 'telegram')
-            ->assertSet('testResults.telegram_bot_token.ok', false)
-            ->assertSeeHtml('data-test-result');
-
-        expect(browserPayload($component))->not->toContain('AAScreenToken')->not->toContain('typed-but-not-saved');
-    });
-
-    it('sends a test message to one chat', function () {
-        IntegrationSecret::factory()->withValue('telegram.bot_token', SCREEN_BOT_TOKEN)->create();
-        Setting::factory()->create(['key' => 'telegram.chats.finance', 'group' => 'integrations', 'value' => '-100123']);
-        Secrets::flush();
-        confirmAdminPassword();
-        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => []])]);
-
-        integrationsScreen()
-            ->call('test', 'telegram_chat', 'finance')
-            ->assertSet('testResults.telegram_chats_finance.ok', true);
-    });
-
-    it('is rate limited', function () {
-        $user = staffUser();
-        IntegrationSecret::factory()->withValue('telegram.bot_token', SCREEN_BOT_TOKEN)->create();
-        Secrets::flush();
-        confirmAdminPassword();
-        Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['username' => 'poson_bot']])]);
-
-        $component = integrationsScreen($user);
-
-        foreach (range(1, TestIntegrationConnection::MAX_ATTEMPTS) as $attempt) {
-            $component->call('test', 'telegram')->assertSet('testResults.telegram_bot_token.ok', true);
-        }
-
-        $component->call('test', 'telegram')->assertSet('testResults.telegram_bot_token.ok', false);
-
-        Http::assertSentCount(TestIntegrationConnection::MAX_ATTEMPTS);
-    });
-
-    it('uses no rate limit while the password is not confirmed', function () {
-        $user = staffUser();
-        $component = integrationsScreen($user);
-
-        foreach (range(1, TestIntegrationConnection::MAX_ATTEMPTS + 1) as $attempt) {
-            $component->call('test', 'telegram')->assertRedirect(route('admin.confirm-password'));
-        }
-
-        expect(RateLimiter::attempts(TestIntegrationConnection::throttleKey($user)))->toBe(0);
-    });
-
     it('404s for an unknown or removed target', function (string $target) {
         confirmAdminPassword();
 
         integrationsScreen()->call('test', $target)->assertNotFound();
-    })->with(['payme', 'anthropic', 'openrouter', 'openai', 'removebg']);
+    })->with(['payme', 'telegram', 'telegram_chat', 'anthropic', 'openrouter', 'openai', 'removebg']);
 });
 
 describe('audit history', function () {

@@ -5,7 +5,7 @@ use App\Actions\Telegram\TelegramBotException;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
-use App\Livewire\Admin\Settings\Integrations;
+use App\Livewire\Admin\Telegram\Settings as TelegramSettings;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\TelegramUpdate;
@@ -102,7 +102,7 @@ it('re-registers the webhook after a new secret is generated, keeping pending up
     $admin = staffUser();
     telegramBotConfigured(['services.telegram.webhook_secret' => null]);
 
-    Livewire::actingAs($admin)->test(Integrations::class)
+    Livewire::actingAs($admin)->test(TelegramSettings::class)
         ->call('generateWebhookSecret')
         ->assertDispatched('toast', type: 'success')
         ->assertNotDispatched('toast', type: 'error');
@@ -159,7 +159,7 @@ it('shows an error toast, not an exception, when re-registering after a new secr
     confirmAdminPassword();
     telegramBotConfigured(['services.telegram.webhook_secret' => null]);
 
-    Livewire::actingAs(staffUser())->test(Integrations::class)
+    Livewire::actingAs(staffUser())->test(TelegramSettings::class)
         ->call('generateWebhookSecret')
         ->assertDispatched('toast', type: 'success')
         ->assertDispatched('toast', type: 'error');

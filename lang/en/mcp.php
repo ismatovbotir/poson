@@ -14,9 +14,9 @@ return [
     ],
 
     'confirm_required' => 'Every change on this screen needs your password, confirmed in the last :minutes minutes.',
-    'management_missing' => 'The Telegram management chat is not set up. MCP alerts (new tokens, new IP addresses, revokes) will not reach anyone. Set it in Settings → Integrations.',
+    'management_missing' => 'The Telegram management chat is not set up. MCP alerts (new tokens, new IP addresses, revokes) will not reach anyone. Set it in Telegram → Settings.',
     'management_missing_production' => 'In production, tokens can’t be generated until the bot and the management chat are set up.',
-    'integrations_link' => 'Open Integrations',
+    'integrations_link' => 'Open Telegram settings',
 
     'holder' => [
         'title' => 'Holder',
@@ -139,7 +139,7 @@ return [
         'not_single_holder' => 'Another user also holds MCP access. Revoke all access and grant it again.',
         'too_many_tokens' => 'At most :max active tokens. Revoke one first.',
         'invalid_ip' => '“:value” is not an IP address or range.',
-        'management_chat_missing' => 'Set up the Telegram bot and the management chat (Settings → Integrations) before generating MCP tokens.',
+        'management_chat_missing' => 'Set up the Telegram bot and the management chat (Telegram → Settings) before generating MCP tokens.',
         'token_inactive' => 'This token is no longer active.',
     ],
 ];

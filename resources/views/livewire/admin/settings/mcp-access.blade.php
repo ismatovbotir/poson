@@ -35,7 +35,7 @@
         <div class="mt-4 flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 sm:flex-row sm:items-center sm:justify-between" role="alert" data-management-missing>
             <p class="flex gap-2"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" /><span>{{ __($t.'.management_missing') }}@if ($isProduction) {{ __($t.'.management_missing_production') }}@endif</span></p>
             @can('settings.integrations')
-                <x-admin.button size="sm" variant="secondary" icon="plug" :href="route('admin.settings.integrations')" wire:navigate>{{ __($t.'.integrations_link') }}</x-admin.button>
+                <x-admin.button size="sm" variant="secondary" icon="plug" :href="route('admin.telegram.settings')" wire:navigate>{{ __($t.'.integrations_link') }}</x-admin.button>
             @endcan
         </div>
     @endunless
