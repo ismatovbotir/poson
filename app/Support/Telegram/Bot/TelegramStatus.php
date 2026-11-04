@@ -4,9 +4,12 @@ namespace App\Support\Telegram\Bot;
 
 use App\Actions\Telegram\CheckTelegramWebhook;
 use App\Events\Telegram\TelegramInboxMessage;
+use App\Jobs\AnswerBotCallback;
 use App\Jobs\DeliverBotMessage;
 use App\Jobs\ForwardTelegramMedia;
+use App\Jobs\SendBotPrompt;
 use App\Jobs\SendTelegramMessage;
+use App\Listeners\NotifyFinanceOfPriceSyncIssues;
 use App\Listeners\SendLeadToTelegram;
 use App\Listeners\SendTelegramAlerts;
 use App\Listeners\SendTelegramInboxAlert;
@@ -14,7 +17,6 @@ use App\Models\MonitoringState;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Services\Telegram\TelegramClient;
-use App\Services\Telegram\TelegramException;
 use App\Support\Monitoring\FailedJobs;
 use App\Support\Monitoring\Heartbeat;
 use App\Support\Monitoring\MonitoringAlerts;
@@ -24,7 +26,10 @@ use App\Support\Secrets;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -46,6 +51,13 @@ use Throwable;
  */
 final class TelegramStatus
 {
+    /**
+     * Memo of cronState() within one compute().
+     *
+     * @var array{dead: bool, minutes: int|null}|null
+     */
+    private ?array $cron = null;
+
     public const CACHE_KEY = 'telegram-status:result';
 
     public const CACHE_SECONDS = 55;
@@ -68,6 +80,12 @@ final class TelegramStatus
 
     public const FAILED = 'failed';
 
+    public const UNREACHABLE = 'unreachable';
+
+    public const EPOCH_KEY = 'telegram-status:epoch';
+
+    public const FAILED_JOB_DAYS = 7;
+
     public const OK = 'ok';
 
     public const PROBLEM = 'problem';
@@ -88,6 +106,9 @@ final class TelegramStatus
         SendLeadToTelegram::class,
         ForwardTelegramMedia::class,
         DeliverBotMessage::class,
+        AnswerBotCallback::class,
+        SendBotPrompt::class,
+        NotifyFinanceOfPriceSyncIssues::class,
     ];
 
     /**
@@ -95,7 +116,45 @@ final class TelegramStatus
      */
     public function result(): array
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_SECONDS, fn (): array => $this->compute());
+        try {
+            $cached = Cache::get(self::CACHE_KEY);
+
+            if (is_array($cached)) {
+                return $cached;
+            }
+
+            $epoch = Cache::get(self::EPOCH_KEY, 0);
+            $result = $this->compute();
+
+            // A "check now" that finished while this was computing bumped the epoch: do not store the older result.
+            if (Cache::get(self::EPOCH_KEY, 0) === $epoch) {
+                Cache::put(self::CACHE_KEY, $result, self::CACHE_SECONDS);
+            }
+
+            return $result;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return $this->compute();
+        }
+    }
+
+    /**
+     * Where each row's link points; null when the route does not exist
+     * (the settings page moves with plan 21 stream C). The view still checks
+     * the ability with @can.
+     *
+     * @return array<string, array{route: string|null, can: string}>
+     */
+    public static function links(): array
+    {
+        $settings = Route::has('admin.telegram.settings') ? 'admin.telegram.settings' : (Route::has('admin.settings.integrations') ? 'admin.settings.integrations' : null);
+
+        return [
+            'bot' => ['route' => 'admin.telegram.bot', 'can' => 'telegram.bot'],
+            'settings' => ['route' => $settings, 'can' => 'settings.integrations'],
+            'monitoring' => ['route' => Route::has('admin.monitoring') ? 'admin.monitoring' : null, 'can' => 'monitoring.view'],
+        ];
     }
 
     /**
@@ -114,102 +173,128 @@ final class TelegramStatus
     }
 
     /**
-     * "Check now": the webhook check (writes the snapshot) plus the inbox
-     * chat verdict, 3 s timeouts. About 3 per minute per user (one per
-     * CHECK_COOLDOWN_SECONDS, atomic hit) and one run at a time across all
-     * users (non-blocking lock, released in finally). Every failure leaves
-     * the affected rows unknown.
+     * "Check now": the webhook check and the inbox chat verdict (one snapshot
+     * write inside CheckTelegramWebhook), 3 s timeouts, the cached chat
+     * verdict dropped first. One run at a time across all users (non-blocking
+     * lock, released in finally); a busy lock does not use up the user's
+     * allowance. About 3 per minute per user (one per CHECK_COOLDOWN_SECONDS,
+     * atomic hit). Cache or Telegram failures never throw: the rows show
+     * unknown and the caller shows an error.
      *
-     * @return self::REFRESHED|self::LIMITED|self::BUSY|self::FAILED
+     * @return self::REFRESHED|self::LIMITED|self::BUSY|self::FAILED|self::UNREACHABLE
      */
     public function refresh(int|string|null $userId): string
     {
-        $limiterKey = 'telegram-status-check:'.$userId;
-
-        if (RateLimiter::hit($limiterKey, self::CHECK_COOLDOWN_SECONDS) > 1) {
-            return self::LIMITED;
-        }
-
-        $lock = Cache::lock(self::LOCK_KEY, self::LOCK_SECONDS);
-
-        if (! $lock->get()) {
-            return self::BUSY;
-        }
+        $lock = null;
+        $acquired = false;
 
         try {
-            app(CheckTelegramWebhook::class)->handle(self::TIMEOUT);
-            $this->verifyChat();
-            Cache::forget(self::CACHE_KEY);
+            $lock = Cache::lock(self::LOCK_KEY, self::LOCK_SECONDS);
+            $acquired = (bool) $lock->get();
 
-            return self::REFRESHED;
+            if (! $acquired) {
+                return self::BUSY;
+            }
+
+            if (RateLimiter::hit('telegram-status-check:'.$userId, self::CHECK_COOLDOWN_SECONDS) > 1) {
+                return self::LIMITED;
+            }
+
+            $chatId = InboxChat::id();
+
+            if ($chatId !== null) {
+                InboxChat::invalidate($chatId);
+            }
+
+            $result = app(CheckTelegramWebhook::class)->handle(self::TIMEOUT);
+
+            // Drop the old result, bump the epoch so a poll that started earlier cannot store its older one, then store the new one.
+            Cache::forget(self::CACHE_KEY);
+            Cache::put(self::EPOCH_KEY, Str::random(12), 3600);
+            Cache::put(self::CACHE_KEY, $this->compute(), self::CACHE_SECONDS);
+
+            return $result === CheckTelegramWebhook::UNREACHABLE ? self::UNREACHABLE : self::REFRESHED;
         } catch (Throwable $exception) {
             report($exception);
-            Cache::forget(self::CACHE_KEY);
 
             return self::FAILED;
         } finally {
-            $lock->release();
+            if ($acquired) {
+                try {
+                    $lock?->release();
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
+            }
         }
     }
 
     public static function retryAfter(int|string|null $userId): int
     {
-        return RateLimiter::availableIn('telegram-status-check:'.$userId);
-    }
-
-    /**
-     * Put the inbox chat verdict (pass / fail / unknown) into the snapshot.
-     * A 429, 5xx or timeout is unknown, never fail.
-     */
-    private function verifyChat(): void
-    {
-        $chatId = InboxChat::id();
-        $verdict = 'unknown';
-
-        if ($chatId !== null && app(TelegramClient::class)->isConfigured()) {
-            try {
-                $verdict = InboxChat::verify(app(TelegramClient::class)->withTimeout(self::TIMEOUT, self::TIMEOUT), $chatId) ? 'pass' : 'fail';
-            } catch (TelegramException) {
-                $verdict = 'unknown';
-            }
-        }
-
-        $state = MonitoringState::query()->find(CheckTelegramWebhook::SNAPSHOT_KEY);
-
-        if ($state !== null) {
-            $state->forceFill(['meta' => [...($state->meta ?? []), 'chat' => $verdict, 'chat_key' => InboxChat::key()]])->save();
+        try {
+            return RateLimiter::availableIn('telegram-status-check:'.$userId);
+        } catch (Throwable) {
+            return self::CHECK_COOLDOWN_SECONDS;
         }
     }
 
     /**
-     * @return array{rows: list<array<string, mixed>>, counts: array<string, int|string|null>, checked_at: string|null}
+     * @return array{rows: list<array<string, mixed>>, counts: array<string, int|string|null>|null, checked_at: string|null}
      */
     private function compute(): array
     {
-        $enabled = BotSwitch::isEnabled();
-        $snapshot = $this->snapshot();
-        $problems = CheckTelegramWebhook::openProblems();
-        $tokenSet = app(TelegramClient::class)->isConfigured();
-        $local = app(BotChecklist::class)->local();
+        $this->cron = null;
+        $snapshot = $this->guarded(fn (): array => $this->snapshot()) ?? [];
+        $enabled = (bool) $this->guarded(fn (): bool => BotSwitch::isEnabled());
+        $problems = $this->guarded(fn (): array => CheckTelegramWebhook::openProblems()) ?? [];
+        $tokenSet = (bool) $this->guarded(fn (): bool => app(TelegramClient::class)->isConfigured());
         $databaseQueue = config('queue.default') === 'database';
 
         $rows = [
-            $this->botSwitch($enabled),
-            $this->token($enabled, $tokenSet, $snapshot, $problems),
-            $this->webhook($enabled, $tokenSet, $snapshot, $problems),
-            $this->chat($enabled, $snapshot),
-            $this->managementChat(),
-            $this->privacy($enabled, (bool) $local['privacy']),
-            $this->worker($databaseQueue),
-            $this->cron(),
-            $this->oldestJob($databaseQueue),
-            $this->failedJobs(),
-            $this->invalidEnv(),
-            $this->inboxListener(),
-            $this->queueConnection(),
+            $this->guardedRow('bot_switch', fn (): array => $this->botSwitch($enabled)),
+            $this->guardedRow('token', fn (): array => $this->token($enabled, $tokenSet, $snapshot, $problems)),
+            $this->guardedRow('webhook', fn (): array => $this->webhook($enabled, $tokenSet, $snapshot, $problems)),
+            $this->guardedRow('chat', fn (): array => $this->chat($enabled, $snapshot)),
+            $this->guardedRow('management_chat', fn (): array => $this->managementChat($enabled)),
+            $this->guardedRow('privacy', fn (): array => $this->privacy($enabled, (bool) app(BotChecklist::class)->local()['privacy'])),
+            $this->guardedRow('worker', fn (): array => $this->worker($databaseQueue)),
+            $this->guardedRow('cron', fn (): array => $this->cron()),
+            $this->guardedRow('oldest_job', fn (): array => $this->oldestJob($databaseQueue)),
+            $this->guardedRow('failed_jobs', fn (): array => $this->failedJobs()),
+            $this->guardedRow('invalid_env', fn (): array => $this->invalidEnv()),
+            $this->guardedRow('inbox_listener', fn (): array => $this->inboxListener()),
+            $this->guardedRow('queue_connection', fn (): array => $this->queueConnection()),
         ];
 
-        return ['rows' => $rows, 'counts' => $this->counts(), 'checked_at' => $snapshot['checked_at'] ?? null];
+        return ['rows' => $rows, 'counts' => $this->guarded(fn (): array => $this->counts()), 'checked_at' => $snapshot['checked_at'] ?? null];
+    }
+
+    /**
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T|null
+     */
+    private function guarded(callable $callback): mixed
+    {
+        try {
+            return $callback();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+    }
+
+    /**
+     * One failing row becomes unknown; the panel still renders.
+     *
+     * @param  callable(): array<string, mixed>  $callback
+     * @return array<string, mixed>
+     */
+    private function guardedRow(string $id, callable $callback): array
+    {
+        return $this->guarded($callback) ?? $this->row($id, self::UNKNOWN);
     }
 
     /**
@@ -235,19 +320,24 @@ final class TelegramStatus
     }
 
     /**
+     * text: the message key suffix (the state, or a more specific variant).
+     * next: a translation key for problem and unknown rows.
+     *
      * @param  array<string, scalar|null>  $params
      * @param  list<array{env: string, reason: string}>  $items
-     * @return array{id: string, state: string, params: array<string, scalar|null>, items: list<array{env: string, reason: string}>, next: string|null, link: string|null}
+     * @return array{id: string, state: string, text: string, params: array<string, scalar|null>, items: list<array{env: string, reason: string}>, next: string|null, link: string|null}
      */
-    private function row(string $id, string $state, array $params = [], ?string $link = null, array $items = []): array
+    private function row(string $id, string $state, array $params = [], ?string $link = null, array $items = [], ?string $variant = null): array
     {
+        $specific = $variant === null ? null : 'telegram_status.rows.'.$id.'.next_'.$variant;
+
         $next = match ($state) {
-            self::PROBLEM => 'telegram_status.rows.'.$id.'.next',
-            self::UNKNOWN => 'telegram_status.next_unknown',
+            self::PROBLEM => $specific !== null && Lang::has($specific, 'en') ? $specific : 'telegram_status.rows.'.$id.'.next',
+            self::UNKNOWN => $specific !== null && Lang::has($specific, 'en') ? $specific : 'telegram_status.next_unknown',
             default => null,
         };
 
-        return ['id' => $id, 'state' => $state, 'params' => $params, 'items' => $items, 'next' => $next, 'link' => $link];
+        return ['id' => $id, 'state' => $state, 'text' => $variant ?? $state, 'params' => $params, 'items' => $items, 'next' => $next, 'link' => $link];
     }
 
     /**
@@ -266,7 +356,7 @@ final class TelegramStatus
     private function token(bool $enabled, bool $tokenSet, array $snapshot, array $problems): array
     {
         if (! $tokenSet) {
-            return $this->row('token', $enabled ? self::PROBLEM : self::NEUTRAL, ['missing' => true], 'settings');
+            return $this->row('token', $enabled ? self::PROBLEM : self::NEUTRAL, link: 'settings');
         }
 
         $state = match (true) {
@@ -288,16 +378,23 @@ final class TelegramStatus
         $pending = is_int($snapshot['pending'] ?? null) ? $snapshot['pending'] : null;
         $minutes = $this->minutesSince($snapshot['last_error_at'] ?? null);
         $params = ['pending' => $pending, 'error_minutes' => $minutes];
+        $match = $snapshot['webhook_match'] ?? null;
 
         if (! $tokenSet) {
             return $this->row('webhook', self::NEUTRAL, $params, 'bot');
         }
 
-        if (isset($problems['telegram_webhook'])) {
-            return $this->row('webhook', self::PROBLEM, $params, 'bot');
-        }
+        $issue = match (true) {
+            $match === false => 'url_mismatch',
+            $minutes !== null && $minutes * 60 < CheckTelegramWebhook::ERROR_WINDOW => 'delivery_errors',
+            $pending !== null && $pending > CheckTelegramWebhook::PENDING_LIMIT => 'backlog',
+            default => null,
+        };
 
-        $match = $snapshot['webhook_match'] ?? null;
+        if (isset($problems['telegram_webhook'])) {
+            // Bot off: the only webhook problem is a foreign URL that is set.
+            return $this->row('webhook', self::PROBLEM, $params, 'bot', variant: $enabled ? $issue : 'url_unexpected');
+        }
 
         if (! is_bool($match)) {
             return $this->row('webhook', self::UNKNOWN, $params, 'bot');
@@ -307,11 +404,7 @@ final class TelegramStatus
             return $this->row('webhook', self::NEUTRAL, $params, 'bot');
         }
 
-        $bad = ! $match
-            || ($pending !== null && $pending > CheckTelegramWebhook::PENDING_LIMIT)
-            || ($minutes !== null && $minutes * 60 < CheckTelegramWebhook::ERROR_WINDOW);
-
-        return $this->row('webhook', $bad ? self::PROBLEM : self::OK, $params, 'bot');
+        return $issue === null ? $this->row('webhook', self::OK, $params, 'bot') : $this->row('webhook', self::PROBLEM, $params, 'bot', variant: $issue);
     }
 
     /**
@@ -323,10 +416,11 @@ final class TelegramStatus
         $key = InboxChat::key();
 
         if ($key === null || InboxChat::id() === null) {
-            return $this->row('chat', $enabled ? self::PROBLEM : self::NEUTRAL, ['chat' => $key, 'invalid' => $key !== null], 'settings');
+            return $this->row('chat', $enabled ? self::PROBLEM : self::NEUTRAL, ['chat' => $key], 'settings');
         }
 
-        $state = match ($snapshot['chat'] ?? null) {
+        // A verdict about another chat (the setting changed since) is no verdict.
+        $state = ($snapshot['chat_key'] ?? null) !== $key ? self::UNKNOWN : match ($snapshot['chat'] ?? null) {
             'pass' => self::OK,
             'fail' => self::PROBLEM,
             default => self::UNKNOWN,
@@ -336,11 +430,16 @@ final class TelegramStatus
     }
 
     /**
+     * Only says whether a management chat and a bot token are set; delivery
+     * is not proven. Neutral rather than red while the bot is off.
+     *
      * @return array<string, mixed>
      */
-    private function managementChat(): array
+    private function managementChat(bool $enabled): array
     {
-        return $this->row('management_chat', MonitoringAlerts::isConfigured() ? self::OK : self::PROBLEM, link: 'settings');
+        $set = MonitoringAlerts::isConfigured();
+
+        return $this->row('management_chat', $set ? self::OK : ($enabled ? self::PROBLEM : self::NEUTRAL), link: 'settings');
     }
 
     /**
@@ -356,17 +455,21 @@ final class TelegramStatus
      */
     private function worker(bool $databaseQueue): array
     {
-        if (! $databaseQueue || $this->cronIsDead()) {
-            return $this->row('worker', self::UNKNOWN, ['database' => $databaseQueue], 'monitoring');
+        if (! $databaseQueue) {
+            return $this->row('worker', self::UNKNOWN, link: 'monitoring', variant: 'not_database');
+        }
+
+        if ($this->cronState()['dead']) {
+            return $this->row('worker', self::UNKNOWN, link: 'monitoring', variant: 'cron_dead');
         }
 
         $age = Heartbeat::age(Heartbeat::WORKER);
 
         if ($age === null) {
-            return $this->row('worker', self::UNKNOWN, ['database' => true], 'monitoring');
+            return $this->row('worker', self::UNKNOWN, link: 'monitoring', variant: 'never');
         }
 
-        return $this->row('worker', $age > ProblemMonitor::WORKER_SILENT_AFTER ? self::PROBLEM : self::OK, ['minutes' => (int) ceil($age / 60), 'database' => true], 'monitoring');
+        return $this->row('worker', $age > ProblemMonitor::WORKER_SILENT_AFTER ? self::PROBLEM : self::OK, ['minutes' => (int) ceil($age / 60)], 'monitoring');
     }
 
     /**
@@ -374,20 +477,42 @@ final class TelegramStatus
      */
     private function cron(): array
     {
-        $age = Heartbeat::age(Heartbeat::SCHEDULER);
+        $cron = $this->cronState();
 
-        if ($age === null) {
-            return $this->row('cron', self::UNKNOWN, link: 'monitoring');
+        if ($cron['dead']) {
+            return $this->row('cron', self::PROBLEM, ['minutes' => $cron['minutes']], 'monitoring', variant: $cron['minutes'] === null ? 'never_dead' : null);
         }
 
-        return $this->row('cron', $age > ProblemMonitor::CRON_DEAD_AFTER ? self::PROBLEM : self::OK, ['minutes' => (int) ceil($age / 60)], 'monitoring');
+        if ($cron['minutes'] === null) {
+            return $this->row('cron', self::UNKNOWN, link: 'monitoring', variant: 'never');
+        }
+
+        return $this->row('cron', self::OK, ['minutes' => $cron['minutes']], 'monitoring');
     }
 
-    private function cronIsDead(): bool
+    /**
+     * Scheduler liveness as ProblemMonitor sees it: the open problem:cron_dead
+     * state, a heartbeat older than CRON_DEAD_AFTER, or a scheduler that never
+     * ticked and was first missed more than NEVER_TICKED_GRACE ago.
+     *
+     * @return array{dead: bool, minutes: int|null}
+     */
+    private function cronState(): array
     {
-        $age = Heartbeat::age(Heartbeat::SCHEDULER);
+        if ($this->cron !== null) {
+            return $this->cron;
+        }
 
-        return $age !== null && $age > ProblemMonitor::CRON_DEAD_AFTER;
+        $age = Heartbeat::age(Heartbeat::SCHEDULER);
+        $open = MonitoringState::query()->whereKey('problem:cron_dead')->whereNotNull('problem_since')->exists();
+        $dead = $open || ($age !== null && $age > ProblemMonitor::CRON_DEAD_AFTER);
+
+        if ($age === null && ! $dead) {
+            $firstSeen = MonitoringState::query()->whereKey(Heartbeat::SCHEDULER)->first()?->meta['first_seen'] ?? null;
+            $dead = is_string($firstSeen) && $this->minutesSince($firstSeen) !== null && $this->minutesSince($firstSeen) * 60 > ProblemMonitor::NEVER_TICKED_GRACE;
+        }
+
+        return $this->cron = ['dead' => $dead, 'minutes' => $age === null ? null : (int) ceil($age / 60)];
     }
 
     /**
@@ -396,23 +521,26 @@ final class TelegramStatus
     private function oldestJob(bool $databaseQueue): array
     {
         if (! $databaseQueue) {
-            return $this->row('oldest_job', self::UNKNOWN, ['database' => false], 'monitoring');
+            return $this->row('oldest_job', self::UNKNOWN, link: 'monitoring', variant: 'not_database');
         }
 
         $stats = QueueStats::snapshot();
         $stuck = $stats['oldest_age'] !== null && $stats['oldest_age'] >= ProblemMonitor::QUEUE_STUCK_AFTER;
 
-        return $this->row('oldest_job', $stuck ? self::PROBLEM : self::OK, ['minutes' => $stats['oldest_age'] === null ? null : (int) floor($stats['oldest_age'] / 60), 'pending' => $stats['pending'], 'database' => true], 'monitoring');
+        return $this->row('oldest_job', $stuck ? self::PROBLEM : self::OK, ['minutes' => $stats['oldest_age'] === null ? null : (int) floor($stats['oldest_age'] / 60), 'pending' => $stats['pending']], 'monitoring');
     }
 
     /**
+     * Failed Telegram jobs of the last FAILED_JOB_DAYS days and the newest one's age.
+     *
      * @return array<string, mixed>
      */
     private function failedJobs(): array
     {
-        $count = FailedJobs::countForClasses(self::FAILED_JOB_CLASSES);
+        $recent = FailedJobs::recentForClasses(self::FAILED_JOB_CLASSES, self::FAILED_JOB_DAYS);
+        $hours = $recent['newest'] === null ? null : max(0, (int) floor($recent['newest']->diffInHours(now(), true)));
 
-        return $this->row('failed_jobs', $count > 0 ? self::PROBLEM : self::OK, ['count' => $count], 'monitoring');
+        return $this->row('failed_jobs', $recent['count'] > 0 ? self::PROBLEM : self::OK, ['count' => $recent['count'], 'days' => self::FAILED_JOB_DAYS, 'hours' => $hours], 'monitoring');
     }
 
     /**
@@ -428,7 +556,10 @@ final class TelegramStatus
 
         $onlyUnknown = collect($items)->every(fn (array $item): bool => $item['reason'] === 'unknown');
 
-        return $this->row('invalid_env', $onlyUnknown ? self::UNKNOWN : self::PROBLEM, ['count' => count($items)], items: array_map(fn (array $item): array => ['env' => $item['env'], 'reason' => $item['reason']], $items));
+        return $this->row('invalid_env', $onlyUnknown ? self::UNKNOWN : self::PROBLEM, ['count' => count($items)], items: array_map(fn (array $item): array => [
+            'env' => $item['env'],
+            'reason' => in_array($item['reason'], ['format', 'ignored', 'unknown'], true) ? $item['reason'] : 'unknown',
+        ], $items));
     }
 
     /**

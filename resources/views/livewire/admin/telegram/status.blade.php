@@ -1,11 +1,5 @@
 @php
     $t = 'telegram_status';
-    $settingsRoute = \Illuminate\Support\Facades\Route::has('admin.telegram.settings') ? 'admin.telegram.settings' : (\Illuminate\Support\Facades\Route::has('admin.settings.integrations') ? 'admin.settings.integrations' : null);
-    $links = [
-        'bot' => ['route' => 'admin.telegram.bot', 'can' => 'telegram.bot'],
-        'settings' => ['route' => $settingsRoute, 'can' => 'settings.integrations'],
-        'monitoring' => ['route' => \Illuminate\Support\Facades\Route::has('admin.monitoring') ? 'admin.monitoring' : null, 'can' => 'monitoring.view'],
-    ];
     $dash = __('admin.common.empty_value');
     $checkedAt = $result['checked_at'] ? \Illuminate\Support\Carbon::parse($result['checked_at'])->timezone(config('app.timezone'))->format('d.m.Y H:i') : null;
 @endphp
@@ -28,9 +22,9 @@
                     @php
                         $params = array_map(fn ($value) => $value ?? $dash, $row['params']);
                         if (isset($params['chat']) && $params['chat'] !== $dash) {
-                            $params['chat'] = __($t.'.chat_keys.'.$params['chat']);
+                            $params['chat'] = in_array($row['params']['chat'], ['inbox', 'sales'], true) ? __($t.'.chat_keys.'.$row['params']['chat']) : $dash;
                         }
-                        $key = $t.'.rows.'.$row['id'].'.'.$row['state'];
+                        $key = $t.'.rows.'.$row['id'].'.'.$row['text'];
                         $link = $links[$row['link']] ?? null;
                         $color = ['ok' => 'brand', 'problem' => 'red', 'unknown' => 'amber', 'neutral' => 'muted'][$row['state']];
                     @endphp
@@ -40,10 +34,13 @@
                             @if (\Illuminate\Support\Facades\Lang::has($key))
                                 <p class="mt-0.5 text-slate-600">{{ __($key, $params) }}</p>
                             @endif
+                            @if (is_int($row['params']['pending'] ?? null) && $row['id'] === 'webhook')
+                                <p class="mt-0.5 text-slate-500" data-pending>{{ __($t.'.rows.webhook.pending', ['pending' => $row['params']['pending']]) }}</p>
+                            @endif
                             @if ($row['items'] !== [])
                                 <ul class="mt-1 list-disc space-y-0.5 pl-5 font-mono text-xs text-slate-600" data-invalid-env>
                                     @foreach ($row['items'] as $item)
-                                        <li wire:key="env-{{ $item['env'] }}">{{ $item['env'] }} — {{ __($t.'.invalid_reasons.'.$item['reason']) }}</li>
+                                        <li wire:key="env-{{ $item['env'] }}">{{ $item['env'] }} — {{ __($t.'.invalid_reasons.'.(in_array($item['reason'], ['format', 'ignored', 'unknown'], true) ? $item['reason'] : 'unknown')) }}</li>
                                     @endforeach
                                 </ul>
                             @endif
@@ -64,6 +61,11 @@
             </ul>
         </x-admin.card>
 
+        @if ($result['rows'] === [])
+            <p class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="alert" data-unavailable>{{ __($t.'.unavailable') }}</p>
+        @endif
+
+        @if ($result['counts'] !== null)
         <x-admin.card :title="__($t.'.counts_title')">
             @php
                 $counts = $result['counts'];
@@ -81,5 +83,6 @@
                 </div>
             </dl>
         </x-admin.card>
+        @endif
     </div>
 </div>

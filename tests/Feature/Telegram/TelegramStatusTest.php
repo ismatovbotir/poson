@@ -1,29 +1,41 @@
 <?php
 
+use App\Actions\Settings\ClearSecret;
+use App\Actions\Settings\SaveIntegrationSettings;
+use App\Actions\Settings\SetSecret;
 use App\Enums\Role;
 use App\Enums\TelegramForwardStatus;
 use App\Enums\TelegramMessageStatus;
 use App\Events\Contracts\TelegramAlert;
 use App\Events\Telegram\TelegramInboxMessage;
+use App\Listeners\NotifyFinanceOfPriceSyncIssues;
 use App\Listeners\SendTelegramAlerts;
 use App\Listeners\SendTelegramInboxAlert;
 use App\Livewire\Admin\Telegram\Bot;
 use App\Livewire\Admin\Telegram\Status;
+use App\Models\IntegrationSecret;
 use App\Models\MonitoringState;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
+use App\Services\Telegram\TelegramClient;
 use App\Support\Monitoring\FailedJobs;
 use App\Support\Monitoring\Heartbeat;
+use App\Support\Secrets;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\Bot\InboxChat;
+use App\Support\Telegram\Bot\StatusSnapshot;
 use App\Support\Telegram\Bot\TelegramStatus;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -289,7 +301,7 @@ it('keeps queries bounded: cold render under the ceiling, warm poll almost free'
     $component->call('$refresh');
     $warm = count(DB::getQueryLog());
 
-    expect($cold)->toBeLessThanOrEqual(20)
+    expect($cold)->toBeLessThanOrEqual(24)
         ->and($warm)->toBeLessThanOrEqual(2)
         ->and($warm)->toBeLessThan($cold);
     Http::assertNothingSent();
@@ -309,12 +321,26 @@ it('caches the result about 55 seconds', function () {
 describe('check now', function () {
     beforeEach(fn () => statusBaseline());
 
+    function checkNowChat(mixed $answer = null): mixed
+    {
+        static $holder = null;
+
+        if (func_num_args() > 0) {
+            $holder = $answer;
+
+            return null;
+        }
+
+        return $holder ?? Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup', 'title' => 'MARKER-TITLE']]);
+    }
+
     function checkNowTelegram(): void
     {
+        checkNowChat(null);
         Http::fake(['api.telegram.org/*' => function ($request) {
             return match (basename(parse_url($request->url(), PHP_URL_PATH))) {
                 'getWebhookInfo' => Http::response(['ok' => true, 'result' => ['url' => 'https://poson.example.uz/api/telegram/webhook', 'pending_update_count' => 0]]),
-                'getChat' => Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup', 'title' => 'MARKER-TITLE']]),
+                'getChat' => checkNowChat(),
                 default => Http::response(['ok' => true, 'result' => true]),
             };
         }]);
@@ -336,24 +362,69 @@ describe('check now', function () {
         expect(count(telegramApiCalls()))->toBe(2);
     });
 
-    it('does not run while another check holds the lock', function () {
+    it('does not run while another check holds the lock, and a busy call does not use up the allowance', function () {
         checkNowTelegram();
         $lock = Cache::lock(TelegramStatus::LOCK_KEY, 30);
         $lock->get();
+        $component = statusPage();
 
-        statusPage()->call('checkNow')->assertDispatched('toast', type: 'error');
-
+        $component->call('checkNow')->assertDispatched('toast', type: 'error');
         expect(telegramApiCalls())->toBe([]);
+
         $lock->release();
+        $component->call('checkNow')->assertDispatched('toast', type: 'success');
+        expect(collect(telegramApiCalls())->pluck('method')->all())->toBe(['getWebhookInfo', 'getChat']);
     });
 
-    it('releases the lock and reports unknown when Telegram fails', function () {
+    it('drops the cached chat verdict first, so a fixed chat shows pass right away', function () {
+        checkNowTelegram();
+        checkNowChat(Http::response(['ok' => false, 'error_code' => 400, 'description' => 'chat not found'], 400));
+        InboxChat::verify(app(TelegramClient::class), '-1001111111111');
+
+        checkNowChat(null);
+        $component = statusPage();
+        $component->call('checkNow')->assertDispatched('toast', type: 'success');
+
+        expect(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('pass');
+        $component->assertSee('data-row="chat" data-state="ok"', false);
+    });
+
+    it('says so when Telegram does not answer, releases the lock and leaves the rows unknown', function () {
         Http::fake(['api.telegram.org/*' => Http::response('', 502)]);
 
-        statusPage()->call('checkNow')->assertDispatched('toast', type: 'success');
+        statusPage()->call('checkNow')->assertDispatched('toast', type: 'error', body: __('telegram_status.flash.unreachable'));
 
         expect(Cache::lock(TelegramStatus::LOCK_KEY, 5)->get())->toBeTrue()
-            ->and(MonitoringState::query()->find('telegram:status')->meta)->get_me->toBe('unknown')->chat->toBe('unknown');
+            ->and(MonitoringState::query()->find('telegram:status')->meta)->get_me->toBe('unknown');
+    });
+
+    it('turns a cache failure into an error toast, not a 500', function () {
+        Http::fake();
+        Cache::extend('failing-lock', fn () => Cache::repository(new class extends ArrayStore
+        {
+            public function lock($name, $seconds = 0, $owner = null)
+            {
+                throw new RuntimeException('cache down');
+            }
+        }));
+        Exceptions::fake();
+        $component = statusPage();
+        config(['cache.stores.failing-lock' => ['driver' => 'failing-lock'], 'cache.default' => 'failing-lock']);
+
+        $component->call('checkNow')->assertOk()->assertDispatched('toast', type: 'error');
+
+        Http::assertNothingSent();
+    });
+
+    it('does not store a result computed before the check finished', function () {
+        checkNowTelegram();
+        $status = app(TelegramStatus::class);
+        $status->result();
+        Cache::put(TelegramStatus::EPOCH_KEY, 'older', 60);
+
+        expect($status->refresh(1))->toBe(TelegramStatus::REFRESHED)
+            ->and(Cache::get(TelegramStatus::EPOCH_KEY))->not->toBe('older')
+            ->and(Cache::get(TelegramStatus::CACHE_KEY)['rows'])->not->toBeEmpty();
     });
 });
 
@@ -365,10 +436,154 @@ it('puts a summary line on the bot page that links to the panel', function () {
         ->assertSee(route('admin.telegram.status'), false);
 });
 
-it('hides the Settings and Monitoring links from users without the permission, and the page works without the settings route', function () {
+it('shows a user with only telegram.bot no Settings or Monitoring links', function () {
     statusBaseline(['get_me' => 'fail']);
+    failedTelegramJob();
+    $user = staffUser(Role::ContentManager);
+    $user->assignRole(Spatie\Permission\Models\Role::create(['name' => 'telegram_only', 'guard_name' => 'web'])->givePermissionTo('telegram.bot'));
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $html = $this->actingAs($user->fresh())->get(route('admin.telegram.status'))->assertOk()->getContent();
+
+    expect($html)->not->toContain('data-link="settings"')->not->toContain('data-link="monitoring"')->toContain('data-link="bot"');
+
+    $admin = $this->actingAs(staffUser())->get(route('admin.telegram.status'))->getContent();
+    expect($admin)->toContain('data-link="settings"')->toContain('data-link="monitoring"');
+});
+
+it('becomes unknown for a chat verdict that is about another chat', function () {
+    statusBaseline(['chat' => 'pass', 'chat_key' => 'inbox']);
+
+    statusPage()->assertSee('data-row="chat" data-state="unknown"', false);
+});
+
+it('clears the verdicts after a committed token or chat change, and for nothing else', function (Closure $change, bool $clears) {
+    statusBaseline();
+    $before = MonitoringState::query()->find('telegram:status')->meta;
+
+    $change();
+
+    $meta = MonitoringState::query()->find('telegram:status')->meta;
+
+    if ($clears) {
+        expect($meta)->get_me->toBe('unknown')->chat->toBe('unknown')->chat_key->toBeNull()->webhook_match->toBeNull()->pending->toBeNull()->last_error_at->toBeNull()->code->toBeNull()
+            ->and($meta['checked_at'])->toBe($before['checked_at'])
+            ->and(array_keys($meta))->toBe(array_keys($before));
+    } else {
+        expect($meta)->toBe($before);
+    }
+})->with([
+    'save a chat id' => [fn () => app(SaveIntegrationSettings::class)->handle(['telegram.chats.service' => '-1002222222222'], null, null), true],
+    'set the bot token' => [fn () => app(SetSecret::class)->handle('telegram.bot_token', '987654321:AAOtherFakeTokenForTestsOnly_0123456789', null, null), true],
+    'clear the bot token' => [function () {
+        IntegrationSecret::factory()->withValue('telegram.bot_token', '987654321:AAOtherFakeTokenForTestsOnly_0123456789')->create();
+        Secrets::flush();
+        statusSnapshot();
+        app(ClearSecret::class)->handle('telegram.bot_token', null, null);
+    }, true],
+    'a Payme key' => [fn () => app(SetSecret::class)->handle('payme.key', 'fake-payme-key-00000000000000000000000wxyz', null, null), false],
+    'a non-chat telegram setting' => [fn () => app(SaveIntegrationSettings::class)->handle(['telegram.locale' => 'ru'], null, null), false],
+]);
+
+it('does not create a snapshot row when clearing and reports a failed clear without failing the save', function () {
+    Exceptions::fake();
+    StatusSnapshot::clearVerdicts();
+    expect(MonitoringState::query()->find('telegram:status'))->toBeNull();
+
+    statusBaseline();
+    Schema::drop('monitoring_states');
+
+    expect(fn () => StatusSnapshot::clearVerdicts())->not->toThrow(Throwable::class);
+    Exceptions::assertReported(QueryException::class);
+});
+
+it('shows the specific webhook issue with its own next step', function (array $snapshot, bool $enabled, string $text) {
+    statusBaseline($snapshot);
+
+    if (! $enabled) {
+        Setting::query()->where('key', BotSwitch::KEY)->delete();
+        MonitoringState::query()->create(['key' => 'problem:telegram_webhook', 'problem_since' => now()]);
+    }
+
+    $row = collect(app(TelegramStatus::class)->result()['rows'])->firstWhere('id', 'webhook');
+
+    expect($row['state'])->toBe('problem')->and($row['text'])->toBe($text)
+        ->and($row['next'])->toBe('telegram_status.rows.webhook.next_'.$text);
+    statusPage()->assertSee(__('telegram_status.rows.webhook.'.$text), false);
+})->with([
+    'url differs' => [['webhook_match' => false], true, 'url_mismatch'],
+    'delivery errors' => [['last_error_at' => '1 minutes ago'], true, 'delivery_errors'],
+    'backlog' => [['pending' => 400], true, 'backlog'],
+    'foreign url, bot off' => [[], false, 'url_unexpected'],
+]);
+
+it('treats a malformed token (404) like a refused one', function () {
+    statusBaseline(['get_me' => 'fail', 'code' => 404]);
+
+    statusPage()->assertSee('data-row="token" data-state="problem"', false);
+});
+
+it('judges the scheduler by the open problem and the never-ticked grace', function (Closure $arrange, string $state) {
+    statusBaseline();
+    $arrange();
+
+    statusPage()->assertSee('data-row="cron" data-state="'.$state.'"', false);
+})->with([
+    'open problem' => [fn () => MonitoringState::query()->create(['key' => 'problem:cron_dead', 'problem_since' => now()]), 'problem'],
+    'never ticked past the grace' => [fn () => MonitoringState::query()->where('key', Heartbeat::SCHEDULER)->update(['ticked_at' => null, 'meta' => json_encode(['first_seen' => now()->subMinutes(15)->toIso8601String()])]), 'problem'],
+    'never ticked, still in grace' => [fn () => MonitoringState::query()->where('key', Heartbeat::SCHEDULER)->update(['ticked_at' => null, 'meta' => json_encode(['first_seen' => now()->subMinutes(2)->toIso8601String()])]), 'unknown'],
+]);
+
+it('gives worker and oldest job their own next step when unknown', function () {
+    statusBaseline();
+    MonitoringState::query()->create(['key' => 'problem:cron_dead', 'problem_since' => now()]);
+    $rows = collect(app(TelegramStatus::class)->result()['rows'])->keyBy('id');
+
+    expect($rows['worker']['state'])->toBe('unknown')->and($rows['worker']['next'])->toBe('telegram_status.rows.worker.next_cron_dead');
+
+    Cache::flush();
+    config(['queue.default' => 'sync']);
+    $rows = collect(app(TelegramStatus::class)->result()['rows'])->keyBy('id');
+
+    expect($rows['oldest_job']['next'])->toBe('telegram_status.rows.oldest_job.next_not_database');
+});
+
+it('keeps the management chat neutral while the bot is off', function () {
+    statusBaseline();
+    telegramBotConfigured(['services.telegram.chats.management' => null]);
+    Setting::query()->where('key', BotSwitch::KEY)->delete();
+
+    statusPage()->assertSee('data-row="management_chat" data-state="neutral"', false);
+});
+
+it('counts failed Telegram jobs of the last 7 days only, with the newest age', function () {
+    statusBaseline();
+    failedTelegramJob('App\\Jobs\\SendBotPrompt');
+    DB::table('failed_jobs')->update(['failed_at' => now()->subDays(8)]);
+    expect(collect(app(TelegramStatus::class)->result()['rows'])->firstWhere('id', 'failed_jobs')['state'])->toBe('ok');
+
+    Cache::flush();
+    failedTelegramJob('App\\Jobs\\AnswerBotCallback');
+    DB::table('failed_jobs')->where('failed_at', '>', now()->subDay())->update(['failed_at' => now()->subHours(5)]);
+    $row = collect(app(TelegramStatus::class)->result()['rows'])->firstWhere('id', 'failed_jobs');
+
+    expect($row['state'])->toBe('problem')->and($row['params'])->toMatchArray(['count' => 1, 'hours' => 5]);
+    expect(FailedJobs::countForClasses([NotifyFinanceOfPriceSyncIssues::class]))->toBe(0);
+});
+
+it('turns a failing row into unknown and still renders the panel', function () {
+    statusBaseline();
+    Exceptions::fake();
+    Schema::drop('pages');
+
+    statusPage()->assertOk()
+        ->assertSee('data-row="privacy" data-state="unknown"', false)
+        ->assertSee('data-row="token" data-state="ok"', false);
+});
+
+it('never turns an odd chat key or env reason into a raw translation key', function () {
+    statusBaseline();
     $html = $this->actingAs(staffUser())->get(route('admin.telegram.status'))->getContent();
 
-    expect($html)->toContain('data-link="settings"');
-    expect(Route::has('admin.telegram.settings'))->toBeFalse();
+    expect($html)->not->toContain('telegram_status.');
 });

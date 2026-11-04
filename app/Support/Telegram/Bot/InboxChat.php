@@ -107,6 +107,19 @@ final class InboxChat
         Cache::forever(self::GENERATION_KEY, Str::random(12));
     }
 
+    /**
+     * The current verification generation (changes whenever forget() runs).
+     * A cache failure reads as '?', which differs from any real generation.
+     */
+    public static function generation(): string
+    {
+        try {
+            return (string) Cache::get(self::GENERATION_KEY, '0');
+        } catch (\Throwable) {
+            return '?';
+        }
+    }
+
     private static function cacheKey(string $chatId): string
     {
         return 'telegram-inbox-chat:'.Cache::get(self::GENERATION_KEY, '0').':'.sha1($chatId);

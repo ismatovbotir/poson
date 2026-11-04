@@ -5,6 +5,7 @@ namespace App\Support\Monitoring;
 use App\Actions\Monitoring\MonitoringActionException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -65,18 +66,43 @@ final class FailedJobs
     }
 
     /**
-     * Number of failed jobs of the given classes (a fixed list, never user
-     * input). One count query on the displayName the database extracts; the
-     * payload is not read.
+     * Failed jobs of the given classes (a fixed list, never user input) from
+     * the last $days days, by failed_at: their number and the newest
+     * failure's time. One aggregate query; the database extracts displayName
+     * from the payload inside the WHERE clause, and the payload itself is
+     * never selected.
+     *
+     * @param  list<class-string>  $classes
+     * @return array{count: int, newest: Carbon|null}
+     */
+    public static function recentForClasses(array $classes, int $days = 7): array
+    {
+        if ($classes === []) {
+            return ['count' => 0, 'newest' => null];
+        }
+
+        $row = self::forClasses($classes)->where('failed_at', '>=', now()->subDays($days))
+            ->selectRaw('count(*) as total, max(failed_at) as newest')
+            ->first();
+
+        return ['count' => (int) ($row->total ?? 0), 'newest' => ($row->newest ?? null) === null ? null : Carbon::parse($row->newest)];
+    }
+
+    /**
+     * Number of failed jobs of the given classes, all time (see recentForClasses()).
      *
      * @param  list<class-string>  $classes
      */
     public static function countForClasses(array $classes): int
     {
-        if ($classes === []) {
-            return 0;
-        }
+        return $classes === [] ? 0 : self::forClasses($classes)->count();
+    }
 
+    /**
+     * @param  list<class-string>  $classes
+     */
+    private static function forClasses(array $classes): Builder
+    {
         $name = self::displayNameSql();
 
         return DB::table('failed_jobs')->where(function (Builder $query) use ($classes, $name): void {
@@ -84,7 +110,7 @@ final class FailedJobs
                 $query->orWhereRaw("{$name} = ?", [$class])
                     ->orWhereRaw("{$name} like ? escape '!'", [str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $class).'@%']);
             }
-        })->count();
+        });
     }
 
     /**

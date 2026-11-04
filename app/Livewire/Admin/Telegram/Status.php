@@ -6,6 +6,7 @@ use App\Support\Telegram\Bot\TelegramStatus;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Telegram → Status (/admin/telegram/status, plan 21 E2): a read-only panel
@@ -36,13 +37,21 @@ class Status extends Component
             TelegramStatus::REFRESHED => $this->dispatch('toast', title: __('admin.toast.done'), body: __('telegram_status.flash.refreshed'), type: 'success'),
             TelegramStatus::LIMITED => $this->dispatch('toast', title: __('admin.toast.error'), body: __('telegram_status.flash.limited', ['seconds' => TelegramStatus::retryAfter(auth()->id())]), type: 'error'),
             TelegramStatus::BUSY => $this->dispatch('toast', title: __('admin.toast.error'), body: __('telegram_status.flash.busy'), type: 'error'),
+            TelegramStatus::UNREACHABLE => $this->dispatch('toast', title: __('admin.toast.error'), body: __('telegram_status.flash.unreachable'), type: 'error'),
             default => $this->dispatch('toast', title: __('admin.toast.error'), body: __('telegram_status.flash.failed'), type: 'error'),
         };
     }
 
     public function render(TelegramStatus $status): View
     {
-        return view('livewire.admin.telegram.status', ['result' => $status->result()])
+        try {
+            $result = $status->result();
+        } catch (Throwable $exception) {
+            report($exception);
+            $result = ['rows' => [], 'counts' => null, 'checked_at' => null];
+        }
+
+        return view('livewire.admin.telegram.status', ['result' => $result, 'links' => TelegramStatus::links()])
             ->title(__('telegram_status.title'));
     }
 }

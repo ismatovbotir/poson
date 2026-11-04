@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
 use App\Support\Telegram\Bot\InboxChat;
+use App\Support\Telegram\Bot\StatusSnapshot;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -46,6 +47,7 @@ class ClearSecret
             // A new / removed bot token: the inbox chat must be verified again (B4-S2).
             if ($key === 'telegram.bot_token') {
                 DB::afterCommit(fn () => InboxChat::forget());
+                DB::afterCommit(fn () => StatusSnapshot::clearVerdicts());
             }
 
             if (str_starts_with($key, 'uzqr.')) {

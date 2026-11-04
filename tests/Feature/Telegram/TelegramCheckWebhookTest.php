@@ -5,7 +5,9 @@ use App\Models\MonitoringState;
 use App\Models\Setting;
 use App\Support\Monitoring\MonitoredTasks;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\Bot\InboxChat;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -42,13 +44,34 @@ function webhookAlertTexts(): array
         ->values()->all();
 }
 
+/**
+ * The getChat answer of the next scheduled runs (the first Http::fake() wins, so this swaps a holder).
+ */
+function webhookChatAnswers(mixed $answer = null): mixed
+{
+    static $holder = null;
+
+    if (func_num_args() > 0) {
+        $holder = $answer;
+
+        return null;
+    }
+
+    return $holder instanceof Closure ? $holder() : ($holder ?? Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']]));
+}
+
 beforeEach(function () {
     telegramBotConfigured();
     webhookInfoAnswers([]);
+    webhookChatAnswers(null);
 
     Http::fake(['api.telegram.org/*' => function ($request) {
         if (str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/getWebhookInfo')) {
             return webhookInfoAnswers() ?? Http::response(['ok' => true, 'result' => ['url' => TG_EXPECTED_URL, 'pending_update_count' => 0]]);
+        }
+
+        if (str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/getChat')) {
+            return webhookChatAnswers();
         }
 
         return Http::response(['ok' => true, 'result' => ['message_id' => 1]]);
@@ -209,7 +232,7 @@ describe('status snapshot (plan 21 E1, T21-6)', function () {
             ->and($state->meta['webhook_match'])->toBeFalse()
             ->and($state->meta['pending'])->toBe(7)
             ->and($state->meta['get_me'])->toBe('ok')
-            ->and($state->meta['chat'])->toBe('unknown')
+            ->and($state->meta['chat'])->toBeIn(['pass', 'fail', 'unknown'])
             ->and($state->meta['chat_key'])->toBe('sales')
             ->and(json_encode($state->getAttributes()))->not->toContain('MARKER')->not->toContain('203.0.113')->not->toContain('attacker')->not->toContain(TG_BOT_TOKEN)->not->toContain('1111111111');
     });
@@ -230,6 +253,83 @@ describe('status snapshot (plan 21 E1, T21-6)', function () {
 
         expect($meta['get_me'])->toBe('fail')->and($meta['code'])->toBe(401)->and($meta['webhook_match'])->toBeNull()
             ->and(json_encode($meta))->not->toContain('MARKER');
+    });
+
+    it('verifies the inbox chat in the scheduled run and keeps only the verdict', function () {
+        webhookChatAnswers(Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup', 'title' => 'MARKER-TITLE']]));
+
+        app(CheckTelegramWebhook::class)->handle();
+
+        $meta = MonitoringState::query()->find('telegram:status')->meta;
+        expect($meta['chat'])->toBe('pass')->and(json_encode($meta))->not->toContain('MARKER')->not->toContain('1111111111');
+
+        // A later scheduled run (cached verdict, no new answer needed) keeps the real verdict.
+        app(CheckTelegramWebhook::class)->handle();
+        expect(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('pass');
+    });
+
+    it('records a refused chat as fail without an alert of its own', function () {
+        webhookChatAnswers(Http::response(['ok' => false, 'error_code' => 400, 'description' => 'chat not found'], 400));
+
+        expect(app(CheckTelegramWebhook::class)->handle())->toBe(CheckTelegramWebhook::OK)
+            ->and(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('fail')
+            ->and(webhookAlertTexts())->toBe([]);
+    });
+
+    it('skips the chat check after a 401 or 404 and does not cache a bad chat', function (int $status) {
+        webhookInfoAnswers([Http::response(['ok' => false, 'error_code' => $status, 'description' => 'x'], $status)]);
+
+        app(CheckTelegramWebhook::class)->handle();
+
+        expect(collect(telegramApiCalls())->pluck('method')->all())->not->toContain('getChat')
+            ->and(MonitoringState::query()->find('telegram:status')->meta)->chat->toBe('unknown')->get_me->toBe('fail');
+    })->with([401, 404]);
+
+    it('skips the chat check without a token or an inbox chat', function () {
+        freshSecrets();
+        app(CheckTelegramWebhook::class)->handle();
+        telegramBotConfigured(['services.telegram.chats.sales' => null]);
+        app(CheckTelegramWebhook::class)->handle();
+
+        expect(collect(telegramApiCalls())->pluck('method')->all())->not->toContain('getChat')
+            ->and(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('unknown');
+    });
+
+    it('makes a transient getChat failure unknown and never changes the return value', function () {
+        webhookChatAnswers(Http::response('', 503));
+
+        expect(app(CheckTelegramWebhook::class)->handle())->toBe(CheckTelegramWebhook::OK)
+            ->and(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('unknown');
+    });
+
+    it('reports an unexpected error while verifying and still writes unknown', function () {
+        Exceptions::fake();
+        webhookChatAnswers(function () {
+            throw new LogicException('boom');
+        });
+
+        expect(app(CheckTelegramWebhook::class)->handle())->toBe(CheckTelegramWebhook::OK)
+            ->and(MonitoringState::query()->find('telegram:status')->meta['chat'])->toBe('unknown');
+    });
+
+    it('overwrites the verdicts of a run that was in flight while the token or chat was saved', function () {
+        webhookChatAnswers(function () {
+            InboxChat::forget();
+
+            return Http::response(['ok' => true, 'result' => ['id' => -1001111111111, 'type' => 'supergroup']]);
+        });
+
+        app(CheckTelegramWebhook::class)->handle();
+
+        expect(MonitoringState::query()->find('telegram:status')->meta)
+            ->chat->toBe('unknown')->get_me->toBe('unknown')->webhook_match->toBeNull()->chat_key->toBeNull();
+    });
+
+    it('survives two overlapping writes of the snapshot', function () {
+        app(CheckTelegramWebhook::class)->handle();
+        app(CheckTelegramWebhook::class)->handle();
+
+        expect(MonitoringState::query()->where('key', 'telegram:status')->count())->toBe(1);
     });
 
     it('records an unreachable API as unknown and no token as unknown', function () {
