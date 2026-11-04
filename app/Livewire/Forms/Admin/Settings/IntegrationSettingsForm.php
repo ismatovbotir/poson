@@ -22,14 +22,21 @@ class IntegrationSettingsForm extends Form
     public array $values = [];
 
     /**
-     * Load the values saved in admin (else the defaults). Fields locked by
+     * Load the values of the given sections only (a screen never holds another
+     * screen's values): saved in admin, else the defaults. Fields locked by
      * .env show their effective value and are never sent back.
+     *
+     * @param  list<string>  $groups
      */
-    public function fillFrom(): void
+    public function fillFrom(array $groups): void
     {
         $values = [];
 
         foreach (IntegrationRegistry::settings() as $key => $field) {
+            if (! in_array($field->group, $groups, true)) {
+                continue;
+            }
+
             $value = Secrets::source($key) === IntegrationSource::Env
                 ? Secrets::get($key)
                 : (Secrets::storedSetting($key) ?? $field->default);

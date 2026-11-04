@@ -2,30 +2,26 @@
 
 namespace App\Livewire\Admin\Settings;
 
-use App\Actions\Settings\ClearSecret;
 use App\Actions\Settings\GenerateIndexNowKey;
 use App\Actions\Settings\GenerateWebhookSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
-use App\Actions\Settings\SetSecret;
 use App\Actions\Settings\TestIntegrationConnection;
 use App\Actions\Telegram\ConfigureTelegramWebhook;
 use App\Enums\IntegrationSource;
 use App\Enums\PaymentMode;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\ManagesIntegrationSettings;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
-use App\Livewire\Forms\Admin\Settings\IntegrationSettingsForm;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Services\Payments\Uzqr\UzqrConfig;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\CompanySettings;
-use App\Support\Integrations\IntegrationField;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
 use App\Support\Site\IndexNow;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -49,32 +45,12 @@ use Livewire\Component;
 #[Layout('layouts::admin')]
 class Integrations extends Component
 {
-    use HandlesActionErrors, WithAdminPagination;
-
-    public const AUDIT_LIMIT = 50;
-
-    public const AUDIT_PER_PAGE = 10;
+    use HandlesActionErrors, ManagesIntegrationSettings, WithAdminPagination;
 
     /**
      * Payment providers with a test / prod mode (plan 11 v2 §1.8).
      */
     public const PAYMENT_GROUPS = ['payme', 'click', 'uzqr'];
-
-    public IntegrationSettingsForm $form;
-
-    /**
-     * Write-only secret inputs, nested by registry key; always reset after use.
-     *
-     * @var array<string, mixed>
-     */
-    public array $secretInputs = [];
-
-    /**
-     * Last connection test per test id: {ok, message} (safe text only).
-     *
-     * @var array<string, array{ok: bool, message: string}>
-     */
-    public array $testResults = [];
 
     /**
      * Set by the server when save('payme' | 'click') opened the "switch to
@@ -86,64 +62,56 @@ class Integrations extends Component
     public ?string $prodConfirmGroup = null;
 
     /**
-     * Runs on every request (initial render and each update).
+     * The sections of this screen: every registry group.
+     *
+     * @return list<string>
      */
-    public function boot(): void
+    protected function integrationGroups(): array
     {
-        $this->authorize('manageIntegrations', Setting::class);
-    }
-
-    public function mount(): void
-    {
-        $this->form->fillFrom();
-        $this->resetSecretInputs();
+        return IntegrationRegistry::GROUPS;
     }
 
     /**
-     * Before every response: typed secrets never go back to the browser,
-     * whatever the request was (another field, a test, an error).
+     * @return list<string>
      */
-    public function dehydrate(): void
+    protected function allowedTestTargets(): array
     {
-        $this->resetSecretInputs();
+        return TestIntegrationConnection::TARGETS;
+    }
+
+    protected function returnRouteName(): string
+    {
+        return 'admin.settings.integrations';
     }
 
     /**
-     * Save the non-secret values of one section. Switching Payme to "prod"
-     * first opens a confirm dialog (see $paymeProdConfirmPending).
+     * Switching a payment provider to "prod" (or UzQR with open invoices)
+     * first opens a confirm dialog; see $prodConfirmGroup.
+     *
+     * @param  array<string, mixed>  $values
      */
-    public function save(string $group, SaveIntegrationSettings $saveSettings): void
+    protected function interceptSave(string $group, array $values, SaveIntegrationSettings $saveSettings): bool
     {
-        abort_unless(in_array($group, IntegrationRegistry::GROUPS, true), 404);
-
-        $this->authorize('manageIntegrations', Setting::class);
-
-        if (! $this->ensurePasswordConfirmed()) {
-            return;
+        if (! in_array($group, self::PAYMENT_GROUPS, true) || (! $this->switchesToProd($group, $values) && ! $this->switchesUzqrWithOpenInvoices($group, $values))) {
+            return false;
         }
 
-        $values = $this->form->valuesFor($group);
+        // Validate first, so the dialog never opens for a value that can't be saved.
+        $this->runFormAction(fn (): array => $saveSettings->validate($values), 'form.values.');
 
-        if (in_array($group, self::PAYMENT_GROUPS, true) && ($this->switchesToProd($group, $values) || $this->switchesUzqrWithOpenInvoices($group, $values))) {
-            // Validate first, so the dialog never opens for a value that can't be saved.
-            $this->runFormAction(fn (): array => $saveSettings->validate($values), 'form.values.');
+        $this->prodConfirmGroup = $group;
 
-            $this->prodConfirmGroup = $group;
+        $this->dispatch('confirm',
+            title: __("admin.settings.integrations.{$group}.prod_confirm_title"),
+            body: ($this->switchesToProd($group, $values) ? __("admin.settings.integrations.{$group}.prod_confirm_body") : '')
+                .($this->switchesUzqrWithOpenInvoices($group, $values) ? ' '.__('admin.settings.integrations.uzqr.open_invoices_confirm', ['count' => app(UzqrConfig::class)->openCount()]) : '')
+                .(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
+            label: __('admin.settings.integrations.payme.prod_confirm_label'),
+            componentId: $this->getId(),
+            method: 'confirmProd',
+        );
 
-            $this->dispatch('confirm',
-                title: __("admin.settings.integrations.{$group}.prod_confirm_title"),
-                body: ($this->switchesToProd($group, $values) ? __("admin.settings.integrations.{$group}.prod_confirm_body") : '')
-                    .($this->switchesUzqrWithOpenInvoices($group, $values) ? ' '.__('admin.settings.integrations.uzqr.open_invoices_confirm', ['count' => app(UzqrConfig::class)->openCount()]) : '')
-                    .(app()->isProduction() ? '' : ' '.__('admin.settings.integrations.payme.not_production')),
-                label: __('admin.settings.integrations.payme.prod_confirm_label'),
-                componentId: $this->getId(),
-                method: 'confirmProd',
-            );
-
-            return;
-        }
-
-        $this->persist($group, $values, $saveSettings);
+        return true;
     }
 
     /**
@@ -164,82 +132,6 @@ class Integrations extends Component
         }
 
         $this->persist($group, $this->form->valuesFor($group), $saveSettings);
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     */
-    protected function persist(string $group, array $values, SaveIntegrationSettings $saveSettings): void
-    {
-        $changed = $this->runFormAction(fn (): array => $saveSettings->handle($values, auth()->user(), request()->ip()), 'form.values.');
-
-        $this->form->fillFrom();
-
-        if ($changed === []) {
-            $this->dispatch('toast', title: __('admin.settings.integrations.no_changes'), type: 'info');
-
-            return;
-        }
-
-        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.settings.integrations.saved', ['section' => __('admin.settings.integrations.groups.'.$group)]), type: 'success');
-    }
-
-    /**
-     * Store the typed value of one secret.
-     */
-    public function replaceSecret(string $key, SetSecret $setSecret): void
-    {
-        try {
-            $field = $this->secretField($key);
-
-            $this->authorize('manageIntegrations', Setting::class);
-
-            if (! $this->ensurePasswordConfirmed()) {
-                return;
-            }
-
-            if (Secrets::source($key) === IntegrationSource::Env) {
-                $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.settings.integrations.locked_hint', ['env' => $field->env]), type: 'error');
-
-                return;
-            }
-
-            $value = data_get($this->secretInputs, $key);
-
-            try {
-                $setSecret->handle($key, is_string($value) ? $value : '', auth()->user(), request()->ip());
-            } catch (ValidationException $exception) {
-                // Shown under the input; the messages never contain the value.
-                throw ValidationException::withMessages(['secretInputs.'.$key => $exception->errors()['value'] ?? [__('admin.toast.error')]]);
-            }
-        } finally {
-            $this->resetSecretInputs();
-        }
-
-        unset($this->testResults[$field->langKey()]);
-
-        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.settings.integrations.secret_saved', ['name' => $field->label()]), type: 'success');
-    }
-
-    /**
-     * Delete the admin value of one secret (called from the confirm dialog).
-     */
-    public function clearSecret(string $key, ClearSecret $clearSecret): void
-    {
-        $this->resetSecretInputs();
-        $field = $this->secretField($key);
-
-        $this->authorize('manageIntegrations', Setting::class);
-
-        if (! $this->ensurePasswordConfirmed()) {
-            return;
-        }
-
-        $cleared = $clearSecret->handle($key, auth()->user(), request()->ip());
-
-        unset($this->testResults[$field->langKey()]);
-
-        $this->dispatch('toast', title: $cleared ? __('admin.toast.done') : __('admin.settings.integrations.no_changes'), body: $cleared ? __('admin.settings.integrations.secret_cleared', ['name' => $field->label()]) : null, type: $cleared ? 'success' : 'info');
     }
 
     /**
@@ -298,70 +190,10 @@ class Integrations extends Component
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('admin.settings.integrations.indexnow.generated'), type: 'success');
     }
 
-    /**
-     * Test the saved (effective) value: telegram, telegram_chat + chat.
-     */
-    public function test(string $target, TestIntegrationConnection $tester, ?string $chat = null): void
-    {
-        $this->resetSecretInputs();
-
-        abort_unless(in_array($target, TestIntegrationConnection::TARGETS, true), 404);
-        abort_unless($target !== 'telegram_chat' || in_array($chat, TestIntegrationConnection::CHATS, true), 404);
-
-        $this->authorize('manageIntegrations', Setting::class);
-
-        if (! $this->ensurePasswordConfirmed()) {
-            return;
-        }
-
-        $result = $tester->handle(auth()->user(), $target, $chat);
-
-        $this->testResults[static::testId($target, $chat)] = $result->toArray();
-    }
-
-    /**
-     * Send the user to the password confirmation and back here.
-     */
-    public function confirmPassword(): void
-    {
-        $this->redirect(PasswordConfirmation::url(route('admin.settings.integrations')), navigate: false);
-    }
-
-    /**
-     * Key of $testResults for a test.
-     */
-    public static function testId(string $target, ?string $chat = null): string
-    {
-        return match ($target) {
-            'telegram' => 'telegram_bot_token',
-            'telegram_chat' => 'telegram_chats_'.$chat,
-            'uzqr' => 'uzqr_connection',
-            'indexnow' => 'indexnow_key',
-            default => $target,
-        };
-    }
-
     public function render(): View
     {
-        $sections = [];
-
-        foreach (IntegrationRegistry::GROUPS as $group) {
-            foreach (IntegrationRegistry::group($group) as $key => $field) {
-                $source = Secrets::source($key);
-
-                $sections[$group][$key] = [
-                    'field' => $field,
-                    'source' => $source,
-                    'locked' => $source === IntegrationSource::Env,
-                    'configured' => Secrets::isConfigured($key),
-                    'hint' => $field->secret ? Secrets::hint($key) : null,
-                    'unreadable' => $field->secret && Secrets::isUnreadable($key),
-                ];
-            }
-        }
-
         return view('livewire.admin.settings.integrations', [
-            'sections' => $sections,
+            'sections' => $this->fieldStates(),
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'prodGroups' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => Secrets::get("{$group}.mode") === PaymentMode::Prod->value || data_get($this->form->values, "{$group}.mode") === PaymentMode::Prod->value)),
             'testKeyMissing' => array_values(array_filter(self::PAYMENT_GROUPS, fn (string $group): bool => (data_get($this->form->values, "{$group}.mode") ?: Secrets::get("{$group}.mode")) === PaymentMode::Test->value && ! Secrets::isConfigured(match ($group) {
@@ -385,10 +217,7 @@ class Integrations extends Component
      */
     protected function audits(): LengthAwarePaginator
     {
-        $rows = SettingsAudit::query()->with('user:id,name,email')->latest('id')->limit(self::AUDIT_LIMIT)->get();
-        $page = max(1, min((int) $this->getPage('auditPage'), max(1, (int) ceil($rows->count() / self::AUDIT_PER_PAGE))));
-
-        return new LengthAwarePaginator($rows->forPage($page, self::AUDIT_PER_PAGE)->values(), $rows->count(), self::AUDIT_PER_PAGE, $page, ['pageName' => 'auditPage']);
+        return $this->paginateAudits(SettingsAudit::query());
     }
 
     /**
@@ -455,38 +284,5 @@ class Integrations extends Component
             'auth_failed' => $config->authFailed($config->activeMode()),
             'open' => $config->openCount(),
         ];
-    }
-
-    protected function secretField(string $key): IntegrationField
-    {
-        abort_unless(IntegrationRegistry::has($key) && IntegrationRegistry::field($key)->secret, 404);
-
-        return IntegrationRegistry::field($key);
-    }
-
-    /**
-     * True when the password was confirmed recently; otherwise redirects to
-     * the confirmation page (and back here afterwards).
-     */
-    protected function ensurePasswordConfirmed(): bool
-    {
-        if (PasswordConfirmation::isRecent()) {
-            return true;
-        }
-
-        $this->confirmPassword();
-
-        return false;
-    }
-
-    protected function resetSecretInputs(): void
-    {
-        $inputs = [];
-
-        foreach (array_keys(IntegrationRegistry::secrets()) as $key) {
-            data_set($inputs, $key, '');
-        }
-
-        $this->secretInputs = $inputs;
     }
 }
