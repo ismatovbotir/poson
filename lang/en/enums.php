@@ -237,6 +237,9 @@ return [
         'webhook_deleted' => 'Webhook deleted',
         'enabled' => 'Enabled',
         'disabled' => 'Disabled',
+        'banned' => 'Banned',
+        'unbanned' => 'Ban lifted',
+        'verified' => 'Verified',
     ],
 
     'price_sync_status' => [

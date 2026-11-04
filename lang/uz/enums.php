@@ -237,6 +237,9 @@ return [
         'webhook_deleted' => 'Webhook oʻchirildi',
         'enabled' => 'Yoqildi',
         'disabled' => 'Oʻchirildi',
+        'banned' => 'Bloklandi',
+        'unbanned' => 'Blok olib tashlandi',
+        'verified' => 'Tasdiqlandi',
     ],
 
     'price_sync_status' => [

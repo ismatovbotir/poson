@@ -6,6 +6,9 @@
 @if (! $chat->isRegistered())
     <x-admin.badge color="outline">{{ __($t.'.badges.unregistered') }}</x-admin.badge>
 @endif
+@if ($chat->isRegistered() && $chat->customer_id === null)
+    <x-admin.badge color="outline" data-unlinked>{{ __($t.'.badges.unlinked') }}</x-admin.badge>
+@endif
 @if ($chat->isBanned())
     <x-admin.badge color="red">{{ __($t.'.badges.banned') }}</x-admin.badge>
 @endif

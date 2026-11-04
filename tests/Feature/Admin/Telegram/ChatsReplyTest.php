@@ -449,7 +449,7 @@ it('shows the buttons to the author and a duplicate warning only on a stuck row'
     $html = Livewire::actingAs($author)->test(Show::class, ['telegramUser' => $chat])->html();
 
     expect($html)->toContain('data-resend="'.$failed->id.'"')->toContain('data-resend="'.$stuck->id.'"');
-    expect(substr_count($html, 'wire:confirm'))->toBe(1);
+    expect($html)->not->toMatch('/wire:confirm="[^"]*"[^>]*data-resend="'.$failed->id.'"/');
     expect($html)->toMatch('/wire:confirm="[^"]*"[^>]*data-resend="'.$stuck->id.'"/');
 });
 

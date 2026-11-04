@@ -29,6 +29,9 @@
             @if ($conversation->account_changed)
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="account-changed"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.account_changed') }}</p>
             @endif
+            @if ($conversation->customer_id !== null && ! $conversation->isLinkVerified())
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="unverified"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.unverified') }}</p>
+            @endif
             @if ($replyRefusal === 'bot_off')
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="bot-off"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.bot_off') }}</p>
             @endif
@@ -134,7 +137,12 @@
                     ] as $field => $value)
                         <div>
                             <dt class="text-slate-500">{{ __($t.'.panel.'.$field) }}</dt>
-                            <dd class="mt-0.5 break-words font-medium">{{ $value ?? __('admin.common.empty_value') }}</dd>
+                            <dd class="mt-0.5 flex flex-wrap items-center gap-2 break-words font-medium">
+                                {{ $value ?? __('admin.common.empty_value') }}
+                                @if ($value !== null && in_array($field, ['company', 'inn'], true))
+                                    <x-admin.badge color="outline" data-unproven>{{ __($t.'.panel.unproven') }}</x-admin.badge>
+                                @endif
+                            </dd>
                         </div>
                     @endforeach
                     <div>
@@ -163,6 +171,7 @@
                 </dl>
             </x-admin.card>
 
+            @include('livewire.admin.telegram.chats.partials.crm-panel')
             @include('livewire.admin.telegram.chats.partials.manage-panel')
         </aside>
     </div>

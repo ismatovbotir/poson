@@ -237,6 +237,9 @@ return [
         'webhook_deleted' => 'Вебхук удалён',
         'enabled' => 'Включено',
         'disabled' => 'Выключено',
+        'banned' => 'Заблокирован',
+        'unbanned' => 'Блокировка снята',
+        'verified' => 'Подтверждено',
     ],
 
     'price_sync_status' => [

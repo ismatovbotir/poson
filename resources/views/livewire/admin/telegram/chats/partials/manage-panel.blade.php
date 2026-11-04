@@ -1,6 +1,6 @@
 @php($t = 'telegram_inbox')
 
-{{-- Assign / take and close / reopen (plan 21 A3). Buttons follow the policy; the actions check again. --}}
+{{-- Assign / take, close / reopen and ban (plan 21 A3, A4). Buttons follow the policy; the actions check again. --}}
 <x-admin.card :title="__($t.'.manage.title')">
     <div class="space-y-3 text-sm" data-manage-panel>
         @can('assign', $conversation)
@@ -24,6 +24,13 @@
                 <x-admin.button variant="secondary" class="w-full" wire:click="close" loading="close" data-close>{{ __($t.'.manage.close') }}</x-admin.button>
             @else
                 <x-admin.button variant="secondary" class="w-full" wire:click="reopen" loading="reopen" data-reopen>{{ __($t.'.manage.reopen') }}</x-admin.button>
+            @endif
+        @endcan
+        @can('ban', $conversation)
+            @if ($conversation->isBanned())
+                <x-admin.button variant="secondary" class="w-full" wire:click="unban" wire:confirm="{{ __($t.'.manage.unban_confirm') }}" loading="unban" data-action-unban>{{ __($t.'.manage.unban') }}</x-admin.button>
+            @else
+                <x-admin.button variant="danger" class="w-full" wire:click="ban" wire:confirm="{{ __($t.'.manage.ban_confirm') }}" loading="ban" data-action-ban>{{ __($t.'.manage.ban') }}</x-admin.button>
             @endif
         @endcan
     </div>
