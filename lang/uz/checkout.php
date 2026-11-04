@@ -142,7 +142,7 @@ return [
         'max_delivery_charge' => 'Eng katta yetkazib berish toʻlovi, soʻm',
         'max_manual_discount_percent' => 'Qoʻlda belgilanadigan narxning quyi chegarasi, %',
         'fiscal_title' => 'Fiskal kodlar',
-        'fiscal_hint' => 'IKPU va qadoq kodlari cheklar va hisob uchun buyurtmaning har bir pozitsiyasida saqlanadi. UzQR ularni tekshirmaydi.',
+        'fiscal_hint' => 'IKPU va qadoq kodlari fiskal cheklar uchun kerak: har bir pozitsiya uchun kiriting.',
         'delivery_ikpu' => 'Yetkazib berish IKPU kodi',
         'delivery_package_code' => 'Yetkazib berish qadoq kodi',
         'uzqr_title' => 'Statik UzQR',

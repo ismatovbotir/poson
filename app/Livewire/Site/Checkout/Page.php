@@ -36,7 +36,7 @@ use Livewire\Component;
  * (enums are parsed with tryFrom() in PlaceOrder) and, locked, the
  * fingerprint of what it showed (lines, prices, delivery), the render time
  * and the attribution. Payment methods offered come from PaymentOptions
- * (Payme / Click only in live mode with webhooks; on receipt only for
+ * (Payme / Click are hidden, plan 23; on receipt only for
  * pickup and Kokand; bank transfer for companies / YaTT).
  *
  * Spam: honeypot "fax_ext", minimum fill time, per-IP (5 / 10 min) and

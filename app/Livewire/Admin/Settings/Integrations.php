@@ -37,19 +37,19 @@ class Integrations extends Component
     use HandlesActionErrors, ManagesIntegrationSettings, WithAdminPagination;
 
     /**
-     * Payment providers with a test / prod mode (plan 11 v2 §1.8).
-     */
-    /**
      * Registry groups hidden from this screen by owner decision (plan 23):
      * Payme and Click. Their keys stay in the registry and the database, and
      * every save / secret / test action answers 404 for them.
      */
     public const HIDDEN_GROUPS = ['payme', 'click'];
 
+    /**
+     * Payment providers shown here with a test / prod mode (plan 11 v2 §1.8).
+     */
     public const PAYMENT_GROUPS = ['uzqr'];
 
     /**
-     * Set by the server when save('payme' | 'click') opened the "switch to
+     * Set by the server when save('uzqr') opened the "switch to
      * live" dialog for that provider; confirmProd() only runs while it is
      * set. A UX guard against an accidental switch, not a security boundary
      * (the admin may save "prod" anyway); #[Locked] so the browser can't set it.
@@ -112,7 +112,7 @@ class Integrations extends Component
     }
 
     /**
-     * Called by the confirm dialog after save('payme' | 'click') asked for it.
+     * Called by the confirm dialog after save('uzqr') asked for it.
      */
     public function confirmProd(SaveIntegrationSettings $saveSettings): void
     {

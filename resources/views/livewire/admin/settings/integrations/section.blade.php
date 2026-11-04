@@ -1,6 +1,6 @@
 @php
     $t = 'admin.settings.integrations';
-    // Connection test per secret (Payme / Click have none: webhook URLs instead).
+    // Connection test per secret (Payme / Click sections are hidden, plan 23).
     $tests = ['telegram.bot_token' => 'telegram', 'indexnow.key' => 'indexnow'];
     $secrets = array_filter($fields, fn (array $state): bool => $state['field']->secret);
     $settings = array_filter($fields, fn (array $state): bool => ! $state['field']->secret);

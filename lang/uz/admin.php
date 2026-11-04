@@ -536,7 +536,7 @@ return [
             'brand' => 'Mahsulot sahifasida brend sahifasiga havola bilan koʻrsatiladi va brendlar filtrida ishlatiladi. Brend boʻlmasa, boʻsh qoldiring.',
             'unit' => 'Narxlar va minimal buyurtma shu birlikda koʻrsatiladi; u tijorat taklifi qatorlariga ham koʻchiriladi.',
             'stock_status' => 'Mahsulot kartochkasi va sahifasida koʻrsatiladi hamda mavjudlik filtrida ishlatiladi. Buyurtmani toʻsmaydi.',
-            'ikpu_code' => 'tasnif.soliq.uz dagi 17 raqam. Mahsulotda cheklar va hisob uchun saqlanadi; UzQR orqali toʻlov uchun shart emas.',
+            'ikpu_code' => 'tasnif.soliq.uz dagi 17 raqam. Fiskal cheklar uchun kerak.',
             'package_code' => 'Shu IKPU uchun tasnif.soliq.uz dagi qadoq (birlik) kodi.',
             'badge' => 'Mahsulot kartochkasi va sahifasidagi ixtiyoriy belgi: ommabop mahsulotlar uchun “Xit”, yangi kelganlar uchun “Yangi”.',
         ],

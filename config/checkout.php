@@ -21,17 +21,17 @@ return [
         'region_fees' => [],
         // Highest order total (any method), whole soʻm.
         'max_total' => 1_000_000_000,
-        // Highest order total payable online (Payme / Click), whole soʻm.
+        // Highest order total payable by dynamic UzQR, whole soʻm.
         'max_online_total' => 50_000_000,
         // Highest separately billed delivery charge, whole soʻm.
         'max_delivery_charge' => 5_000_000,
         // How far below the customer's level price (or Dealer) a non-Admin may
         // set a manual order line price, percent (0 = not at all).
         'max_manual_discount_percent' => 0,
-        // Fiscal codes of the delivery line (Payme / Click receipts).
+        // Fiscal codes of the delivery line (fiscal receipts).
         'delivery_ikpu' => '',
         'delivery_package_code' => '',
-        // Hide Payme / Click unless every line (and a fixed delivery) has an IKPU.
+        // Kept for stored settings (Payme / Click are hidden, plan 23); no screen edits it.
         'require_ikpu_online' => true,
         // Recipient name shown next to the static UzQR code.
         'uzqr_recipient' => '',

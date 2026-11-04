@@ -142,7 +142,7 @@ return [
         'max_delivery_charge' => 'Largest delivery charge, soʻm',
         'max_manual_discount_percent' => 'Manual price floor, %',
         'fiscal_title' => 'Fiscal codes',
-        'fiscal_hint' => 'IKPU and package codes are kept on every order line for receipts and records. UzQR does not check them.',
+        'fiscal_hint' => 'IKPU and package codes are needed for fiscal receipts: fill them in for every line.',
         'delivery_ikpu' => 'Delivery IKPU',
         'delivery_package_code' => 'Delivery package code',
         'uzqr_title' => 'Static UzQR',

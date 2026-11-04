@@ -18,11 +18,9 @@ use Illuminate\Support\Facades\Route;
  * 18), the one rule used by checkout, PlaceOrder, ChangeOrderPaymentMethod,
  * the /o pay button and (11c/11d) the webhooks:
  *
- * - payme / click: the provider is live for this kind of order (real
- *   orders: mode prod, credentials and the webhook route present, APP_URL
- *   public https; TEST orders: mode test with the test credentials), 0 <
- *   total ≤ max_online_total, and every line (plus a fixed paid delivery)
- *   has an IKPU while require_ikpu_online is on;
+ * - payme / click: hidden by owner decision (plan 23). PaymentMethod::isReserved()
+ *   rejects them first, whatever routes, holds or keys exist. The provider
+ *   readiness rule below is kept only for old data and is not a way back;
  * - uzqr_static: the UzQR image is uploaded, total > 0;
  * - on_receipt: pickup or courier in Kokand only;
  * - bank_transfer: companies and sole proprietors (YaTT), with complete
@@ -35,8 +33,7 @@ use Illuminate\Support\Facades\Route;
  * - forCheckout() (public checkout) hides uzqr_static while uzqr_dynamic
  *   is offered (static = fallback; staff can still pick it in admin).
  *
- * Until plans 11c/11d register the webhook routes, Payme and Click are
- * never offered.
+ * Payme and Click are never offered or accepted for new orders (isReserved()).
  */
 class PaymentOptions
 {
