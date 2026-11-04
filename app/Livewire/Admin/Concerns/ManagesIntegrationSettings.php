@@ -178,6 +178,13 @@ trait ManagesIntegrationSettings
             return;
         }
 
+        // The .env value stays effective: deleting the stored row would change nothing visible and leave a false "cleared" audit row.
+        if (Secrets::source($key) === IntegrationSource::Env) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.settings.integrations.locked_hint', ['env' => $field->env]), type: 'error');
+
+            return;
+        }
+
         $cleared = $clearSecret->handle($key, auth()->user(), request()->ip());
 
         $this->forgetTestResults($field->group);
