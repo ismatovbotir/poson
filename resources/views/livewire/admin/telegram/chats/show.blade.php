@@ -2,7 +2,7 @@
 @php($name = \App\Support\Telegram\InboxMessage::displayName($conversation))
 @php($tz = config('app.timezone'))
 
-{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 A1). Read-only; polls every 10 s while visible. --}}
+{{-- Telegram → Chats → conversation (plan 14 v2 §9, plan 21 A1, A2). Polls every 10 s while visible. --}}
 <div @if ($polling) wire:poll.10s.visible="refreshThread" @endif data-telegram-chat="{{ $conversation->id }}">
     <x-admin.page-header :title="$name !== '' ? $name : __($t.'.unnamed')" :subtitle="__($t.'.show.subtitle', ['id' => $conversation->id])">
         <x-slot:breadcrumbs>
@@ -28,6 +28,9 @@
             @endif
             @if ($conversation->account_changed)
                 <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="account-changed"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.account_changed') }}</p>
+            @endif
+            @if ($replyRefusal === 'bot_off')
+                <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-banner="bot-off"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.bot_off') }}</p>
             @endif
             @unless ($conversation->isRegistered())
                 <p class="flex gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700" role="note" data-banner="unregistered"><x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.banners.unregistered') }}</p>
@@ -76,6 +79,11 @@
                                     @unless ($inbound)
                                         <x-admin.badge :color="$message->status === \App\Enums\TelegramMessageStatus::Failed ? 'red' : 'muted'">{{ $message->status->label() }}@if ($message->error_code) · {{ $message->error_code }}@endif</x-admin.badge>
                                     @endunless
+                                    @if ($replyRefusal === null && $message->isResendable())
+                                        @can('resend', [$conversation, $message])
+                                            <button type="button" wire:click="resend({{ $message->id }})" @if ($message->status === \App\Enums\TelegramMessageStatus::Sending) wire:confirm="{{ __($t.'.resend.duplicate_warning') }}" @endif wire:loading.attr="disabled" wire:target="resend({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-resend="{{ $message->id }}">{{ $message->status === \App\Enums\TelegramMessageStatus::Sending ? __($t.'.resend.resend') : __($t.'.resend.retry') }}</button>
+                                        @endcan
+                                    @endif
                                     @if ($message->forward_status !== null)
                                         <x-admin.badge :color="$message->forward_status === \App\Enums\TelegramForwardStatus::Forwarded ? 'brand' : ($message->forward_status === \App\Enums\TelegramForwardStatus::Failed ? 'red' : 'muted')">{{ __($t.'.show.forward') }}: {{ $message->forward_status->label() }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</x-admin.badge>
                                     @endif
@@ -90,6 +98,27 @@
                     @endforelse
                 </div>
             </x-admin.card>
+
+            @can('reply', $conversation)
+                <x-admin.card>
+                    <form wire:submit="sendReply" class="space-y-3" data-reply-box>
+                        <x-admin.textarea
+                            wire:model="reply"
+                            wire:keydown.ctrl.enter="sendReply"
+                            wire:keydown.cmd.enter="sendReply"
+                            rows="3"
+                            :label="__($t.'.reply.label')"
+                            :placeholder="__($t.'.reply.placeholder')"
+                            :hint="__($t.'.reply.hint', ['max' => \App\Actions\Telegram\SendTelegramReply::MAX_LENGTH])"
+                            maxlength="{{ \App\Actions\Telegram\SendTelegramReply::MAX_LENGTH }}"
+                            :disabled="$replyRefusal !== null"
+                        />
+                        <div class="flex justify-end">
+                            <x-admin.button type="submit" icon="telegram" loading="sendReply" :disabled="$replyRefusal !== null" data-reply-send>{{ __($t.'.reply.send') }}</x-admin.button>
+                        </div>
+                    </form>
+                </x-admin.card>
+            @endcan
         </div>
 
         <aside class="space-y-4">

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
 
@@ -28,6 +29,18 @@ class TelegramUserPolicy
     public function reply(User $user, TelegramUser $telegramUser): bool
     {
         return $this->view($user, $telegramUser);
+    }
+
+    /**
+     * Send an undelivered reply again: its author, or an Admin through
+     * Gate::before (T21-13). The action refuses ownerless rows for everyone.
+     */
+    public function resend(User $user, TelegramUser $telegramUser, TelegramMessage $message): bool
+    {
+        return $this->view($user, $telegramUser)
+            && $message->telegram_user_id === $telegramUser->id
+            && $message->user_id !== null
+            && $message->user_id === $user->id;
     }
 
     public function convert(User $user, TelegramUser $telegramUser): bool

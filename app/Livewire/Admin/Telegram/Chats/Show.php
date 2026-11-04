@@ -2,19 +2,25 @@
 
 namespace App\Livewire\Admin\Telegram\Chats;
 
+use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\MarkConversationRead;
+use App\Actions\Telegram\ResendTelegramMessage;
+use App\Actions\Telegram\SendTelegramReply;
+use App\Enums\TelegramDirection;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
+use Closure;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * Read-only conversation (plan 14 v2 §9, plan 21 A1): the latest 50 messages
- * with "load older", a read-only profile panel, stuck deliveries highlighted.
- * Opening it marks the thread read. No reply box yet.
+ * Conversation (plan 14 v2 §9, plan 21 A1, A2): the latest 50 messages with
+ * "load older", a profile panel, stuck deliveries highlighted, the reply box
+ * and resend of undelivered replies. Opening it marks the thread read. Writes
+ * go through actions, which check policy and state again.
  *
  * Only the conversation id is held in state (T21-10): the row is loaded on
  * every request without telegram_id, and hydrate() authorizes "view" again,
@@ -40,6 +46,8 @@ class Show extends Component
 
     #[Locked]
     public int $limit = self::PAGE_SIZE;
+
+    public string $reply = '';
 
     /**
      * The row loaded in this request (never part of the Livewire state).
@@ -70,6 +78,37 @@ class Show extends Component
         $markRead->handle($this->conversation(), $this->user());
     }
 
+    public function sendReply(SendTelegramReply $send): void
+    {
+        $this->authorize('reply', $this->conversation());
+
+        $this->validate(
+            ['reply' => ['required', 'string', 'max:'.SendTelegramReply::MAX_LENGTH]],
+            attributes: ['reply' => __('telegram_inbox.reply.label')],
+        );
+
+        $this->attempt(function () use ($send): void {
+            $send->handle($this->conversation(), $this->user(), $this->reply);
+            $this->reset('reply');
+        }, 'reply_queued');
+    }
+
+    public function resend(int $messageId, ResendTelegramMessage $resend): void
+    {
+        $this->authorize('view', $this->conversation());
+
+        $message = TelegramMessage::query()
+            ->where('telegram_user_id', $this->conversationId)
+            ->where('direction', TelegramDirection::Out)
+            ->findOrFail($messageId);
+
+        $this->attempt(function () use ($resend, $message): void {
+            if (! $resend->handle($message, $this->user())) {
+                throw new InboxRefused('not_retryable');
+            }
+        }, 'resent');
+    }
+
     public function render(): View
     {
         $conversation = $this->conversation();
@@ -93,7 +132,24 @@ class Show extends Component
             'hasOlder' => $hasOlder && $this->limit < self::MAX_MESSAGES,
             'olderHidden' => $hasOlder && $this->limit >= self::MAX_MESSAGES,
             'polling' => $this->limit === self::PAGE_SIZE,
+            'replyRefusal' => app(SendTelegramReply::class)->refusal($conversation),
         ])->title(__('telegram_inbox.show.title'));
+    }
+
+    /**
+     * Run a write and report it. A policy refusal stays a 403. The row is read
+     * again for the render, because the write may have changed it.
+     */
+    private function attempt(Closure $write, string $toast): void
+    {
+        try {
+            $write();
+            $this->dispatch('toast', title: __('admin.toast.done'), body: __('telegram_inbox.toasts.'.$toast), type: 'success');
+        } catch (InboxRefused $refused) {
+            $this->dispatch('toast', title: $refused->translated(), type: 'error');
+        }
+
+        $this->loaded = null;
     }
 
     private function conversation(bool $fresh = false): TelegramUser

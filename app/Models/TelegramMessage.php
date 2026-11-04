@@ -99,6 +99,38 @@ class TelegramMessage extends Model
     }
 
     /**
+     * Outbound staff replies a person may send again (T21-13): failed, or left
+     * pending / sending for more than STUCK_MINUTES. Ownerless rows (the
+     * auto-ack) never qualify.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeResendable(Builder $query): void
+    {
+        $query->where('telegram_messages.direction', TelegramDirection::Out)
+            ->whereNotNull('telegram_messages.user_id')
+            ->where(fn (Builder $inner) => $inner
+                ->where('telegram_messages.status', TelegramMessageStatus::Failed)
+                ->orWhere(fn (Builder $old) => $old
+                    ->whereIn('telegram_messages.status', [TelegramMessageStatus::Pending, TelegramMessageStatus::Sending])
+                    ->where('telegram_messages.updated_at', '<', now()->subMinutes(self::STUCK_MINUTES))));
+    }
+
+    /**
+     * Same rule as scopeResendable() for a loaded row.
+     */
+    public function isResendable(): bool
+    {
+        if ($this->direction !== TelegramDirection::Out || $this->user_id === null) {
+            return false;
+        }
+
+        return $this->status === TelegramMessageStatus::Failed
+            || (in_array($this->status, [TelegramMessageStatus::Pending, TelegramMessageStatus::Sending], true)
+                && $this->updated_at?->lt(now()->subMinutes(self::STUCK_MINUTES)) === true);
+    }
+
+    /**
      * @return BelongsTo<TelegramUser, $this>
      */
     public function telegramUser(): BelongsTo

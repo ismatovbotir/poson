@@ -1,7 +1,7 @@
 <?php
 
 /*
-| Staff inbox of the Telegram bot (plan 21 A1): Admin → Telegram → Chats.
+| Staff inbox of the Telegram bot (plan 21 stream A): Admin → Telegram → Chats.
 */
 
 return [
@@ -45,6 +45,7 @@ return [
         'banned' => 'This customer is banned. Their messages are not accepted.',
         'blocked' => 'The customer blocked the bot, so messages cannot be delivered.',
         'account_changed' => 'This customer\'s Telegram account has changed. Check who is writing before sharing details.',
+        'bot_off' => 'The bot is off or not configured, so replies cannot be sent.',
         'unregistered' => 'This visitor has not finished registration in the bot.',
     ],
     'show' => [
@@ -71,6 +72,31 @@ return [
         'manager' => 'Manager',
         'registered_at' => 'Registered',
         'last_inbound_at' => 'Last message from customer',
+    ],
+    'reply' => [
+        'label' => 'Reply',
+        'placeholder' => 'Write a reply to the customer',
+        'hint' => 'Plain text, up to :max characters. Ctrl+Enter sends.',
+        'send' => 'Send',
+    ],
+    'resend' => [
+        'retry' => 'Try again',
+        'resend' => 'Send again',
+        'duplicate_warning' => 'The customer may already have this message. Sending again can deliver it twice. Continue?',
+    ],
+    'refused' => [
+        'unregistered' => 'This visitor has not finished registration, so this is not available.',
+        'banned' => 'This customer is banned.',
+        'blocked' => 'The customer blocked the bot.',
+        'bot_off' => 'The bot is off or not configured.',
+        'rate_limited' => 'Too many messages. Try again in a minute.',
+        'invalid_text' => 'The message is empty or too long.',
+        'taken' => 'Another manager has taken this conversation.',
+        'not_retryable' => 'This message cannot be sent again.',
+    ],
+    'toasts' => [
+        'reply_queued' => 'The reply is queued for delivery.',
+        'resent' => 'The message is queued for delivery again.',
     ],
 
 ];
