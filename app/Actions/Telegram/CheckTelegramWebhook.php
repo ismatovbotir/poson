@@ -75,7 +75,7 @@ class CheckTelegramWebhook
         $code = null;
         $result = $this->check($timeout, $info, $code);
         $chat = $this->verifyChat($result, $code, $timeout);
-        $this->writeSnapshot($result, $info, $code, $chat, $generation !== InboxChat::generation());
+        $this->writeSnapshot($result, $info, $code, $chat, $generation === '?' || $generation !== InboxChat::generation());
 
         return $result;
     }
@@ -128,7 +128,7 @@ class CheckTelegramWebhook
         } catch (TelegramException $exception) {
             $code = $exception->status;
 
-            if ($exception->status === 401) {
+            if (in_array($exception->status, self::TOKEN_REFUSED_CODES, true)) {
                 $monitor->track(self::TOKEN_KEY, true, self::TOKEN_EVENT, []);
 
                 return self::PROBLEM;

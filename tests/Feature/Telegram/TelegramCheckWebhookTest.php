@@ -276,6 +276,13 @@ describe('status snapshot (plan 21 E1, T21-6)', function () {
             ->and(webhookAlertTexts())->toBe([]);
     });
 
+    it('opens the token problem on a 404 like on a 401 and returns PROBLEM', function () {
+        webhookInfoAnswers([Http::response(['ok' => false, 'error_code' => 404, 'description' => 'Not Found'], 404)]);
+
+        expect(app(CheckTelegramWebhook::class)->handle())->toBe(CheckTelegramWebhook::PROBLEM)
+            ->and(MonitoringState::query()->find(CheckTelegramWebhook::TOKEN_KEY)->problem_since)->not->toBeNull();
+    });
+
     it('skips the chat check after a 401 or 404 and does not cache a bad chat', function (int $status) {
         webhookInfoAnswers([Http::response(['ok' => false, 'error_code' => $status, 'description' => 'x'], $status)]);
 

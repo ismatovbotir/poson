@@ -206,7 +206,14 @@ final class TelegramStatus
                 InboxChat::invalidate($chatId);
             }
 
-            $result = app(CheckTelegramWebhook::class)->handle(self::TIMEOUT);
+            try {
+                $result = app(CheckTelegramWebhook::class)->handle(self::TIMEOUT);
+            } catch (Throwable $exception) {
+                // The old result must not stay on screen for up to 55 s.
+                Cache::forget(self::CACHE_KEY);
+
+                throw $exception;
+            }
 
             // Drop the old result, bump the epoch so a poll that started earlier cannot store its older one, then store the new one.
             Cache::forget(self::CACHE_KEY);

@@ -35,6 +35,22 @@ final class StatusSnapshot
         ];
     }
 
+    /**
+     * After a committed bot token or chat id change: forget the chat
+     * verification and clear the verdicts. Each step is guarded, so a failing
+     * one neither skips the other nor fails the committed save.
+     */
+    public static function tokenOrChatChanged(): void
+    {
+        try {
+            InboxChat::forget();
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        self::clearVerdicts();
+    }
+
     public static function clearVerdicts(): void
     {
         try {

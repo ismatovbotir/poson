@@ -587,3 +587,27 @@ it('never turns an odd chat key or env reason into a raw translation key', funct
 
     expect($html)->not->toContain('telegram_status.');
 });
+
+it('still clears the verdicts when forgetting the chat verification fails, and the save succeeds', function () {
+    statusBaseline();
+    Exceptions::fake();
+    Cache::extend('failing-generation', fn () => Cache::repository(new class extends ArrayStore
+    {
+        public function forever($key, $value): bool
+        {
+            if ($key === InboxChat::GENERATION_KEY) {
+                throw new RuntimeException('cache down');
+            }
+
+            return parent::forever($key, $value);
+        }
+    }));
+    config(['cache.stores.failing-generation' => ['driver' => 'failing-generation'], 'cache.default' => 'failing-generation']);
+    statusSnapshot();
+
+    $changed = app(SaveIntegrationSettings::class)->handle(['telegram.chats.service' => '-1002222222222'], null, null);
+
+    expect($changed)->toBe(['telegram.chats.service'])
+        ->and(MonitoringState::query()->find('telegram:status')->meta)->chat->toBe('unknown')->get_me->toBe('unknown');
+    Exceptions::assertReported(RuntimeException::class);
+});

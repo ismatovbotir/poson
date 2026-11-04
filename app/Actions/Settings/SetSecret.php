@@ -10,7 +10,6 @@ use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
-use App\Support\Telegram\Bot\InboxChat;
 use App\Support\Telegram\Bot\StatusSnapshot;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -70,8 +69,7 @@ class SetSecret
 
             // A new / removed bot token: the inbox chat must be verified again (B4-S2).
             if ($key === 'telegram.bot_token') {
-                DB::afterCommit(fn () => InboxChat::forget());
-                DB::afterCommit(fn () => StatusSnapshot::clearVerdicts());
+                DB::afterCommit(fn () => StatusSnapshot::tokenOrChatChanged());
             }
 
             if (str_starts_with($key, 'uzqr.')) {
