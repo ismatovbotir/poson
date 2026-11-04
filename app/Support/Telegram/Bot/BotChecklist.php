@@ -18,9 +18,9 @@ use App\Support\Secrets;
  *  - webhook_secret: a webhook secret is configured;
  *  - app_url: APP_URL is a public https address;
  *  - webhook: Telegram's webhook URL equals the expected one (getWebhookInfo);
- *  - chat: the inbox target (InboxChat: inbox chat, else sales chat) is a
- *    numeric group id (^-[1-9]\d{0,19}$); the getChat check (private group) runs in
- *    ForwardTelegramMedia / the inbox alert, cached (B4-S1/S2);
+ *  - chat: local() only checks the inbox target is a numeric group id
+ *    (^-[1-9]\d{0,19}$); evaluate() also needs InboxChat::verify() === true
+ *    (private group, cached 10 min), failing closed on any error (T21-8);
  *  - privacy: the privacy page exists, is active and no longer needs review.
  */
 final class BotChecklist
@@ -29,7 +29,20 @@ final class BotChecklist
 
     public const PRIVACY_SLUG = 'privacy';
 
+    public const CHAT_TIMEOUT = 3;
+
+    private bool $chatUnavailable = false;
+
     public function __construct(private readonly TelegramClient $client) {}
+
+    /**
+     * Whether the last evaluate() could not reach Telegram to verify the chat
+     * (5xx, 429, timeout): the enable is refused with "try again", nothing cached.
+     */
+    public function chatUnavailable(): bool
+    {
+        return $this->chatUnavailable;
+    }
 
     /**
      * @param  array<string, mixed>|null  $webhookInfo  getWebhookInfo result already fetched (null: fetch it)
@@ -39,6 +52,7 @@ final class BotChecklist
     {
         $items = $this->local();
         $items['webhook'] = $items['token'] && $this->webhookMatches($webhookInfo);
+        $items['chat'] = $items['chat'] && $items['token'] && $this->chatVerified();
 
         return $items;
     }
@@ -68,6 +82,29 @@ final class BotChecklist
     public static function failing(array $items): array
     {
         return array_keys(array_filter($items, fn (?bool $ok): bool => $ok !== true));
+    }
+
+    /**
+     * Fail closed: only InboxChat::verify() === true passes (a pass cached for
+     * 10 minutes counts). A transient failure refuses and caches nothing.
+     * Never reads the status snapshot (T21-27).
+     */
+    private function chatVerified(): bool
+    {
+        $this->chatUnavailable = false;
+        $chatId = InboxChat::id();
+
+        if ($chatId === null) {
+            return false;
+        }
+
+        try {
+            return InboxChat::verify($this->client->withTimeout(self::CHAT_TIMEOUT, self::CHAT_TIMEOUT), $chatId) === true;
+        } catch (TelegramException) {
+            $this->chatUnavailable = true;
+
+            return false;
+        }
     }
 
     /**

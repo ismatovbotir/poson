@@ -120,6 +120,14 @@
             </ul>
         </x-admin.card>
 
+        {{-- Inbox chat verdict (display only; enabling re-checks the chat) --}}
+        <x-admin.card :title="__($t.'.chat_check.title')" :description="__($t.'.chat_check.hint')">
+            <div class="flex flex-wrap items-center gap-3 text-sm" data-chat-verdict="{{ $chatVerdict }}">
+                <x-admin.badge :color="$chatVerdict === 'pass' ? 'brand' : ($chatVerdict === 'fail' ? 'red' : 'amber')">{{ __($t.'.chat_check.'.$chatVerdict) }}</x-admin.badge>
+                <x-admin.button variant="secondary" icon="restore" wire:click="checkChat" loading="checkChat" data-action="check-chat">{{ __($t.'.chat_check.button') }}</x-admin.button>
+            </div>
+        </x-admin.card>
+
         {{-- Webhook --}}
         <x-admin.card :title="__($t.'.webhook_title')" :description="__($t.'.webhook_hint')">
             <dl class="grid gap-3 text-sm sm:grid-cols-2">

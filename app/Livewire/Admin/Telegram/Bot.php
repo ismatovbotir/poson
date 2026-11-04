@@ -113,6 +113,27 @@ class Bot extends Component
         $this->load();
     }
 
+    /**
+     * "Check now" for the inbox chat: the status panel's own check
+     * (TelegramStatus::refresh: rate-limited, 3 s timeouts, cached verdict
+     * dropped first). The shown verdict is informational only.
+     */
+    public function checkChat(TelegramStatus $status): void
+    {
+        $this->authorize('telegram.bot');
+
+        $t = 'admin.telegram_bot.chat_check.';
+        $outcome = $status->refresh(auth()->id());
+
+        match ($outcome) {
+            TelegramStatus::REFRESHED => $this->dispatch('toast', title: __('admin.toast.done'), body: __($t.'done'), type: 'success'),
+            TelegramStatus::LIMITED => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'limited', ['seconds' => TelegramStatus::retryAfter(auth()->id())]), type: 'error'),
+            TelegramStatus::BUSY => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'busy'), type: 'error'),
+            TelegramStatus::UNREACHABLE => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'unreachable'), type: 'error'),
+            default => $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'failed'), type: 'error'),
+        };
+    }
+
     public function enable(SetBotEnabled $setBotEnabled): void
     {
         $this->write(fn () => $setBotEnabled->enable(auth()->user(), request()->ip())
@@ -235,6 +256,28 @@ class Bot extends Component
         }
     }
 
+    /**
+     * Display-only chat verdict from the status snapshot: pass, fail or unknown.
+     */
+    protected function chatVerdict(): string
+    {
+        try {
+            foreach (app(TelegramStatus::class)->result()['rows'] as $row) {
+                if ($row['id'] === 'chat') {
+                    return match ($row['state']) {
+                        TelegramStatus::OK => 'pass',
+                        TelegramStatus::PROBLEM => 'fail',
+                        default => 'unknown',
+                    };
+                }
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return 'unknown';
+    }
+
     public function render(): View
     {
         return view('livewire.admin.telegram.bot', [
@@ -245,6 +288,7 @@ class Bot extends Component
             'problems' => CheckTelegramWebhook::openProblems(),
             'audits' => $this->audits(),
             'statusSummary' => $this->statusSummary(),
+            'chatVerdict' => $this->chatVerdict(),
         ])->title(__('admin.telegram_bot.title'));
     }
 }

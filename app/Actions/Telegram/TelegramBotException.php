@@ -9,7 +9,7 @@ use RuntimeException;
  * fixed code; translated() is the translated text for the admin screen and
  * console. Never carries a URL, token or Telegram error text.
  *
- * Reasons: not_https, no_secret, no_token, not_ready, telegram_error.
+ * Reasons: not_https, no_secret, no_token, not_ready, chat_unavailable, telegram_error.
  */
 class TelegramBotException extends RuntimeException
 {
