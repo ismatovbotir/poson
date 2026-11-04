@@ -107,6 +107,13 @@ return [
         'no_customer' => 'Chat mijozga bogʻlanmagan.',
         'invalid_customer' => 'Bu mijoz mavjud emas.',
         'invalid_contact' => 'Bu kontakt mijozga tegishli emas.',
+        'nothing_selected' => 'Hech qaysi xabar tanlanmagan.',
+        'too_many_selected' => 'Juda koʻp xabar tanlandi.',
+        'invalid_selection' => 'Tanlangan xabarlardan biri bu chatdagi mijoz xabari emas.',
+        'invalid_type' => 'Bu murojaat turi mavjud emas.',
+        'no_text' => 'Murojaat faqat matnli xabarlardan yaratiladi.',
+        'no_phone' => 'Bu chatda murojaat uchun telefon raqami yoʻq.',
+        'anonymous_number' => 'Telegramning anonim raqami (+888) CRMga oʻtkazilmaydi.',
     ],
     'toasts' => [
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
@@ -124,6 +131,8 @@ return [
         'linked' => 'Chat bogʻlandi. Kim yozayotganini tekshirgach, bogʻlanishni tasdiqlang.',
         'deleted' => 'Chat oʻchirildi.',
         'chat_gone' => 'Bu chat endi mavjud emas.',
+        'converted' => 'Murojaat yaratildi.',
+        'already_converted' => 'Bu xabarlardan murojaat allaqachon yaratilgan.',
     ],
     'manage' => [
         'title' => 'Boshqaruv',
@@ -175,6 +184,17 @@ return [
         ],
     ],
     'forward_retry' => 'Qayta urinish',
+    'convert' => [
+        'title' => 'Murojaat yaratish',
+        'to_lead' => 'Murojaatga',
+        'hint' => 'Tanlangan matn murojaatga koʻchiriladi va chat oʻchirilsa ham CRMda qoladi.',
+        'type' => 'Murojaat turi',
+        'selected' => 'Tanlandi: :count (koʻpi bilan :max)',
+        'select_message' => 'Xabarni murojaat uchun tanlash',
+        'submit' => 'Yaratish',
+        'cancel' => 'Bekor qilish',
+        'no_phone' => 'Murojaat yaratib boʻlmaydi: chatda CRMga oʻtkazish mumkin boʻlgan telefon raqami yoʻq.',
+    ],
     'forward_lines' => [
         'pending' => 'koʻchirilishi kutilmoqda',
         'sending' => 'koʻchirilmoqda',
@@ -196,6 +216,7 @@ return [
         'verify_link' => ':actor bogʻlanishni tasdiqladi',
         'ban' => ':actor mijozni blokladi',
         'unban' => ':actor blokni olib tashladi',
+        'convert' => ':actor chatdan :lead murojaatini yaratdi',
     ],
 
 ];

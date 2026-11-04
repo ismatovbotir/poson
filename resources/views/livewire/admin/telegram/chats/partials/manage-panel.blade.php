@@ -36,6 +36,30 @@
                 <x-admin.button variant="danger" class="w-full" wire:click="ban" wire:confirm="{{ __($t.'.manage.ban_confirm') }}" loading="ban" data-action-ban>{{ __($t.'.manage.ban') }}</x-admin.button>
             @endif
         @endcan
+        @if ($canConvert)
+            <div class="border-t border-slate-100 pt-3" data-convert-panel>
+                @unless ($convertPhoneUsable)
+                    <p class="text-xs text-slate-500" data-convert-no-phone>{{ __($t.'.convert.no_phone') }}</p>
+                @elseif (! $convertOpen)
+                    <button type="button" wire:click="openConvert" class="font-semibold text-brand-700 hover:underline" aria-expanded="false" data-convert-toggle>{{ __($t.'.convert.title') }}</button>
+                @else
+                    <div class="space-y-2" data-convert-form>
+                        <p class="font-semibold">{{ __($t.'.convert.title') }}</p>
+                        <p class="text-xs text-slate-500">{{ __($t.'.convert.hint') }}</p>
+                        <x-admin.select wire:model="convertType" :label="__($t.'.convert.type')" data-convert-type>
+                            @foreach ($convertTypes as $leadType)
+                                <option value="{{ $leadType->value }}" wire:key="convert-type-{{ $leadType->value }}">{{ $leadType->label() }}</option>
+                            @endforeach
+                        </x-admin.select>
+                        <p class="text-xs text-slate-500" data-convert-count>{{ __($t.'.convert.selected', ['count' => count($convertSelected), 'max' => \App\Actions\Telegram\ConvertTelegramToLead::MAX_MESSAGES]) }}</p>
+                        <div class="flex gap-2">
+                            <x-admin.button class="min-w-0 flex-1" wire:click="convert" loading="convert" :disabled="$convertSelected === []" data-convert-submit>{{ __($t.'.convert.submit') }}</x-admin.button>
+                            <x-admin.button variant="secondary" wire:click="closeConvert" data-convert-cancel>{{ __($t.'.convert.cancel') }}</x-admin.button>
+                        </div>
+                    </div>
+                @endunless
+            </div>
+        @endif
         @can('delete', $conversation)
             <div class="border-t border-slate-100 pt-3">
                 <button type="button" wire:click="$toggle('deleteOpen')" class="font-semibold text-danger hover:underline" aria-expanded="{{ $deleteOpen ? 'true' : 'false' }}" data-delete-toggle>{{ __($t.'.manage.delete') }}</button>

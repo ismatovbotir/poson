@@ -107,6 +107,13 @@ return [
         'no_customer' => 'This chat is not linked to a customer.',
         'invalid_customer' => 'This customer is not available.',
         'invalid_contact' => 'This contact does not belong to the customer.',
+        'nothing_selected' => 'No message is selected.',
+        'too_many_selected' => 'Too many messages are selected.',
+        'invalid_selection' => 'One of the selected messages is not a customer message from this chat.',
+        'invalid_type' => 'This lead type is not available.',
+        'no_text' => 'A lead can only be made from messages with text.',
+        'no_phone' => 'This chat has no phone for a lead.',
+        'anonymous_number' => 'An anonymous Telegram number (+888) does not go to the CRM.',
     ],
     'toasts' => [
         'reply_queued' => 'The reply is queued for delivery.',
@@ -124,6 +131,8 @@ return [
         'linked' => 'The chat is linked. Verify the link once you have checked who is writing.',
         'deleted' => 'The chat is deleted.',
         'chat_gone' => 'This chat no longer exists.',
+        'converted' => 'The lead is created.',
+        'already_converted' => 'A lead was already created from these messages.',
     ],
     'manage' => [
         'title' => 'Manage',
@@ -175,6 +184,17 @@ return [
         ],
     ],
     'forward_retry' => 'Try again',
+    'convert' => [
+        'title' => 'Create a lead',
+        'to_lead' => 'To lead',
+        'hint' => 'The selected text is copied to the lead and stays in the CRM even if this chat is deleted.',
+        'type' => 'Lead type',
+        'selected' => 'Selected: :count (:max at most)',
+        'select_message' => 'Select this message for the lead',
+        'submit' => 'Create',
+        'cancel' => 'Cancel',
+        'no_phone' => 'A lead cannot be created: this chat has no phone that may go to the CRM.',
+    ],
     'forward_lines' => [
         'pending' => 'waiting to be copied',
         'sending' => 'copying',
@@ -196,6 +216,7 @@ return [
         'verify_link' => ':actor verified the link',
         'ban' => ':actor banned the customer',
         'unban' => ':actor lifted the ban',
+        'convert' => ':actor created lead :lead from the chat',
     ],
 
 ];

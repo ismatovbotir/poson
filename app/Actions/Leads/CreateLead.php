@@ -16,13 +16,14 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Create a lead from any channel (plan 05 C2): site form (SubmitSiteLead),
- * admin form, later Telegram. In one transaction:
+ * admin form, Telegram (ConvertTelegramToLead). In one transaction:
  *
  *  1. normalize the phone (+998XXXXXXXXX);
  *  2. flag a duplicate: an earlier lead with the same phone within
  *     Lead::DUPLICATE_WINDOW_DAYS → duplicate_of_id (its original, if it is
  *     a duplicate itself). Never merged;
- *  3. match a customer by phone (the customer's own, then a contact's);
+ *  3. match a customer by phone (the customer's own, then a contact's), unless
+ *     the caller names the customer (LeadData::matchCustomer false);
  *  4. manager: the given one (must be able to work with the type); a lead
  *     without a staff creator (site, later the bot) that is a sales lead
  *     goes to the matched customer's manager when that user can still work
@@ -36,6 +37,8 @@ use Illuminate\Validation\ValidationException;
  */
 class CreateLead
 {
+    public const MESSAGE_LIMIT = 5000;
+
     public function __construct(protected SyncLeadItems $syncItems) {}
 
     /**
@@ -58,7 +61,11 @@ class CreateLead
                 ->latest('id')
                 ->first(['id', 'duplicate_of_id']);
 
-            $customer = static::matchCustomer($phone);
+            $customer = match (true) {
+                $data->matchCustomer => static::matchCustomer($phone),
+                $data->customerId !== null => Customer::query()->find($data->customerId),
+                default => null,
+            };
             $autoAssigned = false;
 
             if ($data->createdById === null && $manager === null && $data->type->isSales() && $customer?->manager_id !== null) {
@@ -76,7 +83,7 @@ class CreateLead
                 'email' => static::clean($data->email, 255, lower: true),
                 'company' => static::clean($data->company, 160),
                 'inn' => static::clean($data->inn, 9),
-                'message' => static::clean($data->message, 5000),
+                'message' => static::clean($data->message, self::MESSAGE_LIMIT),
                 'customer_id' => $customer?->id,
                 'manager_id' => $manager?->id,
                 'created_by_id' => $data->createdById,

@@ -13,6 +13,9 @@ use App\Enums\TrafficChannel;
  * managerId: chosen manager (admin form); null lets CreateLead auto-assign
  * a sales lead to the matched customer's manager. createdById: the staff
  * user who entered it (null for the site).
+ *
+ * matchCustomer: false skips the phone match and uses customerId as it is (a
+ * Telegram lead takes its customer from the thread's link only).
  */
 final readonly class LeadData
 {
@@ -39,5 +42,7 @@ final readonly class LeadData
         public ?TrafficChannel $trafficChannel = null,
         public ?string $trafficSource = null,
         public ?string $landingPath = null,
+        public bool $matchCustomer = true,
+        public ?int $customerId = null,
     ) {}
 }

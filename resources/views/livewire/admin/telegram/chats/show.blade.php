@@ -57,7 +57,11 @@
                     @forelse ($messages as $message)
                         @php($inbound = $message->direction === \App\Enums\TelegramDirection::In)
                         @php($stuckRow = $message->isStuck())
-                        <div wire:key="message-{{ $message->id }}" @class(['flex', 'justify-start' => $inbound, 'justify-end' => ! $inbound]) data-message="{{ $message->id }}">
+                        @php($convertible = $canConvert && $convertPhoneUsable && $inbound && $message->lead_id === null && filled($message->text))
+                        <div wire:key="message-{{ $message->id }}" @class(['flex items-start gap-2', 'justify-start' => $inbound, 'justify-end' => ! $inbound]) data-message="{{ $message->id }}">
+                            @if ($convertOpen && $convertible)
+                                <input type="checkbox" wire:model.live="convertSelected" value="{{ $message->id }}" aria-label="{{ __($t.'.convert.select_message') }}" class="mt-3 size-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-convert-select="{{ $message->id }}">
+                            @endif
                             <div @class([
                                 'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm',
                                 'bg-slate-100 text-slate-900' => $inbound,
@@ -94,6 +98,15 @@
                                     @endif
                                     @if ($stuckRow)
                                         <x-admin.badge color="amber">{{ __($t.'.badges.stuck') }}</x-admin.badge>
+                                    @endif
+                                    @if ($message->lead_id !== null)
+                                        @if ($canOpenLeads)
+                                            <a href="{{ route('admin.leads.show', $message->lead_id) }}" wire:navigate class="font-semibold text-brand-700 hover:underline" data-lead-ref="{{ $message->lead_id }}">{{ \App\Models\Lead::REFERENCE_PREFIX.$message->lead_id }}</a>
+                                        @else
+                                            <span class="font-semibold" data-lead-ref="{{ $message->lead_id }}">{{ \App\Models\Lead::REFERENCE_PREFIX.$message->lead_id }}</span>
+                                        @endif
+                                    @elseif ($convertible && ! $convertOpen)
+                                        <button type="button" wire:click="openConvert({{ $message->id }})" wire:loading.attr="disabled" wire:target="openConvert({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-convert-message="{{ $message->id }}">{{ __($t.'.convert.to_lead') }}</button>
                                     @endif
                                 </p>
                                 @if ($message->forward_status !== null)

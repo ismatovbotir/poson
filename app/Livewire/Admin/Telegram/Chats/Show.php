@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Telegram\Chats;
 
 use App\Actions\Telegram\AssignConversation;
 use App\Actions\Telegram\ChangeConversationStatus;
+use App\Actions\Telegram\ConvertTelegramToLead;
 use App\Actions\Telegram\DeleteConversation;
 use App\Actions\Telegram\InboxRefused;
 use App\Actions\Telegram\LinkConversationToCustomer;
@@ -15,11 +16,13 @@ use App\Actions\Telegram\SetConversationBan;
 use App\Actions\Telegram\VerifyConversationLink;
 use App\Enums\ActivityType;
 use App\Enums\ConversationStatus;
+use App\Enums\LeadType;
 use App\Enums\TelegramDirection;
 use App\Jobs\DeleteForwardedCopies;
 use App\Models\Activity;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
@@ -42,11 +45,12 @@ use Throwable;
  * Conversation (plan 14 v2 §9, plan 21 A1 to A5, A7): the latest 50 messages with
  * "load older", a profile panel, stuck deliveries highlighted, the reply box,
  * resend of undelivered replies, assign / take, close / reopen, ban, the CRM
- * link, retry of customer files and the Admin delete. Opening it marks the thread read. Writes go
+ * link, retry of customer files, convert to a lead and the Admin delete. Opening it marks the thread read. Writes go
  * through actions, which check policy and state again.
  *
  * The thread polls every 10 s, so the manager list, customer picker, history and
- * delete warnings are queried only while their control is open.
+ * delete warnings are queried only while their control is open. The lead reference
+ * on a message comes from its own row, with no query for the lead.
  *
  * Only the conversation id is held in state (T21-10): the row is loaded on
  * every request without telegram_id, and hydrate() authorizes "view" again,
@@ -102,6 +106,19 @@ class Show extends Component
     public ?int $linkCustomerId = null;
 
     public ?int $linkContactId = null;
+
+    public bool $convertOpen = false;
+
+    public string $convertType = LeadType::Quote->value;
+
+    /**
+     * Message ids ticked for a lead. Untrusted: ConvertTelegramToLead type-checks
+     * and caps them, then loads them through this thread. Nothing here reaches a
+     * query at render.
+     *
+     * @var array<array-key, mixed>
+     */
+    public array $convertSelected = [];
 
     /**
      * The row loaded in this request (never part of the Livewire state).
@@ -328,6 +345,41 @@ class Show extends Component
     }
 
     /**
+     * Open the convert control, with the message whose button was pressed ticked.
+     */
+    public function openConvert(?int $messageId = null): void
+    {
+        $this->authorize('convert', $this->conversation());
+
+        $this->convertOpen = true;
+        $this->convertType = ($this->convertTypes()[0] ?? LeadType::Quote)->value;
+        $this->convertSelected = $messageId !== null ? [$messageId] : [];
+    }
+
+    public function closeConvert(): void
+    {
+        $this->reset('convertOpen', 'convertSelected');
+    }
+
+    public function convert(ConvertTelegramToLead $convert): void
+    {
+        $this->authorize('convert', $this->conversation());
+
+        $this->attempt(function () use ($convert): ?string {
+            $type = LeadType::tryFrom($this->convertType);
+
+            if ($type === null) {
+                throw new InboxRefused('invalid_type');
+            }
+
+            $lead = $convert->handle($this->conversation(), $this->user(), $this->convertSelected, $type);
+            $this->reset('convertOpen', 'convertSelected');
+
+            return $lead === null ? 'already_converted' : null;
+        }, 'converted');
+    }
+
+    /**
      * Admin only, with a password confirmation from the last 15 minutes (T21-18).
      */
     public function deleteConversation(DeleteConversation $delete): void
@@ -353,7 +405,7 @@ class Show extends Component
         $newestFirst = TelegramMessage::query()
             ->select([
                 'id', 'telegram_user_id', 'direction', 'kind', 'text', 'media', 'user_id', 'status', 'error_code',
-                'sent_at', 'forward_status', 'forward_error_code', 'created_at', 'updated_at',
+                'sent_at', 'forward_status', 'forward_error_code', 'lead_id', 'created_at', 'updated_at',
             ])
             ->where('telegram_user_id', $conversation->id)
             ->with('user:id,name')
@@ -373,6 +425,10 @@ class Show extends Component
             'replyRefusal' => $replyRefusal,
             'forwardNotConfigured' => InboxChat::id() === null,
             ...$this->linkPicker($conversation),
+            'canConvert' => $conversation->isRegistered() && $this->user()->can('convert', $conversation) && $this->user()->can('create', Lead::class),
+            'convertPhoneUsable' => ConvertTelegramToLead::hasUsablePhone($conversation),
+            'convertTypes' => $this->convertOpen ? $this->convertTypes() : [],
+            'canOpenLeads' => $this->user()->can('leads.view'),
             'candidates' => $this->assignOpen && $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
             'history' => $this->historyOpen ? $this->history($conversation) : [],
             'deleteWarnings' => $this->deleteOpen ? $this->deleteWarnings($conversation) : [],
@@ -442,6 +498,19 @@ class Show extends Component
     }
 
     /**
+     * The lead types this actor may create from a chat.
+     *
+     * @return list<LeadType>
+     */
+    private function convertTypes(): array
+    {
+        return array_values(array_filter(
+            ConvertTelegramToLead::TYPES,
+            fn (LeadType $type): bool => $this->user()->can('create', [Lead::class, $type]),
+        ));
+    }
+
+    /**
      * What the delete loses or leaves behind. Queried only while the control is
      * open and only for those who may delete.
      *
@@ -501,6 +570,7 @@ class Show extends Component
                     'text' => __('telegram_inbox.history.'.$key, [
                         'actor' => $names[$row->user_id ?? 0] ?? __('telegram_inbox.history.someone'),
                         'target' => $names[$row->meta['to_id'] ?? 0] ?? __('telegram_inbox.history.someone'),
+                        'lead' => Lead::REFERENCE_PREFIX.($row->meta['lead_id'] ?? ''),
                     ]),
                     'at' => $row->created_at,
                 ];
@@ -515,7 +585,7 @@ class Show extends Component
         $action = $row->meta['action'] ?? null;
 
         return match (true) {
-            in_array($action, ['first_reply', 'assign', 'take', 'link', 'verify_link', 'ban', 'unban'], true) => $action,
+            in_array($action, ['first_reply', 'assign', 'take', 'link', 'verify_link', 'convert', 'ban', 'unban'], true) => $action,
             ($row->meta['to'] ?? null) === ConversationStatus::Closed->value => 'closed',
             ($row->meta['to'] ?? null) === ConversationStatus::Open->value => 'reopened',
             default => null,
