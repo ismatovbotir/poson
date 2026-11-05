@@ -38,7 +38,7 @@ it('serves the llmstxt.org structure as noindex plain text', function () {
         ->toContain("\n## About\n\n- ".config('llms.about_points.en.0'))
         ->toContain("\n## Services\n\n- ".config('llms.services_points.en.0'))
         ->toContain("\n## Contacts\n\n- Website: https://poson.uz/en\n")
-        ->toContain('Payment methods: bank transfer against an invoice, cash, Payme, Click, card terminal and UzQR.')
+        ->toContain('Payment methods: bank transfer against an invoice, cash, card terminal and UzQR.')
         ->toContain('Support: remote setup and support, on-site engineer visits')
         ->toContain("\n## Русский\n\n> ".config('llms.summary.ru')."\n\n- [Сайт на русском языке](https://poson.uz/ru)\n- [Каталог](https://poson.uz/ru/catalog)")
         ->toContain("\n## Oʻzbekcha\n\n> ".config('llms.summary.uz')."\n\n- [Sayt oʻzbek tilida](https://poson.uz/uz)\n- [Katalog](https://poson.uz/uz/catalog)")

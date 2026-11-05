@@ -68,7 +68,7 @@ return [
             'The main office is in Kokand. Delivery within Kokand is free, a courier delivers across Uzbekistan, and orders can be collected from the Kokand office.',
             'Product range: barcode scanners, label and receipt printers, mobile computers (TSD), RFID equipment, POS equipment, consumables and software.',
             'Equipment is supplied with an official warranty, and repairs are handled in Poson\'s own service centre.',
-            'Companies can request a commercial quote on the website. Payment methods: bank transfer against an invoice, cash, Payme, Click, card terminal and UzQR.',
+            'Companies can request a commercial quote on the website. Payment methods: bank transfer against an invoice, cash, card terminal and UzQR.',
             'The website and customer support are available in Uzbek, Russian and English.',
         ],
         'ru' => [
@@ -76,7 +76,7 @@ return [
             'Главный офис находится в Коканде. Доставка по Коканду бесплатная, по Узбекистану доставляет курьерская служба, заказ можно забрать в офисе в Коканде.',
             'Ассортимент: сканеры штрих-кода, принтеры этикеток и чековые принтеры, терминалы сбора данных (ТСД), RFID- и POS-оборудование, расходные материалы и программное обеспечение.',
             'Оборудование поставляется с официальной гарантией, ремонт выполняет собственный сервисный центр Poson.',
-            'Компании могут запросить коммерческое предложение на сайте. Способы оплаты: безналичный перевод по счёту, наличные, Payme, Click, оплата картой через терминал и UzQR.',
+            'Компании могут запросить коммерческое предложение на сайте. Способы оплаты: безналичный перевод по счёту, наличные, оплата картой через терминал и UzQR.',
             'Сайт и поддержка клиентов доступны на узбекском, русском и английском языках.',
         ],
         'uz' => [
@@ -84,7 +84,7 @@ return [
             'Bosh ofis Qoʻqon shahrida. Qoʻqon boʻylab yetkazib berish bepul, Oʻzbekiston boʻylab kuryer xizmati yetkazib beradi, buyurtmani Qoʻqondagi ofisdan olib ketish ham mumkin.',
             'Mahsulotlar: shtrix-kod skanerlari, yorliq va chek printerlari, maʼlumot yigʻish terminallari (TSD), RFID va POS uskunalari, sarf materiallari va dasturiy taʼminot.',
             'Uskunalar rasmiy kafolat bilan yetkaziladi, taʼmirlashni Posonning oʻz servis markazi bajaradi.',
-            'Kompaniyalar saytda tijorat taklifi soʻrovini yuborishi mumkin. Toʻlov usullari: hisob-faktura boʻyicha bank oʻtkazmasi, naqd pul, Payme, Click, karta terminali va UzQR.',
+            'Kompaniyalar saytda tijorat taklifi soʻrovini yuborishi mumkin. Toʻlov usullari: hisob-faktura boʻyicha bank oʻtkazmasi, naqd pul, karta terminali va UzQR.',
             'Sayt va mijozlarni qoʻllab-quvvatlash oʻzbek, rus va ingliz tillarida ishlaydi.',
         ],
     ],

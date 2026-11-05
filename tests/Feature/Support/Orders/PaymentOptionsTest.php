@@ -42,29 +42,17 @@ it('hides static UzQR without an uploaded code and bank transfer without requisi
     expect(paymentOptions(DeliveryType::Pickup, BuyerType::Company))->toBe(['on_receipt']);
 });
 
-it('never offers Payme or Click while their webhooks are not built, in test mode or for TEST orders', function () {
+it('never offers Payme or Click, even with the route, a hold, public https and live keys', function () {
     config(['app.url' => 'https://poson.uz']);
     freshSecrets(['services.payme.mode' => 'prod', 'services.payme.merchant_id' => '587f72c72cac0d162c722ae2', 'services.payme.key' => 'fake-payme-live-key-0000']);
-    $options = app(PaymentOptions::class);
-
-    expect($options->providerReady(PaymentMethod::Payme, false))->toBeFalse()
-        ->and($options->providerReady(PaymentMethod::Payme, true))->toBeFalse()
-        ->and($options->rejection(PaymentMethod::Payme, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('provider')
-        ->and($options->rejection(PaymentMethod::UzqrDynamic, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('provider');
-});
-
-it('rejects online payment above the online cap and without IKPU once a provider is live', function () {
     $options = Mockery::mock(PaymentOptions::class, [app(CheckoutSettings::class), app(CompanySettings::class), app(UzqrConfig::class)])->makePartial();
     $options->shouldReceive('providerReady')->andReturn(true);
-    checkoutSettings(['max_online_total' => 50_000_000]);
+    $context = new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, false);
 
-    expect($options->rejection(PaymentMethod::Click, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 50_000_000_00, true)))->toBeNull()
-        ->and($options->rejection(PaymentMethod::Click, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 50_000_001_00, true)))->toBe('online_total')
-        ->and($options->rejection(PaymentMethod::Payme, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, false)))->toBe('ikpu');
-
-    checkoutSettings(['require_ikpu_online' => false]);
-
-    expect($options->rejection(PaymentMethod::Payme, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, false)))->toBeNull();
+    expect($options->rejection(PaymentMethod::Payme, $context))->toBe('reserved')
+        ->and($options->rejection(PaymentMethod::Click, $context))->toBe('reserved')
+        ->and($options->allows(PaymentMethod::Click, $context))->toBeFalse()
+        ->and(app(PaymentOptions::class)->rejection(PaymentMethod::UzqrDynamic, new PaymentContext(DeliveryType::Pickup, BuyerType::Individual, 100_00, true)))->toBe('provider');
 });
 
 it('validates STIR and PINFL per buyer type', function (BuyerType $type, string $tin, bool $valid) {

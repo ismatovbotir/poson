@@ -29,7 +29,6 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-admin.input wire:model="form.delivery_ikpu" inputmode="numeric" :label="__($t.'.delivery_ikpu')" :hint="__($t.'.hints.ikpu')" maxlength="17" />
                 <x-admin.input wire:model="form.delivery_package_code" inputmode="numeric" :label="__($t.'.delivery_package_code')" :hint="__($t.'.hints.package_code')" maxlength="20" />
-                <x-admin.toggle class="sm:col-span-2" wire:model="form.require_ikpu_online" :label="__($t.'.require_ikpu_online')" :description="__($t.'.hints.require_ikpu_online')" />
             </div>
         </x-admin.card>
 

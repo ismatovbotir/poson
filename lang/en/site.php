@@ -294,7 +294,7 @@ return [
         'copied' => 'Copied',
         'delivery' => [
             'shipping' => 'Delivery within Kokand is free. Courier delivery across Uzbekistan, or pickup from our Kokand office.',
-            'payment' => 'Payment in cash, by card, through Click or Payme, or by bank transfer for companies.',
+            'payment' => 'Payment in cash, by card, through UzQR, or by bank transfer for companies.',
             'setup' => 'We set up the equipment and connect it to your software.',
             'warranty' => 'Official warranty: :months',
             'warranty_on_request' => 'Warranty terms are confirmed in your quote.',

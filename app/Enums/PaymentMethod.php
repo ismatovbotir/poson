@@ -69,11 +69,12 @@ enum PaymentMethod: string
     }
 
     /**
-     * Reserved for a later step: never offered, never accepted (none since 11e).
+     * Hidden by owner decision (plan 23): Payme and Click are never offered or
+     * accepted for new orders; the cases stay so old orders keep rendering.
      */
     public function isReserved(): bool
     {
-        return false;
+        return in_array($this, [self::Payme, self::Click], true);
     }
 
     /**
