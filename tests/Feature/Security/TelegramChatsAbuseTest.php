@@ -222,14 +222,16 @@ it('gives 403 on the next Index and Show poll once telegram.inbox is revoked', f
 
 // 5
 
-it('gives 404 on the Show poll after the thread was deleted', function () {
+it('redirects the Show poll to the list after the thread was deleted, and a new open gives 404', function () {
     $user = staffUser(Role::Admin);
     $chat = abuseThread();
     $component = Livewire::actingAs($user)->test(Show::class, ['telegramUser' => $chat])->assertOk();
 
     $chat->delete();
 
-    $component->call('refreshThread')->assertNotFound();
+    $component->call('refreshThread')->assertRedirect(route('admin.telegram.chats'));
+
+    $this->actingAs($user)->get(route('admin.telegram.chats.show', $chat->id))->assertNotFound();
 });
 
 // 6
@@ -400,6 +402,7 @@ it('refuses direct calls to lifecycle and private component methods', function (
     'index user' => [Index::class, 'user'],
     'show mount' => [Show::class, 'mount'],
     'show hydrate' => [Show::class, 'hydrate'],
+    'show exception' => [Show::class, 'exception'],
     'show conversation' => [Show::class, 'conversation'],
     'show user' => [Show::class, 'user'],
 ]);

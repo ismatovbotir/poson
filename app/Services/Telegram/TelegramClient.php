@@ -128,6 +128,16 @@ class TelegramClient
     }
 
     /**
+     * Delete a message. Telegram allows it only within 48 hours of sending.
+     *
+     * @throws TelegramException
+     */
+    public function deleteMessage(string $chatId, int $messageId): void
+    {
+        $this->callRaw('deleteMessage', ['chat_id' => $chatId, 'message_id' => $messageId]);
+    }
+
+    /**
      * Copy a message (any kind) into another chat without a "forwarded from"
      * header. Always sends an empty reply_markup (no copied buttons). A
      * non-null $caption replaces the original caption as plain text (no

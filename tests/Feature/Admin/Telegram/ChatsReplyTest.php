@@ -17,10 +17,15 @@ use App\Models\TelegramUser;
 use App\Models\User;
 use App\Support\Telegram\Bot\BotSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Http\Client\Request;
+use Illuminate\Queue\Connectors\ConnectorInterface;
+use Illuminate\Queue\SyncQueue;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -233,7 +238,7 @@ it('keeps the draft on a failure after the claim point, and an immediate retry s
 
     $component->call('sendReply', 'token-f')->assertDispatched('toast', type: 'error')->assertSet('reply', 'important text');
     expect(TelegramMessage::query()->count())->toBe(0)
-        ->and((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(0);
+        ->and((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(1);
 
     TelegramMessage::flushEventListeners();
 
@@ -257,6 +262,93 @@ it('frees the token after a database error too', function () {
     expect($action->handle($chat, $user, 'text', 'token-d'))->not->toBeNull()
         ->and($action->handle($chat, $user, 'text', 'token-d'))->toBeNull()
         ->and(TelegramMessage::query()->count())->toBe(1);
+});
+
+it('gives a failed reply\'s limit hit back once on the database cache store: by the rollback', function () {
+    config(['cache.limiter' => 'database']);
+    app()->forgetInstance(Illuminate\Cache\RateLimiter::class);
+    RateLimiter::clearResolvedInstance(Illuminate\Cache\RateLimiter::class);
+
+    Bus::fake([DeliverBotMessage::class]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $action = app(SendTelegramReply::class);
+
+    $action->handle($chat, $user, 'first');
+    expect((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(1);
+
+    TelegramMessage::creating(function (): void {
+        throw new RuntimeException('database down');
+    });
+
+    expect(fn () => $action->handle($chat, $user, 'second', 'token-r'))->toThrow(RuntimeException::class);
+
+    expect((int) RateLimiter::attempts(SendTelegramReply::LIMIT_KEY.$user->id))->toBe(1);
+});
+
+it('never lets a cache failure in the catch mask the original exception', function () {
+    Bus::fake([DeliverBotMessage::class]);
+    Cache::extend('reply-forget-fails', fn ($app) => Cache::repository(new class extends ArrayStore
+    {
+        public function forget($key): bool
+        {
+            throw new LogicException('cache down');
+        }
+    }));
+    config(['cache.stores.reply-forget-fails' => ['driver' => 'reply-forget-fails'], 'cache.default' => 'reply-forget-fails']);
+
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $this->withoutExceptionHandling();
+
+    TelegramMessage::creating(function (): void {
+        throw new RuntimeException('database down');
+    });
+
+    expect(fn () => app(SendTelegramReply::class)->handle($chat, $user, 'text', 'token-c'))
+        ->toThrow(RuntimeException::class, 'database down');
+});
+
+it('keeps one pending row and the claimed token when the queue push fails after commit', function () {
+    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 77]])]);
+    $user = replyManager();
+    $chat = replyThread(manager: $user);
+    $action = app(SendTelegramReply::class);
+
+    Queue::extend('reply-push-fails', fn () => new class implements ConnectorInterface
+    {
+        public function connect(array $config): SyncQueue
+        {
+            return new class extends SyncQueue
+            {
+                public function push($job, $data = '', $queue = null)
+                {
+                    return $this->enqueueUsing($job, null, $queue, null, function (): never {
+                        throw new RuntimeException('queue down');
+                    });
+                }
+            };
+        }
+    });
+    config(['queue.connections.reply-push-fails' => ['driver' => 'reply-push-fails'], 'queue.default' => 'reply-push-fails']);
+
+    expect(fn () => $action->handle($chat, $user, 'important', 'token-q'))->toThrow(RuntimeException::class, 'queue down');
+
+    $row = TelegramMessage::query()->sole();
+    expect($row->status)->toBe(TelegramMessageStatus::Pending)
+        ->and($action->alreadySent($chat->id, $user, 'token-q'))->toBeTrue();
+
+    expect($action->handle($chat, $user, 'important', 'token-q'))->toBeNull()
+        ->and(TelegramMessage::query()->count())->toBe(1);
+    Http::assertNothingSent();
+
+    config(['queue.default' => 'sync']);
+    $this->travel(TelegramMessage::STUCK_MINUTES + 1)->minutes();
+
+    expect(app(ResendTelegramMessage::class)->handle($row->fresh(), $user))->toBeTrue()
+        ->and(TelegramMessage::query()->count())->toBe(1)
+        ->and($row->fresh()->status)->toBe(TelegramMessageStatus::Sent);
+    Http::assertSentCount(1);
 });
 
 it('sends a different text with a reused token', function () {

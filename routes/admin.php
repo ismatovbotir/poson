@@ -169,7 +169,7 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/telegram/status', Telegram\Status::class)->name('telegram.status');
     // Plan 21 A1: staff inbox (telegram.inbox), authorized in the components; rows through TelegramUser::visibleTo.
     Route::livewire('/telegram/chats', Telegram\Chats\Index::class)->name('telegram.chats');
-    Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show');
+    Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show')->whereNumber('telegramUser');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

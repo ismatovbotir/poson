@@ -25,6 +25,7 @@ use App\Support\Phone;
 use App\Support\Telegram\Bot\LinkPhoneSignal;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
@@ -62,6 +63,25 @@ function linkAuditRow(int $conversationId): ?SettingsAudit
 }
 
 /* ------------------------------------------------------------------- ban */
+
+it('counts a ban only when it changes the row, and rolls the update back over the limit', function () {
+    $manager = linkManager();
+    $chat = linkThread([], $manager);
+    $key = SetConversationBan::LIMIT_KEY.$manager->id;
+
+    app(SetConversationBan::class)->ban($chat, $manager, null);
+    app(SetConversationBan::class)->ban($chat, $manager, null);
+
+    expect(RateLimiter::attempts($key))->toBe(1);
+
+    app(SetConversationBan::class)->unban($chat, $manager, null);
+    RateLimiter::increment($key, 3600, SetConversationBan::PER_HOUR);
+
+    expect(fn () => app(SetConversationBan::class)->ban($chat, $manager, null))
+        ->toThrow(fn (InboxRefused $refused) => expect($refused->reason)->toBe('too_many_actions'));
+
+    expect($chat->fresh()->banned_at)->toBeNull();
+});
 
 it('refuses ban, unban, verify and link on another manager\'s thread by direct calls (TG-35)', function (string $method) {
     $owner = linkManager();
@@ -572,8 +592,54 @@ it('tells same-name customers apart by id and last 4 digits, without the full nu
 it('masks nothing it cannot', function () {
     expect(Phone::maskLastFour(null))->toBeNull()
         ->and(Phone::maskLastFour('12'))->toBeNull()
+        ->and(Phone::maskLastFour('1234'))->toBeNull()
+        ->and(Phone::maskLastFour('+1 234'))->toBeNull()
+        ->and(Phone::maskLastFour('12345'))->toBe('••••2345')
         ->and(Phone::maskLastFour('+998901234567'))->toBe('••••4567');
 });
+
+/* ------------------------------------------------------------ phone signal label */
+
+it('says the phone is on another contact when no contact is chosen, and records matches_other', function () {
+    $admin = staffUser(Role::Admin);
+    $customer = Customer::factory()->create(['phone' => '+998907776655']);
+    Contact::factory()->for($customer)->create(['phone' => '+998901234567']);
+    $chat = linkThread(['phone' => '+998901234567', 'customer_id' => $customer->id]);
+
+    Livewire::actingAs($admin)->test(Show::class, ['telegramUser' => $chat])
+        ->assertSeeHtml('data-phone-signal="matches_other"')
+        ->assertSee(__('telegram_inbox.crm.phone_signal.matches_other_no_contact'))
+        ->assertDontSee(__('telegram_inbox.crm.phone_signal.matches_other'))
+        ->call('verifyLink');
+
+    expect($chat->activities()->sole()->meta)->toMatchArray(['phone_signal' => LinkPhoneSignal::MATCHES_OTHER]);
+});
+
+it('says the phone is not the chosen contact\'s when one is chosen, in the verify and link panels', function () {
+    $admin = staffUser(Role::Admin);
+    $customer = Customer::factory()->create(['phone' => '+998901234567']);
+    $contact = Contact::factory()->for($customer)->create(['phone' => '+998905550000']);
+
+    Livewire::actingAs($admin)
+        ->test(Show::class, ['telegramUser' => linkThread(['phone' => '+998901234567', 'customer_id' => $customer->id, 'contact_id' => $contact->id])])
+        ->assertSeeHtml('data-phone-signal="matches_other"')
+        ->assertSee(__('telegram_inbox.crm.phone_signal.matches_other'))
+        ->assertDontSee(__('telegram_inbox.crm.phone_signal.matches_other_no_contact'));
+
+    Livewire::actingAs($admin)
+        ->test(Show::class, ['telegramUser' => linkThread(['phone' => '+998901234567'])])
+        ->set('linkOpen', true)
+        ->call('chooseCustomer', $customer->id)
+        ->set('linkContactId', $contact->id)
+        ->assertSeeHtml('data-phone-signal="matches_other"')
+        ->assertSee(__('telegram_inbox.crm.phone_signal.matches_other'));
+});
+
+it('has both phone signal texts in every locale', function (string $locale) {
+    foreach (['matches_other', 'matches_other_no_contact'] as $key) {
+        expect(Lang::has('telegram_inbox.crm.phone_signal.'.$key, $locale, false))->toBeTrue();
+    }
+})->with(['uz', 'ru', 'en']);
 
 /* ------------------------------------------------------------ unban delete */
 

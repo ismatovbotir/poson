@@ -39,7 +39,7 @@
                 <p data-link-unverified><x-admin.badge color="amber">{{ __($t.'.crm.unverified') }}</x-admin.badge></p>
                 @if ($conversation->isRegistered())
                     @can('verifyLink', $conversation)
-                        @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $verifySignal])
+                        @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $verifySignal, 'contactChosen' => $conversation->contact !== null])
                         <x-admin.button variant="secondary" class="w-full" wire:click="verifyLink" wire:confirm="{{ __($t.'.crm.verify_confirm') }}" loading="verifyLink" data-verify-link>{{ __($t.'.crm.verify') }}</x-admin.button>
                     @endcan
                 @endif
@@ -72,7 +72,7 @@
                             @endforeach
                         </x-admin.select>
                     @endif
-                    @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $linkSignal])
+                    @include('livewire.admin.telegram.chats.partials.phone-signal', ['signal' => $linkSignal, 'contactChosen' => $chosenContacts->contains('id', $linkContactId)])
                     @if ($conversation->customer_id === null)
                         <x-admin.button class="w-full" wire:click="link" loading="link" data-do-link>{{ __($t.'.crm.link') }}</x-admin.button>
                     @else

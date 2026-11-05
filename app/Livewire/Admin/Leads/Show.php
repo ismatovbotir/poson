@@ -20,6 +20,8 @@ use App\Models\Activity;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
+use App\Models\TelegramMessage;
+use App\Models\TelegramUser;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,8 +35,10 @@ use Livewire\Component;
  * Lead page (plan 05 T3): status control (lost asks for a reason in a
  * modal), take / release / assign, contact, items (linked to the admin
  * product), attribution, duplicate and customer badges, the activity
- * timeline and "add note" / "log call". Read-only for users who may only
- * view the lead (a sales manager on a service request).
+ * timeline and "add note" / "log call". The "From Telegram" block (plan 21 A7,
+ * T21-18) links the source thread for telegram.inbox holders: no message text,
+ * no telegram_id; filled by ConvertTelegramToLead (B2). Read-only
+ * for users who may only view the lead (a sales manager on a service request).
  *
  * Every write authorizes against LeadPolicy and goes through an action.
  */
@@ -47,6 +51,8 @@ class Show extends Component
      * Timeline entries shown.
      */
     public const TIMELINE_LIMIT = 200;
+
+    public const TELEGRAM_SHOWN = 5;
 
     public Lead $lead;
 
@@ -325,6 +331,26 @@ class Show extends Component
         return app(AssignLead::class)->candidates($this->lead, $this->user())->pluck('name', 'id')->all();
     }
 
+    /**
+     * Threads with a message converted to this lead. The view shows the name and
+     * link per row with can('view'), so another manager's thread has neither.
+     *
+     * @return Collection<int, TelegramUser>
+     */
+    private function telegramThreads(User $user): Collection
+    {
+        if (! $user->can('telegram.inbox')) {
+            return new Collection;
+        }
+
+        return TelegramUser::query()
+            ->registered()
+            ->whereIn('id', TelegramMessage::query()->select('telegram_user_id')->where('lead_id', $this->lead->id))
+            ->latest('id')
+            ->limit(self::TELEGRAM_SHOWN)
+            ->get(['id', 'name', 'first_name', 'last_name', 'manager_id', 'registered_at']);
+    }
+
     public function render(): View
     {
         $user = $this->user();
@@ -348,6 +374,7 @@ class Show extends Component
             'canCreateCustomer' => $user->can('create', Customer::class),
             'canViewCustomer' => $this->lead->customer !== null && $user->can('view', $this->lead->customer),
             'canViewProducts' => $user->can('products.view'),
+            'telegramThreads' => $this->telegramThreads($user),
             'duplicateOfVisible' => $duplicateOf !== null && $user->can('view', $duplicateOf),
             'laterDuplicates' => $this->lead->duplicates()->visibleTo($user)->latest('id')->limit(10)->get(['id', 'status', 'created_at']),
             'statuses' => array_values(array_filter(LeadStatus::cases(), fn (LeadStatus $status): bool => $status->isManual() && $this->lead->status->canTransitionTo($status))),

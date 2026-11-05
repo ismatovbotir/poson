@@ -41,6 +41,9 @@ use Throwable;
  * nothing, uses up no limit and returns null. The token is claimed as the last
  * step under the row lock, holding sha1(text), so a failed attempt can be retried
  * at once and a different text with a reused token is sent.
+ *
+ * A failed attempt keeps its limit hit on a cache store outside the database, and
+ * loses it with the rollback on the database store; nothing gives it back by hand.
  */
 class SendTelegramReply
 {
@@ -69,11 +72,10 @@ class SendTelegramReply
     {
         $text = $this->clean($text);
         $hash = sha1($text);
-        $counted = false;
         $committed = false;
 
         try {
-            return DB::transaction(function () use ($conversation, $actor, $text, $token, $hash, &$counted, &$committed): ?TelegramMessage {
+            return DB::transaction(function () use ($conversation, $actor, $text, $token, $hash, &$committed): ?TelegramMessage {
                 $locked = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
 
                 Gate::forUser($actor)->authorize('reply', $locked);
@@ -90,7 +92,6 @@ class SendTelegramReply
                 }
 
                 $this->hitLimit($actor);
-                $counted = true;
 
                 $this->assignOnFirstReply($locked, $actor);
                 $this->reopenIfClosed($locked, $actor);
@@ -121,14 +122,8 @@ class SendTelegramReply
                 return $message;
             });
         } catch (Throwable $failure) {
-            if (! $committed) {
-                if ($token !== null) {
-                    Cache::forget($this->onceKey((int) $conversation->getKey(), $actor, $token));
-                }
-
-                if ($counted) {
-                    $this->releaseLimit($actor);
-                }
+            if (! $committed && $token !== null) {
+                $this->releaseToken((int) $conversation->getKey(), $actor, $token);
             }
 
             throw $failure;
@@ -177,6 +172,19 @@ class SendTelegramReply
     public function alreadySent(int $conversationId, User $actor, string $token): bool
     {
         return Cache::has($this->onceKey($conversationId, $actor, $token));
+    }
+
+    /**
+     * Free the token of an attempt that did not commit. A cache failure here is
+     * only reported, so it cannot mask the failure that brought us here.
+     */
+    private function releaseToken(int $conversationId, User $actor, string $token): void
+    {
+        try {
+            Cache::forget($this->onceKey($conversationId, $actor, $token));
+        } catch (Throwable $cacheFailure) {
+            report($cacheFailure);
+        }
     }
 
     private function onceKey(int $conversationId, User $actor, string $token): string

@@ -74,6 +74,11 @@ return [
             'closed_at' => 'Закрыта',
         ],
 
+        'from_telegram' => [
+            'title' => 'Из Telegram',
+            'open' => 'Открыть чат',
+            'hidden' => 'Чат ведёт другой менеджер',
+        ],
         'sections' => [
             'contact' => 'Контакт',
             'request' => 'Запрос',
@@ -232,6 +237,11 @@ return [
             'manager_id' => 'Менеджер',
             'price_level' => 'Уровень цен',
             'created_at' => 'Добавлен',
+        ],
+        'telegram_block' => [
+            'title' => 'Telegram',
+            'open' => 'Открыть чат',
+            'hidden' => 'Привязанный аккаунт, чат ведёт другой менеджер',
         ],
         'sections' => [
             'requisites' => 'Реквизиты',

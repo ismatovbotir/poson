@@ -18,9 +18,10 @@ use Illuminate\Support\Facades\RateLimiter;
 /**
  * Ban or unban a bot user (plan 21 A4, TG-35, T21-34, T21-35). Policy "ban"
  * (view + telegram.ban) is checked against the row as it is now. A real change
- * counts against the per-user atomic limit (Admins exempt), is a conditional update, and writes
- * the Activity and SettingsAudit rows (no name or text). A repeat that changes
- * nothing uses up no limit.
+ * is a conditional update, counts against the per-user atomic limit (Admins exempt),
+ * and writes the Activity and SettingsAudit rows (no name or text). The limit is hit
+ * after the update, so a repeat or lost race that changes nothing uses up none, and
+ * an over-limit call rolls its update back. Nothing gives a hit back by hand.
  *
  * Unbanning a scrubbed row (state Language, not registered: the retention scrub
  * kept it for the ban only) deletes it, unless it has a lead-linked message, so the user returns as a new visitor and
@@ -63,7 +64,7 @@ class SetConversationBan
     private function write(TelegramUser $conversation, User $actor, ?string $ip, bool $banned): bool
     {
         return DB::transaction(function () use ($conversation, $actor, $ip, $banned): bool {
-            $fresh = TelegramUser::query()->findOrFail($conversation->getKey());
+            $fresh = TelegramUser::query()->whereKey($conversation->getKey())->lockForUpdate()->firstOrFail();
 
             Gate::forUser($actor)->authorize('ban', $fresh);
 
@@ -71,22 +72,16 @@ class SetConversationBan
                 return false;
             }
 
-            // Admins are exempt, so a spam wave can be handled. Atomic: the hit itself decides.
-            $limited = ! $actor->hasRole(Role::Admin);
-
-            if ($limited && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
-                throw new InboxRefused('too_many_actions');
-            }
-
             $query = TelegramUser::query()->whereKey($fresh->id);
             $banned ? $query->whereNull('banned_at') : $query->whereNotNull('banned_at');
 
             if ($query->update(['banned_at' => $banned ? now() : null, 'banned_by_id' => $banned ? $actor->id : null]) !== 1) {
-                if ($limited) {
-                    RateLimiter::decrement(self::LIMIT_KEY.$actor->id);
-                }
-
                 return false;
+            }
+
+            // Admins are exempt, so a spam wave can be handled. Atomic: the hit itself decides, and the throw rolls the update back.
+            if (! $actor->hasRole(Role::Admin) && RateLimiter::hit(self::LIMIT_KEY.$actor->id, 3600) > self::PER_HOUR) {
+                throw new InboxRefused('too_many_actions');
             }
 
             SettingsAudit::record(SettingsArea::TelegramInbox, 'telegram.conversation.'.$fresh->id, $banned ? AuditAction::Banned : AuditAction::Unbanned, $actor, $ip);

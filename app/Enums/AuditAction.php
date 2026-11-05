@@ -53,6 +53,11 @@ enum AuditAction: string
     case RetryForward = 'retry_forward';
     case Linked = 'linked';
 
+    /**
+     * Plan 21 A7: an Admin deleted a conversation (T21-18).
+     */
+    case Deleted = 'deleted';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

@@ -23,9 +23,23 @@ final class LinkPhoneSignal
      */
     public const MATCHES_OTHER = 'matches_other';
 
+    /**
+     * Lang key under telegram_inbox.crm.phone_signal when no contact is chosen:
+     * the phone is then on one of the customer's contacts. The recorded value stays MATCHES_OTHER.
+     */
+    private const MATCHES_OTHER_NO_CONTACT = 'matches_other_no_contact';
+
     public const NO_MATCH = 'no_match';
 
     public const ANONYMOUS = 'anonymous';
+
+    /**
+     * The lang key that is true for this signal and this choice of contact.
+     */
+    public static function labelKey(string $signal, bool $contactChosen): string
+    {
+        return $signal === self::MATCHES_OTHER && ! $contactChosen ? self::MATCHES_OTHER_NO_CONTACT : $signal;
+    }
 
     public static function for(?string $phone, Customer $customer, ?Contact $contact = null): string
     {

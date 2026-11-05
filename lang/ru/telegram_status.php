@@ -158,6 +158,9 @@ return [
             'next' => 'Укажите QUEUE_CONNECTION=database в файле .env на сервере, пересоберите кэш конфигурации («php artisan config:cache») и запустите обработчик очереди.',
         ],
     ],
+    'inbox_audit_title' => 'Действия сотрудников в чатах',
+    'inbox_audit_subtitle' => 'Кто, когда и какое действие выполнил. Текст сообщений и имена клиентов не хранятся.',
+    'inbox_audit_empty' => 'Действий пока нет.',
     'counts_title' => 'Активность бота',
     'counts' => [
         'registered' => 'Зарегистрировано',

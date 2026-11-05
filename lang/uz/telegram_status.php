@@ -158,6 +158,9 @@ return [
             'next' => 'Serverdagi .env faylida QUEUE_CONNECTION=database qiling, konfiguratsiya keshini qayta yigʻing («php artisan config:cache») va navbat ishchisini ishga tushiring.',
         ],
     ],
+    'inbox_audit_title' => 'Chatlardagi xodim amallari',
+    'inbox_audit_subtitle' => 'Kim, qachon va qaysi amalni bajargan. Xabar matni va mijoz ismi saqlanmaydi.',
+    'inbox_audit_empty' => 'Hozircha amallar yoʻq.',
     'counts_title' => 'Bot faoliyati',
     'counts' => [
         'registered' => 'Roʻyxatdan oʻtganlar',

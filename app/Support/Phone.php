@@ -134,13 +134,13 @@ class Phone
 
     /**
      * The last 4 digits only ("••••4567"), for telling records apart without
-     * showing the number. Null when there are fewer than 4 digits.
+     * showing the number. Null at 4 digits or fewer, where it would show all of it.
      */
     public static function maskLastFour(?string $phone): ?string
     {
         $digits = (string) preg_replace('/\D+/', '', (string) $phone);
 
-        return strlen($digits) >= 4 ? '••••'.substr($digits, -4) : null;
+        return strlen($digits) > 4 ? '••••'.substr($digits, -4) : null;
     }
 
     /**

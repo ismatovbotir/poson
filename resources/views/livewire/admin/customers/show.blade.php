@@ -175,6 +175,26 @@
                 @endif
             </x-admin.card>
 
+            @if ($telegramAccounts->isNotEmpty())
+                <x-admin.card :title="__('crm.customers.telegram_block.title')" data-customer-telegram>
+                    <ul class="space-y-3 text-sm">
+                        @foreach ($telegramAccounts as $account)
+                            @can('view', $account)
+                                <li wire:key="telegram-account-{{ $account->id }}" data-telegram-account>
+                                    <p class="break-words font-medium">{{ \App\Support\Telegram\InboxMessage::displayName($account) }}@if ($account->username) <span class="font-normal text-slate-500">{{ '@'.$account->username }}</span>@endif</p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-2">
+                                        <x-admin.badge :color="$account->isLinkVerified() ? 'brand' : 'amber'">{{ __('telegram_inbox.crm.'.($account->isLinkVerified() ? 'verified' : 'unverified')) }}</x-admin.badge>
+                                        <a href="{{ route('admin.telegram.chats.show', $account->id) }}" wire:navigate class="font-semibold text-brand-700 hover:underline" data-telegram-thread-link>{{ __('crm.customers.telegram_block.open') }}</a>
+                                    </div>
+                                </li>
+                            @else
+                                <li wire:key="telegram-account-hidden-{{ $loop->index }}" class="text-slate-500" data-telegram-account data-telegram-hidden>{{ __('crm.customers.telegram_block.hidden') }}</li>
+                            @endcan
+                        @endforeach
+                    </ul>
+                </x-admin.card>
+            @endif
+
             @if ($canDelete)
                 <section class="rounded-2xl border border-red-200 bg-white p-4 sm:p-5">
                     <h2 class="text-sm font-semibold text-danger">{{ __('crm.leads.danger_zone') }}</h2>

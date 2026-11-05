@@ -3,7 +3,9 @@
 use App\Actions\Settings\ClearSecret;
 use App\Actions\Settings\SaveIntegrationSettings;
 use App\Actions\Settings\SetSecret;
+use App\Enums\AuditAction;
 use App\Enums\Role;
+use App\Enums\SettingsArea;
 use App\Enums\TelegramForwardStatus;
 use App\Enums\TelegramMessageStatus;
 use App\Events\Contracts\TelegramAlert;
@@ -17,6 +19,7 @@ use App\Models\IntegrationSecret;
 use App\Models\MonitoringState;
 use App\Models\Page;
 use App\Models\Setting;
+use App\Models\SettingsAudit;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Services\Telegram\TelegramClient;
@@ -290,7 +293,9 @@ it('names the invalid env keys but never their values', function () {
 it('keeps queries bounded: cold render under the ceiling, warm poll almost free', function () {
     Http::fake();
     statusBaseline();
-    $component = Livewire::actingAs(staffUser())->test(Status::class);
+    $admin = staffUser();
+    SettingsAudit::record(SettingsArea::TelegramInbox, 'telegram.conversation.1', AuditAction::Banned, $admin, null);
+    $component = Livewire::actingAs($admin)->test(Status::class);
     Cache::flush();
 
     DB::enableQueryLog();

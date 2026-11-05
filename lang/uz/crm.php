@@ -74,6 +74,11 @@ return [
             'closed_at' => 'Yopilgan vaqti',
         ],
 
+        'from_telegram' => [
+            'title' => 'Telegramdan',
+            'open' => 'Chatni ochish',
+            'hidden' => 'Chatni boshqa menejer olib boradi',
+        ],
         'sections' => [
             'contact' => 'Kontakt',
             'request' => 'Soʻrov',
@@ -232,6 +237,11 @@ return [
             'manager_id' => 'Menejer',
             'price_level' => 'Narx darajasi',
             'created_at' => 'Qoʻshilgan',
+        ],
+        'telegram_block' => [
+            'title' => 'Telegram',
+            'open' => 'Chatni ochish',
+            'hidden' => 'Bogʻlangan akkaunt, chatni boshqa menejer olib boradi',
         ],
         'sections' => [
             'requisites' => 'Rekvizitlar',
