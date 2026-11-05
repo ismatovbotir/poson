@@ -3,6 +3,7 @@
 use App\Models\Activity;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Repair;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
@@ -27,7 +28,7 @@ const MCP_ALLOWED_MODELS = [
 
 const MCP_FORBIDDEN_CLASSES = [
     TelegramUser::class, TelegramMessage::class, TelegramUpdate::class,
-    Customer::class, Contact::class, Activity::class,
+    Customer::class, Contact::class, Activity::class, Repair::class,
 ];
 
 /**
@@ -126,13 +127,28 @@ arch('the App\Support classes behind MCP use only the allow-listed App\Models cl
     ->expect(mcpSupportClasses())
     ->not->toUse(array_values(array_diff(modelsOutsideMcpAllowList(), array_map(fn (string $m): string => "App\\Models\\{$m}", ['Order', 'OrderPayment', 'UzqrTransaction']))));
 
-arch('MCP never uses Telegram, Customer, Contact or Activity models')
+arch('MCP never uses Telegram, Customer, Contact, Activity or Repair models')
     ->expect(MCP_NAMESPACES)
     ->not->toUse(MCP_FORBIDDEN_CLASSES);
 
-arch('the App\Support classes behind MCP never use Telegram, Customer, Contact or Activity models')
+arch('the App\Support classes behind MCP never use Telegram, Customer, Contact, Activity or Repair models')
     ->expect(mcpSupportClasses())
     ->not->toUse(MCP_FORBIDDEN_CLASSES);
+
+it('keeps every repair class, table and permission out of MCP (plan 24 P24-22)', function () {
+    $files = array_merge(mcpPhpFiles('app/Mcp', 'app/Actions/Mcp'), mcpSupportFiles());
+
+    foreach ($files as $path) {
+        $code = McpExclusionScanner::withoutComments((string) file_get_contents(mcpRoot($path)));
+
+        expect(preg_match('/\bRepair(?:Status|Coverage|DeviceType|Access|Policy)?\b|repairs[._]|[\'"]repair[\'"]|Repairs\\\\/', $code))->toBe(0, "{$path} reaches the repairs domain");
+    }
+
+    expect(McpExclusionScanner::CRM_MODELS)->toContain('Repair')
+        ->and(McpExclusionScanner::tableNeedle())->toContain('repairs')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("repairs")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name')
+        ->and(McpExclusionScanner::labels('<?php return Repair::query()->where("repairs.status", 1);', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name');
+});
 
 it('finds the Support dependencies of MCP, recursively', function () {
     expect(mcpSupportFiles())->toContain(

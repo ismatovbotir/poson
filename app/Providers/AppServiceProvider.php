@@ -22,6 +22,7 @@ use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
+use App\Models\Repair;
 use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Models\User;
@@ -99,6 +100,8 @@ class AppServiceProvider extends ServiceProvider
             'page' => Page::class,
             'product' => Product::class,
             'quote' => Quote::class,
+            // Plan 24: the repair history (activities).
+            'repair' => Repair::class,
             'setting' => Setting::class,
             // Plan 14 v2 B3: bot conversations (registration / CRM link history).
             'telegram_user' => TelegramUser::class,

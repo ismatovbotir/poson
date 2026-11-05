@@ -107,6 +107,7 @@ return [
         'quote' => 'Коммерческое предложение',
         'order' => 'Заказ',
         'payment' => 'Оплата',
+        'repair' => 'Ремонт',
     ],
 
     'quote_status' => [
@@ -470,4 +471,31 @@ return [
         'open' => 'Открыт',
         'closed' => 'Закрыт',
     ],
+
+    'repair_status' => [
+        'received' => 'Принято',
+        'diagnosing' => 'Диагностика',
+        'awaiting_approval' => 'Ожидает согласования',
+        'in_repair' => 'В ремонте',
+        'awaiting_parts' => 'Ожидает запчасти',
+        'ready' => 'Готово к выдаче',
+        'delivered' => 'Выдано',
+        'cancelled' => 'Отменено',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Платный',
+        'warranty' => 'Гарантия',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Сканер штрихкодов',
+        'label_printer' => 'Принтер этикеток',
+        'receipt_printer' => 'Чековый принтер',
+        'mobile_computer' => 'Мобильный компьютер (ТСД)',
+        'rfid' => 'RFID-оборудование',
+        'pos' => 'POS-оборудование',
+        'other' => 'Другое устройство',
+    ],
+
 ];
