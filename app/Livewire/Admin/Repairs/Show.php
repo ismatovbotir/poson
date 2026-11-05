@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -38,7 +39,16 @@ class Show extends Component
      */
     public const TIMELINE_LIMIT = 200;
 
+    #[Locked]
     public Repair $repair;
+
+    /**
+     * Opaque marker of the estimate this page showed (ApproveRepairEstimate::version()); empty without cost rights.
+     */
+    #[Locked]
+    public string $approvalVersion = '';
+
+    public string $approveNote = '';
 
     public string $cancelNote = '';
 
@@ -51,6 +61,7 @@ class Show extends Component
         $this->authorize('view', $repair);
         $this->repair = $repair;
         $this->assignTo = (string) $repair->assigned_to_id;
+        $this->syncApprovalVersion();
     }
 
     /**
@@ -100,12 +111,24 @@ class Show extends Component
 
     public function approveEstimate(ApproveRepairEstimate $approve): void
     {
-        $this->authorize('editCosts', $this->repair);
+        $this->authorize('approveEstimate', $this->repair);
 
-        if ($this->runToastAction(fn () => $approve->handle($this->repair, $this->user()))) {
+        $this->validate([
+            'approveNote' => ['required', 'string', 'max:'.ApproveRepairEstimate::NOTE_MAX],
+        ], attributes: ['approveNote' => __('repairs.fields.approval_note')]);
+
+        try {
+            $approve->handle($this->repair, $this->user(), $this->approveNote, $this->approvalVersion);
+        } catch (ValidationException $exception) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: collect($exception->errors())->flatten()->first(), type: 'error');
             $this->refreshRepair();
-            $this->dispatch('toast', title: __('admin.toast.saved'), body: __('repairs.toast.approved'));
+
+            return;
         }
+
+        $this->reset('approveNote');
+        $this->refreshRepair();
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('repairs.toast.approved'));
     }
 
     public function take(AssignRepair $assignRepair): void
@@ -142,7 +165,7 @@ class Show extends Component
 
     public function addActivity(AddRepairActivity $addActivity): void
     {
-        $this->authorize('update', $this->repair);
+        $this->authorize('note', $this->repair);
 
         $this->validate([
             'activityBody' => ['required', 'string', 'max:'.AddRepairActivity::BODY_MAX],
@@ -194,6 +217,8 @@ class Show extends Component
 
         return view('livewire.admin.repairs.show', [
             'canEdit' => $canEdit,
+            'canNote' => $user->can('note', $repair),
+            'canApprove' => $user->can('approveEstimate', $repair),
             'canTake' => $user->can('take', $repair),
             'canRelease' => $user->can('release', $repair),
             'canAssign' => $user->can('assign', $repair),
@@ -210,7 +235,13 @@ class Show extends Component
     {
         $this->repair->refresh();
         $this->assignTo = (string) $this->repair->assigned_to_id;
+        $this->syncApprovalVersion();
         unset($this->activities, $this->candidates);
+    }
+
+    private function syncApprovalVersion(): void
+    {
+        $this->approvalVersion = $this->user()->can('editCosts', $this->repair) ? ApproveRepairEstimate::version($this->repair) : '';
     }
 
     private function user(): User

@@ -95,9 +95,16 @@ class AssignRepair
 
             $previous = $row->assigned_to_id !== null ? User::query()->find($row->assigned_to_id) : null;
 
-            $repair->assigned_to_id = $target?->id;
-            $repair->save();
+            // Conditional on the row we locked: log only when a row really changed.
+            $changed = Repair::query()->whereKey($repair->id)
+                ->when($row->assigned_to_id === null, fn ($query) => $query->whereNull('assigned_to_id'), fn ($query) => $query->where('assigned_to_id', $row->assigned_to_id))
+                ->update(['assigned_to_id' => $target?->id, 'updated_at' => now()]);
 
+            if ($changed === 0) {
+                throw ValidationException::withMessages(['assigned_to_id' => __('repairs.errors.already_assigned')]);
+            }
+
+            $repair->refresh();
             $this->log($repair, $actor, $previous, $target, 'assign');
 
             return $repair;
@@ -111,7 +118,7 @@ class AssignRepair
      */
     public function handOver(Repair $repair, User $from, ?User $to, User $actor): bool
     {
-        if ($to instanceof User && static::eligibleUser($to->id) === null) {
+        if ($to instanceof User && ($to->id === $from->id || static::eligibleUser($to->id) === null)) {
             return false;
         }
 
@@ -164,16 +171,19 @@ class AssignRepair
 
     private function log(Repair $repair, User $actor, ?User $from, ?User $to, string $action): void
     {
+        // A handover keeps ids only (P24-17); names are looked up when shown.
+        $names = $action !== 'handover';
+
         $repair->activities()->create([
             'user_id' => $actor->id,
             'type' => ActivityType::Assignment,
-            'meta' => [
+            'meta' => array_filter([
                 'action' => $action,
                 'from_id' => $from?->id,
-                'from_name' => $from?->name,
+                'from_name' => $names ? $from?->name : null,
                 'to_id' => $to?->id,
-                'to_name' => $to?->name,
-            ],
+                'to_name' => $names ? $to?->name : null,
+            ], fn (mixed $value): bool => $value !== null),
             'created_at' => now(),
         ]);
     }

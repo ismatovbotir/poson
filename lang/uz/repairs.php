@@ -91,6 +91,7 @@ return [
         'received_at' => 'Qabul qilingan',
         'created_by' => 'Qabul qilgan',
         'closed_at' => 'Yopilgan',
+        'approval_note' => 'Mijoz qanday kelishdi',
     ],
 
     'hints' => [
@@ -101,13 +102,14 @@ return [
         'warranty_reference' => 'Kafolat nimaga asoslangan, masalan hisob-faktura raqami va sanasi.',
         'estimate' => 'Butun soʻmda. Oshirilsa, mijozning kelishuvi bekor boʻladi.',
         'final' => 'Butun soʻmda. Pullik taʼmirlash tayyor boʻlishi uchun kerak.',
+        'approval_note' => 'Masalan, qogʻoz smeta raqami yoki «telefon orqali kelishildi».',
     ],
 
     'customer' => [
         'clear' => 'Almashtirish',
         'search' => 'Mijozni nomi, telefoni yoki STIR boʻyicha qidirish',
         'no_results' => 'Mijozlar topilmadi.',
-        'hint' => 'Majburiy emas. Tasodifiy mijozni quyida mijoz kartasisiz kiritish mumkin.',
+        'hint' => 'Majburiy emas. Mijoz kartasi boʻlmagan mijozni quyida kiritish mumkin.',
         'no_contact' => 'Muayyan aloqa shaxsisiz',
     ],
 
@@ -143,11 +145,14 @@ return [
         'took' => 'Taʼmirlashni oldi',
         'released' => 'Taʼmirlashni qaytardi',
         'assigned' => 'Muhandis: :from → :to',
-        'handover' => 'Topshirildi: :from → :to',
+        'handover' => 'Ish hamkasbga topshirildi',
         'estimate_approved' => 'Mijoz smetani kelishdi',
         'estimate_changed' => 'Smeta oʻzgardi',
         'approval_cleared' => 'kelishuv bekor qilindi, qayta kelishish kerak',
         'coverage_changed' => 'Shart oʻzgardi: :to',
+        'final_changed' => 'Yakuniy summa oʻzgardi',
+        'warranty_reference_changed' => 'Kafolat asosi oʻzgardi',
+        'auto' => 'avtomatik',
     ],
 
     'toast' => [
@@ -178,6 +183,14 @@ return [
         'approve_not_possible' => 'Bu bosqichda smetani kelishib boʻlmaydi.',
         'already_approved' => 'Smeta allaqachon kelishilgan.',
         'customer_has_repairs' => 'Mijozda :count ta taʼmirlash bor. Oʻchirib boʻlmaydi.',
+        'coverage_locked' => 'Ishlar boshlangach taʼmirlash shartini oʻzgartirib boʻlmaydi. Administratorga murojaat qiling.',
+        'estimate_locked_ready' => 'Tayyor taʼmirlashda smetani oshirib yoki olib tashlab boʻlmaydi.',
+        'final_locked_ready' => 'Tayyor taʼmirlashda yakuniy summani olib tashlab boʻlmaydi.',
+        'final_above_estimate' => 'Yakuniy summa kelishilgan smetadan oshmasligi kerak. Smetani oshiring va qayta kelishing.',
+        'diagnosis_required' => 'Avval diagnostikani yozing.',
+        'approve_not_assigned' => 'Kelishuvni faqat taʼmirlash biriktirilgan muhandis qayd eta oladi.',
+        'estimate_version' => 'Sahifa ochilganidan keyin smeta oʻzgargan. Sahifani yangilab, tekshiring.',
+        'lead_invalid' => 'Bu murojaat taʼmirlash uchun mavjud emas.',
     ],
 
 ];

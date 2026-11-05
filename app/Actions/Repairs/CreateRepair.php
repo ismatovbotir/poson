@@ -34,6 +34,7 @@ class CreateRepair
     public function handle(RepairData $data, User $actor): Repair
     {
         $attributes = $this->attributesFrom($data, $actor);
+        $attributes['lead_id'] = $this->resolveLead($data, $actor);
         $assignee = $this->assignee($data, $actor);
 
         // Up to 3 attempts: a deadlock on the sequence row is retried.

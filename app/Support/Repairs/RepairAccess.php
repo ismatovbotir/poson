@@ -38,11 +38,14 @@ final class RepairAccess
 
     public static function editLevel(User $user): string
     {
-        if (! $user->can('repairs.update')) {
+        $view = self::viewLevel($user);
+
+        if ($view === self::NONE || ! $user->can('repairs.update')) {
             return self::NONE;
         }
 
-        return $user->can('repairs.assign') ? self::ALL : self::OWN;
+        // Never wider than what the user can see.
+        return $user->can('repairs.assign') && $view === self::ALL ? self::ALL : self::OWN;
     }
 
     public static function allows(string $level, ?int $assignedToId, User $user): bool

@@ -75,9 +75,9 @@ class Form extends Component
      */
     public function hydrate(): void
     {
-        if ($this->repair !== null) {
-            $this->authorize('update', $this->repair);
-        }
+        $this->repair !== null
+            ? $this->authorize('update', $this->repair)
+            : $this->authorize('create', Repair::class);
     }
 
     /**
@@ -200,8 +200,9 @@ class Form extends Component
      */
     public function updatedFormContactId(): void
     {
-        $contact = ctype_digit($this->form->contact_id)
-            ? Contact::query()->where('customer_id', (int) $this->form->customer_id)->find((int) $this->form->contact_id)
+        $customerId = $this->customer?->id;
+        $contact = $customerId !== null && ctype_digit($this->form->contact_id)
+            ? Contact::query()->where('customer_id', $customerId)->find((int) $this->form->contact_id)
             : null;
 
         if ($contact instanceof Contact) {

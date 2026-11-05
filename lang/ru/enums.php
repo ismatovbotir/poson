@@ -489,10 +489,10 @@ return [
     ],
 
     'repair_device_type' => [
-        'scanner' => 'Сканер штрихкодов',
+        'scanner' => 'Сканер штрих-кода',
         'label_printer' => 'Принтер этикеток',
         'receipt_printer' => 'Чековый принтер',
-        'mobile_computer' => 'Мобильный компьютер (ТСД)',
+        'mobile_computer' => 'Терминал сбора данных (ТСД)',
         'rfid' => 'RFID-оборудование',
         'pos' => 'POS-оборудование',
         'other' => 'Другое устройство',

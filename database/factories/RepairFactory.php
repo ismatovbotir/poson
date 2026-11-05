@@ -73,6 +73,7 @@ class RepairFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'estimate_amount' => $attributes['estimate_amount'] ?? 15_000_000,
             'estimate_approved_at' => now(),
+            'estimate_approved_amount' => $attributes['estimate_amount'] ?? 15_000_000,
         ]);
     }
 

@@ -13,6 +13,10 @@
         </x-slot:actions>
     </x-admin.page-header>
 
+    @error('form.status')
+        <p class="mt-4 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm text-danger" role="alert" data-status-error><x-admin.icon name="alert" size="size-4" />{{ $message }}</p>
+    @enderror
+
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
             {{-- Customer and contact --}}
@@ -76,7 +80,7 @@
             <x-admin.card :title="__('repairs.sections.intake')">
                 <div class="space-y-5">
                     <x-admin.textarea wire:model="form.problem" :label="__('repairs.fields.problem')" required rows="3" maxlength="5000" :hint="__('repairs.hints.no_passwords')" />
-                    <x-admin.textarea wire:model="form.intake_condition" :label="__('repairs.fields.intake_condition')" required rows="3" maxlength="5000" :hint="__('repairs.hints.intake_condition')" />
+                    <x-admin.textarea wire:model="form.intake_condition" :label="__('repairs.fields.intake_condition')" required rows="3" maxlength="5000" :hint="__('repairs.hints.intake_condition').' '.__('repairs.hints.no_passwords')" />
                 </div>
             </x-admin.card>
 
@@ -85,7 +89,7 @@
                 <x-admin.card :title="__('repairs.sections.work')">
                     <div class="space-y-5">
                         <x-admin.textarea wire:model="form.diagnosis" :label="__('repairs.fields.diagnosis')" rows="3" maxlength="5000" :hint="__('repairs.hints.no_passwords')" />
-                        <x-admin.textarea wire:model="form.work_done" :label="__('repairs.fields.work_done')" rows="3" maxlength="5000" />
+                        <x-admin.textarea wire:model="form.work_done" :label="__('repairs.fields.work_done')" rows="3" maxlength="5000" :hint="__('repairs.hints.no_passwords')" />
                         <x-admin.textarea wire:model="form.parts_used" :label="__('repairs.fields.parts_used')" rows="2" maxlength="5000" :hint="__('repairs.hints.parts_used')" />
                     </div>
                 </x-admin.card>

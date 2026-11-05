@@ -67,10 +67,14 @@ describe('RepairStatus flow', function () {
             ->and(RepairStatus::Diagnosing->canTransitionTo(RepairStatus::InRepair, RepairCoverage::Paid))->toBeFalse();
     });
 
-    it('cancels from any open status except ready', function () {
+    it('cancels from any open status, a ready one too', function () {
         foreach (RepairStatus::open() as $status) {
-            expect($status->canTransitionTo(RepairStatus::Cancelled, RepairCoverage::Paid))->toBe($status !== RepairStatus::Ready, $status->value);
+            expect($status->canTransitionTo(RepairStatus::Cancelled, RepairCoverage::Paid))->toBeTrue($status->value);
         }
+    });
+
+    it('lets a repair awaiting approval go back to diagnosing', function () {
+        expect(RepairStatus::AwaitingApproval->canTransitionTo(RepairStatus::Diagnosing, RepairCoverage::Paid))->toBeTrue();
     });
 });
 
@@ -246,7 +250,7 @@ describe('ChangeRepairStatus', function () {
         $repair->update(['estimate_amount' => 5_000_000]);
         expect(repairsErrorsOf(fn () => app(ChangeRepairStatus::class)->handle($repair, RepairStatus::InRepair, $admin)))->toHaveKey('status');
 
-        $repair->update(['estimate_approved_at' => now()]);
+        $repair->update(['estimate_approved_at' => now(), 'estimate_approved_amount' => 5_000_000]);
         app(ChangeRepairStatus::class)->handle($repair, RepairStatus::InRepair, $admin);
 
         expect($repair->fresh()->status)->toBe(RepairStatus::InRepair);
@@ -254,7 +258,7 @@ describe('ChangeRepairStatus', function () {
 
     it('lets a warranty repair skip the estimate', function () {
         $admin = staffUser();
-        $repair = Repair::factory()->warranty()->status(RepairStatus::Diagnosing)->create();
+        $repair = Repair::factory()->warranty()->status(RepairStatus::Diagnosing)->create(['diagnosis' => 'Dead sensor']);
 
         app(ChangeRepairStatus::class)->handle($repair, RepairStatus::InRepair, $admin);
 
@@ -263,7 +267,7 @@ describe('ChangeRepairStatus', function () {
 
     it('needs an estimate to ask for approval on a paid repair', function () {
         $admin = staffUser();
-        $repair = Repair::factory()->status(RepairStatus::Diagnosing)->create();
+        $repair = Repair::factory()->status(RepairStatus::Diagnosing)->create(['diagnosis' => 'Dead sensor']);
 
         expect(repairsErrorsOf(fn () => app(ChangeRepairStatus::class)->handle($repair, RepairStatus::AwaitingApproval, $admin)))->toHaveKey('status');
     });
@@ -306,26 +310,63 @@ describe('ChangeRepairStatus', function () {
 });
 
 describe('ApproveRepairEstimate', function () {
-    it('sets the approval on the server with an activity row and no amount', function () {
+    it('sets the approval and the approved amount on the server with a note activity and no amount', function () {
         $admin = staffUser();
         $repair = Repair::factory()->estimated(4_200_000)->status(RepairStatus::AwaitingApproval)->create();
 
-        app(ApproveRepairEstimate::class)->handle($repair, $admin);
+        app(ApproveRepairEstimate::class)->handle($repair, $admin, 'Paper estimate 14', ApproveRepairEstimate::version($repair));
         $row = $repair->activities()->where('type', ActivityType::Repair)->first();
 
         expect($repair->fresh()->estimate_approved_at)->not->toBeNull()
+            ->and($repair->fresh()->estimate_approved_amount)->toBe(4_200_000)
             ->and($row->meta['event'])->toBe('estimate_approved')
+            ->and($row->body)->toBe('Paper estimate 14')
             ->and(json_encode($row->meta))->not->toContain('4200000');
 
-        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair, $admin)))->toHaveKey('estimate');
+        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair, $admin, 'again', ApproveRepairEstimate::version($repair))))->toHaveKey('estimate');
+    });
+
+    it('needs a note', function () {
+        $admin = staffUser();
+        $repair = Repair::factory()->estimated()->create();
+
+        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair, $admin, '  ', ApproveRepairEstimate::version($repair))))->toHaveKey('note')
+            ->and($repair->fresh()->estimate_approved_at)->toBeNull();
     });
 
     it('needs an estimate and a paid, open repair', function () {
         $admin = staffUser();
 
-        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle(Repair::factory()->create(), $admin)))->toHaveKey('estimate')
-            ->and(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle(Repair::factory()->warranty()->estimated()->create(), $admin)))->toHaveKey('estimate')
-            ->and(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle(Repair::factory()->estimated()->status(RepairStatus::Cancelled)->create(), $admin)))->toHaveKey('estimate');
+        foreach ([Repair::factory()->create(), Repair::factory()->warranty()->estimated()->create(), Repair::factory()->estimated()->status(RepairStatus::Cancelled)->create()] as $repair) {
+            expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair, $admin, 'ok', ApproveRepairEstimate::version($repair))))->toHaveKey('estimate');
+        }
+    });
+
+    it('refuses a stale version after the estimate changed', function () {
+        $admin = staffUser();
+        $repair = Repair::factory()->estimated(4_200_000)->create();
+        $seen = ApproveRepairEstimate::version($repair);
+
+        $repair->update(['estimate_amount' => 9_900_000]);
+
+        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair->fresh(), $admin, 'ok', $seen)))->toHaveKey('estimate')
+            ->and($repair->fresh()->estimate_approved_at)->toBeNull();
+    });
+
+    it('lets only the assigned engineer approve, Admin exempt', function () {
+        $mine = staffUser(Role::ServiceEngineer);
+        $other = User::factory()->withRole(Role::ServiceEngineer)->create();
+        $admin = User::factory()->withRole(Role::Admin)->create();
+        $repair = Repair::factory()->assignedTo($other)->estimated()->create();
+        $version = ApproveRepairEstimate::version($repair);
+
+        expect(repairsErrorsOf(fn () => app(ApproveRepairEstimate::class)->handle($repair, $mine, 'ok', $version)))->toHaveKey('estimate')
+            ->and($mine->can('approveEstimate', $repair))->toBeFalse()
+            ->and($other->can('approveEstimate', $repair))->toBeTrue()
+            ->and($admin->can('approveEstimate', $repair))->toBeTrue();
+
+        app(ApproveRepairEstimate::class)->handle($repair, $admin, 'phone', $version);
+        expect($repair->fresh()->estimate_approved_at)->not->toBeNull();
     });
 });
 

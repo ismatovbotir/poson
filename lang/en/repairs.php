@@ -91,6 +91,7 @@ return [
         'received_at' => 'Received',
         'created_by' => 'Taken in by',
         'closed_at' => 'Closed',
+        'approval_note' => 'How the customer approved',
     ],
 
     'hints' => [
@@ -101,6 +102,7 @@ return [
         'warranty_reference' => 'Where the warranty comes from, e.g. invoice number and date.',
         'estimate' => 'In whole UZS. Raising it clears the customer approval.',
         'final' => 'In whole UZS. Required before a paid repair is ready.',
+        'approval_note' => 'For example the paper estimate number or “approved by phone”.',
     ],
 
     'customer' => [
@@ -143,11 +145,14 @@ return [
         'took' => 'Took the repair',
         'released' => 'Released the repair',
         'assigned' => 'Engineer: :from → :to',
-        'handover' => 'Handed over: :from → :to',
+        'handover' => 'Work handed over to a colleague',
         'estimate_approved' => 'Customer approved the estimate',
         'estimate_changed' => 'Estimate changed',
         'approval_cleared' => 'approval cleared, needs approving again',
         'coverage_changed' => 'Coverage changed to :to',
+        'final_changed' => 'Final amount changed',
+        'warranty_reference_changed' => 'Warranty reference changed',
+        'auto' => 'automatic',
     ],
 
     'toast' => [
@@ -178,6 +183,14 @@ return [
         'approve_not_possible' => 'The estimate cannot be approved at this stage.',
         'already_approved' => 'The estimate is already approved.',
         'customer_has_repairs' => 'This customer has :count repair and can’t be deleted.|This customer has :count repairs and can’t be deleted.',
+        'coverage_locked' => 'Coverage can no longer be changed once work has started. Ask an Admin.',
+        'estimate_locked_ready' => 'The estimate can’t be raised or cleared on a repair that is ready.',
+        'final_locked_ready' => 'The final amount can’t be cleared on a repair that is ready.',
+        'final_above_estimate' => 'The final amount can’t be above the approved estimate. Raise the estimate and get it approved again.',
+        'diagnosis_required' => 'Write the diagnosis first.',
+        'approve_not_assigned' => 'Only the engineer this repair is assigned to can record the approval.',
+        'estimate_version' => 'The estimate has changed since you opened this page. Reload and check it.',
+        'lead_invalid' => 'This request is not available for a repair.',
     ],
 
 ];

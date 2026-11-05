@@ -50,6 +50,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $estimate_amount
  * @property int|null $final_amount
  * @property Carbon|null $estimate_approved_at
+ * @property int|null $estimate_approved_amount
  * @property int|null $assigned_to_id
  * @property int|null $created_by_id
  * @property Carbon|null $received_at
@@ -63,7 +64,7 @@ use Illuminate\Support\Carbon;
     'contact_name', 'contact_phone', 'company',
     'device_type', 'device_brand', 'device_model', 'serial_number', 'accessories',
     'intake_condition', 'problem', 'diagnosis', 'work_done', 'parts_used',
-    'coverage', 'warranty_reference', 'estimate_amount', 'final_amount', 'estimate_approved_at',
+    'coverage', 'warranty_reference', 'estimate_amount', 'final_amount', 'estimate_approved_at', 'estimate_approved_amount',
     'assigned_to_id', 'created_by_id', 'received_at', 'status_changed_at', 'closed_at',
 ])]
 class Repair extends Model
@@ -94,6 +95,7 @@ class Repair extends Model
             'coverage' => RepairCoverage::class,
             'estimate_amount' => 'integer',
             'final_amount' => 'integer',
+            'estimate_approved_amount' => 'integer',
             'assigned_to_id' => 'integer',
             'estimate_approved_at' => 'datetime',
             'received_at' => 'datetime',

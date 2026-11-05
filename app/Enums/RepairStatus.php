@@ -8,8 +8,9 @@ namespace App\Enums;
  * received → diagnosing → awaiting_approval → in_repair ⇄ awaiting_parts,
  * in_repair → ready → delivered. A warranty repair may go diagnosing →
  * in_repair directly; a ready repair may go back to in_repair (rework).
- * cancelled is possible from any open status except ready; delivered and
- * cancelled are final.
+ * awaiting_approval may go back to diagnosing (the approval is cleared).
+ * cancelled is possible from any open status, a ready one too (owner decision,
+ * with a note); delivered and cancelled are final.
  */
 enum RepairStatus: string
 {
@@ -64,10 +65,10 @@ enum RepairStatus: string
         return match ($this) {
             self::Received => [self::Diagnosing, self::Cancelled],
             self::Diagnosing => [self::AwaitingApproval, self::InRepair, self::Cancelled],
-            self::AwaitingApproval => [self::InRepair, self::Cancelled],
+            self::AwaitingApproval => [self::Diagnosing, self::InRepair, self::Cancelled],
             self::InRepair => [self::AwaitingParts, self::Ready, self::Cancelled],
             self::AwaitingParts => [self::InRepair, self::Cancelled],
-            self::Ready => [self::Delivered, self::InRepair],
+            self::Ready => [self::Delivered, self::InRepair, self::Cancelled],
             self::Delivered, self::Cancelled => [],
         };
     }

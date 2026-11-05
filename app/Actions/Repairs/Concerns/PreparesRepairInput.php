@@ -6,6 +6,7 @@ use App\Data\Repairs\RepairData;
 use App\Enums\RepairCoverage;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Repair;
 use App\Models\User;
 use App\Support\Phone;
@@ -75,7 +76,6 @@ trait PreparesRepairInput
         }
 
         [$attributes['customer_id'], $attributes['contact_id']] = $this->resolveCustomer($data, $actor);
-        $attributes['lead_id'] = $data->leadId;
 
         if ($data->costsIncluded && $actor->can('repairs.costs')) {
             $attributes['estimate_amount'] = $this->amount($data->estimateAmount, 'estimate_amount');
@@ -83,6 +83,27 @@ trait PreparesRepairInput
         }
 
         return $attributes;
+    }
+
+    /**
+     * The lead a new repair comes from (create only): a service request the
+     * actor may view, or null.
+     *
+     * @throws ValidationException
+     */
+    protected function resolveLead(RepairData $data, User $actor): ?int
+    {
+        if ($data->leadId === null) {
+            return null;
+        }
+
+        $lead = Lead::query()->find($data->leadId);
+
+        if (! $lead instanceof Lead || ! $lead->type->isService() || ! $actor->can('view', $lead)) {
+            throw ValidationException::withMessages(['lead_id' => __('repairs.errors.lead_invalid')]);
+        }
+
+        return $lead->id;
     }
 
     /**

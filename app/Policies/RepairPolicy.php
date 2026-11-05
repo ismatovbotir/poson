@@ -34,11 +34,25 @@ class RepairPolicy
     }
 
     /**
-     * Edit, change the status, add notes.
+     * Edit, change the status, approve. A closed repair accepts no changes
+     * (notes aside, see note()).
      */
     public function update(User $user, Repair $repair): bool
     {
-        return $repair->isEditableBy($user);
+        return $repair->isOpen() && $repair->isEditableBy($user);
+    }
+
+    /**
+     * A note on the timeline: on an open repair whoever may update it; on a
+     * closed one only the assigned engineer and those who assign (Admin).
+     */
+    public function note(User $user, Repair $repair): bool
+    {
+        if ($repair->isOpen()) {
+            return $this->update($user, $repair);
+        }
+
+        return $repair->isEditableBy($user) && ($repair->isAssignedTo($user) || $user->can('repairs.assign'));
     }
 
     public function take(User $user, Repair $repair): bool
@@ -62,6 +76,15 @@ class RepairPolicy
     public function viewCosts(User $user, Repair $repair): bool
     {
         return $user->can('repairs.costs') && $this->view($user, $repair);
+    }
+
+    /**
+     * Record the customer's approval of the estimate: needs the costs rights
+     * and the repair assigned to the user (Admin passes through Gate::before).
+     */
+    public function approveEstimate(User $user, Repair $repair): bool
+    {
+        return $this->editCosts($user, $repair) && $repair->isAssignedTo($user);
     }
 
     public function editCosts(User $user, Repair $repair): bool

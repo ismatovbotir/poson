@@ -492,7 +492,7 @@ return [
         'scanner' => 'Shtrix-kod skaneri',
         'label_printer' => 'Yorliq printeri',
         'receipt_printer' => 'Chek printeri',
-        'mobile_computer' => 'Mobil kompyuter (TSD)',
+        'mobile_computer' => 'Maʼlumot yigʻish terminali (TSD)',
         'rfid' => 'RFID uskunasi',
         'pos' => 'POS uskunasi',
         'other' => 'Boshqa qurilma',

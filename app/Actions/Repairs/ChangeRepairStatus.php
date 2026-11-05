@@ -14,10 +14,13 @@ use Illuminate\Validation\ValidationException;
  * Move a repair along RepairStatus::canTransitionTo() (callers authorize
  * RepairPolicy::update first). Guards, checked on the row under a lock:
  *
+ *  - a written diagnosis is needed for "awaiting_approval" and for the
+ *    warranty shortcut diagnosing → in_repair;
  *  - a paid repair asks for approval only with an estimate;
- *  - a paid repair enters "in_repair" only with an estimate and the
- *    customer's recorded approval (warranty repairs skip both);
- *  - a paid repair becomes "ready" only with a final amount;
+ *  - a paid repair enters in_repair, ready and delivered only with an
+ *    estimate and its recorded approval of that amount (warranty repairs skip it);
+ *  - ready and delivered also need a final amount, not above the estimate;
+ *  - going back to "diagnosing" clears the approval;
  *  - "cancelled" needs a note.
  *
  * Sets status_changed_at, closed_at on delivered / cancelled, and writes a
@@ -51,18 +54,13 @@ class ChangeRepairStatus
                 throw ValidationException::withMessages(['status' => __('repairs.errors.transition_invalid', ['from' => $from->label(), 'to' => $to->label()])]);
             }
 
-            $paid = $current->coverage === RepairCoverage::Paid;
+            $this->checkGuards($current, $from, $to);
 
-            if ($to === RepairStatus::AwaitingApproval && $paid && $current->estimate_amount === null) {
-                throw ValidationException::withMessages(['status' => __('repairs.errors.estimate_missing')]);
-            }
+            $clearsApproval = $to === RepairStatus::Diagnosing;
 
-            if ($to === RepairStatus::InRepair && $paid && ($current->estimate_amount === null || $current->estimate_approved_at === null)) {
-                throw ValidationException::withMessages(['status' => __('repairs.errors.approval_required')]);
-            }
-
-            if ($to === RepairStatus::Ready && $paid && $current->final_amount === null) {
-                throw ValidationException::withMessages(['status' => __('repairs.errors.final_amount_required')]);
+            if ($clearsApproval) {
+                $current->estimate_approved_at = null;
+                $current->estimate_approved_amount = null;
             }
 
             $current->fill([
@@ -75,7 +73,7 @@ class ChangeRepairStatus
                 'user_id' => $actor->id,
                 'type' => ActivityType::StatusChange,
                 'body' => $note,
-                'meta' => ['from' => $from->value, 'to' => $to->value],
+                'meta' => array_filter(['from' => $from->value, 'to' => $to->value, 'approval_cleared' => $clearsApproval && $current->wasChanged('estimate_approved_at') ? true : null]),
                 'created_at' => now(),
             ]);
 
@@ -83,5 +81,43 @@ class ChangeRepairStatus
 
             return $repair;
         });
+    }
+
+    /**
+     * The business guards of a move (see the class comment).
+     *
+     * @throws ValidationException
+     */
+    private function checkGuards(Repair $repair, RepairStatus $from, RepairStatus $to): void
+    {
+        $paid = $repair->coverage === RepairCoverage::Paid;
+
+        // Diagnostics first: a written diagnosis before asking for approval or skipping the estimate.
+        if (($to === RepairStatus::AwaitingApproval || ($from === RepairStatus::Diagnosing && $to === RepairStatus::InRepair)) && blank($repair->diagnosis)) {
+            throw ValidationException::withMessages(['status' => __('repairs.errors.diagnosis_required')]);
+        }
+
+        if (! $paid) {
+            return;
+        }
+
+        if ($to === RepairStatus::AwaitingApproval && $repair->estimate_amount === null) {
+            throw ValidationException::withMessages(['status' => __('repairs.errors.estimate_missing')]);
+        }
+
+        if (in_array($to, [RepairStatus::InRepair, RepairStatus::Ready, RepairStatus::Delivered], true)
+            && ($repair->estimate_amount === null || $repair->estimate_approved_at === null || $repair->estimate_approved_amount !== $repair->estimate_amount)) {
+            throw ValidationException::withMessages(['status' => __('repairs.errors.approval_required')]);
+        }
+
+        if (in_array($to, [RepairStatus::Ready, RepairStatus::Delivered], true)) {
+            if ($repair->final_amount === null) {
+                throw ValidationException::withMessages(['status' => __('repairs.errors.final_amount_required')]);
+            }
+
+            if ($repair->final_amount > $repair->estimate_amount) {
+                throw ValidationException::withMessages(['status' => __('repairs.errors.final_above_estimate')]);
+            }
+        }
     }
 }

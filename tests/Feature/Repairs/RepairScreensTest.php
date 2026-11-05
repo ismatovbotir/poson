@@ -236,7 +236,9 @@ describe('show', function () {
         $repair = Repair::factory()->estimated(5_000_000)->status(RepairStatus::AwaitingApproval)->create();
 
         Livewire::actingAs($admin)->test(Show::class, ['repair' => $repair])
-            ->assertSeeHtml('data-action="approve-estimate"')->call('approveEstimate');
+            ->assertSeeHtml('data-action="approve-estimate"')
+            ->call('approveEstimate')->assertHasErrors(['approveNote'])
+            ->set('approveNote', 'Paper estimate 3')->call('approveEstimate')->assertHasNoErrors();
 
         expect($repair->fresh()->estimate_approved_at)->not->toBeNull();
 

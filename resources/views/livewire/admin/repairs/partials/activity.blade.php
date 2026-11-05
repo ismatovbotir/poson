@@ -14,12 +14,14 @@
             @break
         @case(\App\Enums\ActivityType::StatusChange)
             {{ __('repairs.timeline.status', ['from' => $statusLabel($meta['from'] ?? null), 'to' => $statusLabel($meta['to'] ?? null)]) }}
+            @if (! empty($meta['auto']))<span class="text-slate-500">· {{ __('repairs.timeline.auto') }}</span>@endif
+            @if (! empty($meta['approval_cleared']))<span class="text-amber-700">· {{ __('repairs.timeline.approval_cleared') }}</span>@endif
             @break
         @case(\App\Enums\ActivityType::Assignment)
             @switch($meta['action'] ?? 'assign')
                 @case('take') {{ __('repairs.timeline.took') }} @break
                 @case('release') {{ __('repairs.timeline.released') }} @break
-                @case('handover') {{ __('repairs.timeline.handover', ['from' => $meta['from_name'] ?? __('repairs.unassigned'), 'to' => $meta['to_name'] ?? __('repairs.unassigned')]) }} @break
+                @case('handover') {{ __('repairs.timeline.handover') }} @break
                 @default {{ __('repairs.timeline.assigned', ['from' => $meta['from_name'] ?? __('repairs.unassigned'), 'to' => $meta['to_name'] ?? __('repairs.unassigned')]) }}
             @endswitch
             @break
@@ -27,7 +29,9 @@
             @switch($meta['event'] ?? '')
                 @case('estimate_approved') {{ __('repairs.timeline.estimate_approved') }} @break
                 @case('estimate_changed') {{ __('repairs.timeline.estimate_changed') }}@if (! empty($meta['approval_cleared'])) <span class="text-amber-700">· {{ __('repairs.timeline.approval_cleared') }}</span>@endif @break
-                @case('coverage_changed') {{ __('repairs.timeline.coverage_changed', ['to' => $coverageLabel($meta['to'] ?? null)]) }} @break
+                @case('coverage_changed') {{ __('repairs.timeline.coverage_changed', ['to' => $coverageLabel($meta['to'] ?? null)]) }}@if (! empty($meta['approval_cleared'])) <span class="text-amber-700">· {{ __('repairs.timeline.approval_cleared') }}</span>@endif @break
+                @case('final_changed') {{ __('repairs.timeline.final_changed') }} @break
+                @case('warranty_reference_changed') {{ __('repairs.timeline.warranty_reference_changed') }} @break
                 @default {{ $activity->type->label() }}
             @endswitch
             @break

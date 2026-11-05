@@ -25,7 +25,7 @@
                 <x-admin.badge color="brand" data-customer><x-admin.icon name="building" size="size-3.5" />{{ $repair->customer->name }}</x-admin.badge>
             @endif
         @endif
-        @if (! $canEdit)
+        @if (! $canEdit && $repair->isOpen())
             <x-admin.badge color="muted" data-read-only><x-admin.icon name="eye" size="size-3.5" />{{ __('repairs.read_only') }}</x-admin.badge>
         @endif
     </div>
@@ -77,7 +77,7 @@
 
             {{-- Activity --}}
             <x-admin.card :title="__('repairs.sections.activity')">
-                @if ($canEdit)
+                @if ($canNote)
                     <form wire:submit="addActivity" class="mb-6" data-activity-form>
                         <x-admin.textarea wire:model="activityBody" rows="2" :placeholder="__('repairs.activity.placeholder')" maxlength="2000" :aria-label="__('repairs.activity.body')" />
                         <div class="mt-2 flex justify-end">
@@ -144,8 +144,11 @@
                             <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('repairs.fields.estimate_approved_at') }}</dt><dd data-approved>{{ $repair->estimate_approved_at ? $when($repair->estimate_approved_at) : __('repairs.not_approved') }}</dd></div>
                         @endif
                     </dl>
-                    @if ($canEditCosts && $repair->coverage === \App\Enums\RepairCoverage::Paid && $repair->estimate_amount !== null && $repair->estimate_approved_at === null && $repair->isOpen() && $repair->status !== \App\Enums\RepairStatus::Ready)
-                        <x-admin.button size="sm" class="mt-3" icon="check" wire:click="approveEstimate" loading="approveEstimate" data-action="approve-estimate">{{ __('repairs.actions.approve_estimate') }}</x-admin.button>
+                    @if ($canApprove && $repair->coverage === \App\Enums\RepairCoverage::Paid && $repair->estimate_amount !== null && $repair->estimate_approved_at === null && $repair->isOpen() && $repair->status !== \App\Enums\RepairStatus::Ready)
+                        <form wire:submit="approveEstimate" class="mt-3 space-y-2" data-approve-form>
+                            <x-admin.textarea wire:model="approveNote" rows="2" maxlength="500" :label="__('repairs.fields.approval_note')" :hint="__('repairs.hints.approval_note')" required />
+                            <x-admin.button type="submit" size="sm" icon="check" loading="approveEstimate" data-action="approve-estimate">{{ __('repairs.actions.approve_estimate') }}</x-admin.button>
+                        </form>
                     @endif
                 </x-admin.card>
             @endif
