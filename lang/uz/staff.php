@@ -11,7 +11,7 @@ return [
         'subtitle' => 'Joriy parolni kiriting, soʻng yangisini tanlang.',
         'forced_notice' => 'Siz vaqtinchalik parol bilan kirdingiz. Davom etish uchun oʻz parolingizni oʻrnating. Vaqtinchalik parol :date da ishlashdan toʻxtaydi.',
         'sessions_notice' => 'Bu brauzerda seans saqlanadi. Boshqa barcha qurilmalarda seans yakunlanadi.',
-        'mcp_warning' => 'Parol almashtirilganda MCP tokenlaringiz bekor qilinadi. Yangi token yaratmaguningizcha Claude ulana olmaydi.',
+        'mcp_warning' => 'Parol almashtirilganda MCP tokenlaringiz va MCP ruxsatingiz bekor qilinadi. Sizga MCP ruxsati qayta berilib, yangi token yaratilmaguncha Claude ulana olmaydi.',
         'current_password' => 'Joriy parol',
         'new_password' => 'Yangi parol',
         'new_password_hint' => 'Kamida :min ta belgi. Bir-biriga bogʻliq boʻlmagan bir nechta soʻz yaxshi variant.',
@@ -23,6 +23,7 @@ return [
     ],
 
     'password_rule' => [
+        'control_character' => 'Yangi parolda boshqaruv belgilari, masalan, qator koʻchirish belgilari boʻlmasligi kerak.',
         'too_short' => 'Yangi parolda kamida :min ta belgi boʻlishi kerak.',
         'too_long' => 'Yangi parol :max baytdan oshmasligi kerak. Qisqaroq parol tanlang.',
         'personal' => 'Yangi parolda ismingiz, e-mailingiz yoki kompaniya nomi boʻlmasligi kerak.',

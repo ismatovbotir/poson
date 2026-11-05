@@ -11,7 +11,7 @@ return [
         'subtitle' => 'Enter your current password, then choose a new one.',
         'forced_notice' => 'You signed in with a temporary password. Choose your own password to continue. The temporary password stops working on :date.',
         'sessions_notice' => 'This browser stays signed in. Every other device will be signed out.',
-        'mcp_warning' => 'Changing your password revokes your MCP tokens. Claude will stop connecting until you generate a new token.',
+        'mcp_warning' => 'Changing your password revokes your MCP tokens and your MCP access. Claude will stop connecting until MCP access is granted to you again and a new token is generated.',
         'current_password' => 'Current password',
         'new_password' => 'New password',
         'new_password_hint' => 'At least :min characters. A few unrelated words work well.',
@@ -23,6 +23,7 @@ return [
     ],
 
     'password_rule' => [
+        'control_character' => 'The new password must not contain control characters, such as line breaks.',
         'too_short' => 'The new password must have at least :min characters.',
         'too_long' => 'The new password must fit in :max bytes. Use a shorter one.',
         'personal' => 'The new password must not contain your name, your email or the company name.',

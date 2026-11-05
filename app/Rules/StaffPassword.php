@@ -10,8 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
 /**
- * The one rule for a password a staff member chooses (P24-7): 12 characters
- * or more, at most 72 bytes (bcrypt ignores the rest), different from the
+ * The one rule for a password a staff member chooses (P24-7): no control
+ * characters (bcrypt can't hash a NUL byte) or invalid text, 12 characters or
+ * more, at most 72 bytes (bcrypt ignores the rest), different from the
  * current one, not built on their name, their email or "poson", no runs of a
  * single character, not on the bundled common list. No composition rules and
  * no external call.
@@ -54,6 +55,7 @@ class StaffPassword implements ValidationRule
     protected function failure(#[\SensitiveParameter] string $password): ?string
     {
         return match (true) {
+            preg_match('/\p{Cc}/u', $password) !== 0 => 'control_character',
             mb_strlen($password) < self::MIN_CHARACTERS => 'too_short',
             strlen($password) > self::MAX_BYTES => 'too_long',
             $this->usesPersonalWord($password) => 'personal',

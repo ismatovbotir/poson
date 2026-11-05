@@ -1,7 +1,9 @@
 <?php
 
 use App\Actions\Auth\AuthenticateStaff;
+use App\Actions\Users\WriteStaffCredentials;
 use App\Enums\AuditAction;
+use App\Enums\McpRevokeReason;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
 use App\Http\Middleware\EnsurePasswordChanged;
@@ -413,6 +415,44 @@ it('puts every staff route behind the forced change except the password screen',
 
     expect($unguarded)->toBe(['admin.account.password'])
         ->and(app(EnsurePasswordChanged::class))->toBeInstanceOf(EnsurePasswordChanged::class);
+});
+
+it('ends sessions through the one write path without touching the password', function () {
+    $user = User::factory()->withRole(Role::Admin)->create(['remember_token' => null]);
+    $cookie = staffSessionRememberCookie($user);
+    $user = $user->fresh();
+    $password = $user->password;
+
+    $saved = app(WriteStaffCredentials::class)->endSessions($user, 'user.'.$user->id.'.role', AuditAction::Updated, $user, '127.0.0.1');
+
+    expect($saved)->session_epoch->toBe(1)
+        ->and($saved->remember_token)->not->toBe($user->remember_token)
+        ->and($saved->password)->toBe($password)
+        ->and($saved->password_changed_at)->toBeNull()
+        ->and($saved->is_active)->toBeTrue();
+
+    expect(SettingsAudit::query()->where('key', 'user.'.$user->id.'.role')->where('area', SettingsArea::Users->value)->count())->toBe(1);
+
+    $this->withCookie(Auth::guard('web')->getRecallerName(), $cookie)->get('/admin')->assertRedirect(route('admin.login'));
+    $this->assertGuest();
+});
+
+it('saves a deactivation in the same write, so the observer revokes MCP access', function () {
+    [$admin, $token] = mcpHolder();
+
+    app(WriteStaffCredentials::class)->endSessions($admin, 'user.'.$admin->id.'.active', AuditAction::Disabled, null, null, isActive: false);
+
+    expect($admin->fresh())->is_active->toBeFalse()->session_epoch->toBe(1)->mcp_access_granted_at->toBeNull()
+        ->and($token->fresh()->revoked_reason)->toBe(McpRevokeReason::Deactivated);
+});
+
+it('writes nothing when the guard under the lock refuses ending sessions', function () {
+    $user = User::factory()->withRole(Role::Admin)->create();
+    $token = $user->remember_token;
+
+    expect(app(WriteStaffCredentials::class)->endSessions($user, 'user.'.$user->id.'.role', AuditAction::Updated, null, null, fn (User $locked): bool => false))->toBeNull()
+        ->and($user->fresh())->session_epoch->toBe(0)->remember_token->toBe($token)
+        ->and(SettingsAudit::query()->count())->toBe(0);
 });
 
 it('hides the new columns and does not let fill() write them', function () {

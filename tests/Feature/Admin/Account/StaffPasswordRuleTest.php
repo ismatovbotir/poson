@@ -28,10 +28,29 @@ it('accepts a long passphrase with no composition requirement', function (string
     'cyrillic' => ['высокий медный фонарь'],
 ]);
 
+/**
+ * $count different 4-byte characters: the fewest characters that reach a byte length.
+ */
+function staffPasswordRuleFourByteText(int $count): string
+{
+    return implode('', array_map(fn (int $offset): string => mb_chr(0x1F600 + $offset), range(0, $count - 1)));
+}
+
+it('measures the upper limit in bytes, not characters', function () {
+    // UTF-8 tops out at 4 bytes a character, so over 72 bytes takes at least 19 characters.
+    expect(staffPasswordRuleFails(staffPasswordRuleFourByteText(18)))->toBeNull()
+        ->and(staffPasswordRuleFails(staffPasswordRuleFourByteText(19)))
+        ->toBe(__('staff.password_rule.too_long', ['max' => StaffPassword::MAX_BYTES]));
+});
+
 it('refuses with the matching reason', function (string $password, string $reason) {
     expect(staffPasswordRuleFails($password))
         ->toBe(__('staff.password_rule.'.$reason, ['min' => StaffPassword::MIN_CHARACTERS, 'max' => StaffPassword::MAX_BYTES]));
 })->with([
+    'NUL byte' => ["tall-copper\0lantern", 'control_character'],
+    'line break' => ["tall-copper\nlantern", 'control_character'],
+    'tab' => ["tall-copper\tlantern", 'control_character'],
+    'invalid text' => ["tall-copper\xFFlantern", 'control_character'],
     '11 characters' => ['tallcopperl', 'too_short'],
     '73 bytes' => [str_repeat('tallcopper-', 6).'lantern', 'too_long'],
     'multi-byte over 72 bytes' => [str_repeat('фонарь', 7), 'too_long'],

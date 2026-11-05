@@ -1,5 +1,8 @@
 <?php
 
+use App\Actions\Auth\AuthenticateStaff;
+use App\Actions\Mcp\GenerateMcpToken;
+use App\Actions\Mcp\GrantMcpAccess;
 use App\Actions\Users\ChangeOwnPassword;
 use App\Enums\AuditAction;
 use App\Enums\McpRevokeReason;
@@ -10,6 +13,7 @@ use App\Livewire\Admin\Account\Password;
 use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Models\SettingsAudit;
 use App\Models\User;
+use App\Rules\StaffPassword;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Admin\StaffSession;
 use Illuminate\Log\Events\MessageLogged;
@@ -19,7 +23,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Testing\TestResponse;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -159,6 +165,80 @@ it('revokes the user\'s own MCP tokens, and warns first', function () {
         ->revoked_at->not->toBeNull()
         ->revoked_reason->toBe(McpRevokeReason::PasswordChanged);
     expect($admin->fresh()->hasMcpAccess())->toBeFalse();
+});
+
+it('needs a new grant, then a new token, after an own change', function () {
+    [$admin] = mcpHolder();
+    $admin->forceFill(['password' => Hash::make(STAFF_PW_CURRENT), 'name' => 'Aziz Karimov', 'email' => 'aziz.karimov@poson.test'])->saveQuietly();
+
+    passwordScreenSubmit($admin)->assertHasNoErrors();
+
+    expect($admin->fresh()->mcp_access_granted_at)->toBeNull();
+
+    expect(fn () => app(GenerateMcpToken::class)->handle($admin->fresh(), ['label' => 'Laptop'], $admin, null))
+        ->toThrow(ValidationException::class, __('mcp.errors.not_holder'));
+
+    app(GrantMcpAccess::class)->handle($admin->fresh(), $admin, null);
+
+    [$token] = app(GenerateMcpToken::class)->handle($admin->fresh(), ['label' => 'Laptop'], $admin, null);
+
+    expect($token->revoked_at)->toBeNull();
+});
+
+it('states in all three languages that MCP access must be granted again', function (string $locale, string $word) {
+    expect(__('staff.account.mcp_warning', [], $locale))->toContain($word);
+})->with([
+    ['en', 'granted to you again'],
+    ['ru', 'снова не выдадут доступ'],
+    ['uz', 'ruxsati qayta berilib'],
+]);
+
+it('treats a submitted hash as a literal password, not as the stored hash', function () {
+    $user = passwordScreenUser();
+
+    // A random hash can by chance hold a run of one character: take one the rule accepts.
+    do {
+        $submitted = Hash::make('123456');
+    } while (Validator::make(['value' => $submitted], ['value' => [new StaffPassword($user)]])->fails());
+
+    passwordScreenSubmit($user, STAFF_PW_CURRENT, $submitted)->assertHasNoErrors();
+
+    $stored = $user->fresh()->password;
+
+    expect($stored)->not->toBe($submitted)
+        ->and(Hash::check('123456', $stored))->toBeFalse()
+        ->and(Hash::check($submitted, $stored))->toBeTrue();
+
+    Auth::guard('web')->logout();
+    auth()->forgetGuards();
+
+    expect(fn () => app(AuthenticateStaff::class)->handle($user->email, '123456', false, '127.0.0.1'))
+        ->toThrow(ValidationException::class);
+    $this->assertGuest();
+
+    app(AuthenticateStaff::class)->handle($user->email, $submitted, false, '127.0.0.1');
+    $this->assertAuthenticatedAs($user->fresh());
+});
+
+it('refuses a NUL byte in the new password with a validation error, writing nothing', function () {
+    $user = passwordScreenUser();
+    $before = $user->fresh()->password;
+
+    passwordScreenSubmit($user, STAFF_PW_CURRENT, "Tall-Copper\0Lantern-82")
+        ->assertHasErrors(['newPassword'])
+        ->assertSee(__('staff.password_rule.control_character'))
+        ->assertNoRedirect();
+
+    expect($user->fresh())->password->toBe($before)->session_epoch->toBe(0)
+        ->and(SettingsAudit::query()->count())->toBe(0);
+});
+
+it('counts a NUL byte in the current password as a wrong password', function () {
+    $user = passwordScreenUser();
+
+    passwordScreenSubmit($user, "Old-Granite\0Window-47")->assertHasErrors(['currentPassword'])->assertNoRedirect();
+
+    expect(Hash::check(STAFF_PW_CURRENT, $user->fresh()->password))->toBeTrue();
 });
 
 it('shows no MCP warning to a user without MCP access', function () {

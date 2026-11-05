@@ -23,7 +23,7 @@ class StaffResetPassword extends Command
      */
     protected $help = 'Recovery for when no Admin can sign in. Asks for confirmation, then prints a temporary password once.
 The temporary password works for 24 hours and must be changed at first use. Pass it in person or by phone, not in a Telegram group.
-Side effects: ends all sessions and remember cookies of the account, revokes its MCP tokens, writes an audit row and alerts the management chat. It never reactivates an inactive account.
+Side effects: ends all sessions and remember cookies of the account, revokes its MCP tokens and MCP access (access must be granted again, then a new token generated), writes an audit row and alerts the management chat. It never reactivates an inactive account.
 Run it by hand on the server only. Not scheduled.';
 
     /**
