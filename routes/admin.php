@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
+use App\Livewire\Admin\Account;
 use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Articles;
 use App\Livewire\Admin\Attributes;
@@ -56,7 +57,12 @@ Route::post('/logout', LogoutController::class)
     ->middleware('auth')
     ->name('logout');
 
+// Plan 24 A1: outside "admin.password-changed", the one screen a user with a temporary password can reach.
 Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
+    Route::livewire('/account/password', Account\Password::class)->name('account.password');
+});
+
+Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->group(function () {
     Route::livewire('/', Dashboard::class)->name('dashboard');
 
     // CRM: Murojaatlar (plan 05 5a). LeadPolicy in the components; lists use Lead::visibleTo().

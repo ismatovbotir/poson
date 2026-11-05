@@ -217,6 +217,7 @@ return [
         'catalog' => 'Catalog',
         'telegram_bot' => 'Telegram bot',
         'telegram_inbox' => 'Telegram inbox',
+        'users' => 'Staff',
     ],
 
     'audit_action' => [
@@ -244,6 +245,8 @@ return [
         'retry_forward' => 'File copy retried',
         'linked' => 'Linked',
         'deleted' => 'Deleted for good',
+        'password_changed' => 'Password changed',
+        'password_reset' => 'Password reset',
     ],
 
     'price_sync_status' => [

@@ -4,6 +4,7 @@ use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\AuthenticateMcpToken;
 use App\Http\Middleware\BlockSearchIndexing;
 use App\Http\Middleware\CaptureAttribution;
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\LimitJsonBody;
 use App\Http\Middleware\SetAdminLocale;
@@ -12,6 +13,7 @@ use App\Http\Middleware\TrackVisit;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\VerifyTelegramSecret;
 use App\Support\Site\CanonicalHost;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +21,7 @@ use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -38,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'locale' => SetLocale::class,
             'admin' => EnsureStaff::class,
+            'admin.password-changed' => EnsurePasswordChanged::class,
             'admin.locale' => SetAdminLocale::class,
             'api.token' => AuthenticateApiToken::class,
             // Plan 13 MCP (routes/ai.php). Deliberately NOT in the priority list, so the
@@ -76,4 +80,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Plan 24 A1: an open admin tab polling after sign-out gets a plain refusal, not the login page's HTML.
+        $exceptions->render(function (AuthenticationException $exception, Request $request) {
+            if (Livewire::isLivewireRequest()) {
+                return response(__('admin.auth.session_ended'), 403);
+            }
+        });
     })->create();

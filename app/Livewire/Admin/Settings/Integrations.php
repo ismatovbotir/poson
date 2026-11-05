@@ -180,13 +180,13 @@ class Integrations extends Component
 
     /**
      * The latest AUDIT_LIMIT changes of every settings area except the staff
-     * inbox (T21-35), AUDIT_PER_PAGE per page.
+     * inbox (T21-35) and staff accounts (P24-13), AUDIT_PER_PAGE per page.
      *
      * @return LengthAwarePaginator<int, SettingsAudit>
      */
     protected function audits(): LengthAwarePaginator
     {
-        return $this->paginateAudits(SettingsAudit::query()->where('area', '!=', SettingsArea::TelegramInbox->value));
+        return $this->paginateAudits(SettingsAudit::query()->whereNotIn('area', [SettingsArea::TelegramInbox->value, SettingsArea::Users->value]));
     }
 
     /**

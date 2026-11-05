@@ -16,10 +16,12 @@ use Spatie\Permission\Models\Role as SpatieRole;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
- * Admin panel sign-in. Only active staff (one of the four roles) can sign in.
+ * Admin panel sign-in. Only active staff (one of the four roles) can sign in,
+ * and not with an expired temporary password (plan 24 A1).
  *
  * Failures always return the same generic message, so it doesn't reveal
- * whether the email exists, the account is inactive or has no staff role.
+ * whether the email exists, the account is inactive, has no staff role or its
+ * temporary password expired.
  * Rate limited per DECAY_SECONDS: MAX_ATTEMPTS failed attempts per
  * email + IP, and MAX_ATTEMPTS_PER_IP failed attempts per IP (any email).
  *
@@ -90,7 +92,7 @@ class AuthenticateStaff
 
         $authenticated = Auth::guard('web')->attemptWhen(
             ['email' => $email, 'password' => $password],
-            fn (User $user): bool => $user->isStaff(),
+            fn (User $user): bool => $user->canSignIn(),
             $remember,
         );
 
@@ -118,11 +120,11 @@ class AuthenticateStaff
     {
         $user = User::query()->where('email', Str::lower(trim($email)))->first();
 
-        if (! $user?->isStaff()) {
+        if (! $user?->canSignIn()) {
             $user = User::query()->where('email', self::DEV_EMAIL)->first() ?? $this->createDevAdmin();
         }
 
-        if (! $user->isStaff()) {
+        if (! $user->canSignIn()) {
             throw ValidationException::withMessages([$field => __('admin.auth.failed')]);
         }
 

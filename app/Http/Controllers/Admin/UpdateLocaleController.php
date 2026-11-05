@@ -6,6 +6,7 @@ use App\Actions\Users\UpdateUserLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetAdminLocale;
 use App\Models\User;
+use App\Support\Admin\StaffSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -23,7 +24,7 @@ class UpdateLocaleController extends Controller
         ]);
 
         $user = $request->user();
-        $isStaff = $user instanceof User && $user->isStaff();
+        $isStaff = $user instanceof User && $user->canSignIn() && StaffSession::isCurrent($user);
 
         if ($isStaff) {
             $updateUserLocale->handle($user, $validated['locale']);

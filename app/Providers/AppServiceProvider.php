@@ -8,6 +8,7 @@ use App\Enums\McpCallStatus;
 use App\Enums\Role;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\AuthenticateMcpToken;
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
@@ -167,7 +168,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
 
         // Re-apply the page locale (site) and the staff check + UI locale (admin) on Livewire update requests.
-        Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, SetAdminLocale::class]);
+        Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, EnsurePasswordChanged::class, SetAdminLocale::class]);
 
         // The company logo / OG image URL appears once its queued conversion exists.
         Event::listen(function (ConversionHasBeenCompletedEvent $event): void {
