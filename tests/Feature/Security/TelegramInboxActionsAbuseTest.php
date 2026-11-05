@@ -260,10 +260,39 @@ it('lets only the first of two stale link screens through, with one Activity row
     $first = Livewire::actingAs($one)->test(Show::class, ['telegramUser' => $chat]);
     $second = Livewire::actingAs($two)->test(Show::class, ['telegramUser' => $chat]);
 
+    // actingAs is global and Show binds its snapshot to the viewer (viewerId), so each screen acts as its own user.
+    $this->actingAs($one);
     $first->set('linkCustomerId', $customer->id)->call('link')->assertOk();
+    $this->actingAs($two);
     $second->set('linkCustomerId', $customer->id)->call('link')->assertForbidden();
 
     expect($chat->fresh()->customer_id)->toBe($customer->id)
+        ->and($chat->activities()->count())->toBe(1);
+});
+
+it('refuses the second manager\'s stale link screen cleanly in a real update request', function () {
+    config(['app.debug' => false]);
+    $one = iactManager();
+    $two = iactManager();
+    $customer = Customer::factory()->create();
+    $chat = iactThread();
+
+    $html = $this->actingAs($two)->get(route('admin.telegram.chats.show', $chat))->assertOk()->getContent();
+    preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+    $snapshot = collect($matches[1])
+        ->map(fn (string $raw) => html_entity_decode($raw, ENT_QUOTES))
+        ->first(fn (string $candidate) => array_key_exists('conversationId', json_decode($candidate, true)['data'] ?? []));
+    expect($snapshot)->not->toBeNull();
+
+    app(LinkConversationToCustomer::class)->handle($chat, $one, $customer->id);
+
+    $response = $this->withHeaders(['X-Livewire' => '1'])->postJson(app('livewire')->getUpdateUri(), [
+        'components' => [['snapshot' => $snapshot, 'calls' => [['method' => 'link', 'params' => [], 'metadata' => []]], 'updates' => ['linkCustomerId' => $customer->id]]],
+    ]);
+
+    $response->assertForbidden();
+    expect($response->getContent())->not->toContain('Stack trace')->not->toContain(base_path())
+        ->and($chat->fresh()->customer_id)->toBe($customer->id)
         ->and($chat->activities()->count())->toBe(1);
 });
 
