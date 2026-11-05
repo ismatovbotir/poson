@@ -24,6 +24,7 @@ use App\Livewire\Admin\Payments;
 use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
+use App\Livewire\Admin\Repairs;
 use App\Livewire\Admin\RollTypes;
 use App\Livewire\Admin\Seo;
 use App\Livewire\Admin\Settings;
@@ -71,6 +72,12 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/customers/create', Customers\Form::class)->name('customers.create');
     Route::livewire('/customers/{customer}', Customers\Show::class)->whereNumber('customer')->name('customers.show');
     Route::livewire('/customers/{customer}/edit', Customers\Form::class)->whereNumber('customer')->name('customers.edit');
+
+    // Repairs (plan 24 B2). RepairPolicy in the components; lists use Repair::visibleTo().
+    Route::livewire('/repairs', Repairs\Index::class)->name('repairs.index');
+    Route::livewire('/repairs/create', Repairs\Form::class)->name('repairs.create');
+    Route::livewire('/repairs/{repair}', Repairs\Show::class)->whereNumber('repair')->name('repairs.show');
+    Route::livewire('/repairs/{repair}/edit', Repairs\Form::class)->whereNumber('repair')->name('repairs.edit');
 
     // Quotes (plan 06). QuotePolicy in the components; lists use Quote::visibleTo().
     Route::livewire('/quotes', Quotes\Index::class)->name('quotes.index');
