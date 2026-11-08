@@ -917,6 +917,7 @@ return [
         'rejected' => 'Bu faylni rasm sifatida ishlatib boʻlmaydi. JPG, PNG yoki WebP yuklang.',
 
         'processing' => 'Ishlanmoqda…',
+        'still_processing' => 'Hali ishlanmoqda — sahifani keyinroq yangilang',
         'choose' => 'Rasm yuklash',
         'replace' => 'Almashtirish',
         'remove' => 'Rasmni oʻchirish',

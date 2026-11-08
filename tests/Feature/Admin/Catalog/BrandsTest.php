@@ -6,8 +6,12 @@ use App\Livewire\Admin\Brands\Form;
 use App\Livewire\Admin\Brands\Index;
 use App\Models\Brand;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
@@ -189,4 +193,113 @@ it('rejects low-price wording in the description, in the form and in SaveBrand',
         'sort' => null,
     ]))->toThrow(ValidationException::class)
         ->and(Brand::query()->count())->toBe(0);
+});
+
+it('shows the chosen logo as a preview in the form before saving', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand])
+        ->set('form.logo', UploadedFile::fake()->image('new.png', 400, 200))
+        ->assertHasNoErrors()
+        ->assertSeeHtml('data-image-preview');
+});
+
+it('shows the new logo in the form after replacing it once the queued conversion is ready', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+    $brand->addMedia(UploadedFile::fake()->image('old.png', 600, 300))->toMediaCollection('logo');
+    expect($brand->fresh()->imageUrl())->not->toBeNull();
+
+    // Production: QUEUE_CONNECTION=database, the worker has not run yet.
+    Queue::fake();
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->set('form.logo', UploadedFile::fake()->image('new.png', 400, 200))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // The old logo is replaced at once; the form shows "processing" and polls
+    // until the queued thumb exists, then shows the new logo.
+    $component->assertSeeHtml('data-image-processing')->assertSeeHtml('wire:poll.3s.visible');
+
+    $brand->fresh()->getFirstMedia('logo')->markAsConversionGenerated('thumb');
+
+    $component->call('$refresh')->assertSeeHtml('data-image-preview')->assertDontSeeHtml('wire:poll');
+});
+
+it('keeps polling the form while the logo conversions are processing', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+
+    Queue::fake();
+    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->assertSeeHtml('data-image-processing')
+        ->assertSeeHtml('wire:poll');
+});
+
+it('polls only while a logo has no generated conversion and stops once it is ready', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+    Queue::fake();
+    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->assertSeeHtml('wire:poll.3s.visible="$refresh"')
+        ->assertSeeHtml('data-image-processing-hint')
+        ->assertDontSeeHtml('data-image-preview');
+
+    $media = $brand->fresh()->getFirstMedia('logo');
+    $media->markAsConversionGenerated('thumb');
+
+    $component->call('$refresh')
+        ->assertDontSeeHtml('wire:poll')
+        ->assertSeeHtml('data-image-preview');
+});
+
+it('keeps unsaved form input while the processing poll re-renders', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create(['name' => 'Zebra']);
+    Queue::fake();
+    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->set('form.name', 'Zebra Technologies')
+        ->set('form.logo_alt.uz', 'Yangi logotip')
+        ->call('$refresh')
+        ->assertSet('form.name', 'Zebra Technologies')
+        ->assertSet('form.logo_alt.uz', 'Yangi logotip');
+
+    expect($brand->fresh()->name)->toBe('Zebra');
+});
+
+it('forbids the brand form without permission', function () {
+    $brand = Brand::factory()->create();
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(Form::class, ['brand' => $brand])
+        ->assertForbidden();
+});
+
+it('renders the processing poll in the shared image upload component', function () {
+    view()->share('errors', new ViewErrorBag);
+    $html = Blade::render('<x-admin.image-upload model="form.image" :processing="true" />');
+
+    expect($html)->toContain('wire:poll.3s.visible="$refresh"')->toContain('data-image-processing-hint');
+
+    $ready = Blade::render('<x-admin.image-upload model="form.image" current-url="https://x.test/a.webp" :processing="true" />');
+
+    expect($ready)->not->toContain('wire:poll')->toContain('data-image-preview');
 });

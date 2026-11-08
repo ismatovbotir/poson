@@ -917,6 +917,7 @@ return [
         'rejected' => 'This file can’t be used as an image. Upload a JPG, PNG or WebP file.',
 
         'processing' => 'Processing…',
+        'still_processing' => 'Still processing — refresh the page later',
         'choose' => 'Upload image',
         'replace' => 'Replace',
         'remove' => 'Remove image',

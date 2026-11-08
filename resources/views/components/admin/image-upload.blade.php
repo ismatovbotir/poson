@@ -44,7 +44,12 @@
             @if ($preview)
                 <img src="{{ $preview }}" alt="" class="size-full object-contain" data-image-preview>
             @elseif ($processing)
-                <span class="px-2 text-center text-xs text-slate-500" data-image-processing>{{ __('admin.image_upload.processing') }}</span>
+                {{-- Conversions are queued: re-render every 3 s (visible tab only) for at most 60 s. --}}
+                <span class="px-2 text-center text-xs text-slate-500" data-image-processing x-data="{ polling: true }" x-init="setTimeout(() => polling = false, 60000)">
+                    {{ __('admin.image_upload.processing') }}
+                    <template x-if="polling"><span wire:poll.3s.visible="$refresh" data-image-poll></span></template>
+                    <span x-show="! polling" x-cloak class="mt-1 block text-[11px]" data-image-processing-hint>{{ __('admin.image_upload.still_processing') }}</span>
+                </span>
             @else
                 <x-admin.icon name="image" size="size-8" class="text-slate-300" />
             @endif
