@@ -18,6 +18,7 @@ use App\Models\Lead;
 use App\Models\Repair;
 use App\Models\User;
 use App\Support\Repairs\RepairAccess;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role as SpatieRole;
@@ -308,7 +309,7 @@ describe('8 to 14 hardening', function () {
         $repair = Repair::factory()->create();
 
         $component = Livewire::actingAs($admin)->test(Form::class, ['repair' => $repair]);
-        $repair->update(['status' => RepairStatus::Cancelled]);
+        $repair->forceFill(['status' => RepairStatus::Cancelled])->save();
 
         $component->call('save')->assertHasErrors(['form.status']);
         expect($component->html())->toContain(__('repairs.errors.closed'))
@@ -323,5 +324,42 @@ describe('16 wording', function () {
             ->and(trans('enums.repair_device_type.scanner', [], 'ru'))->toBe('Сканер штрих-кода')
             ->and(trans('repairs.customer.hint', [], 'uz'))->toContain('Mijoz kartasi boʻlmagan mijozni')
             ->and(trans('repairs.hints.final', [], 'ru'))->toBe('В целых сумах. Нужна, чтобы отметить платный ремонт готовым.');
+    });
+});
+
+describe('17 lock re-checks authorization and version', function () {
+    it('refuses every action for an engineer whose repair was reassigned after the page loaded', function () {
+        $engineer = staffUser(Role::ServiceEngineer);
+        $other = User::factory()->withRole(Role::ServiceEngineer)->create();
+        $repair = Repair::factory()->assignedTo($engineer)->create();
+        $stale = $repair->fresh();
+
+        $repair->forceFill(['assigned_to_id' => $other->id])->save();
+
+        expect(fn () => app(UpdateRepair::class)->handle($stale, repairsFixData(['problem' => 'Hacked']), $engineer))->toThrow(AuthorizationException::class)
+            ->and(fn () => app(ChangeRepairStatus::class)->handle($stale, RepairStatus::Diagnosing, $engineer))->toThrow(AuthorizationException::class)
+            ->and($repair->fresh()->problem)->not->toBe('Hacked')
+            ->and($repair->fresh()->status)->toBe(RepairStatus::Received);
+    });
+
+    it('refuses take / release when the actor lost the right meanwhile', function () {
+        $engineer = staffUser(Role::ServiceEngineer);
+        $repair = Repair::factory()->create();
+        $engineer->syncRoles([]);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        expect(fn () => app(AssignRepair::class)->take($repair, $engineer->fresh()))->toThrow(AuthorizationException::class)
+            ->and($repair->fresh()->assigned_to_id)->toBeNull();
+    });
+
+    it('refuses an update whose version no longer matches', function () {
+        $admin = User::factory()->withRole(Role::Admin)->create();
+        $repair = Repair::factory()->create();
+        $seen = UpdateRepair::version($repair->fresh());
+
+        app(UpdateRepair::class)->handle($repair, repairsFixData(['problem' => 'First']), $admin, $seen);
+
+        expect(repairsFixErrors(fn () => app(UpdateRepair::class)->handle($repair->fresh(), repairsFixData(['problem' => 'Second']), $admin, $seen)))->toHaveKey('version')
+            ->and($repair->fresh()->problem)->toBe('First');
     });
 });

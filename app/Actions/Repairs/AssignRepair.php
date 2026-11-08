@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -31,6 +32,13 @@ class AssignRepair
     public function take(Repair $repair, User $actor): Repair
     {
         return DB::transaction(function () use ($repair, $actor): Repair {
+            $row = Repair::query()->whereKey($repair->id)->lockForUpdate()->firstOrFail();
+
+            // Still free and open: then the actor must still be allowed to take it.
+            if ($row->assigned_to_id === null && $row->isOpen()) {
+                Gate::forUser($actor)->authorize('take', $row);
+            }
+
             $taken = Repair::query()->whereKey($repair->id)->whereNull('assigned_to_id')->whereIn('status', RepairStatus::valuesOf(RepairStatus::open()))
                 ->update(['assigned_to_id' => $actor->id, 'updated_at' => now()]);
 
@@ -51,6 +59,12 @@ class AssignRepair
     public function release(Repair $repair, User $actor): Repair
     {
         return DB::transaction(function () use ($repair, $actor): Repair {
+            $row = Repair::query()->whereKey($repair->id)->lockForUpdate()->firstOrFail();
+
+            if ($row->assigned_to_id === $actor->id && $row->isOpen()) {
+                Gate::forUser($actor)->authorize('release', $row);
+            }
+
             $released = Repair::query()->whereKey($repair->id)->where('assigned_to_id', $actor->id)->whereIn('status', RepairStatus::valuesOf(RepairStatus::open()))
                 ->update(['assigned_to_id' => null, 'updated_at' => now()]);
 

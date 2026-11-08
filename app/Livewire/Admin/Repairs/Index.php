@@ -45,6 +45,8 @@ class Index extends Component
 
     public const PER_PAGE = 25;
 
+    public const SEARCH_MAX = 100;
+
     public const FILTERS = ['search', 'status', 'coverage', 'engineer'];
 
     #[Url(except: 'open')]
@@ -76,6 +78,10 @@ class Index extends Component
     public function updated(string $property): void
     {
         // A status filter would fight the open / closed tab: show every tab's rows.
+        if ($property === 'search') {
+            $this->search = mb_substr($this->search, 0, self::SEARCH_MAX);
+        }
+
         if ($property === 'status' && $this->status !== '') {
             $this->tab = 'all';
         }
@@ -108,7 +114,8 @@ class Index extends Component
 
     public function take(int $id, AssignRepair $assignRepair): void
     {
-        $repair = Repair::query()->findOrFail($id);
+        // Through the visible scope: another engineer's repair and a missing id look the same (404).
+        $repair = Repair::query()->visibleTo($this->user())->findOrFail($id);
         $this->authorize('take', $repair);
 
         if ($this->runToastAction(fn () => $assignRepair->take($repair, $this->user()))) {
@@ -124,11 +131,15 @@ class Index extends Component
     #[Computed]
     public function tabCounts(): array
     {
-        return [
-            'open' => $this->filtered()->open()->count(),
-            'all' => $this->filtered()->count(),
-            'closed' => $this->filtered()->closed()->count(),
-        ];
+        $row = $this->filtered()->toBase()->selectRaw(
+            'count(*) as total, coalesce(sum(case when repairs.status in ('.implode(',', array_fill(0, count(RepairStatus::open()), '?')).') then 1 else 0 end), 0) as open_total',
+            RepairStatus::valuesOf(RepairStatus::open()),
+        )->first();
+
+        $total = (int) ($row->total ?? 0);
+        $open = (int) ($row->open_total ?? 0);
+
+        return ['open' => $open, 'all' => $total, 'closed' => $total - $open];
     }
 
     /**
@@ -220,7 +231,7 @@ class Index extends Component
 
         return Repair::query()
             ->visibleTo($user)
-            ->when(trim($this->search) !== '', fn (Builder $query) => $query->search($this->search))
+            ->when(trim($this->search) !== '', fn (Builder $query) => $query->search(mb_substr($this->search, 0, self::SEARCH_MAX)))
             ->when(RepairStatus::tryFrom($this->status) !== null, fn (Builder $query) => $query->where('repairs.status', $this->status))
             ->when(RepairCoverage::tryFrom($this->coverage) !== null, fn (Builder $query) => $query->where('repairs.coverage', $this->coverage))
             ->when($this->engineer === 'me', fn (Builder $query) => $query->where('repairs.assigned_to_id', $user->id))

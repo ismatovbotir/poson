@@ -11,6 +11,7 @@ use App\Enums\Role;
 use App\Models\Repair;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -30,6 +31,11 @@ use Illuminate\Validation\ValidationException;
  *    going to warranty needs a reference;
  *  - estimate_approved_at is never set here (ApproveRepairEstimate does).
  *
+ * Lost updates (security review): the edit form carries version() of the row
+ * it loaded; under the row lock a different version means someone else
+ * changed the repair meanwhile and nothing is saved. The lock also re-checks
+ * that the actor may still update this repair (reassigned meanwhile).
+ *
  * Every sensitive change writes an activity row; rows never hold amounts.
  */
 class UpdateRepair
@@ -39,15 +45,21 @@ class UpdateRepair
     /**
      * @throws ValidationException
      */
-    public function handle(Repair $repair, RepairData $data, User $actor): Repair
+    public function handle(Repair $repair, RepairData $data, User $actor, ?string $version = null): Repair
     {
         $attributes = $this->attributesFrom($data, $actor);
 
-        return DB::transaction(function () use ($repair, $attributes, $actor): Repair {
+        return DB::transaction(function () use ($repair, $attributes, $actor, $version): Repair {
             $current = Repair::query()->whereKey($repair->id)->lockForUpdate()->firstOrFail();
 
             if ($current->status->isClosed()) {
                 throw ValidationException::withMessages(['status' => __('repairs.errors.closed')]);
+            }
+
+            Gate::forUser($actor)->authorize('update', $current);
+
+            if ($version !== null && ! hash_equals(static::version($current), $version)) {
+                throw ValidationException::withMessages(['version' => __('repairs.errors.changed_meanwhile')]);
             }
 
             $oldCoverage = $current->coverage;
@@ -106,8 +118,7 @@ class UpdateRepair
 
             if ($backToApproval && $current->coverage === RepairCoverage::Paid && in_array($current->status, [RepairStatus::InRepair, RepairStatus::AwaitingParts], true)) {
                 $from = $current->status;
-                $current->status = RepairStatus::AwaitingApproval;
-                $current->status_changed_at = now();
+                $current->forceFill(['status' => RepairStatus::AwaitingApproval, 'status_changed_at' => now()]);
 
                 $current->activities()->create([
                     'user_id' => $actor->id,
@@ -122,6 +133,18 @@ class UpdateRepair
 
             return $repair;
         });
+    }
+
+    /**
+     * Opaque marker of the row an edit form was loaded from (an HMAC of every
+     * stored column, so it exposes no amounts).
+     */
+    public static function version(Repair $repair): string
+    {
+        $attributes = $repair->getAttributes();
+        ksort($attributes);
+
+        return hash_hmac('sha256', $repair->id.'|'.json_encode($attributes), (string) config('app.key'));
     }
 
     private function clearApproval(Repair $repair): void

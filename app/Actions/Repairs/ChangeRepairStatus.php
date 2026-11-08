@@ -8,6 +8,7 @@ use App\Enums\RepairStatus;
 use App\Models\Repair;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -50,6 +51,11 @@ class ChangeRepairStatus
             $current = Repair::query()->whereKey($repair->id)->lockForUpdate()->firstOrFail();
             $from = $current->status;
 
+            // The caller authorized before the lock; the repair may have been reassigned since.
+            if ($current->isOpen()) {
+                Gate::forUser($actor)->authorize('update', $current);
+            }
+
             if (! $from->canTransitionTo($to, $current->coverage)) {
                 throw ValidationException::withMessages(['status' => __('repairs.errors.transition_invalid', ['from' => $from->label(), 'to' => $to->label()])]);
             }
@@ -57,13 +63,14 @@ class ChangeRepairStatus
             $this->checkGuards($current, $from, $to);
 
             $clearsApproval = $to === RepairStatus::Diagnosing;
+            $approvalCleared = $clearsApproval && $current->estimate_approved_at !== null;
 
             if ($clearsApproval) {
                 $current->estimate_approved_at = null;
                 $current->estimate_approved_amount = null;
             }
 
-            $current->fill([
+            $current->forceFill([
                 'status' => $to,
                 'status_changed_at' => now(),
                 'closed_at' => $to->isClosed() ? now() : null,
@@ -73,7 +80,7 @@ class ChangeRepairStatus
                 'user_id' => $actor->id,
                 'type' => ActivityType::StatusChange,
                 'body' => $note,
-                'meta' => array_filter(['from' => $from->value, 'to' => $to->value, 'approval_cleared' => $clearsApproval && $current->wasChanged('estimate_approved_at') ? true : null]),
+                'meta' => array_filter(['from' => $from->value, 'to' => $to->value, 'approval_cleared' => $approvalCleared ? true : null]),
                 'created_at' => now(),
             ]);
 

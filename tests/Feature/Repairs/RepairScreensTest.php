@@ -77,7 +77,7 @@ describe('routes per role', function () {
         $repair = Repair::factory()->assignedTo($engineer)->create();
 
         $component = Livewire::actingAs($engineer)->test(Show::class, ['repair' => $repair]);
-        $repair->update(['assigned_to_id' => User::factory()->withRole(Role::ServiceEngineer)->create()->id]);
+        $repair->forceFill(['assigned_to_id' => User::factory()->withRole(Role::ServiceEngineer)->create()->id])->save();
 
         $component->call('addActivity')->assertForbidden();
     });
@@ -139,7 +139,7 @@ describe('index', function () {
         Livewire::actingAs($engineer)->test(Index::class)->call('take', $free->id);
         expect($free->fresh()->assigned_to_id)->toBe($engineer->id);
 
-        Livewire::actingAs($engineer)->test(Index::class)->call('take', $taken->id)->assertForbidden();
+        Livewire::actingAs($engineer)->test(Index::class)->call('take', $taken->id)->assertNotFound();
         Livewire::actingAs(staffUser(Role::SalesManager))->test(Index::class)->call('take', $free->id)->assertForbidden();
     });
 
@@ -168,6 +168,49 @@ describe('index', function () {
 
         Livewire::actingAs(staffUser())->test(Index::class)->assertSee($repair->number)->assertDontSee(Money::format(98_765_400));
     });
+});
+
+it('does not run N+1 on the list (3 vs 15 repairs, one engineer each)', function () {
+    $admin = staffUser();
+    $listQueries = function () use ($admin): int {
+        Model::preventLazyLoading();
+        $queries = countQueries(fn () => Livewire::actingAs($admin)->test(Index::class)->html());
+        Model::preventLazyLoading(false);
+
+        return $queries;
+    };
+
+    foreach (range(1, 3) as $i) {
+        Repair::factory()->assignedTo(User::factory()->withRole(Role::ServiceEngineer)->create())->create();
+    }
+
+    $listQueries();
+    $few = $listQueries();
+
+    foreach (range(1, 12) as $i) {
+        Repair::factory()->assignedTo(User::factory()->withRole(Role::ServiceEngineer)->create())->create();
+    }
+
+    expect($listQueries())->toBe($few);
+});
+
+it('takes through the visible scope: a missing and an invisible repair give the same 404', function () {
+    $engineer = staffUser(Role::ServiceEngineer);
+    $foreign = Repair::factory()->assignedTo(User::factory()->withRole(Role::ServiceEngineer)->create())->create();
+
+    Livewire::actingAs($engineer)->test(Index::class)->call('take', $foreign->id)->assertNotFound();
+    Livewire::actingAs($engineer)->test(Index::class)->call('take', 999_999)->assertNotFound();
+    expect($foreign->fresh()->assigned_to_id)->not->toBe($engineer->id);
+});
+
+it('caps the search at 100 characters and treats wildcards literally', function () {
+    $admin = staffUser();
+    Repair::factory()->create(['serial_number' => 'ABC123']);
+
+    $component = Livewire::actingAs($admin)->test(Index::class)->set('search', str_repeat('x', 300));
+    expect(mb_strlen($component->get('search')))->toBe(100);
+
+    Livewire::actingAs($admin)->test(Index::class)->set('search', '%')->assertDontSee('ABC123');
 });
 
 describe('show', function () {
@@ -275,16 +318,26 @@ describe('show', function () {
     it('does not run N+1 on the page', function () {
         $admin = staffUser();
         $repair = Repair::factory()->create(['customer_id' => Customer::factory()->create()->id]);
+        $pageQueries = function () use ($admin, $repair): int {
+            Model::preventLazyLoading();
+            $queries = countQueries(fn () => Livewire::actingAs($admin)->test(Show::class, ['repair' => $repair])->html());
+            Model::preventLazyLoading(false);
 
-        foreach (range(1, 12) as $i) {
+            return $queries;
+        };
+
+        foreach (range(1, 2) as $i) {
             $repair->activities()->create(['user_id' => User::factory()->create()->id, 'type' => ActivityType::Note, 'body' => "n{$i}", 'created_at' => now()]);
         }
 
-        Model::preventLazyLoading();
-        $queries = countQueries(fn () => Livewire::actingAs($admin)->test(Show::class, ['repair' => $repair])->html());
-        Model::preventLazyLoading(false);
+        $pageQueries();
+        $few = $pageQueries();
 
-        expect($queries)->toBeLessThan(40);
+        foreach (range(3, 20) as $i) {
+            $repair->activities()->create(['user_id' => User::factory()->create()->id, 'type' => ActivityType::Note, 'body' => "n{$i}", 'created_at' => now()]);
+        }
+
+        expect($pageQueries())->toBe($few);
     });
 });
 
@@ -395,5 +448,34 @@ describe('form', function () {
             ->call('save')->assertHasErrors(['form.assigned_to_id']);
 
         expect(Repair::query()->count())->toBe(0);
+    });
+});
+
+describe('stale edit form', function () {
+    it('refuses a stale save after the estimate and approval changed, leaving the row unchanged', function () {
+        $admin = staffUser();
+        $repair = Repair::factory()->estimated(10_000_000)->create(['status' => RepairStatus::InRepair, 'diagnosis' => 'Original']);
+        $repair->forceFill(['estimate_approved_at' => now(), 'estimate_approved_amount' => 10_000_000])->save();
+
+        $component = Livewire::actingAs($admin)->test(Form::class, ['repair' => $repair])->set('form.diagnosis', 'Stale text');
+
+        // Someone else raises the estimate and clears the approval meanwhile.
+        $repair->forceFill(['estimate_amount' => 20_000_000, 'estimate_approved_at' => null, 'estimate_approved_amount' => null, 'status' => RepairStatus::AwaitingApproval, 'updated_at' => now()->addMinute()])->save();
+
+        $component->call('save')->assertHasErrors(['form.version']);
+
+        $fresh = $repair->fresh();
+        expect($fresh->estimate_amount)->toBe(20_000_000)
+            ->and($fresh->estimate_approved_at)->toBeNull()
+            ->and($fresh->diagnosis)->toBe('Original');
+    });
+
+    it('saves a fresh form', function () {
+        $engineer = staffUser(Role::ServiceEngineer);
+        $repair = Repair::factory()->assignedTo($engineer)->create();
+
+        Livewire::actingAs($engineer)->test(Form::class, ['repair' => $repair])->set('form.problem', 'Edited')->call('save')->assertHasNoErrors();
+
+        expect($repair->fresh()->problem)->toBe('Edited');
     });
 });

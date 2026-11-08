@@ -175,6 +175,7 @@ return [
         'not_yours' => 'This repair is not assigned to you.',
         'assignee_invalid' => 'This person cannot work on repairs.',
         'closed' => 'This repair is closed and can no longer be changed.',
+        'changed_meanwhile' => 'This repair was changed by someone else, reload the page.',
         'cancel_note_required' => 'Say why the repair is cancelled.',
         'transition_invalid' => 'A repair cannot go from “:from” to “:to”.',
         'approval_required' => 'A paid repair needs a written estimate and the customer’s approval before work starts.',

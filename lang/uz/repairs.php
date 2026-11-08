@@ -175,6 +175,7 @@ return [
         'not_yours' => 'Bu taʼmirlash sizga biriktirilmagan.',
         'assignee_invalid' => 'Bu xodim taʼmirlash bilan shugʻullana olmaydi.',
         'closed' => 'Taʼmirlash yopilgan, uni endi oʻzgartirib boʻlmaydi.',
+        'changed_meanwhile' => 'Bu taʼmirlashni boshqa kimdir oʻzgartirdi, sahifani yangilang.',
         'cancel_note_required' => 'Taʼmirlash nima uchun bekor qilinganini yozing.',
         'transition_invalid' => 'Taʼmirlashni «:from» holatidan «:to» holatiga oʻtkazib boʻlmaydi.',
         'approval_required' => 'Pullik taʼmirlash ishlar boshlanishidan oldin yozma smeta va mijoz kelishuvini talab qiladi.',

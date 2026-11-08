@@ -250,7 +250,7 @@ describe('ChangeRepairStatus', function () {
         $repair->update(['estimate_amount' => 5_000_000]);
         expect(repairsErrorsOf(fn () => app(ChangeRepairStatus::class)->handle($repair, RepairStatus::InRepair, $admin)))->toHaveKey('status');
 
-        $repair->update(['estimate_approved_at' => now(), 'estimate_approved_amount' => 5_000_000]);
+        $repair->forceFill(['estimate_approved_at' => now(), 'estimate_approved_amount' => 5_000_000])->save();
         app(ChangeRepairStatus::class)->handle($repair, RepairStatus::InRepair, $admin);
 
         expect($repair->fresh()->status)->toBe(RepairStatus::InRepair);

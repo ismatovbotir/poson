@@ -9,6 +9,7 @@ use App\Enums\Role;
 use App\Models\Repair;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -52,6 +53,10 @@ class ApproveRepairEstimate
 
             if (! $actor->hasRole(Role::Admin) && $current->assigned_to_id !== $actor->id) {
                 throw ValidationException::withMessages(['estimate' => __('repairs.errors.approve_not_assigned')]);
+            }
+
+            if ($current->isOpen()) {
+                Gate::forUser($actor)->authorize('approveEstimate', $current);
             }
 
             if ($current->coverage !== RepairCoverage::Paid || $current->status->isClosed() || $current->status === RepairStatus::Ready) {

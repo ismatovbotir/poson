@@ -13,6 +13,10 @@
         </x-slot:actions>
     </x-admin.page-header>
 
+    @error('form.version')
+        <p class="mt-4 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm text-danger" role="alert" data-version-error><x-admin.icon name="alert" size="size-4" />{{ $message }}</p>
+    @enderror
+
     @error('form.status')
         <p class="mt-4 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm text-danger" role="alert" data-status-error><x-admin.icon name="alert" size="size-4" />{{ $message }}</p>
     @enderror

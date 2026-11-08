@@ -60,12 +60,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  */
 #[Fillable([
-    'number', 'status', 'locale', 'lead_id', 'customer_id', 'contact_id',
+    'locale', 'lead_id', 'customer_id', 'contact_id',
     'contact_name', 'contact_phone', 'company',
     'device_type', 'device_brand', 'device_model', 'serial_number', 'accessories',
     'intake_condition', 'problem', 'diagnosis', 'work_done', 'parts_used',
-    'coverage', 'warranty_reference', 'estimate_amount', 'final_amount', 'estimate_approved_at', 'estimate_approved_amount',
-    'assigned_to_id', 'created_by_id', 'received_at', 'status_changed_at', 'closed_at',
+    'coverage', 'warranty_reference', 'estimate_amount', 'final_amount',
 ])]
 class Repair extends Model
 {

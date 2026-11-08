@@ -39,6 +39,12 @@ class Form extends Component
     #[Locked]
     public ?Repair $repair = null;
 
+    /**
+     * Marker of the row this edit form was loaded from (UpdateRepair::version()).
+     */
+    #[Locked]
+    public string $version = '';
+
     public RepairForm $form;
 
     public string $customerSearch = '';
@@ -56,6 +62,7 @@ class Form extends Component
 
             $this->repair = $repair;
             $this->form->setRepair($repair, $this->user());
+            $this->version = UpdateRepair::version(Repair::query()->findOrFail($repair->id));
 
             return;
         }
@@ -240,7 +247,7 @@ class Form extends Component
             return;
         }
 
-        $repair = $this->runFormAction(fn (): Repair => $updateRepair->handle($this->repair, $data, $user));
+        $repair = $this->runFormAction(fn (): Repair => $updateRepair->handle($this->repair, $data, $user, $this->version));
 
         session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('repairs.toast.saved', ['number' => $repair->number]), 'type' => 'success']);
         $this->redirectRoute('admin.repairs.show', $repair, navigate: true);

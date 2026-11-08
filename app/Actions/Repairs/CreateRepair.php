@@ -41,15 +41,16 @@ class CreateRepair
         return DB::transaction(function () use ($attributes, $data, $actor, $assignee): Repair {
             $year = now(Lead::TIMEZONE)->year;
 
-            $repair = Repair::query()->create([
-                ...$attributes,
+            $repair = new Repair;
+            $repair->fill($attributes);
+            $repair->forceFill([
                 'number' => static::formatNumber($year, Sequence::next("repair-{$year}")),
                 'status' => RepairStatus::Received,
                 'assigned_to_id' => $assignee?->id,
                 'created_by_id' => $actor->id,
                 'received_at' => now(),
                 'status_changed_at' => now(),
-            ]);
+            ])->save();
 
             $repair->activities()->create([
                 'user_id' => $actor->id,
