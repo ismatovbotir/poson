@@ -32,9 +32,18 @@
     }
 
     $preview ??= $currentUrl;
+    $polls = $processing && ! $preview;
+
+    // Conversions are queued: re-render every 3 s (visible tab only) for at most 60 s.
+    // A save (toast event) restarts the 60 s window, so a second upload polls again.
+    $pollState = $polls ? [
+        'x-data' => '{ polling: true, timer: null, start() { this.polling = true; clearTimeout(this.timer); this.timer = setTimeout(() => this.polling = false, 60000); } }',
+        'x-init' => 'start()',
+        'x-on:toast.window' => 'start()',
+    ] : [];
 @endphp
 
-<div {{ $attributes->class(['block']) }}>
+<div {{ $attributes->class(['block'])->merge($pollState) }}>
     @if ($label)
         <span class="text-sm font-semibold">{{ $label }}</span>
     @endif
@@ -44,12 +53,8 @@
             @if ($preview)
                 <img src="{{ $preview }}" alt="" class="size-full object-contain" data-image-preview>
             @elseif ($processing)
-                {{-- Conversions are queued: re-render every 3 s (visible tab only) for at most 60 s. --}}
-                <span class="px-2 text-center text-xs text-slate-500" data-image-processing x-data="{ polling: true }" x-init="setTimeout(() => polling = false, 60000)">
-                    {{ __('admin.image_upload.processing') }}
-                    <template x-if="polling"><span wire:poll.3s.visible="$refresh" data-image-poll></span></template>
-                    <span x-show="! polling" x-cloak class="mt-1 block text-[11px]" data-image-processing-hint>{{ __('admin.image_upload.still_processing') }}</span>
-                </span>
+                <span class="px-2 text-center text-xs text-slate-500" data-image-processing x-show="polling">{{ __('admin.image_upload.processing') }}</span>
+                <template x-if="polling"><span wire:poll.3s.visible="$refresh" data-image-poll></span></template>
             @else
                 <x-admin.icon name="image" size="size-8" class="text-slate-300" />
             @endif
@@ -71,6 +76,9 @@
                 {{ $preview || $processing ? __('admin.image_upload.replace') : __('admin.image_upload.choose') }}
             </label>
             <p id="{{ $id }}-hint" class="mt-2 text-xs text-slate-500">{{ $hint ?? __('admin.image_upload.hint') }}</p>
+            @if ($polls)
+                <p x-show="! polling" x-cloak class="mt-2 text-xs text-amber-700" data-image-processing-hint>{{ __('admin.image_upload.still_processing') }}</p>
+            @endif
             <x-admin.field-error :name="$model" />
         </div>
     </div>
