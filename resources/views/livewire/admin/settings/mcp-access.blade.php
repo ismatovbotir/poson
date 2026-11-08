@@ -149,6 +149,13 @@
                 @endif
             </x-admin.card>
         @endif
+
+        {{-- Connection guide: placeholder only, the real token is shown only in the show-once window (M-2) --}}
+        @unless ($revealedToken)
+            <x-admin.card :title="__($t.'.guide.title')" class="mt-5">
+                <x-admin.mcp-setup-guide :endpoint="$endpoint" />
+            </x-admin.card>
+        @endunless
     @else
         {{-- Call log --}}
         <x-admin.card :title="__($t.'.calls.title')" :description="__($t.'.calls.description', ['days' => \App\Models\McpCall::KEEP_DAYS])" class="mt-5">
@@ -225,41 +232,19 @@
 
     {{-- Show once (C4) --}}
     @if ($revealedToken)
-        @php
-            $desktopConfig = json_encode(['mcpServers' => ['poson' => [
-                'command' => 'npx',
-                'args' => ['-y', 'mcp-remote@'.$mcpRemoteVersion, $endpoint, '--header', 'Authorization:${POSON_MCP_AUTH}'],
-                'env' => ['POSON_MCP_AUTH' => 'Bearer '.$revealedToken],
-            ]]], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            // C15: the token is typed in by `read -rs` (no echo, not in the shell history), never part of the command.
-            $codeCommand = 'read -rs POSON_MCP_TOKEN && claude mcp add --transport http --scope user poson '.$endpoint.' --header "Authorization: Bearer $POSON_MCP_TOKEN"; unset POSON_MCP_TOKEN';
-        @endphp
-        <div x-data="{ open: true, copied: null }" x-show="open" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mcp-token-title" data-token-revealed>
+        <div x-data="{ open: true }" x-show="open" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="mcp-token-title" data-token-revealed>
             <div class="absolute inset-0 bg-slate-900/50"></div>
             <div x-trap.noscroll="open" class="relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-2xl sm:rounded-2xl sm:pb-5">
                 <h2 id="mcp-token-title" class="text-base font-semibold">{{ __($t.'.reveal.title', ['name' => $revealedLabel]) }}</h2>
                 <p class="mt-1 flex gap-2 text-sm text-amber-800"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.reveal.warning') }}</p>
 
-                @foreach ([
-                    ['key' => 'token', 'title' => null, 'hint' => null, 'value' => $revealedToken],
-                    ['key' => 'desktop', 'title' => __($t.'.reveal.desktop'), 'hint' => __($t.'.reveal.desktop_hint'), 'value' => $desktopConfig],
-                    ['key' => 'code', 'title' => __($t.'.reveal.code'), 'hint' => __($t.'.reveal.code_hint'), 'value' => $codeCommand],
-                ] as $block)
-                    <div class="mt-4">
-                        @if ($block['title'])
-                            <h3 class="text-sm font-semibold">{{ $block['title'] }}</h3>
-                            <p class="mt-0.5 text-xs text-slate-500">{{ $block['hint'] }}</p>
-                        @endif
-                        <div class="mt-2 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-                            <pre class="min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-all px-1 font-mono text-xs text-slate-800" data-snippet="{{ $block['key'] }}" @if ($block['key'] === 'token') data-plain-token @endif>{{ $block['value'] }}</pre>
-                            <button type="button" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50" x-on:click="navigator.clipboard?.writeText(@js($block['value'])); copied = '{{ $block['key'] }}'; setTimeout(() => copied = null, 1500)">
-                                <x-admin.icon name="copy" size="size-4" />
-                                <span x-show="copied !== '{{ $block['key'] }}'">{{ __($t.'.reveal.copy') }}</span>
-                                <span x-cloak x-show="copied === '{{ $block['key'] }}'">{{ __($t.'.reveal.copied') }}</span>
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
+                <div class="mt-4">
+                    <x-admin.copy-block :value="$revealedToken" snippet="token" :plain="true" />
+                </div>
+
+                <div class="mt-5 border-t border-slate-100 pt-5">
+                    <x-admin.mcp-setup-guide :endpoint="$endpoint" :token="$revealedToken" />
+                </div>
 
                 <div class="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
                     <p class="font-semibold text-slate-700">{{ __($t.'.reveal.rules_title') }}</p>
