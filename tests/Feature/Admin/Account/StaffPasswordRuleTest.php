@@ -26,6 +26,8 @@ it('accepts a long passphrase with no composition requirement', function (string
     'exactly 12 characters' => ['tallcopperla'],
     'exactly 72 bytes' => [str_repeat('tallcopper-', 6).'lanter'],
     'cyrillic' => ['высокий медный фонарь'],
+    '12 cyrillic characters (24 bytes)' => ['балаваткалит'],
+    '12 uzbek letters (2 bytes each)' => ['ўзбекистонда'],
 ]);
 
 /**

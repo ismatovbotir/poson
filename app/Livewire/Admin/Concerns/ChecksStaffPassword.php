@@ -3,9 +3,11 @@
 namespace App\Livewire\Admin\Concerns;
 
 use App\Actions\Auth\AuthenticateStaff;
+use App\Actions\Users\WriteStaffCredentials;
+use App\Enums\AuditAction;
 use App\Http\Middleware\EnsureStaff;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Support\Admin\StaffSession;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -97,9 +99,15 @@ trait ChecksStaffPassword
             Cache::forget(static::failuresKey($user));
             Log::warning('Admin signed out after repeated password confirmation failures', ['user_id' => $user->id, 'ip' => request()->ip()]);
 
-            Auth::guard('web')->logout();
-            session()->invalidate();
-            session()->regenerateToken();
+            // Every device: epoch bump + remember rotation + audit row, then this browser.
+            app(WriteStaffCredentials::class)->endSessions(
+                $user,
+                'user.'.$user->id.'.sessions',
+                AuditAction::Updated,
+                $user,
+                request()->ip(),
+            );
+            StaffSession::endCurrentDevice();
             session()->flash(EnsureStaff::NOTICE_KEY, __('admin.confirm_password.logged_out'));
 
             $this->redirect(route('admin.login'), navigate: false);

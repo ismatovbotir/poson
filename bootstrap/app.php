@@ -83,7 +83,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Plan 24 A1: an open admin tab polling after sign-out gets a plain refusal, not the login page's HTML.
         $exceptions->render(function (AuthenticationException $exception, Request $request) {
-            if (Livewire::isLivewireRequest()) {
+            if (! Livewire::isLivewireRequest()) {
+                return null;
+            }
+
+            // The update URL is shared with the public site, so look at the page the component lives on.
+            $isAdminPage = fn (string $path): bool => str_starts_with(trim($path, '/').'/', 'admin/');
+            $referer = (string) parse_url((string) $request->headers->get('referer'), PHP_URL_PATH);
+
+            if ($isAdminPage($referer) || $isAdminPage(Livewire::originalPath())) {
                 return response(__('admin.auth.session_ended'), 403);
             }
         });

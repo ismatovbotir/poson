@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Middleware\EnsureStaff;
 use App\Livewire\Admin\Auth\ConfirmPassword;
+use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Admin\PasswordConfirmation;
 use Illuminate\Log\Events\MessageLogged;
@@ -139,8 +140,15 @@ it('signs the user out after 10 failures in a row', function () {
     $this->assertAuthenticatedAs($user);
     RateLimiter::clear(ConfirmPassword::minuteKey($user));
     session()->put('marker', 'kept');
+    $epoch = (int) $user->fresh()->session_epoch;
+    $token = $user->fresh()->remember_token;
 
     confirmWith($user, 'wrong-password')->assertRedirect(route('admin.login'));
+
+    // Every device ends, not just this one: epoch bump, remember rotation, audit row.
+    expect((int) $user->fresh()->session_epoch)->toBe($epoch + 1)
+        ->and($user->fresh()->remember_token)->not->toBe($token)
+        ->and(SettingsAudit::query()->where('key', 'user.'.$user->id.'.sessions')->count())->toBe(1);
 
     $this->assertGuest();
     expect(session('marker'))->toBeNull()

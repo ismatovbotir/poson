@@ -13,8 +13,11 @@ use App\Models\Lead;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Admin\StaffSession;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\Validated;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\MassAssignmentException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
@@ -491,3 +494,16 @@ it('labels the new audit area and actions in all three languages and restricts t
         ->and(SettingsArea::Users->isRestricted())->toBeTrue()
         ->and(SettingsArea::Users->group())->toBe('integrations');
 })->with(['uz', 'ru', 'en']);
+
+it('answers a stale admin Livewire poll with 403, but leaves public-site Livewire alone', function (string $referer, bool $isAdmin) {
+    $update = app('livewire')->getUpdateUri();
+    $request = Request::create($update, 'POST', server: ['HTTP_REFERER' => url($referer), 'HTTP_X_LIVEWIRE' => '1']);
+    app()->instance('request', $request);
+
+    $rendered = app(ExceptionHandler::class)->render($request, new AuthenticationException);
+
+    expect($rendered->getStatusCode())->toBe($isAdmin ? 403 : 302);
+})->with([
+    'admin page' => ['/admin/orders', true],
+    'public page' => ['/uz/cart', false],
+]);

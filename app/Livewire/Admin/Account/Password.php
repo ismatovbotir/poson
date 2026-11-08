@@ -82,7 +82,17 @@ class Password extends Component
         StaffSession::stamp((int) $saved->session_epoch);
         session()->forget(PasswordConfirmation::SESSION_KEY);
         session()->migrate(true);
-        Auth::guard('web')->setUser($saved);
+
+        $guard = Auth::guard('web');
+
+        // The write rotated remember_token; queue a cookie for the new one so a
+        // "remember me" browser (this one only) survives the session ending.
+        if (request()->cookies->has($guard->getRecallerName())) {
+            $guard->login($saved, true);
+        } else {
+            $guard->setUser($saved);
+        }
+
         session()->flash('toast', ['title' => __('staff.account.changed_title'), 'body' => __('staff.account.changed_body'), 'type' => 'success']);
 
         $this->redirect(route('admin.dashboard'), navigate: false);

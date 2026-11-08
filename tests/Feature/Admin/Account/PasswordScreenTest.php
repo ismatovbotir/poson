@@ -19,6 +19,7 @@ use App\Support\Admin\StaffSession;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -411,4 +412,49 @@ it('writes no password to the logs, the audit or the snapshot', function () {
     expect(implode(' ', $logged))->not->toContain('SECRET')->not->toContain(STAFF_PW_NEW)->not->toContain(STAFF_PW_CURRENT)
         ->and(json_encode(SettingsAudit::query()->get()->toArray()))->not->toContain(STAFF_PW_NEW)
         ->and(json_encode($component->snapshot))->not->toContain(STAFF_PW_NEW);
+});
+
+it('keeps this browser remembered after its own change, while another device cookie is refused', function () {
+    $user = passwordScreenUser();
+    $recaller = Auth::guard('web')->getRecallerName();
+    Auth::guard('web')->login($user, true);
+    $oldCookie = Cookie::queued($recaller)->getValue();
+    Cookie::unqueue($recaller);
+    auth()->forgetGuards();
+
+    Livewire::actingAs($user)->withCookie($recaller, $oldCookie)->test(Password::class)
+        ->set('currentPassword', STAFF_PW_CURRENT)
+        ->set('newPassword', STAFF_PW_NEW)
+        ->set('newPasswordConfirmation', STAFF_PW_NEW)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $queued = Cookie::queued($recaller);
+    expect($queued)->not->toBeNull();
+    $newCookie = $queued->getValue();
+    $fresh = $user->fresh();
+    expect($newCookie)->toStartWith($fresh->id.'|'.$fresh->remember_token.'|')->not->toBe($oldCookie);
+
+    // Session gone: this browser's new cookie signs in, the other device's old one does not.
+    Cookie::unqueue($recaller);
+    session()->flush();
+    Auth::guard('web')->forgetUser();
+    auth()->forgetGuards();
+
+    $this->withCookie($recaller, $oldCookie)->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
+    $this->assertGuest();
+
+    session()->flush();
+    auth()->forgetGuards();
+
+    $this->withCookie($recaller, $newCookie)->get(route('admin.dashboard'))->assertOk();
+    $this->assertAuthenticatedAs($fresh);
+});
+
+it('does not queue a remember cookie when this browser had none', function () {
+    $user = passwordScreenUser();
+
+    passwordScreenSubmit($user)->assertHasNoErrors();
+
+    expect(Cookie::queued(Auth::guard('web')->getRecallerName()))->toBeNull();
 });
