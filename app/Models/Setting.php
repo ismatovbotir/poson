@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Chat\ChatbotSwitch;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
 use Database\Factories\SettingFactory;
@@ -153,6 +154,12 @@ class Setting extends Model implements HasMedia
      */
     public function flushCaches(): void
     {
+        if ($this->group === 'chatbot') {
+            ChatbotSwitch::forget();
+
+            return;
+        }
+
         if ($this->group === 'integrations') {
             Secrets::flush();
 

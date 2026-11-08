@@ -56,6 +56,8 @@ return [
         'main' => 'Asosiy menyu. Savolingizni yozing yoki quyidagi tugmalardan foydalaning.',
         'contact_manager' => 'Menejer bilan bogʻlanish',
         'catalog' => 'Katalog',
+        'faq' => 'Savol-javob',
+        'order_status' => 'Buyurtma holati',
         'language' => 'Til',
         'contact_manager_reply' => 'Savolingizni shu yerda yozing — u jamoamizga yetib boradi.',
         'catalog_reply' => 'Uskunalar katalogi: :url',
@@ -78,6 +80,7 @@ return [
     // Inbox (StoreInboundMessage): auto-ack at most once per 30 min; "unsupported" at most once per 10 min.
     'inbox' => [
         'auto_ack' => 'Rahmat, xabaringiz qabul qilindi.',
+        'handoff_request' => 'Mijoz menejer bilan bogʻlanishni soʻradi (tugma).',
         'unsupported' => 'Iltimos, matn, rasm yoki hujjat yuboring.',
     ],
 ];

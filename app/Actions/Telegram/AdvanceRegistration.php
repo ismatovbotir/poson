@@ -2,11 +2,14 @@
 
 namespace App\Actions\Telegram;
 
+use App\Actions\Chat\HandleChatInput;
+use App\Enums\ChatMode;
 use App\Enums\TelegramMessageKind;
 use App\Enums\TelegramUserState;
 use App\Jobs\AnswerBotCallback;
 use App\Jobs\SendBotPrompt;
 use App\Models\TelegramUser;
+use App\Support\Chat\ChatbotSwitch;
 use App\Support\Phone;
 use App\Support\Telegram\Bot\BotKeyboards;
 use App\Support\Telegram\Bot\BotText;
@@ -47,7 +50,8 @@ class AdvanceRegistration
 
     public function __construct(
         private readonly RegisterTelegramUser $register,
-        private readonly StoreInboundMessage $inbox,
+        private readonly RouteRegisteredMessage $router,
+        private readonly HandleChatInput $chat,
     ) {}
 
     public function handle(TelegramUser $user, UpdateParser $update): void
@@ -109,11 +113,13 @@ class AdvanceRegistration
         $registered = $user->state === TelegramUserState::Registered;
 
         match (true) {
-            $command === 'start' && $registered => $this->reply($user, ['menu.main'], BotKeyboards::MENU),
+            $command === 'start' && $registered => $this->mainMenu($user),
             $command === 'start' => $this->currentStep($user),
             $command === 'language', $command === 'menu:language' && $registered => $this->reply($user, ['language.prompt'], BotKeyboards::LANGUAGE),
             $command === 'help' => $this->currentStep($user, prefix: ['help']),
-            $command === 'menu:contact_manager' && $registered => $this->reply($user, ['menu.contact_manager_reply'], BotKeyboards::MENU),
+            $command === 'menu:contact_manager' && $registered => $this->contactManager($user),
+            $command === 'menu:faq' && $registered => $this->chat->menuKey($user, 'faq'),
+            $command === 'menu:order_status' && $registered => $this->chat->menuKey($user, 'order_status'),
             $command === 'menu:catalog' && $registered => $this->reply($user, ['menu.catalog_reply'], BotKeyboards::MENU),
             // A menu label typed before registration is just text: re-prompt.
             default => $this->currentStep($user, prefix: $this->continuePrefix($user)),
@@ -129,6 +135,7 @@ class AdvanceRegistration
             str_starts_with((string) $data, 'skip:company') => $state === TelegramUserState::Company,
             str_starts_with((string) $data, 'skip:inn') => $state === TelegramUserState::Inn,
             str_starts_with((string) $data, 'name:') => $state === TelegramUserState::Name,
+            str_starts_with((string) $data, 'chat:') => $state === TelegramUserState::Registered && ChatbotSwitch::isEnabled(),
             default => false,
         };
 
@@ -148,6 +155,7 @@ class AdvanceRegistration
             'skip' => $value === 'company'
                 ? $this->finish($user->forceFill(['declared_company' => null, 'declared_inn' => null]), $answer)
                 : $this->finish($user->forceFill(['declared_inn' => null]), $answer),
+            'chat' => $this->chat->callback($user, $update),
             'name' => $value === 'yes' && $user->name !== null
                 ? $this->toCompany($user, $answer)
                 : $this->askName($user->forceFill(['name' => null]), $answer),
@@ -300,13 +308,42 @@ class AdvanceRegistration
     }
 
     /**
-     * Registered users' free text and media belong to the inbox (B4):
-     * StoreInboundMessage stores them, raises unread, auto-acks, queues the
-     * media forward and the staff alert (all after commit).
+     * Registered users' free text and media: RouteRegisteredMessage decides
+     * (plan 28). With the chat bot off, or in manager mode, or for media, they
+     * belong to the inbox (B4): StoreInboundMessage stores them, raises
+     * unread, auto-acks, queues the media forward and the staff alert (all
+     * after commit). In bot mode the rule engine answers.
      */
     private function registered(TelegramUser $user, UpdateParser $update): void
     {
-        $this->inbox->handle($user, $update);
+        $this->router->handle($user, $update);
+    }
+
+    /**
+     * /start for a registered user: the main menu. With the chat bot on, a
+     * conversation that is not waiting for staff goes back to the bot at
+     * once (plan 28 §15); one that is waiting stays with staff (CB-4).
+     */
+    private function mainMenu(TelegramUser $user): void
+    {
+        if (ChatbotSwitch::isEnabled() && $user->chat_mode === ChatMode::Manager && ! $user->isWaitingForStaff()) {
+            $user->forceFill(['chat_mode' => ChatMode::Bot]);
+        }
+
+        $this->reply($user, ['menu.main'], BotKeyboards::MENU);
+    }
+
+    /**
+     * "Contact a manager": with the chat bot on, the customer's next
+     * messages go to the inbox until the conversation returns to the bot.
+     */
+    private function contactManager(TelegramUser $user): void
+    {
+        if (ChatbotSwitch::isEnabled()) {
+            $this->chat->handoffRequested($user);
+        }
+
+        $this->reply($user, ['menu.contact_manager_reply'], BotKeyboards::MENU);
     }
 
     /**

@@ -217,6 +217,7 @@ return [
         'mcp' => 'MCP access',
         'catalog' => 'Catalog',
         'telegram_bot' => 'Telegram bot',
+        'chatbot' => 'Chat bot',
         'telegram_inbox' => 'Telegram inbox',
         'users' => 'Staff',
     ],
@@ -473,6 +474,46 @@ return [
     'conversation_status' => [
         'open' => 'Open',
         'closed' => 'Closed',
+    ],
+
+    'chat_action' => [
+        'answer' => 'Answer',
+        'faq' => 'FAQ',
+        'company_info' => 'Company info',
+        'product_search' => 'Product search',
+        'order_status' => 'Order status',
+        'repair_status' => 'Repair status',
+        'lead_dialog' => 'Request dialog',
+        'handoff' => 'Talk to a manager',
+        'link' => 'Link',
+        'menu' => 'Menu',
+    ],
+
+    'chat_channel' => [
+        'web' => 'Website',
+        'telegram' => 'Telegram',
+    ],
+
+    'chat_mode' => [
+        'bot' => 'Bot',
+        'manager' => 'Manager',
+    ],
+
+    'keyword_match' => [
+        'word' => 'Word',
+        'phrase' => 'Phrase',
+        'prefix' => 'Word start',
+        'exact' => 'Exact message',
+    ],
+
+    'chat_metric' => [
+        'hit' => 'Answered',
+        'unmatched' => 'Not understood',
+        'handoff' => 'Handed to a manager',
+        'lead' => 'Requests created',
+        'lookup_ok' => 'Status found',
+        'lookup_fail' => 'Status not found',
+        'search_empty' => 'Empty search',
     ],
 
     'repair_status' => [

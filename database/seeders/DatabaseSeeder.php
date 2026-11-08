@@ -40,6 +40,8 @@ class DatabaseSeeder extends Seeder
             CatalogSeeder::class,
             // Real FAQ content (general + top-level categories), every environment.
             FaqSeeder::class,
+            // Built-in chat bot rules (plan 28), create-only; inert until the channel switch is on.
+            ChatbotDefaultsSeeder::class,
             // Starter static pages and their FAQ (plan 07), every environment; never overwrites.
             PagesSeeder::class,
             // Knowledge articles as drafts for review (decision 2026-10-24), every environment; needs the

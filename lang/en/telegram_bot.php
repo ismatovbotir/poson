@@ -56,6 +56,8 @@ return [
         'main' => 'Main menu. Type your question or use the buttons below.',
         'contact_manager' => 'Contact a manager',
         'catalog' => 'Catalog',
+        'faq' => 'FAQ',
+        'order_status' => 'Order status',
         'language' => 'Language',
         'contact_manager_reply' => 'Write your question here and it will reach our team.',
         'catalog_reply' => 'Equipment catalog: :url',
@@ -78,6 +80,7 @@ return [
     // Inbox (StoreInboundMessage): auto-ack at most once per 30 min; "unsupported" at most once per 10 min.
     'inbox' => [
         'auto_ack' => 'Thanks, we have received your message.',
+        'handoff_request' => 'Customer asked for a manager (button).',
         'unsupported' => 'Please send text, a photo or a document.',
     ],
 ];

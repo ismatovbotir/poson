@@ -56,6 +56,8 @@ return [
         'main' => 'Главное меню. Напишите вопрос или выберите кнопку ниже.',
         'contact_manager' => 'Связаться с менеджером',
         'catalog' => 'Каталог',
+        'faq' => 'Частые вопросы',
+        'order_status' => 'Статус заказа',
         'language' => 'Язык',
         'contact_manager_reply' => 'Напишите свой вопрос здесь — он поступит нашей команде.',
         'catalog_reply' => 'Каталог оборудования: :url',
@@ -78,6 +80,7 @@ return [
     // Inbox (StoreInboundMessage): auto-ack at most once per 30 min; "unsupported" at most once per 10 min.
     'inbox' => [
         'auto_ack' => 'Спасибо, мы получили ваше сообщение.',
+        'handoff_request' => 'Клиент попросил связать с менеджером (кнопка).',
         'unsupported' => 'Пожалуйста, отправьте текст, фото или документ.',
     ],
 ];

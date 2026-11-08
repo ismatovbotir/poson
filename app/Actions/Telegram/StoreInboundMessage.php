@@ -52,13 +52,13 @@ class StoreInboundMessage
 
     public const UNSUPPORTED_MINUTES = 10;
 
-    public function handle(TelegramUser $user, UpdateParser $update): ?TelegramMessage
+    public function handle(TelegramUser $user, UpdateParser $update, bool $ack = true): ?TelegramMessage
     {
         if ($update->type !== UpdateParser::TYPE_MESSAGE || $update->kind === null || $update->messageId === null) {
             return null;
         }
 
-        return DB::transaction(function () use ($user, $update): ?TelegramMessage {
+        return DB::transaction(function () use ($user, $update, $ack): ?TelegramMessage {
             $this->refreshInboxState($user);
 
             // Telegram ids are unique per chat: a repeated message (new update_id) is not stored twice.
@@ -88,7 +88,49 @@ class StoreInboundMessage
             if ($message->kind === TelegramMessageKind::Other) {
                 $this->unsupported($user);
             } else {
-                $this->accepted($user, $message);
+                $this->accepted($user, $message, $ack);
+            }
+
+            $user->save();
+
+            return $message;
+        });
+    }
+
+    /**
+     * A line written by the system on the customer's behalf, e.g. "Customer
+     * asked for a manager" after a button tap (plan 28, CB-4): stored as an
+     * inbound text message, so it raises unread, reopens a closed
+     * conversation and fires the usual staff alert. No auto-ack (the bot has
+     * just answered) and no Telegram message id.
+     */
+    public function storeSystemLine(TelegramUser $user, string $text): TelegramMessage
+    {
+        return DB::transaction(function () use ($user, $text): TelegramMessage {
+            $this->refreshInboxState($user);
+
+            $message = TelegramMessage::query()->create([
+                'telegram_user_id' => $user->id,
+                'direction' => TelegramDirection::In,
+                'kind' => TelegramMessageKind::Text,
+                'text' => $text,
+                'status' => TelegramMessageStatus::Received,
+            ]);
+            $now = now();
+
+            $user->forceFill([
+                'unread_count' => $user->unread_count + 1,
+                'last_message_at' => $now,
+                'last_inbound_at' => $now,
+            ]);
+
+            if ($user->conversation_status === ConversationStatus::Closed) {
+                $user->forceFill(['conversation_status' => ConversationStatus::Open, 'closed_at' => null]);
+            }
+
+            if ($this->alertDue($user)) {
+                $user->forceFill(['last_alert_at' => $now]);
+                TelegramInboxMessage::dispatch($message->id);
             }
 
             $user->save();
@@ -144,7 +186,7 @@ class StoreInboundMessage
         ];
     }
 
-    private function accepted(TelegramUser $user, TelegramMessage $message): void
+    private function accepted(TelegramUser $user, TelegramMessage $message, bool $ack = true): void
     {
         if ($message->forward_status === TelegramForwardStatus::Pending) {
             dispatch(new ForwardTelegramMedia($message->id, $user->id));
@@ -155,8 +197,8 @@ class StoreInboundMessage
             TelegramInboxMessage::dispatch($message->id);
         }
 
-        if (Cache::add('telegram-inbox-ack:'.$user->id, true, self::ACK_MINUTES * 60)) {
-            $ack = TelegramMessage::query()->create([
+        if ($ack && Cache::add('telegram-inbox-ack:'.$user->id, true, self::ACK_MINUTES * 60)) {
+            $autoAck = TelegramMessage::query()->create([
                 'telegram_user_id' => $user->id,
                 'direction' => TelegramDirection::Out,
                 'kind' => TelegramMessageKind::Text,
@@ -164,7 +206,7 @@ class StoreInboundMessage
                 'status' => TelegramMessageStatus::Pending,
             ]);
 
-            dispatch(new DeliverBotMessage($ack->id));
+            dispatch(new DeliverBotMessage($autoAck->id));
         }
     }
 

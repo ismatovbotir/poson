@@ -217,6 +217,7 @@ return [
         'mcp' => 'MCP kirish',
         'catalog' => 'Katalog',
         'telegram_bot' => 'Telegram bot',
+        'chatbot' => 'Chat-bot',
         'telegram_inbox' => 'Telegram kiruvchi xabarlari',
         'users' => 'Xodimlar',
     ],
@@ -473,6 +474,46 @@ return [
     'conversation_status' => [
         'open' => 'Ochiq',
         'closed' => 'Yopilgan',
+    ],
+
+    'chat_action' => [
+        'answer' => 'Javob',
+        'faq' => 'Tez-tez beriladigan savollar',
+        'company_info' => 'Kompaniya maʼlumoti',
+        'product_search' => 'Mahsulot qidirish',
+        'order_status' => 'Buyurtma holati',
+        'repair_status' => 'Taʼmir holati',
+        'lead_dialog' => 'Soʻrov dialogi',
+        'handoff' => 'Menejer bilan aloqa',
+        'link' => 'Havola',
+        'menu' => 'Menyu',
+    ],
+
+    'chat_channel' => [
+        'web' => 'Sayt',
+        'telegram' => 'Telegram',
+    ],
+
+    'chat_mode' => [
+        'bot' => 'Bot',
+        'manager' => 'Menejer',
+    ],
+
+    'keyword_match' => [
+        'word' => 'Soʻz',
+        'phrase' => 'Ibora',
+        'prefix' => 'Soʻz boshlanishi',
+        'exact' => 'Toʻliq xabar',
+    ],
+
+    'chat_metric' => [
+        'hit' => 'Javob berildi',
+        'unmatched' => 'Tushunilmadi',
+        'handoff' => 'Menejerga uzatildi',
+        'lead' => 'Yaratilgan soʻrovlar',
+        'lookup_ok' => 'Holat topildi',
+        'lookup_fail' => 'Holat topilmadi',
+        'search_empty' => 'Boʻsh qidiruv',
     ],
 
     'repair_status' => [
