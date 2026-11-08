@@ -29,6 +29,7 @@ use App\Models\Video;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\Cart\CartToken;
+use App\Support\Chat\ChatbotSwitch;
 use App\Support\CompanySettings;
 use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\RunRecorder;
@@ -58,6 +59,9 @@ class AppServiceProvider extends ServiceProvider
         // Scoped: reset between Octane requests and queued jobs, so the memoized
         // overrides never outlive a request.
         $this->app->scoped(CompanySettings::class);
+
+        // Scoped: the chat bot channel switches are read once per request or job.
+        ChatbotSwitch::register();
 
         // Scoped: the cart token issued during a request is seen by the rest of that request only.
         $this->app->scoped(CartToken::class);

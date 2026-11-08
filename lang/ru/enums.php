@@ -216,6 +216,7 @@ return [
         'mcp' => 'Доступ MCP',
         'catalog' => 'Каталог',
         'telegram_bot' => 'Telegram-бот',
+        'chatbot' => 'Чат-бот',
         'telegram_inbox' => 'Входящие Telegram',
     ],
 
@@ -469,5 +470,45 @@ return [
     'conversation_status' => [
         'open' => 'Открыт',
         'closed' => 'Закрыт',
+    ],
+
+    'chat_action' => [
+        'answer' => 'Ответ',
+        'faq' => 'Частые вопросы',
+        'company_info' => 'Данные о компании',
+        'product_search' => 'Поиск товара',
+        'order_status' => 'Статус заказа',
+        'repair_status' => 'Статус ремонта',
+        'lead_dialog' => 'Диалог заявки',
+        'handoff' => 'Связь с менеджером',
+        'link' => 'Ссылка',
+        'menu' => 'Меню',
+    ],
+
+    'chat_channel' => [
+        'web' => 'Сайт',
+        'telegram' => 'Telegram',
+    ],
+
+    'chat_mode' => [
+        'bot' => 'Бот',
+        'manager' => 'Менеджер',
+    ],
+
+    'keyword_match' => [
+        'word' => 'Слово',
+        'phrase' => 'Фраза',
+        'prefix' => 'Начало слова',
+        'exact' => 'Сообщение целиком',
+    ],
+
+    'chat_metric' => [
+        'hit' => 'Отвечено',
+        'unmatched' => 'Не понято',
+        'handoff' => 'Передано менеджеру',
+        'lead' => 'Создано заявок',
+        'lookup_ok' => 'Статус найден',
+        'lookup_fail' => 'Статус не найден',
+        'search_empty' => 'Пустой поиск',
     ],
 ];

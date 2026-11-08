@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ChatMode;
 use App\Enums\ConversationStatus;
 use App\Enums\TelegramUserState;
 use App\Support\Search;
@@ -55,6 +56,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $blocked_at
  * @property Carbon|null $banned_at
  * @property int|null $banned_by_id
+ * @property ChatMode $chat_mode
+ * @property array<string, mixed>|null $bot_dialog
+ * @property Carbon|null $handoff_at
+ * @property Carbon|null $last_staff_reply_at
  */
 #[Fillable([
     'telegram_id', 'username', 'first_name', 'last_name', 'locale', 'state',
@@ -88,6 +93,10 @@ class TelegramUser extends Model
             'telegram_id' => 'integer',
             'state' => TelegramUserState::class,
             'conversation_status' => ConversationStatus::class,
+            'chat_mode' => ChatMode::class,
+            'bot_dialog' => 'array',
+            'handoff_at' => 'datetime',
+            'last_staff_reply_at' => 'datetime',
             'account_changed' => 'boolean',
             'unread_count' => 'integer',
             'consent_at' => 'datetime',
@@ -212,6 +221,39 @@ class TelegramUser extends Model
     public function isLinkVerified(): bool
     {
         return $this->link_verified_at !== null && $this->customer_id !== null;
+    }
+
+    /**
+     * Whether a customer is waiting for staff (plan 28, CB-4): unread
+     * messages, or an open conversation whose last inbound message is newer
+     * than the last staff reply (no reply at all counts as older). Such a
+     * conversation never goes to the bot, whatever its mode says.
+     */
+    public function isWaitingForStaff(): bool
+    {
+        if ($this->unread_count > 0) {
+            return true;
+        }
+
+        return $this->conversation_status === ConversationStatus::Open
+            && $this->last_inbound_at !== null
+            && ($this->last_staff_reply_at === null || $this->last_inbound_at->gt($this->last_staff_reply_at));
+    }
+
+    /**
+     * Whether a "manager" conversation may return to the bot by the clock:
+     * not waiting for staff, and handoff_ttl_hours have passed since the
+     * later of the last staff reply and the last inbound message.
+     */
+    public function hasChatTtlExpired(): bool
+    {
+        if ($this->isWaitingForStaff()) {
+            return false;
+        }
+
+        $last = collect([$this->last_staff_reply_at, $this->last_inbound_at])->filter()->max();
+
+        return $last === null || $last->lte(now()->subHours((int) config('chatbot.handoff_ttl_hours', 8)));
     }
 
     public function isBanned(): bool
