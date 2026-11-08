@@ -10,6 +10,7 @@ use App\Enums\RepairStatus;
 use App\Enums\Role;
 use App\Models\Repair;
 use App\Models\User;
+use BackedEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -136,15 +137,34 @@ class UpdateRepair
     }
 
     /**
-     * Opaque marker of the row an edit form was loaded from (an HMAC of every
-     * stored column, so it exposes no amounts).
+     * Columns the edit form reads or writes plus the ones other actions change
+     * (status, assignee, approval). Timestamps are left out on purpose: a note
+     * or touch must not invalidate an open form.
+     *
+     * @var list<string>
+     */
+    private const VERSION_COLUMNS = [
+        'contact_name', 'contact_phone', 'company', 'customer_id', 'contact_id', 'locale',
+        'device_type', 'device_brand', 'device_model', 'serial_number', 'accessories',
+        'intake_condition', 'problem', 'diagnosis', 'work_done', 'parts_used',
+        'coverage', 'warranty_reference', 'estimate_amount', 'final_amount',
+        'status', 'assigned_to_id', 'estimate_approved_at', 'estimate_approved_amount',
+    ];
+
+    /**
+     * Opaque marker of the row an edit form was loaded from (an HMAC over the
+     * VERSION_COLUMNS, so it exposes no amounts).
      */
     public static function version(Repair $repair): string
     {
-        $attributes = $repair->getAttributes();
-        ksort($attributes);
+        $values = [];
 
-        return hash_hmac('sha256', $repair->id.'|'.json_encode($attributes), (string) config('app.key'));
+        foreach (self::VERSION_COLUMNS as $column) {
+            $value = $repair->getAttributes()[$column] ?? null;
+            $values[$column] = $value === null ? null : (string) ($value instanceof BackedEnum ? $value->value : $value);
+        }
+
+        return hash_hmac('sha256', $repair->id.'|'.json_encode($values, JSON_THROW_ON_ERROR), (string) config('app.key'));
     }
 
     private function clearApproval(Repair $repair): void

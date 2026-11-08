@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Repairs\ApproveRepairEstimate;
 use App\Actions\Repairs\AssignRepair;
 use App\Actions\Repairs\ChangeRepairStatus;
 use App\Actions\Repairs\CreateRepair;
@@ -361,5 +362,38 @@ describe('17 lock re-checks authorization and version', function () {
 
         expect(repairsFixErrors(fn () => app(UpdateRepair::class)->handle($repair->fresh(), repairsFixData(['problem' => 'Second']), $admin, $seen)))->toHaveKey('version')
             ->and($repair->fresh()->problem)->toBe('First');
+    });
+
+    it('ignores notes and touches but refuses real changes made during an edit', function () {
+        $admin = User::factory()->withRole(Role::Admin)->create();
+        $other = User::factory()->withRole(Role::ServiceEngineer)->create();
+        $repair = Repair::factory()->estimated(10_000_000)->create();
+        $seen = UpdateRepair::version($repair->fresh());
+
+        $repair->activities()->create(['user_id' => $admin->id, 'type' => ActivityType::Note, 'body' => 'hi', 'created_at' => now()]);
+        $repair->forceFill(['updated_at' => now()->addHour()])->save();
+        app(UpdateRepair::class)->handle($repair->fresh(), repairsFixData(['problem' => 'Typed']), $admin, $seen);
+        expect($repair->fresh()->problem)->toBe('Typed');
+
+        foreach ([['estimate_amount' => 20_000_000], ['estimate_approved_at' => now(), 'estimate_approved_amount' => 10_000_000], ['coverage' => RepairCoverage::Warranty], ['assigned_to_id' => $other->id]] as $change) {
+            $repair->refresh();
+            $seen = UpdateRepair::version($repair->fresh());
+            $repair->forceFill($change)->save();
+
+            expect(repairsFixErrors(fn () => app(UpdateRepair::class)->handle($repair->fresh(), repairsFixData(['problem' => 'Stale']), $admin, $seen)))->toHaveKey('version');
+        }
+    });
+
+    it('refuses an approval for a stale model reassigned under the lock', function () {
+        $engineer = staffUser(Role::ServiceEngineer);
+        $other = User::factory()->withRole(Role::ServiceEngineer)->create();
+        $repair = Repair::factory()->estimated(10_000_000)->assignedTo($engineer)->create();
+        $stale = $repair->fresh();
+        $version = ApproveRepairEstimate::version($stale);
+
+        $repair->forceFill(['assigned_to_id' => $other->id])->save();
+
+        expect(repairsFixErrors(fn () => app(ApproveRepairEstimate::class)->handle($stale, $engineer, 'phone', $version)))->toHaveKey('estimate')
+            ->and($repair->fresh()->estimate_approved_at)->toBeNull();
     });
 });

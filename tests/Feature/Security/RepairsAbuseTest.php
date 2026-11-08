@@ -138,15 +138,12 @@ describe('22 amount inputs', function () {
         }
     });
 
-    it('rejects a leading-space amount or normalises it to whole sums', function () {
+    it('trims a leading-space amount and stores it as 100 sums', function () {
         $admin = staffUser();
 
-        $component = abuseFillIntake(Livewire::actingAs($admin)->test(Form::class))->set('form.estimate_amount', ' 100')->call('save');
-        $created = Repair::query()->first();
+        abuseFillIntake(Livewire::actingAs($admin)->test(Form::class))->set('form.estimate_amount', ' 100')->call('save')->assertHasNoErrors();
 
-        // Either refusal or a clean "100 sums" is safe; anything else is not.
-        expect($created === null || $created->estimate_amount === 10_000)->toBeTrue();
-        $component->assertOk();
+        expect(Repair::query()->firstOrFail()->estimate_amount)->toBe(10_000);
     });
 
     it('rejects a bad amount on edit and keeps the row', function () {
