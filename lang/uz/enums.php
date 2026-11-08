@@ -217,6 +217,7 @@ return [
         'catalog' => 'Katalog',
         'telegram_bot' => 'Telegram bot',
         'telegram_inbox' => 'Telegram kiruvchi xabarlari',
+        'users' => 'Xodimlar',
     ],
 
     'audit_action' => [
@@ -244,6 +245,8 @@ return [
         'retry_forward' => 'Fayl qayta koʻchirildi',
         'linked' => 'Bogʻlandi',
         'deleted' => 'Butunlay oʻchirildi',
+        'password_changed' => 'Parol oʻzgartirildi',
+        'password_reset' => 'Parol tiklandi',
     ],
 
     'price_sync_status' => [

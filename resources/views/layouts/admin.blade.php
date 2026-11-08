@@ -142,6 +142,7 @@
                             @endif
                         </div>
                         <div class="my-1 h-px bg-slate-100"></div>
+                        <a href="{{ route('admin.account.password') }}" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"><x-admin.icon name="lock" size="size-4" />{{ __('staff.account.menu') }}</a>
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf
                             <button type="submit" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-danger hover:bg-red-50"><x-admin.icon name="logout" size="size-4" />{{ __('admin.topbar.logout') }}</button>

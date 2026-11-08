@@ -217,6 +217,7 @@ return [
         'catalog' => 'Каталог',
         'telegram_bot' => 'Telegram-бот',
         'telegram_inbox' => 'Входящие Telegram',
+        'users' => 'Сотрудники',
     ],
 
     'audit_action' => [
@@ -244,6 +245,8 @@ return [
         'retry_forward' => 'Повтор копирования файла',
         'linked' => 'Привязано',
         'deleted' => 'Удалено навсегда',
+        'password_changed' => 'Пароль изменён',
+        'password_reset' => 'Пароль сброшен',
     ],
 
     'price_sync_status' => [
