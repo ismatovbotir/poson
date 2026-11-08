@@ -4,10 +4,18 @@ use App\Actions\Catalog\SaveBrand;
 use App\Enums\Role;
 use App\Livewire\Admin\Brands\Form;
 use App\Livewire\Admin\Brands\Index;
+use App\Livewire\Admin\Categories\Form as CategoryForm;
+use App\Livewire\Admin\Pages\Form as PageForm;
 use App\Models\Brand;
 use App\Models\Product;
+use App\Models\User;
+use Database\Factories\CategoryFactory;
+use Database\Factories\PageFactory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
@@ -190,3 +198,122 @@ it('rejects low-price wording in the description, in the form and in SaveBrand',
     ]))->toThrow(ValidationException::class)
         ->and(Brand::query()->count())->toBe(0);
 });
+
+it('shows the chosen logo as a preview in the form before saving', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand])
+        ->set('form.logo', UploadedFile::fake()->image('new.png', 400, 200))
+        ->assertHasNoErrors()
+        ->assertSeeHtml('data-image-preview');
+});
+
+it('shows the new logo in the form after replacing it once the queued conversion is ready', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+    $brand->addMedia(UploadedFile::fake()->image('old.png', 600, 300))->toMediaCollection('logo');
+    expect($brand->fresh()->imageUrl())->not->toBeNull();
+
+    // Production: QUEUE_CONNECTION=database, the worker has not run yet.
+    Queue::fake();
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->set('form.logo', UploadedFile::fake()->image('new.png', 400, 200))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // The old logo is replaced at once; the form shows "processing" and polls
+    // until the queued thumb exists, then shows the new logo.
+    $component->assertSeeHtml('data-image-processing')->assertSeeHtml('data-image-poll');
+
+    $brand->fresh()->getFirstMedia('logo')->markAsConversionGenerated('thumb');
+
+    $component->call('$refresh')->assertSeeHtml('data-image-preview')->assertDontSeeHtml('data-image-poll')->assertDontSeeHtml('wire:poll.3s');
+});
+
+it('polls only while a logo has no generated conversion and stops once it is ready', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create();
+    Queue::fake();
+    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->assertSeeHtml('wire:poll.3s.visible="$refresh"')->assertSeeHtml('data-image-poll')
+        ->assertSeeHtml('data-image-processing-hint')
+        ->assertDontSeeHtml('data-image-preview');
+
+    $media = $brand->fresh()->getFirstMedia('logo');
+    $media->markAsConversionGenerated('thumb');
+
+    $component->call('$refresh')
+        ->assertDontSeeHtml('data-image-poll')->assertDontSeeHtml('wire:poll.3s')
+        ->assertSeeHtml('data-image-preview');
+});
+
+it('keeps unsaved form input while the processing poll re-renders', function () {
+    Storage::fake('public');
+    Storage::fake('local');
+    $brand = Brand::factory()->create(['name' => 'Zebra']);
+    Queue::fake();
+    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+
+    Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test(Form::class, ['brand' => $brand->fresh()])
+        ->set('form.name', 'Zebra Technologies')
+        ->set('form.logo_alt.uz', 'Yangi logotip')
+        ->call('$refresh')
+        ->assertSet('form.name', 'Zebra Technologies')
+        ->assertSet('form.logo_alt.uz', 'Yangi logotip');
+
+    expect($brand->fresh()->name)->toBe('Zebra');
+});
+
+it('forbids the brand form without permission', function () {
+    $brand = Brand::factory()->create();
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(Form::class, ['brand' => $brand])
+        ->assertForbidden();
+});
+
+it('renders the processing poll in the shared image upload component', function () {
+    view()->share('errors', new ViewErrorBag);
+    $html = Blade::render('<x-admin.image-upload model="form.image" :processing="true" />');
+
+    expect($html)->toContain('wire:poll.3s.visible="$refresh"')
+        ->toContain('data-image-poll')
+        ->toContain('data-image-processing-hint')
+        ->toContain('x-on:toast.window="start()"'); // a save restarts the 60 s window
+
+    $ready = Blade::render('<x-admin.image-upload model="form.image" current-url="https://x.test/a.webp" :processing="true" />');
+
+    expect($ready)->not->toContain('data-image-poll')->toContain('data-image-preview');
+});
+
+it('polls while the image of another real form is processing', function (string $factory, string $form, string $param, string $collection) {
+    Storage::fake('public');
+    Storage::fake('local');
+    $record = $factory::new()->create();
+    Queue::fake();
+    $record->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection($collection);
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->test($form, [$param => $record->fresh()])
+        ->assertSeeHtml('data-image-processing')
+        ->assertSeeHtml('wire:poll.3s.visible="$refresh"')
+        ->assertDontSeeHtml('data-image-preview');
+
+    $record->fresh()->getFirstMedia($collection)->markAsConversionGenerated('thumb');
+
+    $component->call('$refresh')->assertSeeHtml('data-image-preview')->assertDontSeeHtml('data-image-poll');
+})->with([
+    'category' => [CategoryFactory::class, CategoryForm::class, 'category', 'image'],
+    'page' => [PageFactory::class, PageForm::class, 'page', 'cover'],
+]);
