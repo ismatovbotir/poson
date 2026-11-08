@@ -36,13 +36,13 @@ use Illuminate\Support\Facades\Http;
  */
 const ABUSE_USER = 5570001;
 
-function abuseSetup(bool $on = true): void
+function chatAbuseSetup(bool $on = true): void
 {
     telegramBotConfigured();
     Http::preventStrayRequests();
     Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => ['message_id' => 1]])]);
     Setting::query()->updateOrCreate(['key' => BotSwitch::KEY], ['group' => SettingsArea::TelegramBot->group(), 'value' => true]);
-    abuseSwitch($on);
+    chatAbuseSwitch($on);
     app(InstallChatbotDefaults::class)->handle();
     RuleIndex::bump();
 }
@@ -50,7 +50,7 @@ function abuseSetup(bool $on = true): void
 /**
  * The real settings save, as the admin screen does it.
  */
-function abuseSwitch(bool $on): void
+function chatAbuseSwitch(bool $on): void
 {
     Setting::query()->updateOrCreate(['key' => ChatbotSwitch::TELEGRAM_KEY], ['group' => SettingsArea::Chatbot->group(), 'value' => $on]);
 }
@@ -58,29 +58,29 @@ function abuseSwitch(bool $on): void
 /**
  * @param  array<string, mixed>  $attributes
  */
-function abuseUser(array $attributes = []): TelegramUser
+function chatAbuseUser(array $attributes = []): TelegramUser
 {
     return TelegramUser::factory()->registered()->create(array_merge(['telegram_id' => ABUSE_USER, 'locale' => 'uz', 'chat_mode' => ChatMode::Bot], $attributes));
 }
 
-function abuseId(): int
+function chatAbuseId(): int
 {
     static $id = 90000;
 
     return ++$id;
 }
 
-function abuseText(string $text): void
+function chatAbuseText(string $text): void
 {
-    postTelegramUpdate(telegramPrivateUpdate(abuseId(), ['text' => $text], ABUSE_USER))->assertOk();
+    postTelegramUpdate(telegramPrivateUpdate(chatAbuseId(), ['text' => $text], ABUSE_USER))->assertOk();
 }
 
-function abusePress(string $data): void
+function chatAbusePress(string $data): void
 {
     postTelegramUpdate([
-        'update_id' => abuseId(),
+        'update_id' => chatAbuseId(),
         'callback_query' => [
-            'id' => 'cb'.abuseId(),
+            'id' => 'cb'.chatAbuseId(),
             'from' => ['id' => ABUSE_USER, 'is_bot' => false, 'first_name' => 'Ali'],
             'message' => ['message_id' => 5, 'chat' => ['id' => ABUSE_USER, 'type' => 'private']],
             'data' => $data,
@@ -91,19 +91,19 @@ function abusePress(string $data): void
 /**
  * @return list<string>
  */
-function abuseSentTexts(): array
+function chatAbuseSentTexts(): array
 {
     return collect(telegramApiCalls())->where('method', 'sendMessage')->pluck('data.text')->values()->all();
 }
 
-function abuseInbound(): int
+function chatAbuseInbound(): int
 {
     return TelegramMessage::query()->where('direction', TelegramDirection::In)->count();
 }
 
 it('stops the second queued answer when the chat bot is switched off between two jobs of one worker', function () {
-    abuseSetup();
-    $user = abuseUser();
+    chatAbuseSetup();
+    $user = chatAbuseUser();
     $first = (new SendBotAnswer($user->id, 'Birinchi javob', [], 'cb-1'))->withFakeQueueInteractions();
     $second = (new SendBotAnswer($user->id, 'Ikkinchi javob', [], 'cb-2'))->withFakeQueueInteractions();
     $client = app(TelegramClient::class);
@@ -113,42 +113,42 @@ it('stops the second queued answer when the chat bot is switched off between two
     expect(ChatbotSwitch::isEnabled())->toBeTrue();
 
     // The owner turns the bot off through the real save; the same process keeps working.
-    abuseSwitch(false);
+    chatAbuseSwitch(false);
 
     $second->handle($client);
 
     $calls = collect(telegramApiCalls());
 
-    expect(abuseSentTexts())->toBe(['Birinchi javob'])
+    expect(chatAbuseSentTexts())->toBe(['Birinchi javob'])
         ->and($calls->where('method', 'answerCallbackQuery')->pluck('data.callback_query_id')->all())->toBe(['cb-1', 'cb-2'])
         ->and(ChatbotSwitch::isEnabled())->toBeFalse();
 });
 
 it('keeps old buttons dead across the generation wrap from 99 to 0', function () {
-    abuseSetup();
+    chatAbuseSetup();
     $item = FaqItem::factory()->create(['answer' => ['uz' => 'Javob matni.']]);
-    $user = abuseUser(['bot_dialog' => ['rules' => [], 'buttons' => [0 => ['t' => 'faq', 'id' => $item->id]], 'gen' => 98, 'at' => now()->unix()]]);
+    $user = chatAbuseUser(['bot_dialog' => ['rules' => [], 'buttons' => [0 => ['t' => 'faq', 'id' => $item->id]], 'gen' => 98, 'at' => now()->unix()]]);
 
-    abuseText('savol');
+    chatAbuseText('savol');
     expect($user->fresh()->bot_dialog['gen'])->toBe(99);
 
-    abuseText('savol');
+    chatAbuseText('savol');
     expect($user->fresh()->bot_dialog['gen'])->toBe(0);
 
-    abuseText('savol');
+    chatAbuseText('savol');
     expect($user->fresh()->bot_dialog['gen'])->toBe(1);
 
-    $before = count(abuseSentTexts());
+    $before = count(chatAbuseSentTexts());
 
     foreach (['98', '99', '0', '2'] as $oldGeneration) {
-        abusePress("chat:b:{$oldGeneration}:0");
+        chatAbusePress("chat:b:{$oldGeneration}:0");
     }
 
-    expect(abuseSentTexts())->toHaveCount($before);
+    expect(chatAbuseSentTexts())->toHaveCount($before);
 
-    abusePress('chat:b:1:0');
+    chatAbusePress('chat:b:1:0');
 
-    expect(collect(abuseSentTexts())->last())->toBe('Javob matni.');
+    expect(collect(chatAbuseSentTexts())->last())->toBe('Javob matni.');
 });
 
 dataset('waiting customer', [
@@ -158,25 +158,25 @@ dataset('waiting customer', [
 ]);
 
 it('keeps manager mode for a waiting customer on menu and /start, and the next text goes to the inbox', function (Closure $attributes, string $action) {
-    abuseSetup();
+    chatAbuseSetup();
     $attributes = $attributes();
-    $user = abuseUser($attributes);
+    $user = chatAbuseUser($attributes);
     Bus::fake([SendBotAnswer::class]);
 
     if ($action === 'menu') {
-        abusePress('chat:menu');
+        chatAbusePress('chat:menu');
     } else {
-        abuseText('/start');
+        chatAbuseText('/start');
     }
 
     expect($user->fresh()->isWaitingForStaff())->toBeTrue()
         ->and($user->fresh()->chat_mode)->toBe($attributes['chat_mode']);
 
-    $inboxBefore = abuseInbound();
+    $inboxBefore = chatAbuseInbound();
 
-    abuseText('dostavka');
+    chatAbuseText('dostavka');
 
-    expect(abuseInbound())->toBe($inboxBefore + 1)
+    expect(chatAbuseInbound())->toBe($inboxBefore + 1)
         ->and($user->fresh()->chat_mode)->toBe(ChatMode::Manager);
     Bus::assertNotDispatched(function (SendBotAnswer $job) {
         return $job->text === collect(require database_path('seeders/data/chatbot_defaults.php'))->firstWhere('key', 'delivery')['answer']['uz'];
@@ -184,7 +184,7 @@ it('keeps manager mode for a waiting customer on menu and /start, and the next t
 })->with('waiting customer')->with(['menu', 'start']);
 
 it('reopens a closed conversation on a hand-off tap with one unread, one alert and an Uzbek system line', function () {
-    abuseSetup();
+    chatAbuseSetup();
     Event::fake([TelegramInboxMessage::class]);
     $user = TelegramUser::factory()->registered()->closed()->create([
         'telegram_id' => ABUSE_USER,
@@ -195,7 +195,7 @@ it('reopens a closed conversation on a hand-off tap with one unread, one alert a
         'last_staff_reply_at' => now()->subDays(2),
     ]);
 
-    abusePress('chat:handoff');
+    chatAbusePress('chat:handoff');
 
     $line = TelegramMessage::query()->where('direction', TelegramDirection::In)->sole();
     $fresh = $user->fresh();
@@ -210,29 +210,29 @@ it('reopens a closed conversation on a hand-off tap with one unread, one alert a
 });
 
 it('stores one system line and sends one staff alert for five hand-off taps in a row', function () {
-    abuseSetup();
+    chatAbuseSetup();
     Event::fake([TelegramInboxMessage::class]);
-    $user = abuseUser();
+    $user = chatAbuseUser();
 
     foreach (range(1, 5) as $tap) {
-        abusePress('chat:handoff');
+        chatAbusePress('chat:handoff');
     }
 
-    expect(abuseInbound())->toBe(1)
+    expect(chatAbuseInbound())->toBe(1)
         ->and($user->fresh()->unread_count)->toBe(1)
         ->and($user->fresh()->chat_mode)->toBe(ChatMode::Manager);
     Event::assertDispatchedTimes(TelegramInboxMessage::class, 1);
 });
 
 it('sends the next text to the inbox when the switch is turned on while a customer waits', function (bool $staffRead) {
-    abuseSetup(on: false);
-    $user = abuseUser();
+    chatAbuseSetup(on: false);
+    $user = chatAbuseUser();
     $staff = staffUser(Role::Admin);
 
     // Staff answer while the bot is off, then the customer writes again and is not answered.
     app(SendTelegramReply::class)->handle($user, $staff, 'Salom, men menejerman');
     $this->travel(2)->hours();
-    abuseText('yana savolim bor');
+    chatAbuseText('yana savolim bor');
 
     if ($staffRead) {
         $user->refresh()->forceFill(['unread_count' => 0])->save();
@@ -240,14 +240,14 @@ it('sends the next text to the inbox when the switch is turned on while a custom
 
     expect($user->fresh()->isWaitingForStaff())->toBeTrue();
 
-    abuseSwitch(true);
+    chatAbuseSwitch(true);
     RuleIndex::bump();
     Bus::fake([SendBotAnswer::class]);
-    $inboxBefore = abuseInbound();
+    $inboxBefore = chatAbuseInbound();
 
-    abuseText('dostavka');
+    chatAbuseText('dostavka');
 
-    expect(abuseInbound())->toBe($inboxBefore + 1)
+    expect(chatAbuseInbound())->toBe($inboxBefore + 1)
         ->and($user->fresh()->chat_mode)->toBe(ChatMode::Manager);
     Bus::assertNotDispatched(SendBotAnswer::class);
 })->with([

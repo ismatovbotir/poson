@@ -107,6 +107,7 @@ return [
         'quote' => 'Quote',
         'order' => 'Order',
         'payment' => 'Payment',
+        'repair' => 'Repair',
     ],
 
     'quote_status' => [
@@ -218,6 +219,7 @@ return [
         'telegram_bot' => 'Telegram bot',
         'chatbot' => 'Chat bot',
         'telegram_inbox' => 'Telegram inbox',
+        'users' => 'Staff',
     ],
 
     'audit_action' => [
@@ -245,6 +247,8 @@ return [
         'retry_forward' => 'File copy retried',
         'linked' => 'Linked',
         'deleted' => 'Deleted for good',
+        'password_changed' => 'Password changed',
+        'password_reset' => 'Password reset',
     ],
 
     'price_sync_status' => [
@@ -511,4 +515,31 @@ return [
         'lookup_fail' => 'Status not found',
         'search_empty' => 'Empty search',
     ],
+
+    'repair_status' => [
+        'received' => 'Received',
+        'diagnosing' => 'Diagnosing',
+        'awaiting_approval' => 'Awaiting approval',
+        'in_repair' => 'In repair',
+        'awaiting_parts' => 'Awaiting parts',
+        'ready' => 'Ready for pickup',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Paid',
+        'warranty' => 'Warranty',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Barcode scanner',
+        'label_printer' => 'Label printer',
+        'receipt_printer' => 'Receipt printer',
+        'mobile_computer' => 'Mobile computer',
+        'rfid' => 'RFID equipment',
+        'pos' => 'POS equipment',
+        'other' => 'Other device',
+    ],
+
 ];

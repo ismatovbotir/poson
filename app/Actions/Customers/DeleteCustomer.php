@@ -6,12 +6,13 @@ use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Order;
 use App\Models\Quote;
+use App\Models\Repair;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Delete a customer for good (Admin, customers.delete). Blocked while any
- * lead, quote or order links to it, so no history is lost silently; contacts go through the
+ * lead, quote, order or repair links to it, so no history is lost silently; contacts go through the
  * cascade, its activities with it.
  */
 class DeleteCustomer
@@ -42,6 +43,13 @@ class DeleteCustomer
 
             if ($orders > 0) {
                 throw ValidationException::withMessages(['customer' => trans_choice('crm.customers.errors.has_orders', $orders, ['count' => $orders])]);
+            }
+
+            // Plan 24: repairs keep their customer link in the history (nullOnDelete would lose it).
+            $repairs = Repair::query()->where('customer_id', $customer->id)->count();
+
+            if ($repairs > 0) {
+                throw ValidationException::withMessages(['customer' => trans_choice('repairs.errors.customer_has_repairs', $repairs, ['count' => $repairs])]);
             }
 
             $customer->activities()->delete();

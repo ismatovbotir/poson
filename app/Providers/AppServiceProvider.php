@@ -8,6 +8,7 @@ use App\Enums\McpCallStatus;
 use App\Enums\Role;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\AuthenticateMcpToken;
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
@@ -22,6 +23,7 @@ use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Quote;
+use App\Models\Repair;
 use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Models\User;
@@ -103,6 +105,8 @@ class AppServiceProvider extends ServiceProvider
             'page' => Page::class,
             'product' => Product::class,
             'quote' => Quote::class,
+            // Plan 24: the repair history (activities).
+            'repair' => Repair::class,
             'setting' => Setting::class,
             // Plan 14 v2 B3: bot conversations (registration / CRM link history).
             'telegram_user' => TelegramUser::class,
@@ -171,7 +175,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
 
         // Re-apply the page locale (site) and the staff check + UI locale (admin) on Livewire update requests.
-        Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, SetAdminLocale::class]);
+        Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, EnsurePasswordChanged::class, SetAdminLocale::class]);
 
         // The company logo / OG image URL appears once its queued conversion exists.
         Event::listen(function (ConversionHasBeenCompletedEvent $event): void {

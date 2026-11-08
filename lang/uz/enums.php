@@ -107,6 +107,7 @@ return [
         'quote' => 'Tijorat taklifi',
         'order' => 'Buyurtma',
         'payment' => 'Toʻlov',
+        'repair' => 'Taʼmirlash',
     ],
 
     'quote_status' => [
@@ -218,6 +219,7 @@ return [
         'telegram_bot' => 'Telegram bot',
         'chatbot' => 'Chat-bot',
         'telegram_inbox' => 'Telegram kiruvchi xabarlari',
+        'users' => 'Xodimlar',
     ],
 
     'audit_action' => [
@@ -245,6 +247,8 @@ return [
         'retry_forward' => 'Fayl qayta koʻchirildi',
         'linked' => 'Bogʻlandi',
         'deleted' => 'Butunlay oʻchirildi',
+        'password_changed' => 'Parol oʻzgartirildi',
+        'password_reset' => 'Parol tiklandi',
     ],
 
     'price_sync_status' => [
@@ -511,4 +515,31 @@ return [
         'lookup_fail' => 'Holat topilmadi',
         'search_empty' => 'Boʻsh qidiruv',
     ],
+
+    'repair_status' => [
+        'received' => 'Qabul qilindi',
+        'diagnosing' => 'Diagnostika',
+        'awaiting_approval' => 'Kelishuv kutilmoqda',
+        'in_repair' => 'Taʼmirda',
+        'awaiting_parts' => 'Ehtiyot qism kutilmoqda',
+        'ready' => 'Topshirishga tayyor',
+        'delivered' => 'Topshirildi',
+        'cancelled' => 'Bekor qilindi',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Pullik',
+        'warranty' => 'Kafolat',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Shtrix-kod skaneri',
+        'label_printer' => 'Yorliq printeri',
+        'receipt_printer' => 'Chek printeri',
+        'mobile_computer' => 'Maʼlumot yigʻish terminali (TSD)',
+        'rfid' => 'RFID uskunasi',
+        'pos' => 'POS uskunasi',
+        'other' => 'Boshqa qurilma',
+    ],
+
 ];

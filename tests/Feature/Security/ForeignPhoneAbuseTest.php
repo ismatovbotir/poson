@@ -328,6 +328,8 @@ it('flags a hypothetical MCP tool that reads Telegram, customer or lead message 
     'message key' => ['<?php return ["message" => $row];', 'message key/property'],
     'raw table access' => ['<?php return DB::table("orders")->count();', 'CRM table name'],
     'qualified column' => ['<?php return Order::query()->where("orders.status", 1);', 'CRM table name'],
+    'repairs table' => ['<?php return DB::table("repairs")->pluck("contact_phone");', 'CRM table name'],
+    'repairs qualified column' => ['<?php return Repair::query()->where("repairs.serial_number", $sn);', 'CRM table name'],
     'lead customer relation' => ['<?php return $order->customer;', 'customer/contact relation'],
 ]);
 

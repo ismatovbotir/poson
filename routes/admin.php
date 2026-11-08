@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
+use App\Livewire\Admin\Account;
 use App\Livewire\Admin\Analytics;
 use App\Livewire\Admin\Articles;
 use App\Livewire\Admin\Attributes;
@@ -24,6 +25,7 @@ use App\Livewire\Admin\Payments;
 use App\Livewire\Admin\PriceSync;
 use App\Livewire\Admin\Products;
 use App\Livewire\Admin\Quotes;
+use App\Livewire\Admin\Repairs;
 use App\Livewire\Admin\RollTypes;
 use App\Livewire\Admin\Seo;
 use App\Livewire\Admin\Settings;
@@ -56,7 +58,12 @@ Route::post('/logout', LogoutController::class)
     ->middleware('auth')
     ->name('logout');
 
+// Plan 24 A1: outside "admin.password-changed", the one screen a user with a temporary password can reach.
 Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
+    Route::livewire('/account/password', Account\Password::class)->name('account.password');
+});
+
+Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->group(function () {
     Route::livewire('/', Dashboard::class)->name('dashboard');
 
     // CRM: Murojaatlar (plan 05 5a). LeadPolicy in the components; lists use Lead::visibleTo().
@@ -71,6 +78,12 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
     Route::livewire('/customers/create', Customers\Form::class)->name('customers.create');
     Route::livewire('/customers/{customer}', Customers\Show::class)->whereNumber('customer')->name('customers.show');
     Route::livewire('/customers/{customer}/edit', Customers\Form::class)->whereNumber('customer')->name('customers.edit');
+
+    // Repairs (plan 24 B2). RepairPolicy in the components; lists use Repair::visibleTo().
+    Route::livewire('/repairs', Repairs\Index::class)->name('repairs.index');
+    Route::livewire('/repairs/create', Repairs\Form::class)->name('repairs.create');
+    Route::livewire('/repairs/{repair}', Repairs\Show::class)->whereNumber('repair')->name('repairs.show');
+    Route::livewire('/repairs/{repair}/edit', Repairs\Form::class)->whereNumber('repair')->name('repairs.edit');
 
     // Quotes (plan 06). QuotePolicy in the components; lists use Quote::visibleTo().
     Route::livewire('/quotes', Quotes\Index::class)->name('quotes.index');

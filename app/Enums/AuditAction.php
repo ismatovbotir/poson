@@ -58,6 +58,13 @@ enum AuditAction: string
      */
     case Deleted = 'deleted';
 
+    /**
+     * Plan 24: a staff password was changed by its owner or reset (key
+     * user.{id}.password[.cli], never a name or the password).
+     */
+    case PasswordChanged = 'password_changed';
+    case PasswordReset = 'password_reset';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

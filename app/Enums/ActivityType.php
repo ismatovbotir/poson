@@ -19,6 +19,7 @@ enum ActivityType: string
     case Quote = 'quote';
     case Order = 'order';
     case Payment = 'payment';
+    case Repair = 'repair';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum ActivityType: string
             self::Quote => 'file-text',
             self::Order => 'bag',
             self::Payment => 'card',
+            self::Repair => 'tool',
         };
     }
 
@@ -62,6 +64,7 @@ enum ActivityType: string
             self::Quote => 'bg-violet-500',
             self::Order => 'bg-slate-900',
             self::Payment => 'bg-brand-600',
+            self::Repair => 'bg-violet-500',
         };
     }
 

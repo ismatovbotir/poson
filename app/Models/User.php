@@ -21,14 +21,30 @@ use Spatie\Permission\Traits\HasRoles;
  * mcp_access_granted_at / mcp_access_granted_by (plan 13): the single MCP
  * holder. Not fillable: set only by App\Actions\Mcp\GrantMcpAccess and
  * cleared by RevokeMcpAccess.
+ *
+ * session_epoch / temp_password_expires_at / password_changed_at /
+ * last_login_at (plan 24 A1): not fillable and hidden. Credentials are written
+ * only by App\Actions\Users\WriteStaffCredentials; last_login_at by
+ * App\Listeners\StampStaffSession.
  */
 #[Fillable(['name', 'email', 'password', 'locale'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'session_epoch', 'temp_password_expires_at', 'password_changed_at', 'last_login_at'])]
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    /**
+     * The column defaults, so a just-created model (not re-read) can be checked too.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'session_epoch' => 0,
+        'temp_password_expires_at' => null,
+        'mcp_access_granted_at' => null,
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -42,6 +58,10 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'mcp_access_granted_at' => 'datetime',
+            'session_epoch' => 'integer',
+            'temp_password_expires_at' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -85,6 +105,30 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->is_active && $this->hasAnyRole(Role::values());
+    }
+
+    /**
+     * Holds a temporary password and has to replace it.
+     */
+    public function mustChangePassword(): bool
+    {
+        return $this->temp_password_expires_at !== null;
+    }
+
+    /**
+     * Holds a temporary password that is no longer valid: can't sign in.
+     */
+    public function hasExpiredTempPassword(): bool
+    {
+        return $this->temp_password_expires_at?->lte(now()) ?? false;
+    }
+
+    /**
+     * Allowed to sign in once the credentials are verified.
+     */
+    public function canSignIn(): bool
+    {
+        return $this->isStaff() && ! $this->hasExpiredTempPassword();
     }
 
     /**

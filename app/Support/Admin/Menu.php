@@ -32,7 +32,6 @@ final class Menu
         // has its permissions: then the item switches to permission: '<resource>.viewAny'
         // (as the catalog items already do) and the role list goes away.
         $sales = [Role::Admin, Role::SalesManager];
-        $service = [Role::Admin, Role::ServiceEngineer];
         $admin = [Role::Admin];
 
         return [
@@ -67,7 +66,7 @@ final class Menu
             new MenuGroup('service', 'menu.groups.service', [
                 // Redirects to the leads list filtered to service requests (LeadPolicy::viewServiceRequests).
                 new MenuItem('service-requests', 'menu.items.service_requests', 'wrench', 'admin.service-requests.index', permission: ['leads.service', 'leads.service-view'], active: 'admin.service-requests.index'),
-                new MenuItem('repairs', 'menu.items.repairs', 'tool', 'admin.repairs.index', roles: $service),
+                new MenuItem('repairs', 'menu.items.repairs', 'tool', 'admin.repairs.index', permission: 'repairs.viewAny'),
             ]),
 
             new MenuGroup('content', 'menu.groups.content', [

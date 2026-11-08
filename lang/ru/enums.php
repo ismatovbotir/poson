@@ -107,6 +107,7 @@ return [
         'quote' => 'Коммерческое предложение',
         'order' => 'Заказ',
         'payment' => 'Оплата',
+        'repair' => 'Ремонт',
     ],
 
     'quote_status' => [
@@ -218,6 +219,7 @@ return [
         'telegram_bot' => 'Telegram-бот',
         'chatbot' => 'Чат-бот',
         'telegram_inbox' => 'Входящие Telegram',
+        'users' => 'Сотрудники',
     ],
 
     'audit_action' => [
@@ -245,6 +247,8 @@ return [
         'retry_forward' => 'Повтор копирования файла',
         'linked' => 'Привязано',
         'deleted' => 'Удалено навсегда',
+        'password_changed' => 'Пароль изменён',
+        'password_reset' => 'Пароль сброшен',
     ],
 
     'price_sync_status' => [
@@ -511,4 +515,31 @@ return [
         'lookup_fail' => 'Статус не найден',
         'search_empty' => 'Пустой поиск',
     ],
+
+    'repair_status' => [
+        'received' => 'Принято',
+        'diagnosing' => 'Диагностика',
+        'awaiting_approval' => 'Ожидает согласования',
+        'in_repair' => 'В ремонте',
+        'awaiting_parts' => 'Ожидает запчасти',
+        'ready' => 'Готово к выдаче',
+        'delivered' => 'Выдано',
+        'cancelled' => 'Отменено',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Платный',
+        'warranty' => 'Гарантия',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Сканер штрих-кода',
+        'label_printer' => 'Принтер этикеток',
+        'receipt_printer' => 'Чековый принтер',
+        'mobile_computer' => 'Терминал сбора данных (ТСД)',
+        'rfid' => 'RFID-оборудование',
+        'pos' => 'POS-оборудование',
+        'other' => 'Другое устройство',
+    ],
+
 ];

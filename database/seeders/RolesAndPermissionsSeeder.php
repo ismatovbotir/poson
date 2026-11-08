@@ -53,6 +53,16 @@ class RolesAndPermissionsSeeder extends Seeder
     public const TELEGRAM_SALES = ['telegram.inbox', 'telegram.reassign', 'telegram.ban'];
 
     /**
+     * Repairs (plan 24 B1): the sales manager reads every repair with its costs,
+     * the service engineer works own + unassigned ones and takes / releases
+     * them. repairs.assign (pick an engineer) is Admin only. Also added by the
+     * add_repairs_permissions migration.
+     */
+    public const REPAIRS_SALES = ['repairs.viewAny', 'repairs.view', 'repairs.view-all', 'repairs.costs'];
+
+    public const REPAIRS_ENGINEER = ['repairs.viewAny', 'repairs.view', 'repairs.create', 'repairs.update', 'repairs.costs'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -142,6 +152,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...self::ORDERS_SALES,
                 'payments.viewAny', 'payments.view',
                 ...self::TELEGRAM_SALES,
+                ...self::REPAIRS_SALES,
             ],
 
             Role::ServiceEngineer->value => [
@@ -151,6 +162,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'leads.service',
                 'customers.viewAny', 'customers.view',
                 'orders.viewAny', 'orders.view',
+                ...self::REPAIRS_ENGINEER,
             ],
         ];
     }
@@ -215,6 +227,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'telegram.reassign',
             'telegram.ban',
             'telegram.bot',
+            // Plan 24 B1: repairs (also added by the add_repairs_permissions migration).
+            'repairs.viewAny',
+            'repairs.view',
+            'repairs.create',
+            'repairs.update',
+            'repairs.assign',
+            'repairs.view-all',
+            'repairs.costs',
         ];
     }
 

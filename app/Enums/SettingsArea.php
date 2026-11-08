@@ -15,7 +15,8 @@ namespace App\Enums;
  * (plan 14 v2 B2, Admin, telegram.bot) holds the bot kill switch (telegram.bot_enabled) and audits the bot
  * page's webhook and command writes. TelegramInbox (plan 21 T21-35) is audit-only: staff inbox actions, kept
  * apart so they cannot push enable or secret rows out of the Bot and Integrations lists. Chatbot (plan 28) holds the
- * rule-bot channel switches (chatbot.telegram_enabled, Admin only) and, from C2, its texts and hours. Audit rows may hold
+ * rule-bot channel switches (chatbot.telegram_enabled, Admin only) and, from C2, its texts and hours. Users (plan 24) is
+ * audit-only: staff credential changes (key user.{id}.password[.cli], never a name or value). Audit rows may hold
  * legacy values no longer listed here (e.g. "ai_prompts"): read them with
  * tryFrom() (SettingsAudit does).
  */
@@ -39,6 +40,7 @@ enum SettingsArea: string
     case TelegramBot = 'telegram_bot';
     case TelegramInbox = 'telegram_inbox';
     case Chatbot = 'chatbot';
+    case Users = 'users';
 
     public function label(): string
     {
@@ -53,7 +55,7 @@ enum SettingsArea: string
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
             self::Seo, self::Tracking, self::AiBots, self::Indexing => 'seo',
-            self::Integrations, self::ApiTokens, self::PriceSync, self::Mcp => 'integrations',
+            self::Integrations, self::ApiTokens, self::PriceSync, self::Mcp, self::Users => 'integrations',
             self::Catalog => 'system',
             self::TelegramBot, self::TelegramInbox => 'telegram',
             self::Chatbot => 'chatbot',
@@ -66,6 +68,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users], true);
     }
 }
