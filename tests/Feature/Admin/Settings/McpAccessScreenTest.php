@@ -23,7 +23,7 @@ beforeEach(function () {
  */
 function snippet(string $html, string $key): string
 {
-    preg_match('/data-snippet="'.$key.'"[^>]*>(.*?)<\/pre>/s', $html, $matches);
+    preg_match('/data-(?:guide-)?snippet="'.$key.'"[^>]*>(.*?)<\/pre>/s', $html, $matches);
 
     return html_entity_decode($matches[1] ?? '', ENT_QUOTES);
 }
