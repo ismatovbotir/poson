@@ -107,6 +107,7 @@ return [
         'quote' => 'Tijorat taklifi',
         'order' => 'Buyurtma',
         'payment' => 'Toʻlov',
+        'repair' => 'Taʼmirlash',
     ],
 
     'quote_status' => [
@@ -473,4 +474,31 @@ return [
         'open' => 'Ochiq',
         'closed' => 'Yopilgan',
     ],
+
+    'repair_status' => [
+        'received' => 'Qabul qilindi',
+        'diagnosing' => 'Diagnostika',
+        'awaiting_approval' => 'Kelishuv kutilmoqda',
+        'in_repair' => 'Taʼmirda',
+        'awaiting_parts' => 'Ehtiyot qism kutilmoqda',
+        'ready' => 'Topshirishga tayyor',
+        'delivered' => 'Topshirildi',
+        'cancelled' => 'Bekor qilindi',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Pullik',
+        'warranty' => 'Kafolat',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Shtrix-kod skaneri',
+        'label_printer' => 'Yorliq printeri',
+        'receipt_printer' => 'Chek printeri',
+        'mobile_computer' => 'Maʼlumot yigʻish terminali (TSD)',
+        'rfid' => 'RFID uskunasi',
+        'pos' => 'POS uskunasi',
+        'other' => 'Boshqa qurilma',
+    ],
+
 ];

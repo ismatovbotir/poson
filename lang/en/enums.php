@@ -107,6 +107,7 @@ return [
         'quote' => 'Quote',
         'order' => 'Order',
         'payment' => 'Payment',
+        'repair' => 'Repair',
     ],
 
     'quote_status' => [
@@ -473,4 +474,31 @@ return [
         'open' => 'Open',
         'closed' => 'Closed',
     ],
+
+    'repair_status' => [
+        'received' => 'Received',
+        'diagnosing' => 'Diagnosing',
+        'awaiting_approval' => 'Awaiting approval',
+        'in_repair' => 'In repair',
+        'awaiting_parts' => 'Awaiting parts',
+        'ready' => 'Ready for pickup',
+        'delivered' => 'Delivered',
+        'cancelled' => 'Cancelled',
+    ],
+
+    'repair_coverage' => [
+        'paid' => 'Paid',
+        'warranty' => 'Warranty',
+    ],
+
+    'repair_device_type' => [
+        'scanner' => 'Barcode scanner',
+        'label_printer' => 'Label printer',
+        'receipt_printer' => 'Receipt printer',
+        'mobile_computer' => 'Mobile computer',
+        'rfid' => 'RFID equipment',
+        'pos' => 'POS equipment',
+        'other' => 'Other device',
+    ],
+
 ];
