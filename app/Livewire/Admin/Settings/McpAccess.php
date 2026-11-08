@@ -57,6 +57,9 @@ class McpAccess extends Component
      */
     public const MCP_REMOTE_VERSION = '0.1.16';
 
+    /** MCP protocol version used by the copy-paste connection test (checked against the installed laravel/mcp in a test). */
+    public const MCP_PROTOCOL_VERSION = '2025-06-18';
+
     #[Url]
     public string $tab = 'access';
 
@@ -320,7 +323,6 @@ class McpAccess extends Component
             'revealedToken' => $this->revealedToken,
             'revealedLabel' => $this->revealedLabel,
             'endpoint' => $endpoint,
-            'mcpRemoteVersion' => self::MCP_REMOTE_VERSION,
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'managementConfigured' => McpAlerts::isConfigured(),
             'isProduction' => app()->isProduction(),
