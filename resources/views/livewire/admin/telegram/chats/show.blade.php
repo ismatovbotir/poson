@@ -6,7 +6,7 @@
 <div @if ($polling) wire:poll.10s.visible="refreshThread" @endif data-telegram-chat="{{ $conversation->id }}">
     <x-admin.page-header :title="$name !== '' ? $name : __($t.'.unnamed')" :subtitle="__($t.'.show.subtitle', ['id' => $conversation->id])">
         <x-slot:breadcrumbs>
-            {{ __('menu.groups.telegram') }} <span class="text-slate-300">/</span>
+            {{ __('menu.groups.chatbot') }} <span class="text-slate-300">/</span>
             <a href="{{ route('admin.telegram.chats') }}" wire:navigate class="hover:text-brand-700">{{ __($t.'.title') }}</a>
             <span class="text-slate-300">/</span> #{{ $conversation->id }}
         </x-slot:breadcrumbs>

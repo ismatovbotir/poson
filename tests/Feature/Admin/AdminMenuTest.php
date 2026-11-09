@@ -54,7 +54,8 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'service' => ['service-requests', 'repairs'],
         'content' => ['pages', 'news', 'articles', 'banners'],
         'seo' => ['sitemap'],
-        'telegram' => ['telegram-status', 'telegram-bot', 'telegram-mini-app', 'telegram-chats', 'telegram-settings'],
+        'telegram' => ['telegram-status', 'telegram-bot', 'telegram-mini-app', 'telegram-settings'],
+        'chatbot' => ['telegram-chats', 'chatbot-rules', 'chatbot-unmatched', 'chatbot-console', 'chatbot-stats', 'chatbot-settings', 'chatbot-help'],
         'settings' => ['company', 'users', 'checkout', 'indexing', 'integrations', 'api-tokens', 'mcp'],
         'system' => ['monitoring', 'commands'],
     ]],
@@ -63,7 +64,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'sales' => ['leads', 'customers', 'quotes', 'orders', 'payments'],
         'catalog' => $catalogItems,
         'service' => ['service-requests', 'repairs'],
-        'telegram' => ['telegram-chats'],
+        'chatbot' => ['telegram-chats', 'chatbot-help'],
     ]],
     'service engineer' => [Role::ServiceEngineer, [
         'dashboard' => ['dashboard'],
@@ -76,6 +77,7 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'catalog' => $catalogItems,
         'content' => ['pages', 'news', 'articles', 'banners'],
         'seo' => ['sitemap'],
+        'chatbot' => ['chatbot-rules', 'chatbot-unmatched', 'chatbot-console', 'chatbot-stats', 'chatbot-settings', 'chatbot-help'],
     ]],
 ]);
 
@@ -253,3 +255,27 @@ it('never shows telegram-settings through telegram.bot alone', function () {
 it('gives content manager and service engineer none of the new telegram items', function (Role $role) {
     expect(menuTree($role))->not->toHaveKey('telegram');
 })->with([Role::ContentManager, Role::ServiceEngineer]);
+
+it('moves the inbox into the Chat bot group and keeps its route and badge key', function () {
+    $tree = menuTree(Role::Admin);
+
+    expect($tree['chatbot'])->toContain('telegram-chats')
+        ->and($tree['telegram'])->not->toContain('telegram-chats');
+
+    $html = $this->actingAs(staffUser(Role::SalesManager))->get(route('admin.telegram.chats'))->assertOk()->getContent();
+
+    expect(menuGroupStates($html))->toHaveKey('chatbot', 'true')
+        ->and(menuItemHtml($html, 'telegram-chats'))->toContain('href="'.route('admin.telegram.chats').'"');
+});
+
+it('shows the Instructions item to anyone with a chat bot permission and nobody else', function () {
+    $user = staffUser(Role::ServiceEngineer);
+
+    expect(collect(Menu::for($user))->pluck('key')->all())->not->toContain('chatbot');
+
+    $user->givePermissionTo('telegram.inbox');
+    $user = $user->fresh();
+
+    expect(menuTree(Role::ServiceEngineer))->not->toHaveKey('chatbot')
+        ->and(collect(Menu::for($user))->firstWhere('key', 'chatbot')->items[0]->key)->toBe('telegram-chats');
+});
