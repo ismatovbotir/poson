@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('normalized', 120);
             $table->string('sample', 200);
             $table->unsignedInteger('count')->default(1);
-            $table->timestamp('first_seen_at');
-            $table->timestamp('last_seen_at');
+            $table->timestamp('first_seen_at')->useCurrent();
+            $table->timestamp('last_seen_at')->useCurrent();
             $table->timestamp('resolved_at')->nullable();
             $table->foreignId('resolved_rule_id')->nullable()->constrained('chat_rules')->nullOnDelete();
             $table->timestamps();
