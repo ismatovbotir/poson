@@ -124,6 +124,11 @@ return [
         'legal' => 'Юридический документ',
     ],
 
+    'ai_field_kind' => [
+        'plain' => 'Обычный текст',
+        'html' => 'HTML',
+    ],
+
     'news_kind' => [
         'news' => 'Новость',
         'article' => 'Статья',

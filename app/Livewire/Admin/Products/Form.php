@@ -6,10 +6,12 @@ use App\Actions\Catalog\CreateAttributeOption;
 use App\Actions\Catalog\DeleteProduct;
 use App\Actions\Catalog\SaveProduct;
 use App\Actions\Catalog\UnlinkProductPriceSync;
+use App\Enums\AiFieldKind;
 use App\Enums\AttributeType;
 use App\Enums\ProductPricingUnit;
 use App\Enums\ProductType;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Products\ProductForm;
 use App\Models\Attribute;
 use App\Models\Brand;
@@ -20,6 +22,7 @@ use App\Support\Admin\PasswordConfirmation;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ResolvedAttribute;
+use App\Support\Content\AiFill\AiField;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -43,7 +46,7 @@ use Livewire\Component;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors;
+    use HandlesActionErrors, WithAiFill;
 
     #[Locked]
     public ?Product $product = null;
@@ -430,6 +433,62 @@ class Form extends Component
 
         session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => __('admin.products.moved_to_trash', ['name' => $this->product->name]), 'type' => 'success']);
         $this->redirectRoute('admin.products.index', navigate: true);
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('name', 'admin.catalog.name', AiFieldKind::Plain, 255, uzRequired: true, hint: 'Product name: brand, model and type, as a customer would search for it.'),
+            new AiField('short_description', 'admin.products.fields.short_description', AiFieldKind::Plain, 500, hint: 'One or two sentences for the product card.', multiline: true),
+            new AiField('description', 'admin.products.fields.description', AiFieldKind::Html, 50000, hint: 'Full description from the facts given; no specification tables unless the facts are in the data.'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, 255, hint: 'Search result title.'),
+            new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        $categoryId = (int) $this->form->category_id;
+        $brandId = (int) $this->form->brand_id;
+
+        return [
+            'sku' => mb_substr($this->form->sku, 0, 100),
+            'model' => mb_substr($this->form->model, 0, 100),
+            'type' => ProductType::tryFrom($this->form->type)?->value,
+            'brand' => $brandId > 0 ? Brand::query()->whereKey($brandId)->value('name') : null,
+            'category path' => $categoryId > 0 && CategoryTree::find($categoryId) !== null ? CategoryTree::path($categoryId, 'en') : null,
+            'key specifications' => $this->product === null ? [] : $this->product->keySpecValues()
+                ->with(['attribute', 'option'])
+                ->orderBy('sort')
+                ->limit(8)
+                ->get()
+                ->map(fn ($value): string => $value->attribute->name.': '.$value->displayValue())
+                ->filter(fn (string $line): bool => ! str_ends_with($line, ': '))
+                ->values()
+                ->all(),
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return 'product';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->product) {
+            $this->authorize('update', $this->product);
+        } else {
+            $this->authorize('create', Product::class);
+        }
+
+        $this->authorize('useType', [Product::class, ProductType::tryFrom($this->form->type) ?? abort(403)]);
     }
 
     public function render(): View

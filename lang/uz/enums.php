@@ -124,6 +124,11 @@ return [
         'legal' => 'Yuridik hujjat',
     ],
 
+    'ai_field_kind' => [
+        'plain' => 'Oddiy matn',
+        'html' => 'HTML',
+    ],
+
     'news_kind' => [
         'news' => 'Yangilik',
         'article' => 'Maqola',

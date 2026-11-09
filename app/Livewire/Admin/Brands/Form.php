@@ -5,12 +5,16 @@ namespace App\Livewire\Admin\Brands;
 use App\Actions\Catalog\DeleteBrand;
 use App\Actions\Catalog\SaveBrand;
 use App\Actions\Catalog\UpdateCatalogImage;
+use App\Enums\AiFieldKind;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
+use App\Support\Content\AiFill\AiField;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -21,8 +25,9 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiFill, WithFileUploads;
 
+    #[Locked]
     public ?Brand $brand = null;
 
     public BrandForm $form;
@@ -106,6 +111,44 @@ class Form extends Component
         if ($this->runToastAction(fn () => $deleteBrand->handle($this->brand))) {
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => $this->brand->name, 'type' => 'success']);
             $this->redirectRoute('admin.brands.index', navigate: true);
+        }
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('description', 'admin.catalog.description', AiFieldKind::Html, 20000, hint: 'About the brand and what Poson offers from it (selection, setup, warranty, service).'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, Brand::META_TITLE_MAX, hint: 'Search result title.'),
+            new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, Brand::META_DESCRIPTION_MAX, hint: 'Search result snippet.', multiline: true),
+            new AiField('logo_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the brand logo image.'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        return [
+            'brand name' => $this->form->name,
+            'website' => mb_substr($this->form->website, 0, 200),
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return 'brand page';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->brand) {
+            $this->authorize('update', $this->brand);
+        } else {
+            $this->authorize('create', Brand::class);
         }
     }
 

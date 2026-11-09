@@ -4,11 +4,14 @@ namespace App\Livewire\Admin\Banners;
 
 use App\Actions\Banners\DeleteBanner;
 use App\Actions\Banners\SaveBanner;
+use App\Enums\AiFieldKind;
 use App\Enums\BannerPlacement;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Banners\BannerForm;
 use App\Models\Banner;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Content\AiFill\AiField;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -26,7 +29,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiFill, WithFileUploads;
 
     #[Locked]
     public ?Banner $banner = null;
@@ -138,6 +141,44 @@ class Form extends Component
         if ($this->runToastAction(fn () => $deleteBanner->handle($this->banner))) {
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => (string) $this->banner->title, 'type' => 'success']);
             $this->redirectRoute('admin.banners.index', navigate: true);
+        }
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('title', 'admin.banners.fields.title', AiFieldKind::Plain, Banner::TITLE_MAX, uzRequired: true, hint: 'Short headline on the banner.'),
+            new AiField('text', 'admin.banners.fields.text', AiFieldKind::Plain, Banner::TEXT_MAX, hint: 'One short supporting sentence.', multiline: true),
+            new AiField('button_label', 'admin.banners.fields.button_label', AiFieldKind::Plain, Banner::BUTTON_MAX, hint: 'Button text, one to three words.'),
+            new AiField('desktop_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the desktop banner image.'),
+            new AiField('mobile_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the mobile banner image.'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        return [
+            'placement' => BannerPlacement::tryFrom($this->form->placement)?->value,
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return 'website banner';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->banner) {
+            $this->authorize('update', $this->banner);
+        } else {
+            $this->authorize('create', Banner::class);
         }
     }
 

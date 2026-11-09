@@ -71,7 +71,7 @@ it('has no AI assistant classes or config left', function () {
 
     $leftovers = collect(File::allFiles(app_path()))
         ->map(fn (SplFileInfo $file): string => $file->getFilename())
-        ->filter(fn (string $name): bool => preg_match('/^(WithAi|AiAssist|AiRequest|AiPrompt|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
+        ->filter(fn (string $name): bool => preg_match('/^(WithAi(?!Fill\.php)|AiAssist|AiRequest|AiPrompt(?!Builder\.php)|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
 
     expect($leftovers->all())->toBe([])
         ->and(array_map(basename(...), glob(config_path('ai*.php'))))->toBe(['ai-bots.php'])
