@@ -5,6 +5,7 @@ namespace App\Livewire\Forms\Admin\Pages;
 use App\Enums\PageTemplate;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
+use App\Support\Content\ContentLimits;
 use App\Support\Slug;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -79,18 +80,18 @@ class PageForm extends Form
         $system = (bool) $this->component->page?->is_system;
 
         return [
-            'title.uz' => ['required', 'string', 'max:255', new BrandSafeText],
-            'title.ru' => ['nullable', 'string', 'max:255', new BrandSafeText],
-            'title.en' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'title.uz' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
+            'title.ru' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
+            'title.en' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
             'body.*' => ['nullable', 'string', 'max:'.Page::BODY_MAX],
-            'meta_title.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'meta_title.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
             'meta_description.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
             'template' => $system ? ['nullable'] : ['required', Rule::enum(PageTemplate::class)],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
             'needs_review' => ['boolean'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'image_alt.*' => ['nullable', 'string', 'max:255'],
+            'image_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
         ];
     }
 

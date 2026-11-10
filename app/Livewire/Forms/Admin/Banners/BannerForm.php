@@ -6,6 +6,7 @@ use App\Enums\BannerPlacement;
 use App\Models\Banner;
 use App\Rules\BannerLink;
 use App\Rules\BrandSafeText;
+use App\Support\Content\ContentLimits;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -109,9 +110,9 @@ class BannerForm extends Form
             'ends_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX, ...(trim($this->starts_at) !== '' ? ['after:starts_at'] : [])],
             'is_active' => ['boolean'],
             'desktop' => [$hasDesktop ? 'nullable' : 'required', ...$image, 'dimensions:min_width='.Banner::DESKTOP_MEDIUM_WIDTH.',min_height='.Banner::DESKTOP_MEDIUM_HEIGHT],
-            'desktop_alt.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'desktop_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
             'mobile' => ['nullable', ...$image, 'dimensions:min_width=640,min_height=480'],
-            'mobile_alt.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'mobile_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
         ];
     }
 

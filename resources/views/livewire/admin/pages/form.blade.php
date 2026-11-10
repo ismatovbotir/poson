@@ -31,7 +31,6 @@
                 <x-admin.ai-fill :open="$aiPromptOpen" :prompt="$this->aiPrompt" :report="$aiReport" />
             @endif
 
-
             {{-- Content --}}
             <x-admin.card :title="__('admin.pages.content')">
                 <x-admin.locale-tabs :error-keys="['form.title', 'form.body']" :label="__('admin.form.content_language')">

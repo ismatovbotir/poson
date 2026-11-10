@@ -23,6 +23,7 @@ use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -441,10 +442,10 @@ class Form extends Component
     protected function aiFields(): array
     {
         return [
-            new AiField('name', 'admin.catalog.name', AiFieldKind::Plain, 255, uzRequired: true, hint: 'Product name: brand, model and type, as a customer would search for it.'),
+            new AiField('name', 'admin.catalog.name', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Product name: brand, model and type, as a customer would search for it.'),
             new AiField('short_description', 'admin.products.fields.short_description', AiFieldKind::Plain, 500, hint: 'One or two sentences for the product card.', multiline: true),
-            new AiField('description', 'admin.products.fields.description', AiFieldKind::Html, 50000, hint: 'Full description from the facts given; no specification tables unless the facts are in the data.'),
-            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, 255, hint: 'Search result title.'),
+            new AiField('description', 'admin.products.fields.description', AiFieldKind::Html, Product::DESCRIPTION_MAX, hint: 'Full description from the facts given; no specification tables unless the facts are in the data.'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
             new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
         ];
     }

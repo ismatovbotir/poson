@@ -59,8 +59,9 @@ class AiAnswerParser
     public static function cleanCharacters(string $text): string
     {
         $text = str_replace(["\r\n", "\r", "\u{2028}", "\u{2029}"], "\n", $text);
+        $text = str_replace(["\u{00A0}", "\u{202F}"], ' ', $text);
 
-        return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $text);
+        return (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\x{202A}-\x{202E}\x{2066}-\x{2069}\x{00AD}\x{200B}-\x{200F}\x{2060}-\x{2064}\x{FEFF}]/u', '', $text);
     }
 
     /**
@@ -232,7 +233,9 @@ class AiAnswerParser
 
         $paragraphs = preg_split('/\n{2,}/', $clean) ?: [$clean];
 
-        return implode('', array_map(fn (string $paragraph): string => '<p>'.trim($paragraph).'</p>', array_filter($paragraphs, fn (string $paragraph): bool => trim($paragraph) !== '')));
+        $wrapped = implode('', array_map(fn (string $paragraph): string => '<p>'.trim($paragraph).'</p>', array_filter($paragraphs, fn (string $paragraph): bool => trim($paragraph) !== '')));
+
+        return HtmlSanitizer::clean($wrapped);
     }
 
     /**

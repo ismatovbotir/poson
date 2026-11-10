@@ -66,6 +66,17 @@ it('2: lets a service engineer fill software and service products only', functio
     }
 });
 
+it('2: rejects a tampered product type on the edit screen of a service product', function (string $type) {
+    $this->actingAs(staffUser(Role::ServiceEngineer));
+    $service = Product::factory()->service()->create();
+    $open = fn () => Livewire::test(ProductForm::class, ['product' => $service])->set('form.type', $type);
+
+    $open()->call('applyAiAnswer', aiAnswer(['name' => ['uz' => 'Hacked']]))->assertForbidden();
+    $open()->call('toggleAiPrompt')->assertForbidden();
+
+    expect($service->fresh()->getTranslation('name', 'uz'))->not->toBe('Hacked');
+})->with(['hardware', 'consumable', 'bogus']);
+
 it('2: rejects a tampered or unknown product type on the create screen', function (string $type) {
     $this->actingAs(staffUser(Role::ServiceEngineer));
 
@@ -156,15 +167,16 @@ it('5: answers hostile payloads with one fixed error and writes nothing', functi
     'non-string values' => ['{"title":{"uz":["x"],"ru":{"a":1},"en":12}}'],
 ]);
 
-it('5: handles a non-boolean onlyEmpty flag without an error', function () {
+it('5: keeps existing text for any onlyEmpty value but a literal false', function (mixed $flag) {
     $this->actingAs(staffUser());
     $page = Page::factory()->create();
 
     Livewire::test(PageForm::class, ['page' => $page])
-        ->call('applyAiAnswer', aiAnswer(['title' => ['en' => 'From AI']]), 'yes')
+        ->set('form.title.en', 'Existing')
+        ->call('applyAiAnswer', aiAnswer(['title' => ['en' => 'From AI']]), $flag)
         ->assertOk()
-        ->assertSet('form.title.en', 'From AI');
-});
+        ->assertSet('form.title.en', 'Existing');
+})->with(['yes', 1, 'false', 'true', null, ['x']]);
 
 // 6. Markup in the answer never survives.
 it('6: strips scripts, handlers, javascript links, svg and images from html fields', function () {
@@ -247,6 +259,21 @@ it('8: throttles the 21st apply and not other users', function () {
     Livewire::test(BrandForm::class, ['brand' => $brand])
         ->call('applyAiAnswer', aiAnswer(['meta_title' => ['en' => 'Other user']]), false)
         ->assertSet('form.meta_title.en', 'Other user');
+});
+
+it('8: throttles calls made in one request (a batch) the same way', function () {
+    $this->actingAs(staffUser());
+    $brand = Brand::factory()->create();
+
+    // Livewire's test client sends one call per request, so the batch is
+    // simulated by calling the action 25 times on the one component instance.
+    $instance = Livewire::test(BrandForm::class, ['brand' => $brand])->instance();
+
+    foreach (range(1, 25) as $i) {
+        $instance->applyAiAnswer(aiAnswer(['meta_title' => ['en' => "Batch {$i}"]]), false);
+    }
+
+    expect($instance->form->meta_title['en'])->toBe('Batch 20');
 });
 
 it('8: throttles prompt toggles too', function () {

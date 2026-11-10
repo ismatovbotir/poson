@@ -16,6 +16,7 @@ use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -275,12 +276,12 @@ class Form extends Component
     protected function aiFields(): array
     {
         return [
-            new AiField('title', 'admin.news.fields.title', AiFieldKind::Plain, 255, uzRequired: true, hint: 'Headline.'),
+            new AiField('title', 'admin.news.fields.title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Headline.'),
             new AiField('excerpt', 'admin.news.fields.excerpt', AiFieldKind::Plain, 500, hint: 'Short summary shown in lists.', multiline: true),
             new AiField('body', 'admin.news.fields.body', AiFieldKind::Html, NewsPost::BODY_MAX, hint: $this->kind() === NewsKind::Article ? 'A useful, evergreen article (buying guide or how-to).' : 'A dated company news post.'),
-            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, 255, hint: 'Search result title.'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
             new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
-            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the cover image.'),
+            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the cover image.'),
         ];
     }
 

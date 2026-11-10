@@ -4,6 +4,7 @@ namespace App\Livewire\Forms\Admin\Categories;
 
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Content\ContentLimits;
 use App\Support\Slug;
 use Closure;
 use Illuminate\Validation\Rule;
@@ -95,11 +96,11 @@ class CategoryForm extends Form
         $categoryId = $this->component->category?->id;
 
         return [
-            'name.uz' => ['required', 'string', 'max:255'],
-            'name.ru' => ['nullable', 'string', 'max:255'],
-            'name.en' => ['nullable', 'string', 'max:255'],
-            'description.*' => ['nullable', 'string', 'max:20000'],
-            'meta_title.*' => ['nullable', 'string', 'max:255'],
+            'name.uz' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'name.ru' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'name.en' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'description.*' => ['nullable', 'string', 'max:'.Category::DESCRIPTION_MAX],
+            'meta_title.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
             'meta_description.*' => ['nullable', 'string', 'max:500'],
             'parent_id' => [
                 'nullable',
@@ -115,7 +116,7 @@ class CategoryForm extends Form
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'image_alt.*' => ['nullable', 'string', 'max:255'],
+            'image_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
             'specs' => ['array', 'max:200'],
             'specs.*.attribute_id' => ['required', 'integer', 'distinct', Rule::exists('attributes', 'id')],
             'specs.*.is_required' => ['boolean'],

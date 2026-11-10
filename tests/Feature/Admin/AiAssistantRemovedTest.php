@@ -69,6 +69,8 @@ it('has no AI assistant classes or config left', function () {
         expect(is_dir(app_path($directory)))->toBeFalse();
     }
 
+    // The two lookaheads let the Plan 29 files through (WithAiFill trait, AiPromptBuilder):
+    // they only build prompt text and parse a pasted answer; no AI runs in the app.
     $leftovers = collect(File::allFiles(app_path()))
         ->map(fn (SplFileInfo $file): string => $file->getFilename())
         ->filter(fn (string $name): bool => preg_match('/^(WithAi(?!Fill\.php)|AiAssist|AiRequest|AiPrompt(?!Builder\.php)|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
@@ -121,4 +123,18 @@ describe('brand rule on content forms', function () {
 
         expectBrandSafeError($component, 'form.title.uz');
     });
+});
+
+it('keeps the AI-fill support code free of HTTP calls and AI hosts', function () {
+    $files = [...File::allFiles(app_path('Support/Content/AiFill')), new SplFileInfo(app_path('Livewire/Admin/Concerns/WithAiFill.php'))];
+
+    expect($files)->not->toBeEmpty();
+
+    foreach ($files as $file) {
+        $code = strtolower(File::get($file->getPathname()));
+
+        foreach (['http::', 'curl', 'guzzle', 'openai', 'anthropic', 'googleapis', 'file_get_contents('] as $needle) {
+            expect($code)->not->toContain($needle, "{$file->getFilename()} contains {$needle}");
+        }
+    }
 });

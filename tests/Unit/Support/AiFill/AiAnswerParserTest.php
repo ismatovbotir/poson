@@ -131,7 +131,7 @@ it('removes control and bidi characters and normalises line breaks', function ()
     $dirty = "A\u{0000}B\u{202E}C\u{2066}D\u{0085}E\u{200B}F\r\nG\rH";
     $result = parseAi(json_encode(['note' => ['en' => $dirty], 'name' => ['en' => "one\ntwo \t three"]]));
 
-    expect($result->values['note']['en'])->toBe("ABCDE\u{200B}F\nG\nH")
+    expect($result->values['note']['en'])->toBe("ABCDEF\nG\nH")
         ->and($result->values['name']['en'])->toBe('one two three');
 });
 
@@ -174,3 +174,19 @@ it('reports at most ten messages', function () {
 
     expect(count(parseAi(json_encode($answer))->warnings))->toBeLessThanOrEqual(10);
 });
+
+it('strips invisible characters and maps no-break spaces so banned wording cannot hide', function (string $text) {
+    $result = parseAi(json_encode(['note' => ['en' => $text, 'ru' => $text, 'uz' => $text]]));
+
+    expect($result->values)->toBe([])
+        ->and(aiErrorMessages($result))->toBe(array_fill(0, 3, 'admin.ai_fill.errors.brand_unsafe'));
+})->with([
+    'soft hyphen' => ["ar\u{00AD}zon narx"],
+    'zero width space' => ["cheg\u{200B}irma bor"],
+    'zero width joiner' => ["ски\u{200D}дки"],
+    'direction mark' => ["arz\u{200E}on"],
+    'word joiner' => ["chegir\u{2060}ma"],
+    'bom' => ["\u{FEFF}скидки"],
+    'no-break space' => ["цена\u{00A0}ниже"],
+    'narrow no-break space' => ["low\u{202F}price"],
+]);

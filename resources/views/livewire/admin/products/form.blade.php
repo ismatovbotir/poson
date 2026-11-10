@@ -78,7 +78,6 @@
                 <x-admin.ai-fill :open="$aiPromptOpen" :prompt="$this->aiPrompt" :report="$aiReport" />
             @endif
 
-
             {{-- Main --}}
             <x-admin.card id="s-main" class="scroll-mt-32" :title="__('admin.catalog.basic_info')">
                 <x-admin.locale-tabs :error-keys="['form.name', 'form.short_description', 'form.description']" :label="__('admin.form.content_language')">

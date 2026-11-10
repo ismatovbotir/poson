@@ -12,6 +12,7 @@ use App\Livewire\Forms\Admin\Banners\BannerForm;
 use App\Models\Banner;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -153,8 +154,8 @@ class Form extends Component
             new AiField('title', 'admin.banners.fields.title', AiFieldKind::Plain, Banner::TITLE_MAX, uzRequired: true, hint: 'Short headline on the banner.'),
             new AiField('text', 'admin.banners.fields.text', AiFieldKind::Plain, Banner::TEXT_MAX, hint: 'One short supporting sentence.', multiline: true),
             new AiField('button_label', 'admin.banners.fields.button_label', AiFieldKind::Plain, Banner::BUTTON_MAX, hint: 'Button text, one to three words.'),
-            new AiField('desktop_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the desktop banner image.'),
-            new AiField('mobile_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the mobile banner image.'),
+            new AiField('desktop_alt', 'admin.banners.fields.desktop_alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the desktop banner image.'),
+            new AiField('mobile_alt', 'admin.banners.fields.mobile_alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the mobile banner image.'),
         ];
     }
 

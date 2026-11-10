@@ -124,7 +124,7 @@ trait WithAiFill
     /**
      * Parse the pasted answer and write the valid values into the form.
      * Arguments come from the browser: anything but a string is rejected,
-     * and only a literal true for $onlyEmpty keeps filled fields.
+     * and only a literal false for $onlyEmpty overwrites filled fields.
      */
     public function applyAiAnswer(mixed $json, mixed $onlyEmpty = true): void
     {
@@ -165,7 +165,7 @@ trait WithAiFill
             foreach ($locales as $locale => $text) {
                 $path = "{$fieldKey}.{$locale}";
 
-                if ($onlyEmpty === true && ! $this->aiFieldIsEmpty((string) data_get($this->{$property}, $path, ''))) {
+                if ($onlyEmpty !== false && ! $this->aiFieldIsEmpty((string) data_get($this->{$property}, $path, ''))) {
                     $skipped++;
 
                     continue;

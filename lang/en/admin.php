@@ -863,6 +863,8 @@ return [
             'is_active' => 'Active',
             'desktop' => 'Desktop image',
             'mobile' => 'Mobile image',
+            'desktop_alt' => 'Desktop image alt text',
+            'mobile_alt' => 'Mobile image alt text',
         ],
         'content' => 'Texts',
         'content_help' => 'Shown over the image. The Uzbek title is required; Russian and English fall back to Uzbek.',

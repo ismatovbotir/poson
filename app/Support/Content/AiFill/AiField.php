@@ -18,6 +18,7 @@ final readonly class AiField
         public AiFieldKind $kind,
         public int $max,
         public bool $uzRequired = false,
+        /** English on purpose: hints appear only in the (English) prompt. */
         public ?string $hint = null,
         public bool $multiline = false,
     ) {}

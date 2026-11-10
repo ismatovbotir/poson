@@ -863,6 +863,8 @@ return [
             'is_active' => 'Faol',
             'desktop' => 'Kompyuter uchun rasm',
             'mobile' => 'Telefon uchun rasm',
+            'desktop_alt' => 'Kompyuter rasmi alt matni',
+            'mobile_alt' => 'Telefon rasmi alt matni',
         ],
         'content' => 'Matnlar',
         'content_help' => 'Rasm ustida koʻrsatiladi. Oʻzbekcha sarlavha majburiy; ruscha va inglizcha boʻsh boʻlsa, oʻzbekchasi olinadi.',

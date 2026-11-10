@@ -11,6 +11,7 @@ use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
 use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -120,10 +121,10 @@ class Form extends Component
     protected function aiFields(): array
     {
         return [
-            new AiField('description', 'admin.catalog.description', AiFieldKind::Html, 20000, hint: 'About the brand and what Poson offers from it (selection, setup, warranty, service).'),
+            new AiField('description', 'admin.catalog.description', AiFieldKind::Html, Brand::DESCRIPTION_MAX, hint: 'About the brand and what Poson offers from it (selection, setup, warranty, service).'),
             new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, Brand::META_TITLE_MAX, hint: 'Search result title.'),
             new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, Brand::META_DESCRIPTION_MAX, hint: 'Search result snippet.', multiline: true),
-            new AiField('logo_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the brand logo image.'),
+            new AiField('logo_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the brand logo image.'),
         ];
     }
 

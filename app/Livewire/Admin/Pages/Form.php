@@ -12,6 +12,7 @@ use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Pages\PageForm;
 use App\Models\Page;
 use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -140,11 +141,11 @@ class Form extends Component
     protected function aiFields(): array
     {
         return [
-            new AiField('title', 'admin.pages.fields.title', AiFieldKind::Plain, 255, uzRequired: true, hint: 'Page title.'),
+            new AiField('title', 'admin.pages.fields.title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Page title.'),
             new AiField('body', 'admin.pages.fields.body', AiFieldKind::Html, Page::BODY_MAX, hint: 'Page text with headings. Legal pages must stay neutral and general.'),
-            new AiField('meta_title', 'admin.pages.fields.meta_title', AiFieldKind::Plain, 255, hint: 'Search result title.'),
+            new AiField('meta_title', 'admin.pages.fields.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
             new AiField('meta_description', 'admin.pages.fields.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
-            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, 255, hint: 'Alt text of the cover image.'),
+            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the cover image.'),
         ];
     }
 
