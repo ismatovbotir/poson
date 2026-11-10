@@ -3,9 +3,11 @@
 namespace App\Livewire\Admin\Chatbot;
 
 use App\Actions\Chat\SaveChatbotSettings;
+use App\Enums\ChatChannel;
 use App\Enums\Role;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Forms\Admin\Chatbot\SettingsForm;
+use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
@@ -69,6 +71,10 @@ class Settings extends Component
         return view('livewire.admin.chatbot.settings', [
             'isAdmin' => $this->isAdmin(),
             'privacyReady' => ChatSettings::privacyReady(),
+            'paused' => [
+                'telegram' => ChatbotSwitch::isStored(ChatChannel::Telegram) && ! ChatbotSwitch::isEnabled(ChatChannel::Telegram),
+                'web' => ChatbotSwitch::isStored(ChatChannel::Web) && ! ChatbotSwitch::isEnabled(ChatChannel::Web),
+            ],
             'webReady' => (bool) config('chatbot.web_ready'),
             'days' => ChatSettings::DAYS,
         ])->title(__('chatbot_admin.settings.title'));

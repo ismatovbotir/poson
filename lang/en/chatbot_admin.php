@@ -174,6 +174,7 @@ return [
         'web_enabled_hint' => 'The website widget arrives in a later phase; the switch is ready in advance.',
         'web_not_ready' => 'The website chat is not launched yet: it cannot be switched on.',
         'live_note' => 'The texts, working hours, hand-off and widget options apply once the bot goes live: the bot does not read them yet.',
+        'paused' => 'On, but paused: the privacy page is not published or is under review. The bot stays quiet until it is ready; you can switch it off.',
         'on' => 'On',
         'off' => 'Off',
         'admin_only' => 'Only an Admin can switch channels on or off.',

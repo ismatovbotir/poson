@@ -175,6 +175,10 @@ class SaveChatbotSettings
 
     private function text(mixed $value, string $field): string
     {
+        if (is_string($value) && ! mb_check_encoding($value, 'UTF-8')) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_plain')]);
+        }
+
         // Format characters (bidi overrides, zero-width) are stripped, never stored (CB-19).
         $text = is_string($value) ? trim(str_replace("\r\n", "\n", (string) preg_replace('/\p{Cf}/u', '', $value))) : '';
 

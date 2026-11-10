@@ -24,6 +24,14 @@
                     </p>
                 @endif
 
+                @foreach (['telegram' => $paused['telegram'], 'web' => $paused['web']] as $channelKey => $isPaused)
+                    @if ($isPaused)
+                        <p class="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="status" data-paused="{{ $channelKey }}">
+                            <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" /><span><strong>{{ __($t.'.'.$channelKey.'_enabled') }}:</strong> {{ __($t.'.paused') }}</span>
+                        </p>
+                    @endif
+                @endforeach
+
                 @if ($isAdmin)
                     <x-admin.toggle wire:model="form.telegram_enabled" :label="__($t.'.telegram_enabled')" :description="__($t.'.telegram_enabled_hint')" />
                     @if ($webReady)

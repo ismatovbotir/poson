@@ -174,6 +174,7 @@ return [
         'web_enabled_hint' => 'Sayt vidjeti keyingi bosqichda qoʻshiladi; kalit oldindan tayyor.',
         'web_not_ready' => 'Sayt chati hali ishga tushirilmagan: uni yoqib boʻlmaydi.',
         'live_note' => 'Matnlar, ish vaqti, uzatish va vidjet sozlamalari bot ishga tushganda qoʻllanadi: hozircha bot ularni oʻqimaydi.',
+        'paused' => 'Yoqilgan, ammo toʻxtatilgan: maxfiylik siyosati sahifasi nashr etilmagan yoki tekshiruvda. Sahifa tayyor boʻlguncha bot ishlamaydi; kalitni oʻchirib qoʻyishingiz mumkin.',
         'on' => 'Yoqilgan',
         'off' => 'Oʻchirilgan',
         'admin_only' => 'Kanallarni faqat Admin yoqadi yoki oʻchiradi.',

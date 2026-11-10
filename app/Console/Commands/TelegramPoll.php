@@ -7,6 +7,7 @@ use App\Actions\Telegram\HandleTelegramUpdate;
 use App\Actions\Telegram\TelegramUpdateFailed;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
+use App\Support\Chat\ChatbotSwitch;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -63,6 +64,9 @@ Refuses to run in production. Side effects: stores update ids and processes bot 
 
                 return self::FAILURE;
             }
+
+            // A long-lived loop must see a switch change made meanwhile.
+            ChatbotSwitch::forget();
 
             foreach ($updates as $update) {
                 $updateId = $update['update_id'] ?? null;

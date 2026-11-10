@@ -53,8 +53,9 @@ class SettingsForm extends Form
     {
         $settings = ChatSettings::all();
 
-        $this->web_enabled = ChatbotSwitch::isEnabled(ChatChannel::Web);
-        $this->telegram_enabled = ChatbotSwitch::isEnabled(ChatChannel::Telegram);
+        // The stored state (what an Admin saved), so a switch paused by the privacy gate can still be cleared.
+        $this->web_enabled = ChatbotSwitch::isStored(ChatChannel::Web);
+        $this->telegram_enabled = ChatbotSwitch::isStored(ChatChannel::Telegram);
         $this->loaded = ['web_enabled' => $this->web_enabled, 'telegram_enabled' => $this->telegram_enabled];
         $this->texts = $settings['texts'];
         $this->use_company_hours = $settings['use_company_hours'];

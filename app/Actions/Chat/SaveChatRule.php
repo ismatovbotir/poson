@@ -161,6 +161,23 @@ class SaveChatRule
         return $urls;
     }
 
+    /**
+     * The text without Unicode format characters (category Cf: bidi overrides,
+     * zero-width). No regular expression (CB-1): the code points are checked one by one.
+     */
+    private function withoutFormatCharacters(string $text): string
+    {
+        $kept = '';
+
+        foreach (mb_str_split($text, 1, 'UTF-8') as $character) {
+            if (\IntlChar::charType(mb_ord($character, 'UTF-8')) !== \IntlChar::CHAR_CATEGORY_FORMAT_CHAR) {
+                $kept .= $character;
+            }
+        }
+
+        return $kept;
+    }
+
     private function key(mixed $value, ?ChatRule $rule): string
     {
         $key = is_string($value) ? trim($value) : '';
@@ -195,7 +212,16 @@ class SaveChatRule
      */
     private function plain(mixed $value, int $max, string $field, bool $required = false, bool $multiline = false, bool $brand = false): string
     {
-        $text = is_string($value) ? trim(str_replace("\r\n", "\n", $value)) : '';
+        if (is_string($value) && ! mb_check_encoding($value, 'UTF-8')) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_plain')]);
+        }
+
+        // Format characters (bidi overrides, zero-width) are stripped, never stored (CB-19).
+        if (is_string($value) && strlen($value) > $max * 8) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_too_long')]);
+        }
+
+        $text = is_string($value) ? trim(str_replace("\r\n", "\n", $this->withoutFormatCharacters($value))) : '';
 
         if ($text === '') {
             return $required
