@@ -6,17 +6,22 @@ use App\Actions\Catalog\DeleteCategory;
 use App\Actions\Catalog\SaveCategory;
 use App\Actions\Catalog\SyncCategoryAttributes;
 use App\Actions\Catalog\UpdateCatalogImage;
+use App\Enums\AiFieldKind;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Categories\CategoryForm;
 use App\Models\Attribute;
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -28,8 +33,9 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiFill, WithFileUploads;
 
+    #[Locked]
     public ?Category $category = null;
 
     public CategoryForm $form;
@@ -309,6 +315,46 @@ class Form extends Component
         if ($this->runToastAction(fn () => $deleteCategory->handle($this->category))) {
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => $this->category->name, 'type' => 'success']);
             $this->redirectRoute('admin.categories.index', navigate: true);
+        }
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('name', 'admin.catalog.name', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Category name as shown in the catalog menu.'),
+            new AiField('description', 'admin.catalog.description', AiFieldKind::Html, Category::DESCRIPTION_MAX, hint: 'Short introduction to the category for buyers: what it covers and how Poson helps to choose.'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
+            new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
+            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the category image.'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        $parentId = (int) $this->form->parent_id;
+
+        return [
+            'parent category path' => $parentId > 0 && CategoryTree::find($parentId) !== null ? CategoryTree::path($parentId, 'en') : null,
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return 'product category';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->category) {
+            $this->authorize('update', $this->category);
+        } else {
+            $this->authorize('create', Category::class);
         }
     }
 

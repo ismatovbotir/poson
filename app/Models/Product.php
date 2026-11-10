@@ -123,6 +123,11 @@ class Product extends Model implements HasMedia
     public const MAX_KEY_SPECS = 4;
 
     /**
+     * Longest description per locale (characters).
+     */
+    public const DESCRIPTION_MAX = 50000;
+
+    /**
      * @var list<string>
      */
     public array $translatable = ['name', 'short_description', 'description', 'meta_title', 'meta_description'];

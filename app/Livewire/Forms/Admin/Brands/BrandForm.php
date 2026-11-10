@@ -5,6 +5,7 @@ namespace App\Livewire\Forms\Admin\Brands;
 use App\Models\Brand;
 use App\Rules\BrandSafeText;
 use App\Rules\HttpsLink;
+use App\Support\Content\ContentLimits;
 use App\Support\Slug;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Form;
@@ -70,15 +71,15 @@ class BrandForm extends Form
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description.*' => ['nullable', 'string', 'max:20000', new BrandSafeText],
+            'name' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'description.*' => ['nullable', 'string', 'max:'.Brand::DESCRIPTION_MAX, new BrandSafeText],
             'meta_title.*' => ['nullable', 'string', 'max:'.Brand::META_TITLE_MAX, new BrandSafeText],
             'meta_description.*' => ['nullable', 'string', 'max:'.Brand::META_DESCRIPTION_MAX, new BrandSafeText],
             'website' => ['nullable', 'string', new HttpsLink],
             'is_active' => ['boolean'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'logo_alt.*' => ['nullable', 'string', 'max:255'],
+            'logo_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
         ];
     }
 

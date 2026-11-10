@@ -124,6 +124,11 @@ return [
         'legal' => 'Legal document',
     ],
 
+    'ai_field_kind' => [
+        'plain' => 'Plain text',
+        'html' => 'HTML',
+    ],
+
     'news_kind' => [
         'news' => 'News',
         'article' => 'Article',

@@ -12,6 +12,7 @@ use App\Enums\StockStatus;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Support\Catalog\ResolvedAttribute;
+use App\Support\Content\ContentLimits;
 use App\Support\Money;
 use App\Support\Orders\CheckoutSettings;
 use App\Support\Slug;
@@ -215,12 +216,12 @@ class ProductForm extends Form
         }];
 
         return [
-            'name.uz' => ['required', 'string', 'max:255'],
-            'name.ru' => ['nullable', 'string', 'max:255'],
-            'name.en' => ['nullable', 'string', 'max:255'],
+            'name.uz' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'name.ru' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
+            'name.en' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
             'short_description.*' => ['nullable', 'string', 'max:500'],
-            'description.*' => ['nullable', 'string', 'max:50000'],
-            'meta_title.*' => ['nullable', 'string', 'max:255'],
+            'description.*' => ['nullable', 'string', 'max:'.Product::DESCRIPTION_MAX],
+            'meta_title.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
             'meta_description.*' => ['nullable', 'string', 'max:500'],
             'type' => ['required', Rule::enum(ProductType::class)],
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],

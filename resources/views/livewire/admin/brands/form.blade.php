@@ -14,6 +14,10 @@
 
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
+            @if ($this->aiAvailable)
+                <x-admin.ai-fill :open="$aiPromptOpen" :prompt="$this->aiPrompt" :report="$aiReport" />
+            @endif
+
             <x-admin.card :title="__('admin.catalog.basic_info')">
                 <div class="space-y-5">
                     <x-admin.input wire:model.blur="form.name" :label="__('admin.catalog.name')" required maxlength="255" :hint="__('admin.brands.name_hint')" />

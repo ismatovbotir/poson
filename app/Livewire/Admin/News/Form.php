@@ -5,14 +5,18 @@ namespace App\Livewire\Admin\News;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Actions\News\DeleteNewsPost;
 use App\Actions\News\SaveNewsPost;
+use App\Enums\AiFieldKind;
 use App\Enums\NewsKind;
 use App\Enums\NewsStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\News\NewsPostForm;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,7 +40,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiFill, WithFileUploads;
 
     /**
      * Picker results shown per search.
@@ -263,6 +267,45 @@ class Form extends Component
         if ($this->runToastAction(fn () => $deletePost->handle($this->newsPost))) {
             session()->flash('toast', ['title' => __('admin.toast.deleted'), 'body' => (string) $this->newsPost->title, 'type' => 'success']);
             $this->redirectRoute($this->kind()->adminRoute('index'), navigate: true);
+        }
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('title', 'admin.news.fields.title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Headline.'),
+            new AiField('excerpt', 'admin.news.fields.excerpt', AiFieldKind::Plain, 500, hint: 'Short summary shown in lists.', multiline: true),
+            new AiField('body', 'admin.news.fields.body', AiFieldKind::Html, NewsPost::BODY_MAX, hint: $this->kind() === NewsKind::Article ? 'A useful, evergreen article (buying guide or how-to).' : 'A dated company news post.'),
+            new AiField('meta_title', 'admin.catalog.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
+            new AiField('meta_description', 'admin.catalog.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
+            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the cover image.'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        return [
+            'kind' => $this->kind()->value,
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return $this->kind() === NewsKind::Article ? 'knowledge article' : 'company news post';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->newsPost) {
+            $this->authorize('update', $this->newsPost);
+        } else {
+            $this->authorize('create', NewsPost::class);
         }
     }
 

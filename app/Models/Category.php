@@ -55,6 +55,11 @@ class Category extends Model implements HasMedia
     public const INDEXNOW_IGNORED = ['sort'];
 
     /**
+     * Longest description per locale (characters).
+     */
+    public const DESCRIPTION_MAX = 20000;
+
+    /**
      * Icon names of x-site.icon offered in the admin icon select.
      *
      * @var list<string>

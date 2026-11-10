@@ -18,6 +18,9 @@
 
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
+            @if ($this->aiAvailable)
+                <x-admin.ai-fill :open="$aiPromptOpen" :prompt="$this->aiPrompt" :report="$aiReport" />
+            @endif
 
             {{-- Texts --}}
             <x-admin.card :title="__('admin.banners.content')" :description="__('admin.banners.content_help')">

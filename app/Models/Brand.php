@@ -54,6 +54,11 @@ class Brand extends Model implements HasMedia
      */
     public const META_TITLE_MAX = 60;
 
+    /**
+     * Longest description per locale (characters).
+     */
+    public const DESCRIPTION_MAX = 20000;
+
     public const META_DESCRIPTION_MAX = 160;
 
     /**

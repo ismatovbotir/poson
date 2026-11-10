@@ -24,12 +24,12 @@ final class NewsPostRules
     public static function rules(): array
     {
         return [
-            'title.uz' => ['required', 'string', 'max:255', new BrandSafeText],
-            'title.ru' => ['nullable', 'string', 'max:255', new BrandSafeText],
-            'title.en' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'title.uz' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
+            'title.ru' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
+            'title.en' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
             'excerpt.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
             'body.*' => ['nullable', 'string', 'max:'.NewsPost::BODY_MAX],
-            'meta_title.*' => ['nullable', 'string', 'max:255', new BrandSafeText],
+            'meta_title.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
             'meta_description.*' => ['nullable', 'string', 'max:500', new BrandSafeText],
             'product_ids' => ['array', 'max:'.self::MAX_RELATED],
             'product_ids.*' => ['integer', 'distinct', Rule::exists('products', 'id')->whereNull('deleted_at')],

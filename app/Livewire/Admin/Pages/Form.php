@@ -5,10 +5,14 @@ namespace App\Livewire\Admin\Pages;
 use App\Actions\Catalog\UpdateCatalogImage;
 use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\SavePage;
+use App\Enums\AiFieldKind;
 use App\Enums\PageTemplate;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
+use App\Livewire\Admin\Concerns\WithAiFill;
 use App\Livewire\Forms\Admin\Pages\PageForm;
 use App\Models\Page;
+use App\Support\Content\AiFill\AiField;
+use App\Support\Content\ContentLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -25,7 +29,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts::admin')]
 class Form extends Component
 {
-    use HandlesActionErrors, WithFileUploads;
+    use HandlesActionErrors, WithAiFill, WithFileUploads;
 
     #[Locked]
     public ?Page $page = null;
@@ -129,6 +133,44 @@ class Form extends Component
     public function template(): PageTemplate
     {
         return $this->page?->is_system ? $this->page->template : $this->form->templateEnum();
+    }
+
+    /**
+     * @return list<AiField>
+     */
+    protected function aiFields(): array
+    {
+        return [
+            new AiField('title', 'admin.pages.fields.title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, uzRequired: true, hint: 'Page title.'),
+            new AiField('body', 'admin.pages.fields.body', AiFieldKind::Html, Page::BODY_MAX, hint: 'Page text with headings. Legal pages must stay neutral and general.'),
+            new AiField('meta_title', 'admin.pages.fields.meta_title', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Search result title.'),
+            new AiField('meta_description', 'admin.pages.fields.meta_description', AiFieldKind::Plain, 500, hint: 'Search result snippet.', multiline: true),
+            new AiField('image_alt', 'admin.image_upload.alt', AiFieldKind::Plain, ContentLimits::SHORT_TEXT_MAX, hint: 'Alt text of the cover image.'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function aiContext(): array
+    {
+        return [
+            'page template' => $this->template()->value,
+        ];
+    }
+
+    protected function aiSubject(): string
+    {
+        return 'static website page';
+    }
+
+    protected function authorizeAiFill(): void
+    {
+        if ($this->page) {
+            $this->authorize('update', $this->page);
+        } else {
+            $this->authorize('create', Page::class);
+        }
     }
 
     public function render(): View
