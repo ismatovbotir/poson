@@ -14,6 +14,7 @@ use App\Models\Category;
 use App\Models\ChatRule;
 use App\Models\ChatUnmatched;
 use App\Models\FaqItem;
+use App\Models\Page;
 use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
@@ -46,6 +47,9 @@ function chatSetup(bool $on = true): void
         ? app('chat.api')($request)
         : Http::response(['ok' => true, 'result' => ['message_id' => random_int(1000, 9999999)]])]);
     Setting::query()->updateOrCreate(['key' => BotSwitch::KEY], ['group' => SettingsArea::TelegramBot->group(), 'value' => true]);
+    if ($on && ! Page::query()->where('slug', 'privacy')->exists()) {
+        Page::factory()->system('privacy')->create(['is_active' => true, 'needs_review' => false]);
+    }
     Setting::query()->updateOrCreate(['key' => ChatbotSwitch::TELEGRAM_KEY], ['group' => SettingsArea::Chatbot->group(), 'value' => $on]);
     app(InstallChatbotDefaults::class)->handle();
     RuleIndex::bump();
@@ -415,6 +419,7 @@ it('adds the FAQ and order status buttons to the menu only while the switch is o
     expect($labels())->not->toContain('Order status')
         ->and(BotKeyboards::menuButton('Order status'))->toBeNull();
 
+    Page::factory()->system('privacy')->create(['is_active' => true, 'needs_review' => false]);
     Setting::query()->where('key', ChatbotSwitch::TELEGRAM_KEY)->firstOrFail()->update(['value' => true]);
 
     expect($labels())->toContain('Order status')

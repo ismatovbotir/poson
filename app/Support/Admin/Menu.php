@@ -88,8 +88,19 @@ final class Menu
                 // Plan 14 v2 B2: bot setup page (telegram.bot, Admin only).
                 new MenuItem('telegram-bot', 'menu.items.telegram_bot', 'bot', 'admin.telegram.bot', permission: 'telegram.bot'),
                 new MenuItem('telegram-mini-app', 'menu.items.telegram_mini_app', 'smartphone', 'admin.telegram.mini-app', roles: $admin),
-                new MenuItem('telegram-chats', 'menu.items.telegram_chats', 'message', 'admin.telegram.chats', permission: 'telegram.inbox', active: 'admin.telegram.chats*'),
                 new MenuItem('telegram-settings', 'menu.items.telegram_settings', 'settings', 'admin.telegram.settings', permission: 'settings.integrations'),
+            ]),
+
+            // Plan 28 C2: the rule chat bot. The staff inbox (Telegram chats, route names unchanged) lives here;
+            // the teaching screens need chatbot.rules, Settings chatbot.settings, Instructions any of the three.
+            new MenuGroup('chatbot', 'menu.groups.chatbot', [
+                new MenuItem('telegram-chats', 'menu.items.telegram_chats', 'message', 'admin.telegram.chats', permission: 'telegram.inbox', active: 'admin.telegram.chats*'),
+                new MenuItem('chatbot-rules', 'menu.items.chatbot_rules', 'list', 'admin.chatbot.rules.index', permission: 'chatbot.rules'),
+                new MenuItem('chatbot-unmatched', 'menu.items.chatbot_unmatched', 'book', 'admin.chatbot.unmatched', permission: 'chatbot.rules'),
+                new MenuItem('chatbot-console', 'menu.items.chatbot_console', 'search', 'admin.chatbot.console', permission: 'chatbot.rules'),
+                new MenuItem('chatbot-stats', 'menu.items.chatbot_stats', 'chart', 'admin.chatbot.stats', permission: 'chatbot.rules'),
+                new MenuItem('chatbot-settings', 'menu.items.chatbot_settings', 'settings', 'admin.chatbot.settings', permission: 'chatbot.settings'),
+                new MenuItem('chatbot-help', 'menu.items.chatbot_help', 'info', 'admin.chatbot.help', permission: ['chatbot.rules', 'chatbot.settings', 'telegram.inbox']),
             ]),
 
             new MenuGroup('settings', 'menu.groups.settings', [

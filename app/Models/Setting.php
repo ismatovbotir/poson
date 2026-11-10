@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Chat\ChatbotSwitch;
+use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
 use App\Support\Secrets;
 use Database\Factories\SettingFactory;
@@ -156,6 +157,7 @@ class Setting extends Model implements HasMedia
     {
         if ($this->group === 'chatbot') {
             ChatbotSwitch::forget();
+            ChatSettings::forget();
 
             return;
         }

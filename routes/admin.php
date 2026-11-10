@@ -15,6 +15,7 @@ use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Categories;
+use App\Livewire\Admin\Chatbot;
 use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
@@ -181,6 +182,15 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     // Telegram status panel (plan 21 E2): telegram.bot (Admin only), read-only, no Telegram call on load.
     Route::livewire('/telegram/status', Telegram\Status::class)->name('telegram.status');
     // Plan 21 A1: staff inbox (telegram.inbox), authorized in the components; rows through TelegramUser::visibleTo.
+    // Plan 28 C2: rule chat bot (chatbot.rules / chatbot.settings, authorized in the components; help: any chat permission).
+    Route::livewire('/chatbot/rules', Chatbot\Rules\Index::class)->name('chatbot.rules.index');
+    Route::livewire('/chatbot/rules/create', Chatbot\Rules\Form::class)->name('chatbot.rules.create');
+    Route::livewire('/chatbot/rules/{rule}/edit', Chatbot\Rules\Form::class)->whereNumber('rule')->name('chatbot.rules.edit');
+    Route::livewire('/chatbot/unmatched', Chatbot\Unmatched\Index::class)->name('chatbot.unmatched');
+    Route::livewire('/chatbot/console', Chatbot\Console::class)->name('chatbot.console');
+    Route::livewire('/chatbot/stats', Chatbot\Stats::class)->name('chatbot.stats');
+    Route::livewire('/chatbot/settings', Chatbot\Settings::class)->name('chatbot.settings');
+    Route::livewire('/chatbot/help', Chatbot\Help::class)->name('chatbot.help');
     Route::livewire('/telegram/chats', Telegram\Chats\Index::class)->name('telegram.chats');
     Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show')->whereNumber('telegramUser');
 

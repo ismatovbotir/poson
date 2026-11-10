@@ -3,7 +3,7 @@
 {{-- Telegram → Chats (plan 14 v2 §9, plan 21 A1). Polls every 15 s while the tab is visible. --}}
 <div wire:poll.15s.visible data-telegram-chats>
     <x-admin.page-header :title="__($t.'.title')" :subtitle="__($t.'.subtitle')">
-        <x-slot:breadcrumbs>{{ __('menu.groups.telegram') }} <span class="text-slate-300">/</span> {{ __($t.'.title') }}</x-slot:breadcrumbs>
+        <x-slot:breadcrumbs>{{ __('menu.groups.chatbot') }} <span class="text-slate-300">/</span> {{ __($t.'.title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
     <div class="mt-4 flex flex-wrap items-center gap-2">

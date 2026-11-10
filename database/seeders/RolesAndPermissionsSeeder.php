@@ -63,6 +63,13 @@ class RolesAndPermissionsSeeder extends Seeder
     public const REPAIRS_ENGINEER = ['repairs.viewAny', 'repairs.view', 'repairs.create', 'repairs.update', 'repairs.costs'];
 
     /**
+     * Rule chat bot (plan 28 C2): rules, teaching, console, stats and texts for
+     * Content manager and Admin. Turning a channel on is Admin only (checked in
+     * SaveChatbotSettings). Also added by the add_chatbot_permissions migration.
+     */
+    public const CHATBOT = ['chatbot.rules', 'chatbot.settings'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -141,6 +148,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ...static::abilities(self::CONTENT, self::CRUD),
                 'products.manage-services',
                 ...self::SITEMAP,
+                ...self::CHATBOT,
             ],
 
             Role::SalesManager->value => [
@@ -235,6 +243,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'repairs.assign',
             'repairs.view-all',
             'repairs.costs',
+            // Plan 28 C2: rule chat bot (also added by the add_chatbot_permissions migration).
+            ...self::CHATBOT,
         ];
     }
 

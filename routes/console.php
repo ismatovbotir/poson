@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\RecordWorkerHeartbeat;
+use App\Models\ChatUnmatched;
 use App\Models\McpCall;
 use App\Models\MonitoringAction;
 use App\Models\PriceSyncLog;
@@ -50,6 +51,15 @@ Schedule::command('quotes:expire')->dailyAt('00:40')->timezone('Asia/Tashkent')-
 */
 
 Schedule::command('model:prune', ['--model' => [PriceSyncLog::class]])->dailyAt('01:50')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Chat bot (plan 28, CB-10)
+|--------------------------------------------------------------------------
+| Open "unmatched" phrases not seen for ChatUnmatched::KEEP_DAYS (180) days are deleted.
+*/
+
+Schedule::command('model:prune', ['--model' => [ChatUnmatched::class]])->dailyAt('02:00')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
 |--------------------------------------------------------------------------

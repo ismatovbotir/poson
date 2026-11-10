@@ -90,8 +90,9 @@ class SaveChatRule
         $action = $locked ? $rule->action : $this->action($data['action'] ?? null);
         $name = $this->plain($data['name'] ?? null, 120, 'name', required: true);
         $answer = $this->answers($data['answer'] ?? [], required: $action === ChatAction::Answer);
-        $params = $this->params($action, (array) ($data['params'] ?? []), $isAdmin, (bool) ($data['in_menu'] ?? false));
-        $buttons = $this->buttons((array) ($data['buttons'] ?? []), $isAdmin);
+        $stored = $this->storedUrls($rule);
+        $params = $this->params($action, (array) ($data['params'] ?? []), $isAdmin, (bool) ($data['in_menu'] ?? false), $stored);
+        $buttons = $this->buttons((array) ($data['buttons'] ?? []), $isAdmin, $stored);
         $keywords = $this->keywords((array) ($data['keywords'] ?? []));
 
         if ($rule === null && ChatRule::query()->count() >= (int) config('chatbot.max_rules', 500)) {
@@ -138,6 +139,45 @@ class SaveChatRule
         });
     }
 
+    /**
+     * External URLs (params.url, buttons.*.url) currently stored on the rule.
+     *
+     * @return list<string>
+     */
+    private function storedUrls(?ChatRule $rule): array
+    {
+        if ($rule === null) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach ([$rule->params['url'] ?? null, ...array_map(fn ($button) => is_array($button) ? ($button['url'] ?? null) : null, (array) $rule->buttons)] as $url) {
+            if (is_string($url) && $url !== '') {
+                $urls[] = $url;
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * The text without Unicode format characters (category Cf: bidi overrides,
+     * zero-width). No regular expression (CB-1): the code points are checked one by one.
+     */
+    private function withoutFormatCharacters(string $text): string
+    {
+        $kept = '';
+
+        foreach (mb_str_split($text, 1, 'UTF-8') as $character) {
+            if (\IntlChar::charType(mb_ord($character, 'UTF-8')) !== \IntlChar::CHAR_CATEGORY_FORMAT_CHAR) {
+                $kept .= $character;
+            }
+        }
+
+        return $kept;
+    }
+
     private function key(mixed $value, ?ChatRule $rule): string
     {
         $key = is_string($value) ? trim($value) : '';
@@ -172,7 +212,16 @@ class SaveChatRule
      */
     private function plain(mixed $value, int $max, string $field, bool $required = false, bool $multiline = false, bool $brand = false): string
     {
-        $text = is_string($value) ? trim(str_replace("\r\n", "\n", $value)) : '';
+        if (is_string($value) && ! mb_check_encoding($value, 'UTF-8')) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_plain')]);
+        }
+
+        // Format characters (bidi overrides, zero-width) are stripped, never stored (CB-19).
+        if (is_string($value) && strlen($value) > $max * 8) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_too_long')]);
+        }
+
+        $text = is_string($value) ? trim(str_replace("\r\n", "\n", $this->withoutFormatCharacters($value))) : '';
 
         if ($text === '') {
             return $required
@@ -256,9 +305,10 @@ class SaveChatRule
      * Params rebuilt from the whitelist of the action.
      *
      * @param  array<string, mixed>  $input
+     * @param  list<string>  $stored  External URLs already saved on this rule
      * @return array<string, mixed>
      */
-    private function params(ChatAction $action, array $input, bool $isAdmin, bool $inMenu): array
+    private function params(ChatAction $action, array $input, bool $isAdmin, bool $inMenu, array $stored = []): array
     {
         $params = [];
 
@@ -288,7 +338,7 @@ class SaveChatRule
                 $params['topic'] = $topic;
                 break;
             case ChatAction::Link:
-                $params += $this->linkTarget($input, $isAdmin, 'params');
+                $params += $this->linkTarget($input, $isAdmin, 'params', $stored);
                 $params['link_label'] = $this->labels($input['link_label'] ?? null, 'params.link_label');
                 break;
             case ChatAction::LeadDialog:
@@ -311,12 +361,15 @@ class SaveChatRule
      * @param  array<string, mixed>  $input  {target, slug?} or {url}
      * @return array<string, string>
      */
-    private function linkTarget(array $input, bool $isAdmin, string $field): array
+    private function linkTarget(array $input, bool $isAdmin, string $field, array $stored = []): array
     {
         $url = $input['url'] ?? null;
 
         if ($url !== null && $url !== '') {
-            if (! $isAdmin || ! is_string($url) || ! LinkTargets::isSafeExternalUrl($url)) {
+            // A non-Admin may only keep a URL an Admin already stored on this same rule.
+            $allowed = is_string($url) && ($isAdmin ? LinkTargets::isSafeExternalUrl($url) : in_array($url, $stored, true));
+
+            if (! $allowed) {
                 throw ValidationException::withMessages(["{$field}.url" => __('chatbot.errors.url_forbidden')]);
             }
 
@@ -346,7 +399,7 @@ class SaveChatRule
      * @param  array<int, mixed>  $input
      * @return list<array<string, mixed>>
      */
-    private function buttons(array $input, bool $isAdmin): array
+    private function buttons(array $input, bool $isAdmin, array $stored = []): array
     {
         $max = (int) config('chatbot.max_buttons', 8);
 
@@ -370,7 +423,7 @@ class SaveChatRule
 
                 $entry['rule_id'] = $id;
             } else {
-                $entry += $this->linkTarget($button, $isAdmin, $field);
+                $entry += $this->linkTarget($button, $isAdmin, $field, $stored);
             }
 
             $buttons[] = $entry;
