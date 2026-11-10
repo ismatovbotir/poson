@@ -14,13 +14,16 @@ use Illuminate\Support\Facades\Gate;
  */
 class ResolveUnmatched
 {
-    public function handle(ChatUnmatched $unmatched, User $actor, ?ChatRule $rule = null): void
+    /**
+     * @return bool Whether an open row was closed
+     */
+    public function handle(ChatUnmatched $unmatched, User $actor, ?ChatRule $rule = null): bool
     {
         Gate::forUser($actor)->authorize('update', $unmatched);
 
-        ChatUnmatched::query()
+        return ChatUnmatched::query()
             ->whereKey($unmatched->getKey())
             ->whereNull('resolved_at')
-            ->update(['resolved_at' => now(), 'resolved_rule_id' => $rule?->id, 'updated_at' => now()]);
+            ->update(['resolved_at' => now(), 'resolved_rule_id' => $rule?->id, 'updated_at' => now()]) > 0;
     }
 }

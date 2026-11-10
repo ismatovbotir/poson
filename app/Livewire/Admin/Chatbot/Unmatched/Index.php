@@ -115,9 +115,9 @@ class Index extends Component
         $unmatched = ChatUnmatched::query()->findOrFail($id);
         $this->authorize('update', $unmatched);
 
-        $resolveUnmatched->handle($unmatched, auth()->user());
-
-        $this->dispatch('toast', title: __('admin.toast.done'), body: __('chatbot_admin.unmatched.ignored'));
+        if ($resolveUnmatched->handle($unmatched, auth()->user())) {
+            $this->dispatch('toast', title: __('admin.toast.done'), body: __('chatbot_admin.unmatched.ignored'));
+        }
     }
 
     /**

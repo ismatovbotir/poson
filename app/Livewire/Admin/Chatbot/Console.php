@@ -8,6 +8,7 @@ use App\Models\ChatRule;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -31,6 +32,7 @@ class Console extends Component
     /**
      * @var array<string, mixed>|null
      */
+    #[Locked]
     public ?array $result = null;
 
     public function mount(): void

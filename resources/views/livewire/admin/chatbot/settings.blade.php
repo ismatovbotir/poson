@@ -26,7 +26,11 @@
 
                 @if ($isAdmin)
                     <x-admin.toggle wire:model="form.telegram_enabled" :label="__($t.'.telegram_enabled')" :description="__($t.'.telegram_enabled_hint')" />
-                    <x-admin.toggle wire:model="form.web_enabled" :label="__($t.'.web_enabled')" :description="__($t.'.web_enabled_hint')" />
+                    @if ($webReady)
+                        <x-admin.toggle wire:model="form.web_enabled" :label="__($t.'.web_enabled')" :description="__($t.'.web_enabled_hint')" />
+                    @else
+                        <p class="text-sm text-slate-500" data-web-not-ready>{{ __($t.'.web_not_ready') }}</p>
+                    @endif
                 @else
                     <dl class="grid gap-3 text-sm sm:grid-cols-2" data-channels-readonly>
                         <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5">
@@ -42,6 +46,10 @@
                 @endif
             </div>
         </x-admin.card>
+
+        <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note" data-live-note>
+            <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.live_note') }}
+        </p>
 
         {{-- Texts --}}
         <x-admin.card :title="__($t.'.texts')" :description="__($t.'.texts_help', ['max' => \App\Support\Chat\ChatSettings::TEXT_MAX])">

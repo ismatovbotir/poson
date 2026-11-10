@@ -6,6 +6,7 @@ use App\Enums\SettingsArea;
 use App\Models\Page;
 use App\Models\Setting;
 use App\Support\Telegram\Bot\BotChecklist;
+use ArrayObject;
 
 /**
  * Admin-editable settings of the chat bot (plan 28 §5): rows of the settings
@@ -28,6 +29,22 @@ final class ChatSettings
 
     public const TEXT_MAX = 500;
 
+    private const STATE = 'chatbot.settings.state';
+
+    /**
+     * Memoized for the rest of the request or queued job (scoped container
+     * instance); dropped when a chatbot setting row is saved.
+     */
+    public static function register(): void
+    {
+        app()->scoped(self::STATE, fn () => new ArrayObject);
+    }
+
+    public static function forget(): void
+    {
+        app(self::STATE)->exchangeArray([]);
+    }
+
     public static function key(string $name): string
     {
         return 'chatbot.'.$name;
@@ -49,6 +66,16 @@ final class ChatSettings
      * }
      */
     public static function all(): array
+    {
+        $state = app(self::STATE);
+
+        return $state['all'] ??= self::load();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function load(): array
     {
         $rows = Setting::query()
             ->where('group', SettingsArea::Chatbot->group())
@@ -117,7 +144,18 @@ final class ChatSettings
      * while the privacy page is published and no longer flagged for review.
      * The same condition as the "privacy" item of the Telegram bot checklist.
      */
-    public static function privacyReady(): bool
+    public static function privacyReady(bool $fresh = false): bool
+    {
+        $state = app(self::STATE);
+
+        if ($fresh) {
+            unset($state['privacy']);
+        }
+
+        return $state['privacy'] ??= self::queryPrivacyReady();
+    }
+
+    private static function queryPrivacyReady(): bool
     {
         return Page::query()
             ->where('slug', BotChecklist::PRIVACY_SLUG)

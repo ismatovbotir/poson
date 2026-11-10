@@ -68,6 +68,12 @@
                         @endif
                         @if ($canUseUrl)
                             <x-admin.input wire:model="form.params.url" :label="__($t.'.fields.url')" maxlength="500" autocomplete="off" spellcheck="false" :hint="__($t.'.url_hint')" class="sm:col-span-2" />
+                        @elseif (($form->params['url'] ?? '') !== '')
+                            <div class="sm:col-span-2" data-url-readonly>
+                                <span class="text-sm font-semibold">{{ __($t.'.fields.url') }}</span>
+                                <p class="mt-1.5 break-all rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{{ $form->params['url'] }}</p>
+                                <span class="mt-1 block text-xs text-slate-500">{{ __($t.'.url_admin_only') }}</span>
+                            </div>
                         @endif
                     </div>
                     <div class="mt-4">
@@ -113,7 +119,13 @@
                                         @if ($canUseUrl)
                                             <x-admin.input wire:model="form.buttons.{{ $i }}.url" :label="__($t.'.fields.url')" maxlength="500" autocomplete="off" spellcheck="false" />
                                         @else
-                                            <p class="self-end pb-3 text-xs text-slate-500">{{ __($t.'.url_admin_only') }}</p>
+                                            <div data-url-readonly>
+                                                <span class="text-sm font-semibold">{{ __($t.'.fields.url') }}</span>
+                                                @if (($button['url'] ?? '') !== '')
+                                                    <p class="mt-1.5 break-all rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600">{{ $button['url'] }}</p>
+                                                @endif
+                                                <span class="mt-1 block text-xs text-slate-500">{{ __($t.'.url_admin_only') }}</span>
+                                            </div>
                                         @endif
                                     @else
                                         <x-admin.select wire:model.live="form.buttons.{{ $i }}.target" :label="__($t.'.fields.target')" :options="$targets" :placeholder="__($t.'.choose')" />

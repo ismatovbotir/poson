@@ -62,7 +62,9 @@ class Index extends Component
         $rule = ChatRule::query()->findOrFail($id);
         $this->authorize('update', $rule);
 
-        $toggleChatRule->handle($rule, auth()->user(), ! $rule->is_active);
+        $updated = $toggleChatRule->handle($rule, auth()->user(), ! $rule->is_active);
+
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: __($updated->is_active ? 'chatbot_admin.rules.switched_on' : 'chatbot_admin.rules.switched_off', ['name' => $updated->name]));
     }
 
     public function delete(int $id, DeleteChatRule $deleteChatRule): void

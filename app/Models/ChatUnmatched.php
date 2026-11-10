@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Enums\ChatChannel;
 use Database\Factories\ChatUnmatchedFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -30,7 +32,12 @@ use Illuminate\Support\Carbon;
 class ChatUnmatched extends Model
 {
     /** @use HasFactory<ChatUnmatchedFactory> */
-    use HasFactory;
+    use HasFactory, MassPrunable;
+
+    /**
+     * Unresolved phrases not seen for this many days are deleted (CB-10).
+     */
+    public const KEEP_DAYS = 180;
 
     protected $table = 'chat_unmatched';
 
@@ -56,5 +63,15 @@ class ChatUnmatched extends Model
     public function resolvedRule(): BelongsTo
     {
         return $this->belongsTo(ChatRule::class, 'resolved_rule_id');
+    }
+
+    /**
+     * Open phrases nobody asked for in KEEP_DAYS days (resolved rows stay as history).
+     *
+     * @return Builder<self>
+     */
+    public function prunable(): Builder
+    {
+        return static::query()->whereNull('resolved_at')->where('last_seen_at', '<', now()->subDays(self::KEEP_DAYS));
     }
 }

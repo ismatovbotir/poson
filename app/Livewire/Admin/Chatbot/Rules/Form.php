@@ -136,7 +136,8 @@ class Form extends Component
         if ($creating && $this->unmatchedId > 0) {
             $unmatched = ChatUnmatched::query()->find($this->unmatchedId);
 
-            if ($unmatched !== null) {
+            // Only when the saved rule really contains the phrase (a URL id alone proves nothing).
+            if ($unmatched !== null && $rule->keywords->contains('normalized', $unmatched->normalized)) {
                 $resolveUnmatched->handle($unmatched, auth()->user(), $rule);
             }
         }

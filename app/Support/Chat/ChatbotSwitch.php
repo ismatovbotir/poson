@@ -15,7 +15,9 @@ use ArrayObject;
  * or job (and again after a chatbot setting row is saved), so a disable takes
  * effect on the next update.
  *
- * Only read here. Enabling is Admin-only and gated (privacy text) in C2.
+ * The effective state is the stored switch AND the privacy gate (ChatSettings::privacyReady),
+ * so the bot goes quiet the moment the privacy page is unpublished or flagged for review (CB-13).
+ * Enabling is Admin-only and gated in SaveChatbotSettings.
  */
 final class ChatbotSwitch
 {
@@ -35,7 +37,15 @@ final class ChatbotSwitch
     {
         $state = app(self::STATE);
 
-        return $state[$channel->value] ??= Setting::query()
+        return $state[$channel->value] ??= self::isStored($channel) && ChatSettings::privacyReady();
+    }
+
+    /**
+     * The raw switch row, without the privacy gate (what an Admin last saved).
+     */
+    public static function isStored(ChatChannel $channel): bool
+    {
+        return Setting::query()
             ->where('key', self::keyFor($channel))
             ->where('group', SettingsArea::Chatbot->group())
             ->first()?->value === true;
@@ -44,6 +54,7 @@ final class ChatbotSwitch
     public static function forget(): void
     {
         app(self::STATE)->exchangeArray([]);
+        ChatSettings::forget();
     }
 
     public static function register(): void

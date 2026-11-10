@@ -23,8 +23,8 @@ class Stats extends Component
 {
     public const RANGES = [7, 30, 90];
 
-    #[Url(except: 30)]
-    public int $days = 30;
+    #[Url(except: '30')]
+    public string $days = '30';
 
     #[Url(except: '')]
     public string $channel = '';
@@ -43,7 +43,7 @@ class Stats extends Component
     {
         $this->authorize('viewAny', ChatRule::class);
 
-        $days = in_array($this->days, self::RANGES, true) ? $this->days : 30;
+        $days = in_array((int) $this->days, self::RANGES, true) ? (int) $this->days : 30;
         $channel = ChatChannel::tryFrom($this->channel);
         $from = today()->subDays($days - 1)->toDateString();
 

@@ -19,6 +19,9 @@ return [
     // or customer activity, never while the customer is waiting for staff (CB-4).
     'handoff_ttl_hours' => 8,
 
+    // The website chat widget (C5) is not built yet: the web channel switch cannot be turned on until this is true.
+    'web_ready' => false,
+
     // Input (CB-1): cut to this many bytes before normalizing, to this many characters after.
     'input_max_bytes' => 1000,
     'input_max_chars' => 200,

@@ -5,6 +5,7 @@ namespace App\Livewire\Forms\Admin\Chatbot;
 use App\Enums\ChatChannel;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
+use Livewire\Attributes\Locked;
 use Livewire\Form;
 
 /**
@@ -17,6 +18,16 @@ class SettingsForm extends Form
     public bool $web_enabled = false;
 
     public bool $telegram_enabled = false;
+
+    /**
+     * The switch states shown when the form was loaded: only a switch that
+     * differs from it is sent, so a stale page cannot overwrite a change made
+     * elsewhere meanwhile.
+     *
+     * @var array<string, bool>
+     */
+    #[Locked]
+    public array $loaded = ['web_enabled' => false, 'telegram_enabled' => false];
 
     /** @var array<string, array<string, string>> */
     public array $texts = [];
@@ -44,6 +55,7 @@ class SettingsForm extends Form
 
         $this->web_enabled = ChatbotSwitch::isEnabled(ChatChannel::Web);
         $this->telegram_enabled = ChatbotSwitch::isEnabled(ChatChannel::Telegram);
+        $this->loaded = ['web_enabled' => $this->web_enabled, 'telegram_enabled' => $this->telegram_enabled];
         $this->texts = $settings['texts'];
         $this->use_company_hours = $settings['use_company_hours'];
         $this->hours = $settings['hours'];
@@ -79,16 +91,20 @@ class SettingsForm extends Form
     }
 
     /**
-     * The input of SaveChatbotSettings; the switches only when asked for.
+     * The input of SaveChatbotSettings; a switch only when the caller may change
+     * switches and the user actually changed it since the form was loaded.
      *
      * @return array<string, mixed>
      */
     public function data(bool $withSwitches): array
     {
         $data = $this->all();
+        unset($data['loaded']);
 
-        if (! $withSwitches) {
-            unset($data['web_enabled'], $data['telegram_enabled']);
+        foreach (['web_enabled', 'telegram_enabled'] as $field) {
+            if (! $withSwitches || $data[$field] === ($this->loaded[$field] ?? false)) {
+                unset($data[$field]);
+            }
         }
 
         return $data;

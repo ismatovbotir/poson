@@ -69,6 +69,7 @@ class Settings extends Component
         return view('livewire.admin.chatbot.settings', [
             'isAdmin' => $this->isAdmin(),
             'privacyReady' => ChatSettings::privacyReady(),
+            'webReady' => (bool) config('chatbot.web_ready'),
             'days' => ChatSettings::DAYS,
         ])->title(__('chatbot_admin.settings.title'));
     }

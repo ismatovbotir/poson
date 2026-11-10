@@ -10,6 +10,7 @@ use App\Enums\TelegramDirection;
 use App\Events\Telegram\TelegramInboxMessage;
 use App\Jobs\SendBotAnswer;
 use App\Models\FaqItem;
+use App\Models\Page;
 use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
@@ -52,6 +53,9 @@ function chatAbuseSetup(bool $on = true): void
  */
 function chatAbuseSwitch(bool $on): void
 {
+    if ($on && ! Page::query()->where('slug', 'privacy')->exists()) {
+        Page::factory()->system('privacy')->create(['is_active' => true, 'needs_review' => false]);
+    }
     Setting::query()->updateOrCreate(['key' => ChatbotSwitch::TELEGRAM_KEY], ['group' => SettingsArea::Chatbot->group(), 'value' => $on]);
 }
 

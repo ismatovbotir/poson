@@ -51,7 +51,7 @@ class SaveChatbotSettings
         $values = $this->values($data);
         $switches = $this->switches($data, $actor);
 
-        return DB::transaction(function () use ($values, $switches, $actor, $ip): int {
+        $changed = DB::transaction(function () use ($values, $switches, $actor, $ip): int {
             $changed = 0;
 
             foreach ($switches as $key => $enabled) {
@@ -64,6 +64,10 @@ class SaveChatbotSettings
 
             return $changed;
         });
+
+        ChatbotSwitch::forget();
+
+        return $changed;
     }
 
     /**
@@ -93,7 +97,11 @@ class SaveChatbotSettings
                 throw new AuthorizationException;
             }
 
-            if ($want && ! ChatSettings::privacyReady()) {
+            if ($want && $channel === ChatChannel::Web && ! config('chatbot.web_ready')) {
+                throw ValidationException::withMessages([$field => __('chatbot_admin.settings.web_not_ready')]);
+            }
+
+            if ($want && ! ChatSettings::privacyReady(fresh: true)) {
                 throw ValidationException::withMessages([$field => __('chatbot_admin.settings.privacy_gate')]);
             }
 
@@ -167,7 +175,8 @@ class SaveChatbotSettings
 
     private function text(mixed $value, string $field): string
     {
-        $text = is_string($value) ? trim(str_replace("\r\n", "\n", $value)) : '';
+        // Format characters (bidi overrides, zero-width) are stripped, never stored (CB-19).
+        $text = is_string($value) ? trim(str_replace("\r\n", "\n", (string) preg_replace('/\p{Cf}/u', '', $value))) : '';
 
         if ($text === '') {
             return '';
