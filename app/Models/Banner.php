@@ -6,6 +6,7 @@ use App\Enums\BannerPlacement;
 use App\Enums\BannerState;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\BannerDirectory;
 use Database\Factories\BannerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -28,7 +29,7 @@ use Spatie\Translatable\HasTranslations;
  * stored without a locale prefix or an https URL (App\Support\Site\BannerLink).
  *
  * Images (medialibrary, like HasCatalogImage: private original, WebP
- * conversions, queued; alt per locale in the custom property "alt"):
+ * conversions, run during the upload; alt per locale in the custom property "alt"):
  * "desktop" (required) is cropped to DESKTOP_WIDTH × DESKTOP_HEIGHT, the
  * optional "mobile" to MOBILE_WIDTH × MOBILE_HEIGHT, so the site can set
  * exact width / height (no layout shift). No text is baked into the images
@@ -157,25 +158,25 @@ class Banner extends Model implements HasMedia
             ->fit(Fit::Crop, 480, 150)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('medium')
             ->fit(Fit::Crop, self::DESKTOP_MEDIUM_WIDTH, self::DESKTOP_MEDIUM_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('large')
             ->fit(Fit::Crop, self::DESKTOP_WIDTH, self::DESKTOP_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('mobile')
             ->fit(Fit::Crop, self::MOBILE_WIDTH, self::MOBILE_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::MOBILE)
-            ->queued();
+            ->nonQueued();
     }
 
     /**
@@ -197,13 +198,21 @@ class Banner extends Model implements HasMedia
     /**
      * URL of a conversion of the desktop image ("thumb", "medium", "large")
      * or of the mobile one ("mobile"); null without the image or while the
-     * queued conversion hasn't run yet (the original is never public).
+     * conversion is missing (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {
         $media = $this->bannerMedia($conversion === 'mobile' ? self::MOBILE : self::DESKTOP);
 
         return $media !== null && $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : null;
+    }
+
+    /**
+     * Admin preview URL of a banner image: the conversion, else the authorized original route.
+     */
+    public function adminImageUrl(string $conversion = 'thumb'): ?string
+    {
+        return AdminMediaUrl::preview($this->bannerMedia($conversion === 'mobile' ? self::MOBILE : self::DESKTOP), $conversion);
     }
 
     /**
@@ -221,7 +230,7 @@ class Banner extends Model implements HasMedia
     }
 
     /**
-     * An image of the collection is saved but its conversions are still queued.
+     * An image of the collection is saved but its conversions are missing (legacy rows or a failed run).
      */
     public function bannerImageProcessing(string $collection = self::DESKTOP): bool
     {

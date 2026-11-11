@@ -6,6 +6,7 @@ use App\Actions\Catalog\AddProductImages;
 use App\Actions\Catalog\UpdateProductImages;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\Product;
+use App\Support\Media\ImageLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -72,8 +73,8 @@ class Images extends Component
         $this->authorize('update', $this->product);
 
         $this->validate([
-            'uploads' => ['array', 'max:20'],
-            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'uploads' => ['array', 'max:'.ImageLimits::MAX_BATCH],
+            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ImageLimits::dimensionsRule()],
         ], [], ['uploads.*' => __('admin.image_upload.image')]);
 
         $count = count($this->uploads);

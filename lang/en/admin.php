@@ -622,7 +622,7 @@ return [
         'images' => [
             'main' => 'Main',
             'upload' => 'Upload',
-            'hint' => 'JPG, PNG or WebP, up to 5 MB each, at least 1000×1000 px recommended. Drag to reorder: the first image is the main one.',
+            'hint' => 'JPG, PNG or WebP, up to 5 MB each, at most :px×:px px, up to :count at a time, at least 1000×1000 px recommended. Drag to reorder: the first image is the main one.',
             'none' => 'No images yet.',
             'added' => '{1} 1 image added|[2,*] :count images added',
             'alt_hint' => 'Describe what the photo shows, e.g. “Zebra DS2208 scanner on a stand”. Used by screen readers and image search.',
@@ -893,8 +893,8 @@ return [
             'link' => 'Enter an internal path starting with “/” (not “//”) or a full https:// address.',
             'category_required' => 'Choose the category to show the banner in.',
             'desktop_required' => 'Upload the desktop image.',
-            'desktop_size' => 'The desktop image must be at least 1200 × 375 px.',
-            'mobile_size' => 'The mobile image must be at least 640 × 480 px.',
+            'desktop_size' => 'The desktop image must be at least 1200 × 375 px and at most :px × :px px.',
+            'mobile_size' => 'The mobile image must be at least 640 × 480 px and at most :px × :px px.',
             'date_range' => 'Enter a date between 2000 and 2099.',
             'ends_before_start' => 'The end must be later than the start.',
         ],
@@ -952,6 +952,7 @@ return [
 
         'image' => 'Image',
 
+        'conversion_failed' => 'The image could not be processed (the file may be damaged). Upload a different one.',
         'rejected' => 'This file can’t be used as an image. Upload a JPG, PNG or WebP file.',
 
         'processing' => 'Processing…',
@@ -960,7 +961,7 @@ return [
         'replace' => 'Replace',
         'remove' => 'Remove image',
         'uploading' => 'Uploading…',
-        'hint' => 'JPG, PNG or WebP, up to 5 MB.',
+        'hint' => 'JPG, PNG or WebP, up to 5 MB, at most :px×:px px.',
         'alt' => 'Alt text',
     ],
 

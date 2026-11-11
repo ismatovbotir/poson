@@ -191,9 +191,9 @@ class Form extends Component
         return view('livewire.admin.banners.form', [
             'title' => $title,
             'placements' => collect(BannerPlacement::cases())->mapWithKeys(fn (BannerPlacement $placement) => [$placement->value => $placement->label()])->all(),
-            'desktopUrl' => $banner?->imageUrl('thumb'),
+            'desktopUrl' => $banner?->adminImageUrl('thumb'),
             'desktopProcessing' => $this->form->desktop === null && (bool) $banner?->bannerImageProcessing(Banner::DESKTOP),
-            'mobileUrl' => $this->form->remove_mobile ? null : $banner?->imageUrl('mobile'),
+            'mobileUrl' => $this->form->remove_mobile ? null : $banner?->adminImageUrl('mobile'),
             'mobileProcessing' => ! $this->form->remove_mobile && $this->form->mobile === null && (bool) $banner?->bannerImageProcessing(Banner::MOBILE),
             'canSave' => $banner ? auth()->user()->can('update', $banner) : true,
             'canDelete' => $banner && auth()->user()->can('delete', $banner),

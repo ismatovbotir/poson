@@ -6,7 +6,7 @@
 
     <ul @if ($canEdit) wire:sort="sortImage" @endif class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         @foreach ($this->images as $media)
-            @php($url = $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : null)
+            @php($url = \App\Support\Media\AdminMediaUrl::preview($media, 'thumb'))
             <li wire:key="image-{{ $media->id }}" @if ($canEdit) wire:sort:item="{{ $media->id }}" @endif x-data="{ alt: false }" @class(['relative rounded-xl border bg-white', 'border-2 border-brand-500' => $loop->first, 'border-slate-200' => ! $loop->first]) data-image="{{ $media->id }}">
                 <div class="relative grid aspect-square place-items-center overflow-hidden rounded-t-xl bg-canvas">
                     @if ($url)
@@ -70,7 +70,7 @@
         @endif
     </ul>
 
-    <p id="product-images-hint" class="mt-3 text-xs text-slate-500">{{ __('admin.products.images.hint') }}</p>
+    <p id="product-images-hint" class="mt-3 text-xs text-slate-500">{{ __('admin.products.images.hint', \App\Support\Media\ImageLimits::replacements()) }}</p>
     @error('uploads')<x-admin.field-error name="uploads" />@enderror
     @foreach ($errors->get('uploads.*') as $messages)
         <span class="mt-1 flex items-center gap-1 text-xs text-danger"><x-admin.icon name="alert" size="size-3.5" />{{ $messages[0] }}</span>

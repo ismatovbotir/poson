@@ -365,7 +365,7 @@ class Form extends Component
         return view('livewire.admin.categories.form', [
             'title' => $title,
             'path' => $this->category ? CategoryTree::path($this->category->id) : null,
-            'currentImageUrl' => $this->form->remove_image ? null : $this->category?->imageUrl(),
+            'currentImageUrl' => $this->form->remove_image ? null : $this->category?->adminImageUrl(),
             'imageProcessing' => ! $this->form->remove_image && $this->form->image === null && (bool) $this->category?->imageProcessing(),
             'canSave' => $this->category ? auth()->user()->can('update', $this->category) : true,
             'canDelete' => $this->category && auth()->user()->can('delete', $this->category),

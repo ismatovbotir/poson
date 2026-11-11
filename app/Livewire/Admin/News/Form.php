@@ -321,7 +321,7 @@ class Form extends Component
             'title' => $title,
             'statuses' => collect(NewsStatus::cases())->mapWithKeys(fn (NewsStatus $status) => [$status->value => $status->label()])->all(),
             'publicUrl' => $publicLocale !== null ? $post->url($publicLocale) : null,
-            'currentImageUrl' => $this->form->remove_image ? null : $post?->imageUrl(),
+            'currentImageUrl' => $this->form->remove_image ? null : $post?->adminImageUrl(),
             'imageProcessing' => ! $this->form->remove_image && $this->form->image === null && (bool) $post?->imageProcessing(),
             'canSave' => $post ? auth()->user()->can('update', $post) : true,
             'canDelete' => $post && auth()->user()->can('delete', $post),

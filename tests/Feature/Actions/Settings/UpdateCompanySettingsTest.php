@@ -77,7 +77,7 @@ describe('media', function () {
         expect(fn () => $action->handle([
             Setting::LOGO => ['file' => UploadedFile::fake()->image('new.png', 300, 300), 'remove' => false],
             Setting::OG_IMAGE => ['file' => UploadedFile::fake()->image('og.jpg', 1200, 630), 'remove' => false],
-        ], null, null))->toThrow(RuntimeException::class);
+        ], null, null))->toThrow(ValidationException::class);
 
         expect(Media::query()->pluck('id')->all())->toBe([$oldMedia->id])
             ->and(app(CompanySettings::class)->logoUrl())->toBe($oldUrl)
@@ -106,16 +106,12 @@ describe('media', function () {
             ->and(Media::query()->count())->toBe(0);
     });
 
-    it('flushes the settings cache when a queued conversion completes', function () {
+    it('converts during the upload even with a faked queue, so the public logo is available at once', function () {
         Queue::fake();
 
         app(UpdateCompanyMedia::class)->handle([Setting::LOGO => ['file' => UploadedFile::fake()->image('logo.png', 300, 300), 'remove' => false]], null, null);
 
-        expect(app(CompanySettings::class)->logoUrl())->toBe('');
-
-        Queue::assertPushed(PerformConversionsJob::class);
-        Queue::pushed(PerformConversionsJob::class)->each(fn (PerformConversionsJob $job) => app()->call([$job, 'handle']));
-
+        Queue::assertNothingPushed();
         expect(app(CompanySettings::class)->logoUrl())->toContain('conversions/')->toEndWith('.webp');
     });
 });

@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\CompanySettings;
+use App\Support\Media\ImageLimits;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -42,7 +43,7 @@ class UpdateCompanyMedia
     private const EXTENSIONS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
     /**
-     * Media key => [min width, min height]; every image is at most 6000×6000.
+     * Media key => [min width, min height]; every image is at most 4000×4000.
      */
     public const MIN_DIMENSIONS = [
         Setting::LOGO => [112, 112],
@@ -51,7 +52,7 @@ class UpdateCompanyMedia
         Setting::SIGNATURE => [100, 40],
     ];
 
-    public const MAX_DIMENSION = 6000;
+    public const MAX_DIMENSION = ImageLimits::MAX_DIMENSION;
 
     /**
      * Images that end up inside quote PDFs are capped smaller, so dompdf
@@ -100,13 +101,11 @@ class UpdateCompanyMedia
         } catch (Throwable $exception) {
             $this->discardNewMedia($settings, $previous);
 
-            if ($exception instanceof FileNameNotAllowed || $exception instanceof FileUnacceptableForCollection || $exception instanceof FileIsTooBig) {
-                report($exception);
+            report($exception);
 
-                throw ValidationException::withMessages([array_key_first($changes) => __('admin.image_upload.rejected')]);
-            }
+            $rejected = $exception instanceof FileNameNotAllowed || $exception instanceof FileUnacceptableForCollection || $exception instanceof FileIsTooBig;
 
-            throw $exception;
+            throw ValidationException::withMessages([array_key_first($changes) => __($rejected ? 'admin.image_upload.rejected' : 'admin.image_upload.conversion_failed')]);
         }
 
         $changed = false;

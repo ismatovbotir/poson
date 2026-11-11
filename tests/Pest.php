@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Support\DemoProductsFixtureSeeder;
 use Tests\TestCase;
 
@@ -522,4 +523,14 @@ function telegramApiCalls(): array
         ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), 'api.telegram.org'))
         ->map(fn (array $pair): array => ['method' => basename(parse_url($pair[0]->url(), PHP_URL_PATH)), 'data' => $pair[0]->data()])
         ->values()->all();
+}
+
+/**
+ * Forget a media item's generated conversions: simulates a missing queue worker or legacy rows saved before conversions ran inline.
+ */
+function withoutConversions(Media $media): Media
+{
+    $media->forceFill(['generated_conversions' => []])->save();
+
+    return $media->fresh();
 }

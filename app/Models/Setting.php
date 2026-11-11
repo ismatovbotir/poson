@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Secrets;
 use Database\Factories\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -32,7 +33,7 @@ use Throwable;
  *
  * The "logo" and "og_image" rows carry their image in a medialibrary
  * collection of the same name (plan 04 S10): JPEG/PNG/WebP only (no SVG),
- * the original on the private originals disk, queued public conversions
+ * the original on the private originals disk, public conversions run during the upload
  * "logo" (WebP) and "og" (JPEG 1200×630). The collections are deliberately
  * not singleFile(): that would delete the old image as soon as a new one is
  * added, before the rest of the save succeeded. UpdateCompanyMedia keeps one
@@ -206,18 +207,29 @@ class Setting extends Model implements HasMedia
             ->fit(Fit::Max, 600, 600)
             ->format('webp')
             ->performOnCollections(self::LOGO)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('og')
             ->fit(Fit::Crop, 1200, 630)
             ->format('jpg')
             ->performOnCollections(self::OG_IMAGE)
-            ->queued();
+            ->nonQueued();
+    }
+
+    /**
+     * Admin preview URL of the row's image: the conversion, else the
+     * authorized original route. Needs "media" loaded.
+     */
+    public function adminMediaUrl(): ?string
+    {
+        $config = self::MEDIA[$this->key] ?? null;
+
+        return $config === null ? null : AdminMediaUrl::preview($this->getMedia($config['collection'])->last(), $config['conversion']);
     }
 
     /**
      * Public URL of the row's image conversion; null without an image or
-     * while the queued conversion hasn't run (the original is never public).
+     * while the conversion is missing (the original is never public).
      * Needs "media" loaded.
      */
     public function mediaUrl(): ?string

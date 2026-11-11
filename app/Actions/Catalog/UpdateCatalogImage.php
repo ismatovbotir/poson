@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
+use App\Support\Media\ImageLimits;
 use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -15,13 +16,16 @@ use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileNameNotAllowed;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Replace, remove or re-label the single image of a category (image), a
  * brand (logo), a page or a news post (cover), or one of the two images of
  * a banner (desktop / mobile: pass the collection). The alt text {uz, ru, en}
  * is kept in the media custom property "alt" and checked against the brand
- * rule; conversions are queued (plan 03 D10).
+ * rule; conversions run during the upload. A file that cannot be converted
+ * (truncated, corrupt) is rejected with a localized error and leaves nothing behind.
  *
  * Call it inside the same transaction as the record's save, so a rejected
  * file rolls the whole save back. The stored file gets a random name with
@@ -80,6 +84,10 @@ class UpdateCatalogImage
             throw ValidationException::withMessages([$field => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
         }
 
+        ImageLimits::assertWithinCap($file, $field);
+
+        $existing = $model->media()->where('collection_name', $collection)->pluck('id')->all();
+
         try {
             $model->addMedia($file)
                 ->usingName(Slug::make($model->getAttribute('slug') ?? '') ?: $collection)
@@ -90,6 +98,14 @@ class UpdateCatalogImage
             report($exception);
 
             throw ValidationException::withMessages([$field => __('admin.image_upload.rejected')]);
+        } catch (Throwable $exception) {
+            // The conversion failed after the row and original were written: remove the half-made media.
+            report($exception);
+
+            $model->media()->where('collection_name', $collection)->whereNotIn('id', $existing)->get()
+                ->each(fn (Media $media) => $media->delete());
+
+            throw ValidationException::withMessages([$field => __('admin.image_upload.conversion_failed')]);
         }
     }
 

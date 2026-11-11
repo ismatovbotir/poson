@@ -338,7 +338,7 @@ class Company extends Component
                 continue;
             }
 
-            $url = $setting->mediaUrl();
+            $url = $setting->adminMediaUrl();
             $hasMedia = $setting->getMedia(Setting::MEDIA[$key]['collection'])->isNotEmpty();
 
             $state[$key] = [

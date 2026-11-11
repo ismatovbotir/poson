@@ -7,6 +7,7 @@ use App\Models\Banner;
 use App\Rules\BannerLink;
 use App\Rules\BrandSafeText;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\ImageLimits;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -109,9 +110,9 @@ class BannerForm extends Form
             'starts_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX],
             'ends_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX, ...(trim($this->starts_at) !== '' ? ['after:starts_at'] : [])],
             'is_active' => ['boolean'],
-            'desktop' => [$hasDesktop ? 'nullable' : 'required', ...$image, 'dimensions:min_width='.Banner::DESKTOP_MEDIUM_WIDTH.',min_height='.Banner::DESKTOP_MEDIUM_HEIGHT],
+            'desktop' => [$hasDesktop ? 'nullable' : 'required', ...$image, ImageLimits::dimensionsRule('min_width='.Banner::DESKTOP_MEDIUM_WIDTH.',min_height='.Banner::DESKTOP_MEDIUM_HEIGHT)],
             'desktop_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
-            'mobile' => ['nullable', ...$image, 'dimensions:min_width=640,min_height=480'],
+            'mobile' => ['nullable', ...$image, ImageLimits::dimensionsRule('min_width=640,min_height=480')],
             'mobile_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
         ];
     }
@@ -128,8 +129,8 @@ class BannerForm extends Form
             'ends_at.after' => trim($this->starts_at) !== '' && trim($this->ends_at) > '2000' ? __('admin.banners.errors.ends_before_start') : __('admin.banners.errors.date_range'),
             'ends_at.before' => __('admin.banners.errors.date_range'),
             'desktop.required' => __('admin.banners.errors.desktop_required'),
-            'desktop.dimensions' => __('admin.banners.errors.desktop_size'),
-            'mobile.dimensions' => __('admin.banners.errors.mobile_size'),
+            'desktop.dimensions' => __('admin.banners.errors.desktop_size', ImageLimits::replacements()),
+            'mobile.dimensions' => __('admin.banners.errors.mobile_size', ImageLimits::replacements()),
         ];
     }
 

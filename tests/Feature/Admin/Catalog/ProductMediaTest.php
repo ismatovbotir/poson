@@ -261,7 +261,7 @@ it('removes the files already written when storing a later image fails', functio
         }
     });
 
-    expect(fn () => app(AddProductImages::class)->handle($product, $files))->toThrow(RuntimeException::class);
+    expect(fn () => app(AddProductImages::class)->handle($product, $files))->toThrow(ValidationException::class);
 
     expect(Media::query()->count())->toBe(0)
         ->and(Storage::disk('local')->allFiles())->toBe([]);

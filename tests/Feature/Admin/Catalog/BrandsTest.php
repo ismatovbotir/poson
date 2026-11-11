@@ -211,50 +211,38 @@ it('shows the chosen logo as a preview in the form before saving', function () {
         ->assertSeeHtml('data-image-preview');
 });
 
-it('shows the new logo in the form after replacing it once the queued conversion is ready', function () {
+it('shows the new logo in the form right after replacing it, without polling', function () {
     Storage::fake('public');
     Storage::fake('local');
     $brand = Brand::factory()->create();
     $brand->addMedia(UploadedFile::fake()->image('old.png', 600, 300))->toMediaCollection('logo');
-    expect($brand->fresh()->imageUrl())->not->toBeNull();
 
-    // Production: QUEUE_CONNECTION=database, the worker has not run yet.
+    // Production has no queue worker: conversions run during the save anyway.
     Queue::fake();
 
-    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+    Livewire::actingAs(staffUser(Role::ContentManager))
         ->test(Form::class, ['brand' => $brand->fresh()])
         ->set('form.logo', UploadedFile::fake()->image('new.png', 400, 200))
         ->call('save')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertSeeHtml('data-image-preview')
+        ->assertDontSeeHtml('data-image-poll')
+        ->assertDontSeeHtml('data-image-processing');
 
-    // The old logo is replaced at once; the form shows "processing" and polls
-    // until the queued thumb exists, then shows the new logo.
-    $component->assertSeeHtml('data-image-processing')->assertSeeHtml('data-image-poll');
-
-    $brand->fresh()->getFirstMedia('logo')->markAsConversionGenerated('thumb');
-
-    $component->call('$refresh')->assertSeeHtml('data-image-preview')->assertDontSeeHtml('data-image-poll')->assertDontSeeHtml('wire:poll.3s');
+    expect($brand->fresh()->imageUrl())->toContain('conversions/');
 });
 
-it('polls only while a logo has no generated conversion and stops once it is ready', function () {
+it('previews the original through the authorized route while a logo has no conversion', function () {
     Storage::fake('public');
     Storage::fake('local');
     $brand = Brand::factory()->create();
-    Queue::fake();
-    $brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo');
+    $media = withoutConversions($brand->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection('logo'));
 
-    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+    Livewire::actingAs(staffUser(Role::ContentManager))
         ->test(Form::class, ['brand' => $brand->fresh()])
-        ->assertSeeHtml('wire:poll.3s.visible="$refresh"')->assertSeeHtml('data-image-poll')
-        ->assertSeeHtml('data-image-processing-hint')
-        ->assertDontSeeHtml('data-image-preview');
-
-    $media = $brand->fresh()->getFirstMedia('logo');
-    $media->markAsConversionGenerated('thumb');
-
-    $component->call('$refresh')
-        ->assertDontSeeHtml('data-image-poll')->assertDontSeeHtml('wire:poll.3s')
-        ->assertSeeHtml('data-image-preview');
+        ->assertSeeHtml('data-image-preview')
+        ->assertSeeHtml(route('admin.media.original', $media))
+        ->assertDontSeeHtml('data-image-poll');
 });
 
 it('keeps unsaved form input while the processing poll re-renders', function () {
@@ -297,22 +285,17 @@ it('renders the processing poll in the shared image upload component', function 
     expect($ready)->not->toContain('data-image-poll')->toContain('data-image-preview');
 });
 
-it('polls while the image of another real form is processing', function (string $factory, string $form, string $param, string $collection) {
+it('previews the original while the image of another real form has no conversion', function (string $factory, string $form, string $param, string $collection) {
     Storage::fake('public');
     Storage::fake('local');
     $record = $factory::new()->create();
-    Queue::fake();
-    $record->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection($collection);
+    $media = withoutConversions($record->addMedia(UploadedFile::fake()->image('new.png', 400, 200))->toMediaCollection($collection));
 
-    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+    Livewire::actingAs(staffUser(Role::ContentManager))
         ->test($form, [$param => $record->fresh()])
-        ->assertSeeHtml('data-image-processing')
-        ->assertSeeHtml('wire:poll.3s.visible="$refresh"')
-        ->assertDontSeeHtml('data-image-preview');
-
-    $record->fresh()->getFirstMedia($collection)->markAsConversionGenerated('thumb');
-
-    $component->call('$refresh')->assertSeeHtml('data-image-preview')->assertDontSeeHtml('data-image-poll');
+        ->assertSeeHtml('data-image-preview')
+        ->assertSeeHtml(route('admin.media.original', $media))
+        ->assertDontSeeHtml('data-image-poll');
 })->with([
     'category' => [CategoryFactory::class, CategoryForm::class, 'category', 'image'],
     'page' => [PageFactory::class, PageForm::class, 'page', 'cover'],

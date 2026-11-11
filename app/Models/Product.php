@@ -14,6 +14,7 @@ use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\RollPricing;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\IndexNow;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
@@ -196,13 +197,13 @@ class Product extends Model implements HasMedia
             ->fit(Fit::Max, 400, 400)
             ->format('webp')
             ->performOnCollections(self::IMAGES)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('large')
             ->fit(Fit::Max, 1200, 1200)
             ->format('webp')
             ->performOnCollections(self::IMAGES)
-            ->queued();
+            ->nonQueued();
     }
 
     /**
@@ -487,8 +488,16 @@ class Product extends Model implements HasMedia
     }
 
     /**
+     * Admin preview URL of the main image: the conversion, else the authorized original route.
+     */
+    public function adminImageUrl(string $conversion = 'thumb'): ?string
+    {
+        return AdminMediaUrl::preview($this->getFirstMedia(self::IMAGES), $conversion);
+    }
+
+    /**
      * URL of a conversion of the main image; null without an image or while
-     * the queued conversion hasn't run yet (the original is never public).
+     * the conversion is missing (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {
