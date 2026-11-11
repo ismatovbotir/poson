@@ -41,9 +41,8 @@ it('stores an upload under a random name with the extension from its content', f
 });
 
 it('renders only conversions, never the original', function () {
-    Queue::fake();
     $brand = Brand::factory()->create();
-    $brand->addMedia(UploadedFile::fake()->image('logo.png'))->toMediaCollection('logo');
+    withoutConversions($brand->addMedia(UploadedFile::fake()->image('logo.png'))->toMediaCollection('logo'));
 
     expect($brand->fresh()->imageUrl())->toBeNull()
         ->and($brand->fresh()->imageProcessing())->toBeTrue();

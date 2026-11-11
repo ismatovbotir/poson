@@ -115,7 +115,7 @@ class CategoryForm extends Form
             'icon' => ['nullable', Rule::in(Category::ICONS)],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
             'image_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
             'specs' => ['array', 'max:200'],
             'specs.*.attribute_id' => ['required', 'integer', 'distinct', Rule::exists('attributes', 'id')],

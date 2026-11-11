@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -47,13 +48,13 @@ trait HasCatalogImage
             ->fit(Fit::Max, 400, 400)
             ->format('webp')
             ->performOnCollections($this->imageCollection())
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('large')
             ->fit(Fit::Max, 1200, 1200)
             ->format('webp')
             ->performOnCollections($this->imageCollection())
-            ->queued();
+            ->nonQueued();
     }
 
     public function imageMedia(): ?Media
@@ -70,6 +71,15 @@ trait HasCatalogImage
         $media = $this->imageMedia();
 
         return $media !== null && $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : null;
+    }
+
+    /**
+     * Admin preview URL: the conversion, else the authorized original route.
+     * Never use on public pages (see imageUrl()).
+     */
+    public function adminImageUrl(string $conversion = 'thumb'): ?string
+    {
+        return AdminMediaUrl::preview($this->imageMedia(), $conversion);
     }
 
     /**

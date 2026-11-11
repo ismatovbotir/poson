@@ -109,9 +109,9 @@ class BannerForm extends Form
             'starts_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX],
             'ends_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX, ...(trim($this->starts_at) !== '' ? ['after:starts_at'] : [])],
             'is_active' => ['boolean'],
-            'desktop' => [$hasDesktop ? 'nullable' : 'required', ...$image, 'dimensions:min_width='.Banner::DESKTOP_MEDIUM_WIDTH.',min_height='.Banner::DESKTOP_MEDIUM_HEIGHT],
+            'desktop' => [$hasDesktop ? 'nullable' : 'required', ...$image, 'dimensions:min_width='.Banner::DESKTOP_MEDIUM_WIDTH.',min_height='.Banner::DESKTOP_MEDIUM_HEIGHT.',max_width=4000,max_height=4000'],
             'desktop_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
-            'mobile' => ['nullable', ...$image, 'dimensions:min_width=640,min_height=480'],
+            'mobile' => ['nullable', ...$image, 'dimensions:min_width=640,min_height=480,max_width=4000,max_height=4000'],
             'mobile_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX, new BrandSafeText],
         ];
     }

@@ -90,7 +90,7 @@ class PageForm extends Form
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
             'needs_review' => ['boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
             'image_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
         ];
     }

@@ -523,3 +523,13 @@ function telegramApiCalls(): array
         ->map(fn (array $pair): array => ['method' => basename(parse_url($pair[0]->url(), PHP_URL_PATH)), 'data' => $pair[0]->data()])
         ->values()->all();
 }
+
+/**
+ * Forget a media item's generated conversions, as if no queue worker had run.
+ */
+function withoutConversions(Spatie\MediaLibrary\MediaCollections\Models\Media $media): Spatie\MediaLibrary\MediaCollections\Models\Media
+{
+    $media->forceFill(['generated_conversions' => []])->save();
+
+    return $media->fresh();
+}

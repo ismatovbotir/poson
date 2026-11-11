@@ -72,8 +72,8 @@ class Images extends Component
         $this->authorize('update', $this->product);
 
         $this->validate([
-            'uploads' => ['array', 'max:20'],
-            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'uploads' => ['array', 'max:10'],
+            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
         ], [], ['uploads.*' => __('admin.image_upload.image')]);
 
         $count = count($this->uploads);

@@ -78,7 +78,7 @@ class BrandForm extends Form
             'website' => ['nullable', 'string', new HttpsLink],
             'is_active' => ['boolean'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
             'logo_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
         ];
     }

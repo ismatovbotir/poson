@@ -23,7 +23,10 @@ use Throwable;
  *
  * Stored with a random uuid name and an extension derived from the content
  * (never the client's file name). Originals stay on the private disk; the
- * WebP conversions are queued (plan 03 D10). Alt text starts empty.
+ * WebP conversions run during the upload (no queue worker needed). A file that
+ * passes the type check but cannot be converted (truncated, corrupt) fails the
+ * whole batch with a localized error and leaves no rows or files behind.
+ * Alt text starts empty.
  */
 class AddProductImages
 {
@@ -51,11 +54,12 @@ class AddProductImages
 
         /** @var list<Media> $added */
         $added = [];
+        $existing = $product->media()->where('collection_name', Product::IMAGES)->pluck('id')->all();
 
         try {
-            DB::transaction(function () use ($product, $files, $extensions, $field, &$added): void {
+            DB::transaction(function () use ($product, $files, $extensions, $field, $existing, &$added): void {
                 foreach ($files as $index => $file) {
-                    $added[] = $this->store($product, $file, $extensions[$index], "{$field}.{$index}");
+                    $added[] = $this->store($product, $file, $extensions[$index], "{$field}.{$index}", $existing, $added);
                 }
             });
         } catch (Throwable $exception) {
@@ -70,7 +74,11 @@ class AddProductImages
     /**
      * @throws ValidationException
      */
-    private function store(Product $product, UploadedFile $file, string $extension, string $field): Media
+    /**
+     * @param  list<int>  $existing  media ids present before the batch
+     * @param  list<Media>  $added  media stored so far in this batch
+     */
+    private function store(Product $product, UploadedFile $file, string $extension, string $field, array $existing, array $added): Media
     {
         try {
             return $product->addMedia($file)
@@ -82,6 +90,18 @@ class AddProductImages
             report($exception);
 
             throw ValidationException::withMessages([$field => __('admin.image_upload.rejected')]);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            // The conversion failed after the row and original were written: remove the half-made media.
+            report($exception);
+
+            $known = [...$existing, ...array_map(fn (Media $media): int => $media->getKey(), $added)];
+
+            $product->media()->where('collection_name', Product::IMAGES)->whereNotIn('id', $known)->get()
+                ->each(fn (Media $media) => $this->mediaFiles->removeAllFiles($media));
+
+            throw ValidationException::withMessages([$field => __('admin.image_upload.conversion_failed')]);
         }
     }
 }

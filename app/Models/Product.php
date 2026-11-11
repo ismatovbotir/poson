@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -196,13 +197,13 @@ class Product extends Model implements HasMedia
             ->fit(Fit::Max, 400, 400)
             ->format('webp')
             ->performOnCollections(self::IMAGES)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('large')
             ->fit(Fit::Max, 1200, 1200)
             ->format('webp')
             ->performOnCollections(self::IMAGES)
-            ->queued();
+            ->nonQueued();
     }
 
     /**
@@ -484,6 +485,14 @@ class Product extends Model implements HasMedia
     public function imageMedia(): iterable
     {
         return $this->getMedia(self::IMAGES);
+    }
+
+    /**
+     * Admin preview URL of the main image: the conversion, else the authorized original route.
+     */
+    public function adminImageUrl(string $conversion = 'thumb'): ?string
+    {
+        return AdminMediaUrl::preview($this->getFirstMedia(self::IMAGES), $conversion);
     }
 
     /**

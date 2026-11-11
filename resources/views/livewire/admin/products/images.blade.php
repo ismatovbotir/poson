@@ -6,7 +6,7 @@
 
     <ul @if ($canEdit) wire:sort="sortImage" @endif class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         @foreach ($this->images as $media)
-            @php($url = $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : null)
+            @php($url = \App\Support\Media\AdminMediaUrl::preview($media, 'thumb'))
             <li wire:key="image-{{ $media->id }}" @if ($canEdit) wire:sort:item="{{ $media->id }}" @endif x-data="{ alt: false }" @class(['relative rounded-xl border bg-white', 'border-2 border-brand-500' => $loop->first, 'border-slate-200' => ! $loop->first]) data-image="{{ $media->id }}">
                 <div class="relative grid aspect-square place-items-center overflow-hidden rounded-t-xl bg-canvas">
                     @if ($url)

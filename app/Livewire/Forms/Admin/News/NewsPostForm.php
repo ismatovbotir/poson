@@ -105,7 +105,7 @@ class NewsPostForm extends Form
             ...NewsPostRules::rules(),
             'status' => ['required', Rule::enum(NewsStatus::class)],
             'published_at' => ['nullable', 'date_format:'.self::DATE_FORMAT, 'after:'.self::DATE_MIN, 'before:'.self::DATE_MAX],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
             'image_alt.*' => ['nullable', 'string', 'max:255'],
         ];
     }

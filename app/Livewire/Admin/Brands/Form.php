@@ -160,7 +160,7 @@ class Form extends Component
         return view('livewire.admin.brands.form', [
             'title' => $title,
             'autoSlug' => $this->form->autoSlug(),
-            'currentLogoUrl' => $this->form->remove_logo ? null : $this->brand?->imageUrl(),
+            'currentLogoUrl' => $this->form->remove_logo ? null : $this->brand?->adminImageUrl(),
             'logoProcessing' => ! $this->form->remove_logo && $this->form->logo === null && (bool) $this->brand?->imageProcessing(),
             'canSave' => $this->brand ? auth()->user()->can('update', $this->brand) : true,
             'canDelete' => $this->brand && auth()->user()->can('delete', $this->brand),

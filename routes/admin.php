@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
+use App\Http\Controllers\Admin\ShowMediaOriginalController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
 use App\Livewire\Admin\Account;
@@ -66,6 +67,9 @@ Route::middleware(['auth', 'admin.locale', 'admin'])->group(function () {
 
 Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->group(function () {
     Route::livewire('/', Dashboard::class)->name('dashboard');
+
+    // Image original preview when a conversion is missing (allow-list + policy in the controller).
+    Route::get('/media/{media}/original', ShowMediaOriginalController::class)->whereNumber('media')->name('media.original');
 
     // CRM: Murojaatlar (plan 05 5a). LeadPolicy in the components; lists use Lead::visibleTo().
     Route::livewire('/leads', Leads\Index::class)->name('leads.index');

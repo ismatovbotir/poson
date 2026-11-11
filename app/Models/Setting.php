@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -206,13 +207,24 @@ class Setting extends Model implements HasMedia
             ->fit(Fit::Max, 600, 600)
             ->format('webp')
             ->performOnCollections(self::LOGO)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('og')
             ->fit(Fit::Crop, 1200, 630)
             ->format('jpg')
             ->performOnCollections(self::OG_IMAGE)
-            ->queued();
+            ->nonQueued();
+    }
+
+    /**
+     * Admin preview URL of the row's image: the conversion, else the
+     * authorized original route. Needs "media" loaded.
+     */
+    public function adminMediaUrl(): ?string
+    {
+        $config = self::MEDIA[$this->key] ?? null;
+
+        return $config === null ? null : AdminMediaUrl::preview($this->getMedia($config['collection'])->last(), $config['conversion']);
     }
 
     /**

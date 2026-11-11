@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -157,25 +158,25 @@ class Banner extends Model implements HasMedia
             ->fit(Fit::Crop, 480, 150)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('medium')
             ->fit(Fit::Crop, self::DESKTOP_MEDIUM_WIDTH, self::DESKTOP_MEDIUM_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('large')
             ->fit(Fit::Crop, self::DESKTOP_WIDTH, self::DESKTOP_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::DESKTOP)
-            ->queued();
+            ->nonQueued();
 
         $this->addMediaConversion('mobile')
             ->fit(Fit::Crop, self::MOBILE_WIDTH, self::MOBILE_HEIGHT)
             ->format('webp')
             ->performOnCollections(self::MOBILE)
-            ->queued();
+            ->nonQueued();
     }
 
     /**
@@ -204,6 +205,14 @@ class Banner extends Model implements HasMedia
         $media = $this->bannerMedia($conversion === 'mobile' ? self::MOBILE : self::DESKTOP);
 
         return $media !== null && $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : null;
+    }
+
+    /**
+     * Admin preview URL of a banner image: the conversion, else the authorized original route.
+     */
+    public function adminImageUrl(string $conversion = 'thumb'): ?string
+    {
+        return AdminMediaUrl::preview($this->bannerMedia($conversion === 'mobile' ? self::MOBILE : self::DESKTOP), $conversion);
     }
 
     /**

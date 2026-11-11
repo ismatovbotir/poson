@@ -183,7 +183,7 @@ class Form extends Component
             'template' => $template,
             'isSystem' => (bool) $this->page?->is_system,
             'publicUrl' => $this->page?->is_active ? route('site.page', ['locale' => config('app.default_locale', 'uz'), 'page' => $this->page->slug]) : null,
-            'currentImageUrl' => $this->form->remove_image ? null : $this->page?->imageUrl(),
+            'currentImageUrl' => $this->form->remove_image ? null : $this->page?->adminImageUrl(),
             'imageProcessing' => ! $this->form->remove_image && $this->form->image === null && (bool) $this->page?->imageProcessing(),
             'canSave' => $this->page ? auth()->user()->can('update', $this->page) : true,
             'canDelete' => $this->page && ! $this->page->is_system && auth()->user()->can('delete', $this->page),
