@@ -27,6 +27,7 @@ class ShowMediaOriginalController extends Controller
 {
     public function __invoke(Media $media): Response
     {
+        // Only Product is soft-deleted (a trashed product's gallery stays viewable); the other owners have no trash.
         $owner = $media->model()->withTrashed()->first();
 
         abort_unless($owner instanceof Model && $this->isAllowed($owner, $media->collection_name), 404);

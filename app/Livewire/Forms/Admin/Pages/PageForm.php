@@ -6,6 +6,7 @@ use App\Enums\PageTemplate;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\ImageLimits;
 use App\Support\Slug;
 use Illuminate\Validation\Rule;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -90,7 +91,7 @@ class PageForm extends Form
             'sort' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['boolean'],
             'needs_review' => ['boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=4000,max_height=4000'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ImageLimits::dimensionsRule()],
             'image_alt.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
         ];
     }

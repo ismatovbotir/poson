@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
+use App\Support\Media\ImageLimits;
 use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -82,6 +83,8 @@ class UpdateCatalogImage
         if ($extension === null) {
             throw ValidationException::withMessages([$field => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
         }
+
+        ImageLimits::assertWithinCap($file, $field);
 
         $existing = $model->media()->where('collection_name', $collection)->pluck('id')->all();
 

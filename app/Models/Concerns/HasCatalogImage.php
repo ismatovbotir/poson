@@ -9,13 +9,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * One image per record in a single-file medialibrary collection (plan 03 D10):
- * WebP conversions "thumb" (400 px) and "large" (1200 px), queued. The alt
+ * WebP conversions "thumb" (400 px) and "large" (1200 px), converted during the upload. The alt
  * text is stored per locale in the media custom property "alt".
  *
  * The original upload (which may carry EXIF such as GPS) is kept on the
  * private media-library.originals_disk; only the conversions are public.
  * They are re-encoded by GD, which writes no EXIF. Pages render conversions
- * only: imageUrl() is null until the queued conversion exists.
+ * only: imageUrl() is null while its conversion is missing (legacy rows, failed runs).
  *
  * Eager-load "media" on lists (strict models forbid lazy loading).
  */
@@ -63,8 +63,8 @@ trait HasCatalogImage
     }
 
     /**
-     * URL of a conversion; null without an image or while the queued
-     * conversion hasn't run yet (the original is never public).
+     * URL of a conversion; null without an image or while the
+     * conversion is missing (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {
@@ -83,7 +83,7 @@ trait HasCatalogImage
     }
 
     /**
-     * An image is saved but its conversions are still queued.
+     * An image is saved but its conversions are missing (legacy rows or a failed run).
      */
     public function imageProcessing(): bool
     {

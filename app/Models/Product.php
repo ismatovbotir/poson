@@ -14,6 +14,7 @@ use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\RollPricing;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\IndexNow;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
@@ -29,7 +30,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -497,7 +497,7 @@ class Product extends Model implements HasMedia
 
     /**
      * URL of a conversion of the main image; null without an image or while
-     * the queued conversion hasn't run yet (the original is never public).
+     * the conversion is missing (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {

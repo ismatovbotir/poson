@@ -4,6 +4,7 @@ namespace App\Livewire\Forms\Admin\Settings;
 
 use App\Models\Setting;
 use App\Support\CompanySettings;
+use App\Support\Media\ImageLimits;
 use App\Support\Settings\SettingsFormat;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -63,7 +64,7 @@ class SeoForm extends SettingsTabForm
     {
         $rules = [
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=112,min_height=112,max_width=1500,max_height=1500'],
-            'og_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=1200,min_height=630,max_width=4000,max_height=4000'],
+            'og_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ImageLimits::dimensionsRule('min_width=1200,min_height=630')],
         ];
 
         foreach (SettingsFormat::verificationPatterns() as $engine => $pattern) {

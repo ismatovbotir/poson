@@ -3,6 +3,7 @@
 namespace App\Actions\Catalog;
 
 use App\Models\Product;
+use App\Support\Media\ImageLimits;
 use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,8 @@ class AddProductImages
         foreach ($files as $index => $file) {
             $extensions[$index] = self::EXTENSIONS[(string) $file->getMimeType()]
                 ?? throw ValidationException::withMessages(["{$field}.{$index}" => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
+
+            ImageLimits::assertWithinCap($file, "{$field}.{$index}");
         }
 
         /** @var list<Media> $added */
@@ -72,11 +75,10 @@ class AddProductImages
     }
 
     /**
-     * @throws ValidationException
-     */
-    /**
      * @param  list<int>  $existing  media ids present before the batch
      * @param  list<Media>  $added  media stored so far in this batch
+     *
+     * @throws ValidationException
      */
     private function store(Product $product, UploadedFile $file, string $extension, string $field, array $existing, array $added): Media
     {

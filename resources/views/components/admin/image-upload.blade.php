@@ -75,7 +75,7 @@
                 <x-admin.icon name="upload" size="size-4" />
                 {{ $preview || $processing ? __('admin.image_upload.replace') : __('admin.image_upload.choose') }}
             </label>
-            <p id="{{ $id }}-hint" class="mt-2 text-xs text-slate-500">{{ $hint ?? __('admin.image_upload.hint') }}</p>
+            <p id="{{ $id }}-hint" class="mt-2 text-xs text-slate-500">{{ $hint ?? __('admin.image_upload.hint', \App\Support\Media\ImageLimits::replacements()) }}</p>
             @if ($polls)
                 <p x-show="! polling" x-cloak class="mt-2 text-xs text-amber-700" data-image-processing-hint>{{ __('admin.image_upload.still_processing') }}</p>
             @endif

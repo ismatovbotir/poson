@@ -16,6 +16,7 @@ use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Support\Media\ImageLimits;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -120,12 +121,12 @@ it('rejects a 4001 px image on every image form', function () {
     expect($product->fresh()->getMedia(Product::IMAGES))->toBeEmpty();
 });
 
-it('limits a gallery batch to 10 files', function () {
+it('limits a gallery batch to the shared batch size', function () {
     $product = Product::factory()->create();
 
     Livewire::actingAs(staffUser())
         ->test(Images::class, ['product' => $product])
-        ->set('uploads', array_map(fn ($i) => UploadedFile::fake()->image("{$i}.jpg", 100, 100), range(1, 11)))
+        ->set('uploads', array_map(fn ($i) => UploadedFile::fake()->image("{$i}.jpg", 100, 100), range(1, ImageLimits::MAX_BATCH + 1)))
         ->assertHasErrors(['uploads']);
 
     expect($product->fresh()->getMedia(Product::IMAGES))->toBeEmpty();
@@ -206,4 +207,37 @@ it('shows the localized error and keeps the old image when a replacement cannot 
         ->toThrow(ValidationException::class);
 
     expect($brand->fresh()->media()->where('collection_name', 'logo')->pluck('id')->all())->toBe([$old->id]);
+    Storage::disk('local')->assertExists($old->getPathRelativeToRoot());
+    Storage::disk('public')->assertExists($old->getPathRelativeToRoot('thumb'));
+    expect(Storage::disk('local')->allFiles())->toHaveCount(1);
 });
+
+it('leaves no rows or files when the batch fails at index 1 of 3', function () {
+    $product = Product::factory()->create();
+    $files = [UploadedFile::fake()->image('a.jpg', 300, 300), UploadedFile::fake()->createWithContent('bad.jpg', corruptJpeg()), UploadedFile::fake()->image('c.jpg', 300, 300)];
+
+    try {
+        app(AddProductImages::class)->handle($product, $files);
+        $this->fail('Expected a validation error.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('uploads.1');
+    }
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toBeEmpty()
+        ->and(Storage::disk('local')->allFiles())->toBeEmpty()
+        ->and(Storage::disk('public')->allFiles())->toBeEmpty();
+});
+
+it('enforces the pixel cap inside the actions too', function () {
+    $product = Product::factory()->create();
+    $brand = Brand::factory()->create();
+
+    expect(fn () => app(AddProductImages::class)->handle($product, [UploadedFile::fake()->image('big.jpg', 4001, 100)]))->toThrow(ValidationException::class)
+        ->and(fn () => app(UpdateCatalogImage::class)->handle($brand, UploadedFile::fake()->image('big.png', 100, 4001), [], field: 'logo'))->toThrow(ValidationException::class);
+
+    expect(Media::query()->count())->toBe(0);
+});
+
+it('has the conversion_failed message in every locale', function (string $locale) {
+    expect(__('admin.image_upload.conversion_failed', [], $locale))->not->toBe('admin.image_upload.conversion_failed');
+})->with(['uz', 'ru', 'en']);

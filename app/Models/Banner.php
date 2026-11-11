@@ -6,6 +6,7 @@ use App\Enums\BannerPlacement;
 use App\Enums\BannerState;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\BannerDirectory;
 use Database\Factories\BannerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -29,7 +29,7 @@ use Spatie\Translatable\HasTranslations;
  * stored without a locale prefix or an https URL (App\Support\Site\BannerLink).
  *
  * Images (medialibrary, like HasCatalogImage: private original, WebP
- * conversions, queued; alt per locale in the custom property "alt"):
+ * conversions, run during the upload; alt per locale in the custom property "alt"):
  * "desktop" (required) is cropped to DESKTOP_WIDTH × DESKTOP_HEIGHT, the
  * optional "mobile" to MOBILE_WIDTH × MOBILE_HEIGHT, so the site can set
  * exact width / height (no layout shift). No text is baked into the images
@@ -198,7 +198,7 @@ class Banner extends Model implements HasMedia
     /**
      * URL of a conversion of the desktop image ("thumb", "medium", "large")
      * or of the mobile one ("mobile"); null without the image or while the
-     * queued conversion hasn't run yet (the original is never public).
+     * conversion is missing (the original is never public).
      */
     public function imageUrl(string $conversion = 'thumb'): ?string
     {
@@ -230,7 +230,7 @@ class Banner extends Model implements HasMedia
     }
 
     /**
-     * An image of the collection is saved but its conversions are still queued.
+     * An image of the collection is saved but its conversions are missing (legacy rows or a failed run).
      */
     public function bannerImageProcessing(string $collection = self::DESKTOP): bool
     {

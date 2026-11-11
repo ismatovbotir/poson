@@ -70,7 +70,7 @@
         @endif
     </ul>
 
-    <p id="product-images-hint" class="mt-3 text-xs text-slate-500">{{ __('admin.products.images.hint') }}</p>
+    <p id="product-images-hint" class="mt-3 text-xs text-slate-500">{{ __('admin.products.images.hint', \App\Support\Media\ImageLimits::replacements()) }}</p>
     @error('uploads')<x-admin.field-error name="uploads" />@enderror
     @foreach ($errors->get('uploads.*') as $messages)
         <span class="mt-1 flex items-center gap-1 text-xs text-danger"><x-admin.icon name="alert" size="size-3.5" />{{ $messages[0] }}</span>

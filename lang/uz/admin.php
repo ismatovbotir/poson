@@ -622,7 +622,7 @@ return [
         'images' => [
             'main' => 'Asosiy',
             'upload' => 'Yuklash',
-            'hint' => 'JPG, PNG yoki WebP, har biri 5 MB gacha, 4000×4000 px dan oshmasin, bir martada 10 tagacha, kamida 1000×1000 px tavsiya etiladi. Tartibni oʻzgartirish uchun suring: birinchi rasm asosiy hisoblanadi.',
+            'hint' => 'JPG, PNG yoki WebP, har biri 5 MB gacha, :px×:px px dan oshmasin, bir martada :count tagacha, kamida 1000×1000 px tavsiya etiladi. Tartibni oʻzgartirish uchun suring: birinchi rasm asosiy hisoblanadi.',
             'none' => 'Hozircha rasmlar yoʻq.',
             'added' => '[1,*] :count ta rasm qoʻshildi',
             'alt_hint' => 'Rasmda nima borligini yozing, masalan “Taglikdagi Zebra DS2208 skaneri”. Ekran oʻquvchilari va rasm qidiruvi uchun ishlatiladi.',
@@ -893,8 +893,8 @@ return [
             'link' => '“/” bilan boshlanadigan ichki yoʻl (“//” emas) yoki toʻliq https:// manzil kiriting.',
             'category_required' => 'Banner koʻrsatiladigan kategoriyani tanlang.',
             'desktop_required' => 'Kompyuter uchun rasmni yuklang.',
-            'desktop_size' => 'Kompyuter uchun rasm kamida 1200 × 375 px va koʻpi bilan 4000 × 4000 px boʻlishi kerak.',
-            'mobile_size' => 'Telefon uchun rasm kamida 640 × 480 px va koʻpi bilan 4000 × 4000 px boʻlishi kerak.',
+            'desktop_size' => 'Kompyuter uchun rasm kamida 1200 × 375 px va koʻpi bilan :px × :px px boʻlishi kerak.',
+            'mobile_size' => 'Telefon uchun rasm kamida 640 × 480 px va koʻpi bilan :px × :px px boʻlishi kerak.',
             'date_range' => '2000 va 2099 yillar orasidagi sanani kiriting.',
             'ends_before_start' => 'Tugash vaqti boshlanishdan keyin boʻlishi kerak.',
         ],
@@ -961,7 +961,7 @@ return [
         'replace' => 'Almashtirish',
         'remove' => 'Rasmni oʻchirish',
         'uploading' => 'Yuklanmoqda…',
-        'hint' => 'JPG, PNG yoki WebP, 5 MB gacha, 4000×4000 px dan oshmasin.',
+        'hint' => 'JPG, PNG yoki WebP, 5 MB gacha, :px×:px px dan oshmasin.',
         'alt' => 'Alt-matn',
     ],
 

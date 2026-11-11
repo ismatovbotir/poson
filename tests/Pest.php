@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\Support\DemoProductsFixtureSeeder;
 use Tests\TestCase;
 
@@ -525,9 +526,9 @@ function telegramApiCalls(): array
 }
 
 /**
- * Forget a media item's generated conversions, as if no queue worker had run.
+ * Forget a media item's generated conversions: simulates a missing queue worker or legacy rows saved before conversions ran inline.
  */
-function withoutConversions(Spatie\MediaLibrary\MediaCollections\Models\Media $media): Spatie\MediaLibrary\MediaCollections\Models\Media
+function withoutConversions(Media $media): Media
 {
     $media->forceFill(['generated_conversions' => []])->save();
 

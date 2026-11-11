@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
+use App\Support\Media\AdminMediaUrl;
 use App\Support\Secrets;
 use Database\Factories\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Support\Media\AdminMediaUrl;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -33,7 +33,7 @@ use Throwable;
  *
  * The "logo" and "og_image" rows carry their image in a medialibrary
  * collection of the same name (plan 04 S10): JPEG/PNG/WebP only (no SVG),
- * the original on the private originals disk, queued public conversions
+ * the original on the private originals disk, public conversions run during the upload
  * "logo" (WebP) and "og" (JPEG 1200×630). The collections are deliberately
  * not singleFile(): that would delete the old image as soon as a new one is
  * added, before the rest of the save succeeded. UpdateCompanyMedia keeps one
@@ -229,7 +229,7 @@ class Setting extends Model implements HasMedia
 
     /**
      * Public URL of the row's image conversion; null without an image or
-     * while the queued conversion hasn't run (the original is never public).
+     * while the conversion is missing (the original is never public).
      * Needs "media" loaded.
      */
     public function mediaUrl(): ?string
