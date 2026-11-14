@@ -2,9 +2,11 @@
 
 namespace App\Support\Admin;
 
+use App\Enums\JobApplicationStatus;
 use App\Enums\LeadStatus;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
+use App\Models\JobApplication;
 use App\Models\Lead;
 use App\Models\Setting;
 use App\Models\TelegramUser;
@@ -76,6 +78,13 @@ final class Menu
                 // Knowledge articles (decision 2026-10-24): news_posts with kind = article, same news.* permissions.
                 new MenuItem('articles', 'menu.items.articles', 'book', 'admin.articles.index', permission: 'news.viewAny'),
                 new MenuItem('banners', 'menu.items.banners', 'image', 'admin.banners.index', permission: 'banners.viewAny'),
+            ]),
+
+            // Plan 31: vacancies and job applications (Admin only; the CV download has its own permission).
+            new MenuGroup('careers', 'menu.groups.careers', [
+                new MenuItem('careers-vacancies', 'menu.items.careers_vacancies', 'briefcase', 'admin.careers.vacancies.index', permission: 'careers.vacancies', active: 'admin.careers.vacancies.*'),
+                new MenuItem('careers-applications', 'menu.items.careers_applications', 'inbox', 'admin.careers.applications.index', permission: 'careers.applications', active: 'admin.careers.applications.*'),
+                new MenuItem('careers-settings', 'menu.items.careers_settings', 'settings', 'admin.careers.settings', visible: fn (User $user): bool => $user->can('manageCareers', Setting::class)),
             ]),
 
             new MenuGroup('seo', 'menu.groups.seo', [
@@ -167,6 +176,11 @@ final class Menu
         // Plan 21 A1: conversations with unread messages the user can see.
         if ($user->can('viewAny', TelegramUser::class)) {
             $badges['telegram-chats'] = TelegramUser::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
+        }
+
+        // Plan 31 (CR-11): new applications, only for users with careers.applications.
+        if ($user->can('careers.applications')) {
+            $badges['careers-applications'] = JobApplication::query()->where('status', JobApplicationStatus::New->value)->count();
         }
 
         return array_filter($badges);

@@ -24,6 +24,7 @@ return [
         'pages' => 'Pages',
         'news' => 'News',
         'articles' => 'Articles',
+        'careers' => 'Careers',
         'other' => 'Other',
     ],
 

@@ -41,6 +41,7 @@ return [
     'nav' => [
         'news' => 'Новости',
         'articles' => 'Статьи',
+        'careers' => 'Вакансии',
         'brands' => 'Бренды',
         'services' => 'Услуги',
         'aria_label' => 'Основное меню',

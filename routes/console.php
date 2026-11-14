@@ -63,6 +63,16 @@ Schedule::command('model:prune', ['--model' => [ChatUnmatched::class]])->dailyAt
 
 /*
 |--------------------------------------------------------------------------
+| Careers (plan 31, CR-5)
+|--------------------------------------------------------------------------
+| Hourly: CVs waiting > 24 h for the Telegram forward expire (file deleted,
+| text-only message), stuck "sending" rows are queued again, orphan pending
+| files are deleted. Applications themselves are never pruned (§17.4).
+*/
+Schedule::command('careers:expire-pending-cvs')->hourly()->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | Cart (plan 11a)
 |--------------------------------------------------------------------------
 | Empty carts after 1 day, converted ones 1 day after the order, the rest

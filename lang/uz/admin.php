@@ -1271,7 +1271,7 @@ return [
                 'telegram_chats_sales' => 'Murojaatlar, tijorat takliflari va buyurtmalar. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_service' => 'Servis murojaatlari. -1001234567890 kabi raqam yoki @channel.',
                 'telegram_chats_finance' => 'Toʻlovlar va narxlar sinxronizatsiyasidagi muammolar. -1001234567890 kabi raqam yoki @channel.',
-                'telegram_chats_management' => 'MCP (Claude) kirish ogohlantirishlari: tokenlar, yangi IP yoki mijoz, bekor qilishlar. Faqat direktor / rahbariyat uchun. -1001234567890 kabi raqam yoki @channel.',
+                'telegram_chats_management' => 'MCP (Claude) kirish ogohlantirishlari: tokenlar, yangi IP yoki mijoz, bekor qilishlar. Faqat direktor / rahbariyat uchun. -1001234567890 kabi raqam yoki @channel. Vakansiyalar boʻlimidagi nomzodlar rezyumelari ham shu chatga keladi: aʼzolarni minimal tuting.',
                 'telegram_chats_inbox' => 'Telegram botdan kelgan mijoz fayllari va xabarlar haqidagi bildirishnomalar. Boʻsh boʻlsa, sotuv chati ishlatiladi. Faqat yopiq guruh: -1001234567890 kabi raqam (ochiq guruh yoki @kanal qabul qilinmaydi).',
                 'telegram_notify_new_leads' => 'Har bir yangi murojaat sotuv chatiga, servis soʻrovlari esa servis chatiga yuboriladi.',
                 'telegram_notify_inbox' => 'Mijoz botga yozganda kiruvchi xabarlar chatiga (yoki sotuv chatiga) qisqa bildirishnoma yuboriladi, bitta suhbat uchun 10 daqiqada koʻpi bilan bir marta.',

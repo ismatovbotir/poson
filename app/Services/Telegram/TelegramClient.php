@@ -27,6 +27,18 @@ class TelegramClient
 
     public const TIMEOUT = 10;
 
+    /**
+     * sendDocument / downloadFile (plan 31): total and connection timeouts.
+     */
+    public const DOCUMENT_TIMEOUT = 30;
+
+    public const DOCUMENT_CONNECT_TIMEOUT = 5;
+
+    /**
+     * A Telegram file_path: relative segments of safe characters (CR-7).
+     */
+    public const FILE_PATH_PATTERN = '#^[A-Za-z0-9_-]+(/[A-Za-z0-9_.-]+)*$#D';
+
     protected int $timeout = self::TIMEOUT;
 
     /**
@@ -238,6 +250,128 @@ class TelegramClient
     }
 
     /**
+     * Send a file as a document (plan 31, CR-7): multipart upload, the
+     * caption in HTML (every user value already escaped with e()), URL
+     * buttons one per row. Connection timeout DOCUMENT_CONNECT_TIMEOUT,
+     * total DOCUMENT_TIMEOUT. The bytes never reach a log or an exception.
+     *
+     * @param  list<array{text: string, url: string}>  $buttons
+     * @return array<string, mixed> The sent message (document.file_id, document.file_unique_id, message_id)
+     *
+     * @throws TelegramException
+     */
+    public function sendDocument(string $chatId, #[\SensitiveParameter] string $bytes, string $filename, string $caption, array $buttons = []): array
+    {
+        $fields = [
+            'chat_id' => $chatId,
+            'caption' => $caption,
+            'parse_mode' => 'HTML',
+        ];
+
+        if ($buttons !== []) {
+            $fields['reply_markup'] = (string) json_encode([
+                'inline_keyboard' => array_map(fn (array $button): array => [['text' => $button['text'], 'url' => $button['url']]], $buttons),
+            ]);
+        }
+
+        $token = $this->requireToken();
+
+        $response = $this->perform(fn (): Response => Http::timeout(self::DOCUMENT_TIMEOUT)
+            ->connectTimeout(self::DOCUMENT_CONNECT_TIMEOUT)
+            ->acceptJson()
+            ->attach('document', $bytes, $filename, ['Content-Type' => 'application/pdf'])
+            ->post($this->url($token, 'sendDocument'), $fields));
+
+        $result = $this->result($response);
+
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * getFile (plan 31, CR-7): file_id → file_path, file_unique_id, file_size.
+     * A file_path that does not match FILE_PATH_PATTERN (≤ 256 chars, no
+     * "..", "//" or scheme) is refused as a 400.
+     *
+     * @return array{file_path: string, file_unique_id: string, file_size: int|null}
+     *
+     * @throws TelegramException
+     */
+    public function getFile(string $fileId): array
+    {
+        $result = $this->call('getFile', ['file_id' => $fileId]);
+        $path = $result['file_path'] ?? null;
+
+        if (! is_string($path) || ! self::isSafeFilePath($path)) {
+            throw new TelegramException(400);
+        }
+
+        return [
+            'file_path' => $path,
+            'file_unique_id' => is_string($result['file_unique_id'] ?? null) ? $result['file_unique_id'] : '',
+            'file_size' => is_numeric($result['file_size'] ?? null) ? (int) $result['file_size'] : null,
+        ];
+    }
+
+    /**
+     * Download a file from Telegram's file endpoint (plan 31, CR-7), never
+     * returned to a browser as a URL. Only self::API, no redirects; refused
+     * (413) when Content-Length or the streamed body exceeds $maxBytes. An
+     * unsafe path is refused (400) before any HTTP request.
+     *
+     * @throws TelegramException
+     */
+    public function downloadFile(string $filePath, int $maxBytes): string
+    {
+        if (! self::isSafeFilePath($filePath)) {
+            throw new TelegramException(400);
+        }
+
+        $token = $this->requireToken();
+
+        $response = $this->perform(fn (): Response => Http::timeout(self::DOCUMENT_TIMEOUT)
+            ->connectTimeout(self::DOCUMENT_CONNECT_TIMEOUT)
+            ->withOptions(['allow_redirects' => false, 'stream' => true])
+            ->get(self::API.'/file/bot'.$token.'/'.$filePath));
+
+        if (! $response->successful()) {
+            throw new TelegramException($response->status());
+        }
+
+        $length = $response->header('Content-Length');
+
+        if (is_numeric($length) && (int) $length > $maxBytes) {
+            throw new TelegramException(413);
+        }
+
+        try {
+            $body = $response->toPsrResponse()->getBody();
+            $bytes = '';
+
+            while (! $body->eof() && strlen($bytes) <= $maxBytes) {
+                $bytes .= $body->read(min(65536, $maxBytes + 1 - strlen($bytes)));
+            }
+        } catch (Throwable) {
+            throw new TelegramException(0);
+        }
+
+        if (strlen($bytes) > $maxBytes) {
+            throw new TelegramException(413);
+        }
+
+        return $bytes;
+    }
+
+    /**
+     * Whether a Telegram file_path is a plain relative path (CR-7).
+     */
+    public static function isSafeFilePath(string $path): bool
+    {
+        return strlen($path) <= 256
+            && preg_match(self::FILE_PATH_PATTERN, $path) === 1
+            && ! str_contains($path, '..');
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      *
@@ -259,15 +393,29 @@ class TelegramClient
      */
     protected function callRaw(string $method, #[\SensitiveParameter] array $payload, bool $get = false): mixed
     {
-        $token = $this->token();
+        $token = $this->requireToken();
 
-        if ($token === null) {
-            throw new TelegramException(401);
-        }
-
-        try {
+        $response = $this->perform(function () use ($token, $method, $payload, $get): Response {
             $request = Http::timeout($this->timeout)->connectTimeout($this->connectTimeout ?? $this->timeout)->acceptJson();
-            $response = $get ? $request->get($this->url($token, $method)) : $request->asJson()->post($this->url($token, $method), $payload);
+
+            return $get ? $request->get($this->url($token, $method)) : $request->asJson()->post($this->url($token, $method), $payload);
+        });
+
+        return $this->result($response);
+    }
+
+    /**
+     * Run one HTTP request; every client failure becomes a TelegramException
+     * without the URL (and so without the token).
+     *
+     * @param  \Closure(): Response  $send
+     *
+     * @throws TelegramException
+     */
+    protected function perform(\Closure $send): Response
+    {
+        try {
+            return $send();
         } catch (ConnectionException $exception) {
             $message = strtolower($exception->getMessage());
 
@@ -276,12 +424,34 @@ class TelegramClient
             // Any other client error message may contain the URL (and so the token).
             throw new TelegramException(0);
         }
+    }
 
+    /**
+     * "result" of a Bot API response, or a TelegramException.
+     *
+     * @throws TelegramException
+     */
+    protected function result(Response $response): mixed
+    {
         if (! $response->successful() || $response->json('ok') !== true) {
             throw new TelegramException($response->status(), $this->retryAfter($response));
         }
 
         return $response->json('result');
+    }
+
+    /**
+     * @throws TelegramException
+     */
+    protected function requireToken(): string
+    {
+        $token = $this->token();
+
+        if ($token === null) {
+            throw new TelegramException(401);
+        }
+
+        return $token;
     }
 
     protected function token(): ?string

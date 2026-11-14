@@ -10,9 +10,11 @@ use App\Http\Controllers\Site\PublicOrderController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
+use App\Http\Controllers\Site\SubmitJobApplicationController;
 use App\Http\Middleware\CaptureAttribution;
 use App\Livewire\Site\Articles;
 use App\Livewire\Site\Brands;
+use App\Livewire\Site\Careers;
 use App\Livewire\Site\Cart;
 use App\Livewire\Site\Catalog;
 use App\Livewire\Site\Checkout;
@@ -92,4 +94,15 @@ Route::prefix('{locale}')
         // Knowledge articles (decision 2026-10-24): news_posts with kind = article, same rules, no RSS.
         Route::livewire('/articles', Articles\Index::class)->name('articles.index');
         Route::livewire('/articles/{newsPost:slug}', Articles\Show::class)->where('newsPost', '[a-z0-9-]+')->name('articles.show');
+
+        // Careers (plan 31): published vacancies with a slug per locale; open applications per department
+        // (the department is a VacancyDepartment value, a 404 otherwise). The application form is a plain
+        // multipart POST (plan 31 §7, CR-1): CSRF first (web group), then throttle:careers-apply (5 / 10 min per IP).
+        Route::livewire('/careers', Careers\Index::class)->name('careers.index');
+        Route::livewire('/careers/apply/{department}', Careers\Apply::class)->where('department', '[a-z]+')->name('careers.open');
+        Route::post('/careers/apply/{department}', SubmitJobApplicationController::class)->where('department', '[a-z]+')
+            ->middleware('throttle:careers-apply')->name('careers.open.apply');
+        Route::post('/careers/{slug}/apply', SubmitJobApplicationController::class)->where('slug', '[a-z0-9-]+')
+            ->middleware('throttle:careers-apply')->name('careers.apply');
+        Route::livewire('/careers/{slug}', Careers\Show::class)->where('slug', '[a-z0-9-]+')->name('careers.show');
     });

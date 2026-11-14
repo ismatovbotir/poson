@@ -12,11 +12,13 @@ use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackVisit;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\VerifyTelegramSecret;
+use App\Support\Careers\CareersPostTooLarge;
 use App\Support\Site\CanonicalHost;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -80,6 +82,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Plan 31 (CR-1): a CV above post_max_size on the careers form → back to the form with "file too large".
+        $exceptions->render(fn (PostTooLargeException $exception, Request $request) => CareersPostTooLarge::redirect($request));
 
         // Plan 24 A1: an open admin tab polling after sign-out gets a plain refusal, not the login page's HTML.
         $exceptions->render(function (AuthenticationException $exception, Request $request) {

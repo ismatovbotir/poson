@@ -41,6 +41,7 @@ return [
     'nav' => [
         'news' => 'News',
         'articles' => 'Articles',
+        'careers' => 'Careers',
         'brands' => 'Brands',
         'services' => 'Services',
         'aria_label' => 'Main menu',

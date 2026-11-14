@@ -17,6 +17,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\FaqItem;
+use App\Models\JobApplication;
 use App\Models\Lead;
 use App\Models\McpCall;
 use App\Models\Order;
@@ -30,6 +31,7 @@ use App\Models\User;
 use App\Models\Video;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
+use App\Support\Careers\CareersSwitchMemo;
 use App\Support\Cart\CartToken;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
@@ -62,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
         // Scoped: reset between Octane requests and queued jobs, so the memoized
         // overrides never outlive a request.
         $this->app->scoped(CompanySettings::class);
+        $this->app->scoped(CareersSwitchMemo::class);
 
         // Scoped: the chat bot channel switches are read once per request or job.
         ChatbotSwitch::register();
@@ -98,6 +101,8 @@ class AppServiceProvider extends ServiceProvider
             'category' => Category::class,
             'customer' => Customer::class,
             'faq_item' => FaqItem::class,
+            // Plan 31: applications to vacancies (activities).
+            'job_application' => JobApplication::class,
             'lead' => Lead::class,
             // Plan 07 content: news posts (7b), banners (7c).
             'news_post' => 'App\Models\NewsPost',
@@ -140,6 +145,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('order-page', fn (Request $request) => Limit::perMinute(60)->by('order-page:'.$request->ip()));
         RateLimiter::for('order-invoice', fn (Request $request) => Limit::perMinute(10)->by('order-invoice:'.$request->ip()));
         RateLimiter::for('order-pay', fn (Request $request) => Limit::perMinute(10)->by('order-pay:'.$request->ip()));
+        // Plan 31 (CR-1): the careers application POST, per IP, after CSRF, before every other check.
+        RateLimiter::for('careers-apply', fn (Request $request) => Limit::perMinutes(10, 5)->by('careers-apply:'.$request->ip()));
 
         // Price API (plan 09): 30 batches per minute per token (after AuthenticateApiToken).
         RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(SyncPrices::RATE_PER_MINUTE)
