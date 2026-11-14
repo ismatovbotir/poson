@@ -428,6 +428,7 @@ return [
         'run_task' => 'Run a task',
         'retry_job' => 'Retry failed job',
         'forget_job' => 'Forget failed job',
+        'trash_purge' => 'Scheduled trash purge',
     ],
 
     'telegram_user_state' => [

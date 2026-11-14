@@ -292,6 +292,7 @@ return [
             'too_deep' => 'Katalogda koʻpi bilan :max daraja boʻlishi mumkin.',
             'has_children' => 'Toifaning ichki toifalari bor. Avval ularni koʻchiring yoki oʻchiring.',
             'has_products' => 'Toifada mahsulotlar bor. Avval ularni boshqa toifaga koʻchiring.',
+            'has_banners' => 'Toifada bannerlar bor. Avval ularni oʻchiring yoki boshqa toifaga koʻchiring.',
         ],
     ],
 

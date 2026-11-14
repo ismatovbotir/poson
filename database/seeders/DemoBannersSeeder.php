@@ -96,6 +96,8 @@ class DemoBannersSeeder extends Seeder
         $path = tempnam(sys_get_temp_dir(), 'banner').'.jpg';
         imagejpeg($this->placeholder($width, $height, $colors), $path, 85);
 
+        $banner->clearMediaCollection($collection);
+
         $banner->addMedia($path)
             ->usingFileName($collection.'-'.$banner->id.'.jpg')
             ->withCustomProperties(['alt' => ['uz' => '', 'ru' => '', 'en' => '']])

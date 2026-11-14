@@ -12,6 +12,7 @@ use App\Livewire\Forms\Admin\Brands\BrandForm;
 use App\Models\Brand;
 use App\Support\Content\AiFill\AiField;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\MediaReplacer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -81,12 +82,12 @@ class Form extends Component
         $creating = $this->brand === null;
 
         // All or nothing: a rejected logo rolls back the brand save.
-        $brand = $this->runFormAction(fn (): Brand => DB::transaction(function () use ($saveBrand, $updateImage): Brand {
+        $brand = $this->runFormAction(fn (): Brand => app(MediaReplacer::class)->guard(fn () => DB::transaction(function () use ($saveBrand, $updateImage): Brand {
             $brand = $saveBrand->handle($this->brand, $this->form->brandData());
             $updateImage->handle($brand, $this->form->logo, $this->form->logo_alt, $this->form->remove_logo, 'logo');
 
             return $brand;
-        }));
+        })));
 
         if ($creating) {
             session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.brands.created', ['name' => $brand->name]), 'type' => 'success']);

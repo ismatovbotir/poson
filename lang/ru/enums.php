@@ -428,6 +428,7 @@ return [
         'run_task' => 'Запуск задачи',
         'retry_job' => 'Повтор упавшей задачи',
         'forget_job' => 'Удаление упавшей задачи',
+        'trash_purge' => 'Автоочистка корзины',
     ],
 
     'telegram_user_state' => [

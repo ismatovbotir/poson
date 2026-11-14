@@ -292,6 +292,7 @@ return [
             'too_deep' => 'The catalog allows at most :max levels.',
             'has_children' => 'The category has subcategories. Move or delete them first.',
             'has_products' => 'The category has products. Move them to another category first.',
+            'has_banners' => 'The category has banners. Delete them or move them to another category first.',
         ],
     ],
 

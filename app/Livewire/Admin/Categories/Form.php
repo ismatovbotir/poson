@@ -15,6 +15,7 @@ use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Content\AiFill\AiField;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\MediaReplacer;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -282,13 +283,13 @@ class Form extends Component
         $creating = $this->category === null;
 
         // All or nothing: a rejected image rolls back the category and its attributes.
-        $category = $this->runFormAction(fn (): Category => DB::transaction(function () use ($saveCategory, $syncAttributes, $updateImage): Category {
+        $category = $this->runFormAction(fn (): Category => app(MediaReplacer::class)->guard(fn () => DB::transaction(function () use ($saveCategory, $syncAttributes, $updateImage): Category {
             $category = $saveCategory->handle($this->category, $this->form->categoryData());
             $syncAttributes->handle($category, $this->form->specRows());
             $updateImage->handle($category, $this->form->image, $this->form->image_alt, $this->form->remove_image);
 
             return $category;
-        }));
+        })));
 
         if ($creating) {
             session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.categories.created', ['name' => $category->name]), 'type' => 'success']);

@@ -3,6 +3,7 @@
 namespace App\Actions\Catalog;
 
 use App\Models\Product;
+use App\Support\Media\MediaReplacer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -13,6 +14,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 class UpdateProductImages
 {
+    public function __construct(private MediaReplacer $replacer) {}
+
     /**
      * Put the images in the given order (the first one is the main image).
      *
@@ -67,7 +70,13 @@ class UpdateProductImages
 
     public function delete(Product $product, int $mediaId): void
     {
-        DB::transaction(fn () => $this->media($product)->firstWhere('id', $mediaId)?->delete());
+        DB::transaction(function () use ($product, $mediaId): void {
+            $media = $this->media($product)->firstWhere('id', $mediaId);
+
+            if ($media !== null) {
+                $this->replacer->forget(collect([$media]));
+            }
+        });
     }
 
     /**
