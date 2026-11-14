@@ -13,6 +13,7 @@ use App\Livewire\Forms\Admin\Pages\PageForm;
 use App\Models\Page;
 use App\Support\Content\AiFill\AiField;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\MediaReplacer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -87,12 +88,12 @@ class Form extends Component
         $creating = $this->page === null;
 
         // All or nothing: a rejected cover rolls the page save back.
-        $page = $this->runFormAction(fn (): Page => DB::transaction(function () use ($savePage, $updateImage): Page {
+        $page = $this->runFormAction(fn (): Page => app(MediaReplacer::class)->guard(fn () => DB::transaction(function () use ($savePage, $updateImage): Page {
             $page = $savePage->handle($this->page, $this->form->pageData(), auth()->user(), request()->ip());
             $updateImage->handle($page, $this->form->image, $this->form->image_alt, $this->form->remove_image);
 
             return $page;
-        }));
+        })));
 
         if ($creating) {
             session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.pages.created', ['name' => (string) $page->title]), 'type' => 'success']);

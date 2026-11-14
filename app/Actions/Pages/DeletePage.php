@@ -3,6 +3,7 @@
 namespace App\Actions\Pages;
 
 use App\Models\Page;
+use App\Support\Media\MediaReplacer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
  */
 class DeletePage
 {
+    public function __construct(private MediaReplacer $replacer) {}
+
     /**
      * @throws ValidationException
      */
@@ -22,6 +25,9 @@ class DeletePage
             throw ValidationException::withMessages(['page' => __('admin.pages.errors.system_delete')]);
         }
 
-        DB::transaction(fn () => $page->delete());
+        DB::transaction(function () use ($page): void {
+            $this->replacer->clearAll($page);
+            $page->deletePreservingMedia();
+        });
     }
 }

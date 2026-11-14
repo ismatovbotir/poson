@@ -428,6 +428,7 @@ return [
         'run_task' => 'Vazifani ishga tushirish',
         'retry_job' => 'Xatolikka uchragan vazifani qayta urinish',
         'forget_job' => 'Xatolikka uchragan vazifani oʻchirish',
+        'trash_purge' => 'Savatni avtomatik tozalash',
     ],
 
     'telegram_user_state' => [

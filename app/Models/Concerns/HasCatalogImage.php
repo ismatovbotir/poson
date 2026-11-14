@@ -36,7 +36,6 @@ trait HasCatalogImage
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection($this->imageCollection())
-            ->singleFile()
             ->acceptsMimeTypes(self::IMAGE_MIMES)
             ->useDisk(config('media-library.originals_disk', 'local'))
             ->storeConversionsOnDisk(config('media-library.disk_name', 'public'));

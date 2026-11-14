@@ -10,6 +10,7 @@ enum MonitoringAction: string
     case RunTask = 'run_task';
     case RetryJob = 'retry_job';
     case ForgetJob = 'forget_job';
+    case TrashPurge = 'trash_purge';
 
     public function label(): string
     {

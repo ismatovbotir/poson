@@ -34,6 +34,7 @@ use App\Support\Cart\CartToken;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
+use App\Support\Media\MediaReplacer;
 use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\RunRecorder;
 use App\Support\Secrets;
@@ -69,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Scoped: the cart token issued during a request is seen by the rest of that request only.
         $this->app->scoped(CartToken::class);
+        $this->app->scoped(MediaReplacer::class);
 
         // Singleton: keeps the captured .env values and the applied version
         // for the whole process (queue workers included).

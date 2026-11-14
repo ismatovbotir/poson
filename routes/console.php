@@ -73,6 +73,19 @@ Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->w
 
 /*
 |--------------------------------------------------------------------------
+| Media clean-up (fix batch media-cleanup)
+|--------------------------------------------------------------------------
+| catalog:purge-trash: products in the trash for more than 30 days are
+| deleted for good, with their files. uploads:purge-tmp: Livewire temporary
+| uploads older than 24 h. Task keys: "catalog:purge-trash --force" and
+| "uploads:purge-tmp".
+*/
+
+Schedule::command('catalog:purge-trash', ['--force'])->dailyAt('02:15')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('uploads:purge-tmp')->dailyAt('02:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | Orders (plan 11b)
 |--------------------------------------------------------------------------
 | Orders left "pending" after their Payme / Click hold ended (Payme state 1
