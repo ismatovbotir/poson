@@ -135,6 +135,7 @@ return [
             'task_failed' => 'Rejali vazifa xatolik bilan tugadi',
             'queue_stuck' => 'Navbat qotib qoldi',
             'worker_silent' => 'Navbat ishlovchisi jim',
+            'ai_auth_failed' => 'SI javoblari toʻxtatildi: Anthropic API kaliti rad etildi',
             'foreign_phone_cap' => 'Xorijiy raqamlar soatlik limiti oshdi',
             'telegram_webhook' => 'Telegram bot webhookida muammo',
             'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',

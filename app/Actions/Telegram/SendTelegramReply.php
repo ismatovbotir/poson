@@ -106,8 +106,8 @@ class SendTelegramReply
                     'status' => TelegramMessageStatus::Pending,
                 ]);
 
-                // A staff reply takes the conversation over from the chat bot (plan 28, CB-4).
-                TelegramUser::query()->whereKey($locked->id)->update(['last_message_at' => now(), 'chat_mode' => ChatMode::Manager, 'handoff_at' => now(), 'last_staff_reply_at' => now()]);
+                // A staff reply takes the conversation over from the chat bot (plan 28, CB-4) and ends its AI context (plan 30 §7).
+                TelegramUser::query()->whereKey($locked->id)->update(['last_message_at' => now(), 'chat_mode' => ChatMode::Manager, 'handoff_at' => now(), 'last_staff_reply_at' => now(), 'ai_context_at' => now()]);
 
                 DB::afterCommit(function () use (&$committed): void {
                     $committed = true;

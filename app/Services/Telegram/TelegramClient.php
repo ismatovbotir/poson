@@ -111,6 +111,17 @@ class TelegramClient
     }
 
     /**
+     * Show "typing…" in a private chat for a few seconds (plan 30, AI-16).
+     * Callers treat it as best effort and use a short timeout.
+     *
+     * @throws TelegramException
+     */
+    public function sendChatAction(string $chatId, string $action = 'typing'): void
+    {
+        $this->callRaw('sendChatAction', ['chat_id' => $chatId, 'action' => $action]);
+    }
+
+    /**
      * Stop the loading spinner of an inline button (optional short notice).
      *
      * @throws TelegramException

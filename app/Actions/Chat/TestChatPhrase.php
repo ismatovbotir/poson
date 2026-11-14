@@ -6,6 +6,7 @@ use App\Enums\ChatAction;
 use App\Enums\ChatChannel;
 use App\Models\ChatRule;
 use App\Models\User;
+use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatContext;
 use App\Support\Chat\ChatReply;
 use App\Support\Chat\ChatText;
@@ -30,7 +31,9 @@ use Illuminate\Support\Facades\Gate;
  *   matched: bool, rule: {id, key, name, action, action_label}|null, score: int|null,
  *   keywords: list<{keyword, type, weight}>, priority: int|null,
  *   would_run: string|null (action label or "product search" for model-like text),
- *   reply: {text: string, buttons: list<{label, kind}>}|null, fallback: bool
+ *   reply: {text: string, buttons: list<{label, kind}>}|null, fallback: bool,
+ *   ai: {reason: string, enabled: bool}|null — "would ask AI" (plan 30, AI-24):
+ *   the engine's reason, never a model call (the model is never resolved here)
  */
 class TestChatPhrase
 {
@@ -51,6 +54,7 @@ class TestChatPhrase
         $locale = in_array($locale, config('app.supported_locales'), true) ? $locale : 'uz';
         $context = new ChatContext($channel, $locale, $text);
         $normalized = $context->normalized();
+        $aiReason = $this->engine->aiReason($context);
 
         $result = [
             'normalized' => $normalized,
@@ -65,6 +69,10 @@ class TestChatPhrase
             'would_run' => null,
             'reply' => null,
             'fallback' => false,
+            'ai' => $aiReason === null ? null : [
+                'reason' => __('chatbot_admin.console.ai_reasons.'.$aiReason),
+                'enabled' => AiSwitch::isEnabled($channel),
+            ],
         ];
 
         $number = LookupNumber::parse($text);

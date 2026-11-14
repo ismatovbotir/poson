@@ -19,6 +19,11 @@ namespace App\Support\Chat;
  * has no identity and never searches, looks up or creates anything. $param
  * carries the typed order/repair number (lookups) or the lead flow (LEAD).
  *
+ * AI (plan 30, P5) means "ask the AI model": $original is the complete reply
+ * the engine would give without AI (outcome included) and is replayed as is
+ * when AI is off, limited, capped or fails; $ruleId is the weak rule hit, if
+ * any (a hint for the prompt). The engine never calls the model.
+ *
  * @phpstan-type Button array{type: string, label: string, id?: int, url?: string}
  */
 final readonly class ChatReply
@@ -43,6 +48,8 @@ final readonly class ChatReply
 
     public const LEAD = 'lead';
 
+    public const AI = 'ai';
+
     /**
      * The result of a search, lookup or dialog step: its stats are already recorded.
      */
@@ -58,7 +65,13 @@ final readonly class ChatReply
         public ?int $ruleId = null,
         public string $outcome = self::HIT,
         public ?string $param = null,
+        public ?ChatReply $original = null,
     ) {}
+
+    public function isAi(): bool
+    {
+        return $this->outcome === self::AI && $this->original !== null;
+    }
 
     public function isHandoff(): bool
     {

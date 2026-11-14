@@ -14,7 +14,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * One settings change (plan 04 S6): who, when, area, key, action and IP.
- * Never stores the old or new value, so it is safe for secrets too.
+ * Never stores the old or new value, so it is safe for secrets too; the one
+ * exception is recordText() for non-secret free text that must be audited
+ * with its content (the chat bot's AI instructions, plan 30 AI-10).
  * Append-only: there is no updated_at. The area is read with tryFrom():
  * a legacy area value no longer in SettingsArea (e.g. "ai_prompts") reads
  * as null instead of throwing.
@@ -25,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property string $key
  * @property AuditAction $action
  * @property string|null $ip
+ * @property string|null $old_text
+ * @property string|null $new_text
  * @property Carbon $created_at
  */
 #[Fillable(['user_id', 'area', 'key', 'action', 'ip'])]
@@ -74,6 +78,18 @@ class SettingsAudit extends Model
             'action' => $action,
             'ip' => $ip !== null ? mb_substr($ip, 0, 45) : null,
         ]);
+    }
+
+    /**
+     * Record a change of a NON-secret text setting with its old and new text
+     * (AI-10). Never use it for a secret.
+     */
+    public static function recordText(SettingsArea $area, string $key, AuditAction $action, ?User $user, ?string $ip, string $old, string $new): self
+    {
+        $audit = static::record($area, $key, $action, $user, $ip);
+        $audit->forceFill(['old_text' => $old, 'new_text' => $new])->save();
+
+        return $audit;
     }
 
     /**

@@ -634,8 +634,12 @@ it('has no HTTP client, AI SDK or AI key in the MCP tools and the write actions 
         expect(file_get_contents($file))->not->toMatch('/Http::|Illuminate\\\\Support\\\\Facades\\\\Http|GuzzleHttp|curl_init|file_get_contents\(\s*[\'"]http|Anthropic|OpenAI|Gemini|openai\.com|anthropic\.com/i', basename($file));
     }
 
-    $keys = collect(array_keys(Arr::dot(config('services'))))->implode(' ');
-    $env = strtolower((string) file_get_contents(base_path('.env.example')));
+    // Plan 30 (owner decision 2026-11-14): the one allowed AI key is the chat bot's Anthropic key
+    // (services.anthropic, ANTHROPIC_API_KEY), used only by App\Services\Ai; MCP stays AI-free.
+    $keys = collect(array_keys(Arr::dot(config('services'))))->reject(fn (string $key): bool => in_array($key, ['anthropic.key', 'anthropic.base_url'], true))->implode(' ');
+    $env = strtolower(collect(explode("\n", (string) file_get_contents(base_path('.env.example'))))
+        ->reject(fn (string $line): bool => str_starts_with($line, 'ANTHROPIC_API_KEY=') || str_starts_with($line, '# Plan 30:') || str_contains($line, 'Admin → Chat bot → Settings'))
+        ->implode("\n"));
 
     expect(strtolower($keys))->not->toMatch('/anthropic|openai|claude|gemini|llm/')
         ->and($env)->not->toMatch('/anthropic|openai|gemini|claude_api|llm_/');

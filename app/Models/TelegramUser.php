@@ -61,6 +61,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $bot_dialog
  * @property Carbon|null $handoff_at
  * @property Carbon|null $last_staff_reply_at
+ * @property Carbon|null $ai_context_at
  */
 #[Fillable([
     'telegram_id', 'username', 'first_name', 'last_name', 'locale', 'state',
@@ -98,6 +99,7 @@ class TelegramUser extends Model
             'bot_dialog' => 'array',
             'handoff_at' => 'datetime',
             'last_staff_reply_at' => 'datetime',
+            'ai_context_at' => 'datetime',
             'account_changed' => 'boolean',
             'unread_count' => 'integer',
             'consent_at' => 'datetime',
@@ -201,6 +203,16 @@ class TelegramUser extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(TelegramMessage::class);
+    }
+
+    /**
+     * The redacted AI conversation turns (plan 30); deleted with the conversation.
+     *
+     * @return HasMany<ChatAiTurn, $this>
+     */
+    public function aiTurns(): HasMany
+    {
+        return $this->hasMany(ChatAiTurn::class);
     }
 
     /**

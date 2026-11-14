@@ -73,6 +73,40 @@
         </x-admin.card>
     @endif
 
+    <x-admin.card :title="__($t.'.ai_title')" :description="__($t.'.ai_help')" class="mt-5" data-ai-stats>
+        @if ($aiRows === [])
+            <p class="text-sm text-slate-500">{{ __($t.'.no_data') }}</p>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="text-left text-xs text-slate-500">
+                        <tr>
+                            <th class="py-2 pr-4 font-semibold">{{ __($t.'.ai_day') }}</th>
+                            <th class="py-2 pr-4 font-semibold">{{ __($t.'.channel') }}</th>
+                            @foreach (['requests', 'answered', 'refused', 'blocked', 'failed', 'capped', 'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_write_tokens'] as $column)
+                                <th class="px-3 py-2 text-right font-semibold">{{ __($t.'.ai_columns.'.$column) }}</th>
+                            @endforeach
+                            <th class="px-3 py-2 text-right font-semibold">{{ __($t.'.ai_columns.usd') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach ($aiRows as $row)
+                            <tr wire:key="ai-{{ $row['day'] }}-{{ $row['channel'] }}">
+                                <td class="py-2 pr-4 font-semibold tabular-nums">{{ $row['day'] }}</td>
+                                <td class="py-2 pr-4">{{ $row['channel'] }}</td>
+                                @foreach (['requests', 'answered', 'refused', 'blocked', 'failed', 'capped', 'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_write_tokens'] as $column)
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ number_format($row[$column], 0, '.', ' ') }}</td>
+                                @endforeach
+                                <td class="px-3 py-2 text-right tabular-nums">${{ number_format($row['usd'], 4, '.', ' ') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-2 text-xs text-slate-500">{{ __($t.'.ai_usd_note') }}</p>
+        @endif
+    </x-admin.card>
+
     <x-admin.card :title="__($t.'.per_rule')" :description="__($t.'.per_rule_help')" class="mt-5">
         @if ($perRule->isEmpty())
             <p class="text-sm text-slate-500">{{ __($t.'.no_data') }}</p>

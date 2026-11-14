@@ -135,6 +135,7 @@ return [
             'task_failed' => 'Плановая задача завершилась ошибкой',
             'queue_stuck' => 'Очередь застряла',
             'worker_silent' => 'Обработчик очереди молчит',
+            'ai_auth_failed' => 'Ответы ИИ приостановлены: ключ Anthropic API отклонён',
             'foreign_phone_cap' => 'Превышен часовой лимит иностранных номеров на сайте',
             'telegram_webhook' => 'Проблема с вебхуком Telegram-бота',
             'telegram_token' => 'Telegram не принимает токен бота (401)',

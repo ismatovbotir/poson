@@ -57,6 +57,15 @@ final class ChatbotSwitch
         ChatSettings::forget();
     }
 
+    /**
+     * Drop only the memoized states (switches and settings), not the settings cache (plan 30 L3).
+     */
+    public static function forgetMemo(): void
+    {
+        app(self::STATE)->exchangeArray([]);
+        ChatSettings::forgetMemo();
+    }
+
     public static function register(): void
     {
         app()->scoped(self::STATE, fn () => new ArrayObject);

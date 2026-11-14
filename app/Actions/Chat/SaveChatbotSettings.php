@@ -10,6 +10,8 @@ use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Rules\BrandSafeText;
+use App\Support\Chat\AiOutputFilter;
+use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -31,6 +33,17 @@ use Illuminate\Validation\ValidationException;
  *  - Every changed key is audited to SettingsArea::Chatbot (who, when, which
  *    key, never the value).
  *
+ * AI answers (plan 30 §9, P2, AI-10, AI-24): "ai_telegram_enabled" /
+ * "ai_web_enabled": switching ON is Admin only (AuthorizationException) and
+ * refused (ValidationException) while ANTHROPIC_API_KEY is missing, the
+ * privacy gate fails or (web) the widget is not ready; switching OFF is open
+ * to everyone with chatbot.settings. The daily caps ("ai_daily_requests",
+ * "ai_daily_tokens") and the instructions ("ai_instructions") are Admin
+ * only when they change. Instructions: plain, brand-safe, at most
+ * chatbot.ai.instructions_max characters, no links, @handles, emails,
+ * phone- or card-like numbers or price-level words; audited with the old and
+ * new text (SettingsAudit::recordText).
+ *
  * Input keys are optional: only the ones present are written.
  */
 class SaveChatbotSettings
@@ -50,12 +63,21 @@ class SaveChatbotSettings
 
         $values = $this->values($data);
         $switches = $this->switches($data, $actor);
+        [$aiSwitches, $aiValues, $instructions] = $this->ai($data, $actor);
 
-        $changed = DB::transaction(function () use ($values, $switches, $actor, $ip): int {
+        $changed = DB::transaction(function () use ($values, $switches, $aiSwitches, $aiValues, $instructions, $actor, $ip): int {
             $changed = 0;
 
-            foreach ($switches as $key => $enabled) {
+            foreach ([...$switches, ...$aiSwitches] as $key => $enabled) {
                 $changed += $this->write($key, $enabled, $actor, $ip, $enabled ? AuditAction::Enabled : AuditAction::Disabled);
+            }
+
+            foreach ($aiValues as $key => $value) {
+                $changed += $this->write($key, $value, $actor, $ip, AuditAction::Updated);
+            }
+
+            if ($instructions !== null) {
+                $changed += $this->writeInstructions($instructions, $actor, $ip);
             }
 
             foreach ($values as $key => $value) {
@@ -109,6 +131,177 @@ class SaveChatbotSettings
         }
 
         return $changes;
+    }
+
+    /**
+     * The AI answer settings that change: switches, caps, instructions.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: array<string, bool>, 1: array<string, int>, 2: ?string}
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    private function ai(array $data, User $actor): array
+    {
+        $isAdmin = $actor->hasRole(Role::Admin);
+        $switches = [];
+
+        foreach (ChatChannel::cases() as $channel) {
+            $field = 'ai_'.$channel->value.'_enabled';
+
+            if (! array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $want = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN);
+            $key = AiSwitch::keyFor($channel);
+
+            if ($want === ($this->stored($key) === true)) {
+                continue;
+            }
+
+            if ($want) {
+                if (! $isAdmin) {
+                    throw new AuthorizationException;
+                }
+
+                if (! AiSwitch::keyConfigured()) {
+                    throw ValidationException::withMessages([$field => __('chatbot_admin.settings.ai_key_missing')]);
+                }
+
+                if ($channel === ChatChannel::Web && ! config('chatbot.web_ready')) {
+                    throw ValidationException::withMessages([$field => __('chatbot_admin.settings.web_not_ready')]);
+                }
+
+                if (! ChatSettings::privacyReady(fresh: true)) {
+                    throw ValidationException::withMessages([$field => __('chatbot_admin.settings.privacy_gate')]);
+                }
+            }
+
+            $switches[$key] = $want;
+        }
+
+        $values = [];
+
+        foreach (['ai_daily_requests' => 'requests', 'ai_daily_tokens' => 'tokens'] as $field => $cap) {
+            if (! array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $value = $this->integer($data[$field], 0, (int) config("chatbot.ai.caps.{$cap}_max"), $field);
+            $current = filter_var($this->stored(ChatSettings::key($field)), FILTER_VALIDATE_INT);
+
+            if ($value === ($current === false ? (int) config("chatbot.ai.caps.{$cap}") : $current)) {
+                continue;
+            }
+
+            if (! $isAdmin) {
+                throw new AuthorizationException;
+            }
+
+            $values[ChatSettings::key($field)] = $value;
+        }
+
+        $instructions = null;
+
+        if (array_key_exists('ai_instructions', $data)) {
+            $text = $this->instructions($data['ai_instructions']);
+            $current = $this->stored(ChatSettings::key('ai_instructions'));
+
+            if ($text !== (is_string($current) ? $current : '')) {
+                if (! $isAdmin) {
+                    throw new AuthorizationException;
+                }
+
+                $instructions = $text;
+            }
+        }
+
+        return [$switches, $values, $instructions];
+    }
+
+    /**
+     * AI instructions (AI-10): they sit in the system prompt, which is
+     * treated as public, so nothing internal or contact-like is accepted.
+     */
+    private function instructions(mixed $value): string
+    {
+        $field = 'ai_instructions';
+
+        if (is_string($value) && ! mb_check_encoding($value, 'UTF-8')) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_plain')]);
+        }
+
+        $text = is_string($value) ? trim(str_replace("\r\n", "\n", (string) preg_replace('/\p{Cf}/u', '', $value))) : '';
+
+        if ($text === '') {
+            return '';
+        }
+
+        if (str_contains($text, '<') || preg_match('/[^\P{Cc}\n]/u', $text) === 1) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.text_plain')]);
+        }
+
+        if (mb_strlen($text) > (int) config('chatbot.ai.instructions_max', 2000)) {
+            throw ValidationException::withMessages([$field => __('chatbot_admin.settings.ai_instructions_too_long', ['max' => (int) config('chatbot.ai.instructions_max', 2000)])]);
+        }
+
+        if (BrandSafeText::violates($text)) {
+            throw ValidationException::withMessages([$field => __('chatbot.errors.brand')]);
+        }
+
+        // NFKC first, so fullwidth or ideographic dots cannot hide a host; any host is refused (H2).
+        $lower = mb_strtolower(AiOutputFilter::normalize($text));
+        $forbidden = [
+            '~[a-z][a-z0-9+.-]{1,15}://|www\.|t\.me/~u',
+            AiOutputFilter::DOMAIN,
+            '/@/u',
+            '/\+?\d(?:[ \-().\/]{0,2}\d){6,}/u',
+            '/\bdealers?\b/u',
+            '/(?<!\pL)diler/u',
+            '/(?<!\pL)дилер/u',
+            '/\bwholesal/u',
+            '/(?<!\pL)ulgurji/u',
+            '/(?<!\pL)опт(?:ов\pL*|ом)?(?!\pL)/u',
+        ];
+
+        foreach ($forbidden as $pattern) {
+            if (preg_match($pattern, $lower) === 1) {
+                throw ValidationException::withMessages([$field => __('chatbot_admin.settings.ai_instructions_forbidden')]);
+            }
+        }
+
+        return $text;
+    }
+
+    private function stored(string $key): mixed
+    {
+        return Setting::query()->where('key', $key)->where('group', SettingsArea::Chatbot->group())->first()?->value;
+    }
+
+    /**
+     * @return int 1 when the instructions changed (audited with the old and new text)
+     */
+    private function writeInstructions(string $text, User $actor, ?string $ip): int
+    {
+        $key = ChatSettings::key('ai_instructions');
+        $row = Setting::query()->where('key', $key)->lockForUpdate()->first();
+        $old = is_string($row?->value) ? $row->value : '';
+
+        if ($row !== null && $old === $text) {
+            return 0;
+        }
+
+        if ($row === null) {
+            Setting::query()->create(['key' => $key, 'group' => SettingsArea::Chatbot->group(), 'value' => $text]);
+        } else {
+            $row->forceFill(['group' => SettingsArea::Chatbot->group(), 'value' => $text])->save();
+        }
+
+        SettingsAudit::recordText(SettingsArea::Chatbot, $key, AuditAction::Updated, $actor, $ip, $old, $text);
+
+        return 1;
     }
 
     /**

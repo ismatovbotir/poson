@@ -29,6 +29,8 @@ use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Models\User;
 use App\Models\Video;
+use App\Services\Ai\AnthropicChatModel;
+use App\Services\Ai\ChatModel;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\Careers\CareersSwitchMemo;
@@ -81,6 +83,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Crawler verification DNS (tests bind a fake resolver).
         $this->app->bind(DnsResolver::class, SystemDnsResolver::class);
+
+        // Plan 30: AI answers in the chat bot (tests bind Tests\Support\FakeChatModel).
+        $this->app->bind(ChatModel::class, AnthropicChatModel::class);
     }
 
     /**

@@ -14,6 +14,11 @@ return [
     'cancelled' => 'Bekor qilindi.',
     'not_available' => 'Bu variant mavjud emas. Menyudan mavzuni tanlang.',
 
+    'ai' => [
+        'marker' => 'SI yordamchi · aniq narx va buyurtmalar uchun menejerga murojaat qiling',
+        'limited' => 'Qisqa vaqtda juda koʻp savol berdingiz. Menejer bajonidil yordam beradi: quyidagi tugmani bosing.',
+    ],
+
     'buttons' => [
         'handoff' => 'Menejer bilan bogʻlanish',
         'menu' => 'Menyu',

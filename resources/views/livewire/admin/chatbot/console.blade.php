@@ -49,6 +49,11 @@
                     @if ($result['would_run'])
                         <p class="rounded-lg bg-amber-50 px-3 py-2 text-amber-800" data-console-would-run>{{ __($t.'.would_run', ['action' => $result['would_run']]) }}</p>
                     @endif
+                    @if ($result['ai'] ?? null)
+                        <p class="rounded-lg bg-sky-50 px-3 py-2 text-sky-800" data-console-ai>{{ __($t.'.would_ask_ai', ['reason' => $result['ai']['reason']]) }} {{ $result['ai']['enabled'] ? __($t.'.ai_on') : __($t.'.ai_off') }}</p>
+                    @elseif ($result['rule'] || $result['would_run'])
+                        <p class="rounded-lg bg-slate-50 px-3 py-2 text-slate-600" data-console-direct>{{ __($t.'.direct') }}</p>
+                    @endif
                     @if ($result['fallback'])
                         <p class="rounded-lg bg-slate-50 px-3 py-2 text-slate-600">{{ __($t.'.fallback_note') }}</p>
                     @endif

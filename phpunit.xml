@@ -56,5 +56,7 @@
         <env name="CLICK_TEST_MERCHANT_USER_ID" value="" force="true"/>
         <env name="CLICK_TEST_SECRET_KEY" value="" force="true"/>
         <env name="CLICK_MODE" value="" force="true"/>
+        <!-- Plan 30 (AI-25): never a real Anthropic key in tests; the SDK is reached only through fakes. -->
+        <env name="ANTHROPIC_API_KEY" value="" force="true"/>
     </php>
 </phpunit>

@@ -14,6 +14,7 @@ enum ChatMetric: string
     case LookupOk = 'lookup_ok';
     case LookupFail = 'lookup_fail';
     case SearchEmpty = 'search_empty';
+    case Ai = 'ai';
 
     public function label(): string
     {

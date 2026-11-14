@@ -4,9 +4,11 @@ namespace App\Livewire\Admin\Chatbot;
 
 use App\Enums\ChatChannel;
 use App\Enums\ChatMetric;
+use App\Models\ChatAiUsageDaily;
 use App\Models\ChatRule;
 use App\Models\ChatStatDaily;
 use App\Models\ChatUnmatched;
+use App\Support\Chat\WorkingHours;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -17,6 +19,8 @@ use Livewire\Component;
  * Chat bot → Stats (plan 28 C2, chatbot.rules): the daily counters of the
  * last 7, 30 or 90 days. Totals per metric and channel, the rules that
  * answered most, and the number of phrases waiting to be taught. Counts only.
+ * AI answers (plan 30 §9): chat_ai_usage_daily per day and channel with an
+ * estimated cost in USD (config chatbot.ai.prices).
  */
 #[Layout('layouts::admin')]
 class Stats extends Component
@@ -71,6 +75,46 @@ class Stats extends Component
                 'total' => (int) $row->total,
             ]),
             'waiting' => ChatUnmatched::query()->whereNull('resolved_at')->count(),
+            'aiRows' => $this->aiRows($days, $channel),
         ])->title(__('chatbot_admin.stats.title'));
+    }
+
+    /**
+     * AI usage rows of the period (Asia/Tashkent days), newest first, with the estimated cost.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function aiRows(int $days, ?ChatChannel $channel): array
+    {
+        $prices = (array) config('chatbot.ai.prices');
+        $from = now(WorkingHours::TIMEZONE)->subDays($days - 1)->toDateString();
+
+        return ChatAiUsageDaily::query()
+            ->where('day', '>=', $from)
+            ->when($channel, fn (Builder $query, ChatChannel $channel) => $query->where('channel', $channel->value))
+            ->orderByDesc('day')
+            ->orderBy('channel')
+            // At most 90 days x 2 channels = 180 rows: one aggregated row per day and channel.
+            ->limit(count(ChatChannel::cases()) * max(self::RANGES))
+            ->get()
+            ->map(fn (ChatAiUsageDaily $row): array => [
+                'day' => $row->day->toDateString(),
+                'channel' => $row->channel->label(),
+                'requests' => $row->requests,
+                'answered' => $row->answered,
+                'refused' => $row->refused,
+                'blocked' => $row->blocked,
+                'failed' => $row->failed,
+                'capped' => $row->capped,
+                'input_tokens' => $row->input_tokens,
+                'output_tokens' => $row->output_tokens,
+                'cache_read_tokens' => $row->cache_read_tokens,
+                'cache_write_tokens' => $row->cache_write_tokens,
+                'usd' => ($row->input_tokens * (float) $prices['input']
+                    + $row->output_tokens * (float) $prices['output']
+                    + $row->cache_read_tokens * (float) $prices['cache_read']
+                    + $row->cache_write_tokens * (float) $prices['cache_write']) / 1_000_000,
+            ])
+            ->all();
     }
 }

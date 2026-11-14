@@ -39,9 +39,25 @@ use App\Support\Chat\Skills\MenuSkill;
  *
  * Settings (CB-31): respond() reads ChatSettings (one memoized query per
  * request or job) for the fallback and greeting texts; match() reads nothing.
+ *
+ * AI answers (plan 30 §2.1, §2.2, P5): with $aiEnabled the engine still
+ * builds its normal reply, and returns it wrapped in a ChatReply::AI marker
+ * when the model should answer instead: a weak "answer"/"faq" hit, model-like
+ * text, or no match. A rule answers directly (never AI) when its action is
+ * deterministic or has side effects (hand-off, status lookups, lead dialog,
+ * menu, product search, company info, link), when a keyword matched exactly
+ * (the whole message), or when the score reaches chatbot.ai.direct_min_score.
+ * Lookup numbers, an unavailable index and empty text (emoji, stickers)
+ * never reach AI. With $aiEnabled false the result is exactly as before. The
+ * engine never calls the model: HandleChatInput queues the job.
  */
 class Engine
 {
+    /**
+     * Actions that may be answered by AI on a weak hit; every other action always answers directly.
+     */
+    private const AI_ACTIONS = [ChatAction::Answer, ChatAction::Faq];
+
     public function __construct(
         private readonly RuleIndex $index,
         private readonly FaqSkill $faq,
@@ -50,7 +66,7 @@ class Engine
         private readonly MenuSkill $menu,
     ) {}
 
-    public function respond(ChatContext $context): ChatReply
+    public function respond(ChatContext $context, bool $aiEnabled = false): ChatReply
     {
         $number = LookupNumber::parse($context->text);
 
@@ -68,24 +84,88 @@ class Engine
         $match = $this->match($data, $context, $normalized);
 
         if ($match !== null) {
-            return $this->runRule($data, $data['rules'][$match->ruleId], $context);
-        }
-
-        if (ChatText::looksLikeModel($normalized)) {
-            return new ChatReply(
+            $reply = $this->runRule($data, $data['rules'][$match->ruleId], $context);
+        } elseif (ChatText::looksLikeModel($normalized)) {
+            $reply = new ChatReply(
                 __('chatbot.search.prompt', [], $context->locale),
                 [['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
                 null,
                 ChatReply::SEARCH,
             );
+        } else {
+            $reply = new ChatReply(
+                ChatSettings::text('fallback', $context->locale) ?? __('chatbot.fallback', [], $context->locale),
+                [...$this->menu->buttons($data, $context), ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
+                null,
+                $normalized === '' ? ChatReply::FALLBACK : ChatReply::UNMATCHED,
+            );
         }
 
-        return new ChatReply(
-            ChatSettings::text('fallback', $context->locale) ?? __('chatbot.fallback', [], $context->locale),
-            [...$this->menu->buttons($data, $context), ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
-            null,
-            $normalized === '' ? ChatReply::FALLBACK : ChatReply::UNMATCHED,
-        );
+        if (! $aiEnabled || $this->aiReasonFor($data, $match, $normalized) === null) {
+            return $reply;
+        }
+
+        return new ChatReply($reply->text, $reply->buttons, $match?->ruleId, ChatReply::AI, null, $reply);
+    }
+
+    /**
+     * Why the model would answer this message if AI were on (the test
+     * console's "would ask AI"): weak_match, model_like or no_match; null
+     * when a rule, a lookup or the fallback answers directly.
+     */
+    public function aiReason(ChatContext $context): ?string
+    {
+        if (LookupNumber::parse($context->text) !== null) {
+            return null;
+        }
+
+        $data = $this->index->load();
+
+        if ($data === null) {
+            return null;
+        }
+
+        $normalized = $context->normalized();
+
+        return $this->aiReasonFor($data, $this->match($data, $context, $normalized), $normalized);
+    }
+
+    /**
+     * @param  array{rules: array<int, array<string, mixed>>}  $data
+     */
+    private function aiReasonFor(array $data, ?ChatMatch $match, string $normalized): ?string
+    {
+        if ($normalized === '') {
+            return null;
+        }
+
+        if ($match !== null) {
+            return $this->answersDirectly($data['rules'][$match->ruleId], $match) ? null : 'weak_match';
+        }
+
+        return ChatText::looksLikeModel($normalized) ? 'model_like' : 'no_match';
+    }
+
+    /**
+     * A rule hit the model never overrides (§2.2): a deterministic or
+     * side-effect action, an exact keyword (the whole message), or a strong
+     * score.
+     *
+     * @param  array<string, mixed>  $rule  Compiled rule
+     */
+    private function answersDirectly(array $rule, ChatMatch $match): bool
+    {
+        if (! in_array(ChatAction::tryFrom($rule['action']), self::AI_ACTIONS, true)) {
+            return true;
+        }
+
+        foreach ($match->keywords as $hit) {
+            if ($hit['type'] === 'exact') {
+                return true;
+            }
+        }
+
+        return $match->score >= (int) config('chatbot.ai.direct_min_score', 30);
     }
 
     /**
