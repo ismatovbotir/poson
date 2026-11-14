@@ -7,6 +7,7 @@ use App\Enums\BannerPlacement;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Rules\BrandSafeText;
+use App\Support\Media\MediaReplacer;
 use App\Support\Site\BannerLink;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
@@ -38,7 +39,7 @@ class SaveBanner
      */
     private const TEXTS = ['title' => Banner::TITLE_MAX, 'text' => Banner::TEXT_MAX, 'button_label' => Banner::BUTTON_MAX];
 
-    public function __construct(private UpdateCatalogImage $updateImage) {}
+    public function __construct(private UpdateCatalogImage $updateImage, private MediaReplacer $replacer) {}
 
     /**
      * @param  array{
@@ -71,7 +72,7 @@ class SaveBanner
 
         $this->check($data, $placement, $categoryId, $link);
 
-        return DB::transaction(function () use ($banner, $data, $images, $placement, $categoryId, $link): Banner {
+        return $this->replacer->guard(fn (): Banner => DB::transaction(function () use ($banner, $data, $images, $placement, $categoryId, $link): Banner {
             $banner->storeTranslations('title', $data['title']);
             $banner->storeTranslations('text', $data['text'] ?? []);
             $banner->storeTranslations('button_label', $data['button_label'] ?? []);
@@ -101,7 +102,7 @@ class SaveBanner
             }
 
             return $banner->unsetRelation('media');
-        });
+        }));
     }
 
     /**

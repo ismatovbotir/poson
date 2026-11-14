@@ -24,6 +24,7 @@ return [
         'pages' => 'Sahifalar',
         'news' => 'Yangiliklar',
         'articles' => 'Maqolalar',
+        'careers' => 'Vakansiyalar',
         'other' => 'Boshqa',
     ],
 

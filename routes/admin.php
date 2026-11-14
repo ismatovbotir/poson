@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DownloadJobApplicationCvController;
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
@@ -15,6 +16,7 @@ use App\Livewire\Admin\Auth\ConfirmPassword;
 use App\Livewire\Admin\Auth\Login;
 use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Brands;
+use App\Livewire\Admin\Careers;
 use App\Livewire\Admin\Categories;
 use App\Livewire\Admin\Chatbot;
 use App\Livewire\Admin\Customers;
@@ -126,6 +128,18 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     Route::livewire('/roll-types', RollTypes\Index::class)->name('roll-types.index');
     Route::livewire('/roll-types/create', RollTypes\Form::class)->name('roll-types.create');
     Route::livewire('/roll-types/{rollType}/edit', RollTypes\Form::class)->whereNumber('rollType')->name('roll-types.edit');
+
+    // Careers (plan 31): careers.vacancies / careers.applications (Admin), authorized in the components.
+    Route::livewire('/careers/vacancies', Careers\Vacancies\Index::class)->name('careers.vacancies.index');
+    Route::livewire('/careers/vacancies/create', Careers\Vacancies\Form::class)->name('careers.vacancies.create');
+    Route::livewire('/careers/vacancies/{vacancy}/edit', Careers\Vacancies\Form::class)->whereNumber('vacancy')->name('careers.vacancies.edit');
+    Route::livewire('/careers/applications', Careers\Applications\Index::class)->name('careers.applications.index');
+    Route::livewire('/careers/applications/{jobApplication}', Careers\Applications\Show::class)->whereNumber('jobApplication')->name('careers.applications.show');
+    // Kill switches of the application form: Admin only (SettingPolicy::manageCareers), authorized in the component.
+    Route::livewire('/careers/settings', Careers\Settings::class)->name('careers.settings');
+    // CR-8: the CV is fetched from Telegram per download (careers.cv + Admin, authorized in the controller).
+    Route::get('/careers/applications/{jobApplication}/cv', DownloadJobApplicationCvController::class)->whereNumber('jobApplication')
+        ->middleware('throttle:20,1')->name('careers.applications.cv');
 
     // Products (plan 03 3c). Images, documents and relations are child components of the form.
     Route::livewire('/products', Products\Index::class)->name('products.index');

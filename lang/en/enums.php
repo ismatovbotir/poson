@@ -108,6 +108,7 @@ return [
         'order' => 'Order',
         'payment' => 'Payment',
         'repair' => 'Repair',
+        'cv_download' => 'CV download',
     ],
 
     'quote_status' => [
@@ -206,6 +207,7 @@ return [
     ],
 
     'settings_area' => [
+        'careers' => 'Careers',
         'contacts' => 'Contacts',
         'legal' => 'Legal details',
         'social' => 'Social',
@@ -428,6 +430,7 @@ return [
         'run_task' => 'Run a task',
         'retry_job' => 'Retry failed job',
         'forget_job' => 'Forget failed job',
+        'trash_purge' => 'Scheduled trash purge',
     ],
 
     'telegram_user_state' => [
@@ -575,4 +578,36 @@ return [
         'other' => 'Other device',
     ],
 
+    'vacancy_department' => [
+        'service' => 'Service',
+        'sales' => 'Sales',
+        'software' => 'Software',
+        'operations' => 'Operations and warehouse',
+        'management' => 'Management',
+        'marketing' => 'Marketing',
+    ],
+
+    'employment_type' => [
+        'full_time' => 'Full-time',
+        'part_time' => 'Part-time',
+        'contract' => 'Contract',
+        'internship' => 'Internship',
+    ],
+
+    'job_application_status' => [
+        'new' => 'New',
+        'reviewing' => 'Reviewing',
+        'interview' => 'Interview',
+        'rejected' => 'Rejected',
+        'hired' => 'Hired',
+    ],
+
+    'job_application_cv_status' => [
+        'none' => 'None',
+        'pending' => 'Sending',
+        'sending' => 'Sending',
+        'forwarded' => 'Delivered',
+        'failed' => 'Not delivered',
+        'expired' => 'Expired',
+    ],
 ];

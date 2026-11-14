@@ -6,7 +6,6 @@ use App\Livewire\Admin\Categories\Form as CategoryForm;
 use App\Models\Brand;
 use App\Models\Category;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;

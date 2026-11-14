@@ -142,6 +142,7 @@ return [
             'telegram_customer_cap' => 'Telegram botdan yangi mijozlar soatlik limiti oshdi (roʻyxatdan oʻtganlar CRMga bogʻlanmadi)',
             'telegram_forward' => 'Telegram bot mijoz fayllarini chatga yubora olmayapti',
             'chat_lookup_failures' => 'Buyurtma yoki taʼmirlash holatini tekshirish urinishlari ketma-ket muvaffaqiyatsiz',
+            'careers_cv' => 'Vakansiyalar: rezyumelarni Telegramga yuborishda muammo',
         ],
         'recovered' => [
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
@@ -162,8 +163,17 @@ return [
             'issue' => 'Muammo',
             'reason' => 'Sabab',
             'failures' => 'Muvaffaqiyatsiz urinishlar',
+            'count' => 'Soni',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).
+        'careers_reasons' => [
+            'cap' => 'saytdagi soatlik limitga yetildi (rezyumelar faylsiz saqlandi)',
+            'refused_target' => 'rahbariyat chati ochiq, kanal yoki topilmadi (faqat yopiq guruh qabul qilinadi)',
+            'send_failed' => 'Telegram rezyumeni qabul qilmadi',
+            'expired' => 'rezyumelar 24 soat ichida yuborilmadi',
+            'delete_failed' => 'vaqtinchalik rezyume faylini oʻchirib boʻlmadi',
+        ],
         'forward_reasons' => [
             'lost_target' => 'bot chatdan chiqarilgan yoki unda yozish huquqi yoʻq (fayllar yuborilmayapti)',
             'refused_target' => 'chat ochiq guruh, kanal yoki topilmadi (faqat yopiq guruh qabul qilinadi)',

@@ -142,6 +142,7 @@ return [
             'telegram_customer_cap' => 'Превышен часовой лимит новых клиентов из Telegram-бота (регистрации не привязаны к CRM)',
             'telegram_forward' => 'Telegram-бот не может переслать файлы клиентов в чат',
             'chat_lookup_failures' => 'Повторяющиеся неудачные проверки статуса заказа или ремонта в боте',
+            'careers_cv' => 'Вакансии: проблема с отправкой резюме в Telegram',
         ],
         'recovered' => [
             'cron_dead' => 'Планировщик снова работает',
@@ -162,8 +163,17 @@ return [
             'issue' => 'Проблема',
             'reason' => 'Причина',
             'failures' => 'Неудачных попыток',
+            'count' => 'Количество',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).
+        'careers_reasons' => [
+            'cap' => 'достигнут часовой лимит сайта (резюме сохранены без файла)',
+            'refused_target' => 'чат руководства публичный, это канал или он не найден (принимается только закрытая группа)',
+            'send_failed' => 'Telegram не принял резюме',
+            'expired' => 'резюме не отправлены за 24 часа',
+            'delete_failed' => 'не удалось удалить временный файл резюме',
+        ],
         'forward_reasons' => [
             'lost_target' => 'бот удалён из чата или не может в нём писать (файлы не пересылаются)',
             'refused_target' => 'чат публичный, это канал или он не найден (принимается только закрытая группа)',

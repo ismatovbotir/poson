@@ -17,6 +17,7 @@ use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Content\AiFill\AiField;
 use App\Support\Content\ContentLimits;
+use App\Support\Media\MediaReplacer;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -235,12 +236,12 @@ class Form extends Component
         $creating = $this->newsPost === null;
 
         // All or nothing: a rejected cover rolls the post save back.
-        $post = $this->runFormAction(fn (): NewsPost => DB::transaction(function () use ($savePost, $updateImage): NewsPost {
+        $post = $this->runFormAction(fn (): NewsPost => app(MediaReplacer::class)->guard(fn () => DB::transaction(function () use ($savePost, $updateImage): NewsPost {
             $post = $savePost->handle($this->newsPost, [...$this->form->postData(), 'kind' => $this->kind()->value], auth()->user());
             $updateImage->handle($post, $this->form->image, $this->form->image_alt, $this->form->remove_image);
 
             return $post;
-        }));
+        })));
 
         if ($creating) {
             session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => $this->kind()->adminText('created', ['name' => (string) $post->title]), 'type' => 'success']);

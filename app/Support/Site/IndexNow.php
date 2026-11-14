@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\Vacancy;
 use App\Support\CompanySettings;
 use App\Support\Integrations\IntegrationRegistry;
 use App\Support\Secrets;
@@ -62,7 +63,7 @@ class IndexNow
     /**
      * @var list<string>
      */
-    public const TYPES = ['product', 'category', 'brand', 'page', 'news_post'];
+    public const TYPES = ['product', 'category', 'brand', 'page', 'news_post', 'vacancy'];
 
     /**
      * Whether the whole feature may record, send or answer the key URL.
@@ -288,6 +289,12 @@ class IndexNow
                 }
             }
 
+            foreach (Vacancy::query()->published()->whereIn('id', $pending['vacancy'] ?? [])->get() as $vacancy) {
+                foreach ($locales as $locale) {
+                    $add($vacancy->url($locale));
+                }
+            }
+
             foreach (NewsPost::query()->whereIn('id', $pending['news_post'] ?? [])->get(['id', 'slug', 'kind', 'locales']) as $post) {
                 $kind = $post->kind;
 
@@ -342,6 +349,7 @@ class IndexNow
             $model instanceof Brand => 'brand',
             $model instanceof Page => 'page',
             $model instanceof NewsPost => 'news_post',
+            $model instanceof Vacancy => 'vacancy',
             default => null,
         };
     }

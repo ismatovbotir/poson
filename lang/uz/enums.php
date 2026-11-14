@@ -108,6 +108,7 @@ return [
         'order' => 'Buyurtma',
         'payment' => 'Toʻlov',
         'repair' => 'Taʼmirlash',
+        'cv_download' => 'Rezyume yuklab olindi',
     ],
 
     'quote_status' => [
@@ -206,6 +207,7 @@ return [
     ],
 
     'settings_area' => [
+        'careers' => 'Vakansiyalar',
         'contacts' => 'Kontaktlar',
         'legal' => 'Rekvizitlar',
         'social' => 'Ijtimoiy tarmoqlar',
@@ -428,6 +430,7 @@ return [
         'run_task' => 'Vazifani ishga tushirish',
         'retry_job' => 'Xatolikka uchragan vazifani qayta urinish',
         'forget_job' => 'Xatolikka uchragan vazifani oʻchirish',
+        'trash_purge' => 'Savatni avtomatik tozalash',
     ],
 
     'telegram_user_state' => [
@@ -575,4 +578,36 @@ return [
         'other' => 'Boshqa qurilma',
     ],
 
+    'vacancy_department' => [
+        'service' => 'Servis',
+        'sales' => 'Savdo',
+        'software' => 'Dasturiy taʼminot',
+        'operations' => 'Operatsiyalar va ombor',
+        'management' => 'Boshqaruv',
+        'marketing' => 'Marketing',
+    ],
+
+    'employment_type' => [
+        'full_time' => 'Toʻliq stavka',
+        'part_time' => 'Qisman band',
+        'contract' => 'Shartnoma asosida',
+        'internship' => 'Amaliyot',
+    ],
+
+    'job_application_status' => [
+        'new' => 'Yangi',
+        'reviewing' => 'Koʻrib chiqilmoqda',
+        'interview' => 'Suhbat',
+        'rejected' => 'Rad etildi',
+        'hired' => 'Ishga olindi',
+    ],
+
+    'job_application_cv_status' => [
+        'none' => 'Yoʻq',
+        'pending' => 'Yuborilmoqda',
+        'sending' => 'Yuborilmoqda',
+        'forwarded' => 'Yuborilgan',
+        'failed' => 'Yuborilmadi',
+        'expired' => 'Muddati oʻtdi',
+    ],
 ];

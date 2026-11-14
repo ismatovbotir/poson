@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Filesystem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Permanently delete a product (Admin only, from the trash). Inside the
@@ -40,11 +41,19 @@ class ForceDeleteProduct
 
             DB::afterCommit(function () use ($media, $paths): void {
                 foreach ($media as $item) {
-                    $this->mediaFiles->removeAllFiles($item);
+                    try {
+                        $this->mediaFiles->removeAllFiles($item);
+                    } catch (Throwable $exception) {
+                        report($exception);
+                    }
                 }
 
-                if ($paths !== []) {
-                    Storage::disk(ProductDocument::DISK)->delete($paths);
+                try {
+                    if ($paths !== []) {
+                        Storage::disk(ProductDocument::DISK)->delete($paths);
+                    }
+                } catch (Throwable $exception) {
+                    report($exception);
                 }
             });
         });

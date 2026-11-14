@@ -9,6 +9,7 @@ use App\Models\NewsPost;
 use App\Models\Page;
 use App\Rules\BrandSafeText;
 use App\Support\Media\ImageLimits;
+use App\Support\Media\MediaReplacer;
 use App\Support\Slug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -16,7 +17,6 @@ use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileNameNotAllowed;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollection;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
 /**
@@ -37,6 +37,8 @@ class UpdateCatalogImage
      * Content type → stored extension.
      */
     private const EXTENSIONS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+
+    public function __construct(private MediaReplacer $replacer) {}
 
     /**
      * @param  array<string, string|null>  $alt  locale => alt text
@@ -61,7 +63,7 @@ class UpdateCatalogImage
         }
 
         if ($remove) {
-            $model->clearMediaCollection($collection);
+            $this->replacer->clear($model, $collection);
 
             return;
         }
@@ -86,24 +88,19 @@ class UpdateCatalogImage
 
         ImageLimits::assertWithinCap($file, $field);
 
-        $existing = $model->media()->where('collection_name', $collection)->pluck('id')->all();
-
         try {
-            $model->addMedia($file)
+            $this->replacer->replace($model, $collection, fn () => $model->addMedia($file)
                 ->usingName(Slug::make($model->getAttribute('slug') ?? '') ?: $collection)
                 ->usingFileName(Str::uuid().'.'.$extension)
                 ->withCustomProperties(['alt' => $alt])
-                ->toMediaCollection($collection);
+                ->toMediaCollection($collection));
         } catch (FileNameNotAllowed|FileUnacceptableForCollection|FileIsTooBig $exception) {
             report($exception);
 
             throw ValidationException::withMessages([$field => __('admin.image_upload.rejected')]);
         } catch (Throwable $exception) {
-            // The conversion failed after the row and original were written: remove the half-made media.
+            // The conversion failed after the row and original were written: the replacer removed the half-made media.
             report($exception);
-
-            $model->media()->where('collection_name', $collection)->whereNotIn('id', $existing)->get()
-                ->each(fn (Media $media) => $media->delete());
 
             throw ValidationException::withMessages([$field => __('admin.image_upload.conversion_failed')]);
         }

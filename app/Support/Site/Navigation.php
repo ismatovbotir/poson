@@ -52,11 +52,11 @@ class Navigation
 
     /**
      * Main nav entries in display order: a page slug, or one of the
-     * "@brands", "@services", "@news" and "@articles" items.
+     * "@brands", "@services", "@news", "@articles" and "@careers" items.
      *
      * @var list<string>
      */
-    public const MAIN = ['@brands', 'b2b', '@services', 'warranty-service', 'delivery-payment', '@news', '@articles', 'about', 'contacts'];
+    public const MAIN = ['@brands', 'b2b', '@services', 'warranty-service', 'delivery-payment', '@news', '@articles', '@careers', 'about', 'contacts'];
 
     /**
      * Footer "Catalog" column: most categories listed.
@@ -118,6 +118,7 @@ class Navigation
                 '@articles' => ($articles = static::articles()) !== null
                     ? static::item('articles', $articles['label'], $articles['url'], request()->routeIs('site.articles.show'))
                     : null,
+                '@careers' => static::item('careers', __('site.nav.careers'), static::careers()['url'], request()->routeIs('site.careers.*')),
                 default => static::pageItem($entry),
             };
 
@@ -264,7 +265,21 @@ class Navigation
             $items[] = ['key' => 'articles', ...$articles];
         }
 
+        $items[] = ['key' => 'careers', ...static::careers()];
+
         return $items;
+    }
+
+    /**
+     * Careers link (main nav, footer): always shown, because candidates can
+     * send an open application to a department even with no vacancy listed
+     * (owner decision 2026-11-14).
+     *
+     * @return array{label: string, url: string}
+     */
+    public static function careers(): array
+    {
+        return ['label' => __('site.nav.careers'), 'url' => route('site.careers.index', ['locale' => app()->getLocale()])];
     }
 
     /**

@@ -37,6 +37,45 @@ class LocaleUrl
     }
 
     /**
+     * Request attribute holding useUrls() for the current page.
+     */
+    public const URLS = 'locale_url.urls';
+
+    /**
+     * The current page has its own URL in each locale (a vacancy with a slug
+     * per locale, plan 31): switch(), clean() and alternates() return these
+     * instead of reusing the route parameters. Only supported locale keys and
+     * URLs on this site (route() output) are accepted; anything else is dropped.
+     *
+     * @param  array<string, string>  $byLocale
+     */
+    public static function useUrls(array $byLocale): void
+    {
+        $root = rtrim(url('/'), '/').'/';
+        $urls = [];
+
+        foreach (config('app.supported_locales') as $locale) {
+            $url = $byLocale[$locale] ?? null;
+
+            if (is_string($url) && str_starts_with($url, $root)) {
+                $urls[$locale] = $url;
+            }
+        }
+
+        request()->attributes->set(self::URLS, $urls);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function ownUrls(): array
+    {
+        $urls = request()->attributes->get(self::URLS);
+
+        return is_array($urls) ? $urls : [];
+    }
+
+    /**
      * @return array{locales: list<string>, fallback: callable(string): string}|null
      */
     protected static function restriction(): ?array
@@ -61,6 +100,10 @@ class LocaleUrl
             return ($restriction['fallback'])($locale);
         }
 
+        if (isset(static::ownUrls()[$locale])) {
+            return static::ownUrls()[$locale];
+        }
+
         [$url, $query] = static::localizedRouteAndQuery($locale);
 
         return static::withQuery($url, $query);
@@ -72,6 +115,10 @@ class LocaleUrl
      */
     public static function clean(string $locale): string
     {
+        if (isset(static::ownUrls()[$locale])) {
+            return static::ownUrls()[$locale];
+        }
+
         [$url, $query] = static::localizedRouteAndQuery($locale);
 
         $page = $query['page'] ?? null;

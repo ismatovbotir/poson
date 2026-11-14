@@ -280,10 +280,11 @@ describe('home and navigation', function () {
 
     it('links the news list only in locales that have visible news', function () {
         NewsPost::factory()->untranslated('ru', 'en')->create();
+        NewsPost::factory()->article()->untranslated('ru', 'en')->create();
 
         app()->setLocale('uz');
         expect(Navigation::news())->toBe(['label' => __('site.nav.news', [], 'uz'), 'url' => url('/uz/news')])
-            ->and(collect(Navigation::customerPages())->pluck('key')->last())->toBe('news');
+            ->and(array_slice(collect(Navigation::customerPages())->pluck('key')->all(), -3))->toBe(['news', 'articles', 'careers']);
 
         app()->setLocale('en');
         expect(Navigation::news())->toBeNull()

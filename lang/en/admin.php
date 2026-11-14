@@ -292,6 +292,7 @@ return [
             'too_deep' => 'The catalog allows at most :max levels.',
             'has_children' => 'The category has subcategories. Move or delete them first.',
             'has_products' => 'The category has products. Move them to another category first.',
+            'has_banners' => 'The category has banners. Delete them or move them to another category first.',
         ],
     ],
 
@@ -1271,7 +1272,7 @@ return [
                 'telegram_chats_sales' => 'Leads, quotes and orders. A number like -1001234567890 or @channel.',
                 'telegram_chats_service' => 'Service requests. A number like -1001234567890 or @channel.',
                 'telegram_chats_finance' => 'Payments and price sync problems. A number like -1001234567890 or @channel.',
-                'telegram_chats_management' => 'MCP (Claude) access alerts: tokens, new IP or client, revokes. Only for the CEO / management. A number like -1001234567890 or @channel.',
+                'telegram_chats_management' => 'MCP (Claude) access alerts: tokens, new IP or client, revokes. Only for the CEO / management. A number like -1001234567890 or @channel. Candidates\' CVs from Careers also go to this chat: keep its membership minimal.',
                 'telegram_chats_inbox' => 'Customer files and message alerts from the Telegram bot. If empty, the sales chat is used. Private groups only: a number like -1001234567890 (public groups and @channels are refused).',
                 'telegram_notify_new_leads' => 'Send every new lead to the sales chat, and service requests to the service chat.',
                 'telegram_notify_inbox' => 'When a customer writes to the bot, a short alert goes to the inbox chat (or the sales chat), at most once per conversation every 10 minutes.',

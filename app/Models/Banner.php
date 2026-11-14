@@ -145,7 +145,6 @@ class Banner extends Model implements HasMedia
     {
         foreach ([self::DESKTOP, self::MOBILE] as $collection) {
             $this->addMediaCollection($collection)
-                ->singleFile()
                 ->acceptsMimeTypes(self::IMAGE_MIMES)
                 ->useDisk(config('media-library.originals_disk', 'local'))
                 ->storeConversionsOnDisk(config('media-library.disk_name', 'public'));

@@ -63,6 +63,16 @@ Schedule::command('model:prune', ['--model' => [ChatUnmatched::class]])->dailyAt
 
 /*
 |--------------------------------------------------------------------------
+| Careers (plan 31, CR-5)
+|--------------------------------------------------------------------------
+| Hourly: CVs waiting > 24 h for the Telegram forward expire (file deleted,
+| text-only message), stuck "sending" rows are queued again, orphan pending
+| files are deleted. Applications themselves are never pruned (§17.4).
+*/
+Schedule::command('careers:expire-pending-cvs')->hourly()->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | Cart (plan 11a)
 |--------------------------------------------------------------------------
 | Empty carts after 1 day, converted ones 1 day after the order, the rest
@@ -70,6 +80,19 @@ Schedule::command('model:prune', ['--model' => [ChatUnmatched::class]])->dailyAt
 */
 
 Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Media clean-up (fix batch media-cleanup)
+|--------------------------------------------------------------------------
+| catalog:purge-trash: products in the trash for more than 30 days are
+| deleted for good, with their files. uploads:purge-tmp: Livewire temporary
+| uploads older than 24 h. Task keys: "catalog:purge-trash --force" and
+| "uploads:purge-tmp".
+*/
+
+Schedule::command('catalog:purge-trash', ['--force'])->dailyAt('02:15')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('uploads:purge-tmp')->dailyAt('02:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
 |--------------------------------------------------------------------------

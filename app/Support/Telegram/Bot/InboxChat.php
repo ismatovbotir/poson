@@ -5,8 +5,7 @@ namespace App\Support\Telegram\Bot;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Secrets;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
+use App\Support\Telegram\PrivateGroupTarget;
 
 /**
  * The one team chat for the customer inbox (plan 14 v2 §23, B4-S1/S2): the
@@ -20,22 +19,16 @@ use Illuminate\Support\Str;
  *    (^-[1-9]\d{0,19}$, no leading zero).
  *    The registry still accepts @username values for the other chats; such a
  *    value is refused here (public channel / group, TG-23).
- *  - verify(): getChat must report a group or supergroup without a public
- *    username. The pass / fail flag is cached VERIFY_TTL seconds under
- *    sha1(chat id) (never the id itself) within a generation that forget()
- *    bumps when a chat id or the bot token is saved; invalidate() drops it on
- *    a 400 / 403 from the target. 429 / 5xx / timeouts are transient, and a
- *    401 / 404 means the token is the problem, not the chat: thrown, never
- *    cached, never "not configured" (so a token fix in .env works at once;
- *    senders still send nothing).
+ *  - verify(): delegated to PrivateGroupTarget (shared with careers, plan 31 CR-9):
+ *    the chat must be a group or supergroup without a public username.
  */
 final class InboxChat
 {
-    public const PATTERN = '/^-[1-9]\d{0,19}$/D';
+    public const PATTERN = PrivateGroupTarget::PATTERN;
 
-    public const VERIFY_TTL = 600;
+    public const VERIFY_TTL = PrivateGroupTarget::VERIFY_TTL;
 
-    public const GENERATION_KEY = 'telegram-inbox-chat:generation';
+    public const GENERATION_KEY = PrivateGroupTarget::GENERATION_KEY;
 
     /**
      * Chat key of services.telegram.chats in use: "inbox", "sales" or null.
@@ -59,40 +52,17 @@ final class InboxChat
         $key = self::key();
         $value = $key !== null ? Secrets::get('telegram.chats.'.$key) : null;
 
-        return is_string($value) && preg_match(self::PATTERN, trim($value)) === 1 ? trim($value) : null;
+        return PrivateGroupTarget::normalize($value);
     }
 
     /**
-     * Whether the chat is a non-public group the bot can see (cached).
+     * Whether the chat is a non-public group the bot can see (cached, PrivateGroupTarget).
      *
      * @throws TelegramException on 401, 404, 429, 5xx, timeouts and connection failures
      */
     public static function verify(TelegramClient $client, string $chatId): bool
     {
-        $cacheKey = self::cacheKey($chatId);
-        $cached = Cache::get($cacheKey);
-
-        if (is_bool($cached)) {
-            return $cached;
-        }
-
-        try {
-            $chat = $client->getChat($chatId);
-            $ok = in_array($chat['type'] ?? null, ['group', 'supergroup'], true)
-                && (! isset($chat['username']) || $chat['username'] === '');
-        } catch (TelegramException $exception) {
-            // 429 / 5xx / timeouts, and a refused token (401) or unknown bot URL (404):
-            // the verdict on the chat is unknown, never cached as a bad chat (security L2).
-            if (! $exception->isPermanent() || in_array($exception->status, [401, 404], true)) {
-                throw $exception;
-            }
-
-            $ok = false;
-        }
-
-        Cache::put($cacheKey, $ok, self::VERIFY_TTL);
-
-        return $ok;
+        return PrivateGroupTarget::verify($client, $chatId);
     }
 
     /**
@@ -100,7 +70,7 @@ final class InboxChat
      */
     public static function invalidate(string $chatId): void
     {
-        Cache::forget(self::cacheKey($chatId));
+        PrivateGroupTarget::invalidate($chatId);
     }
 
     /**
@@ -108,24 +78,14 @@ final class InboxChat
      */
     public static function forget(): void
     {
-        Cache::forever(self::GENERATION_KEY, Str::random(12));
+        PrivateGroupTarget::forget();
     }
 
     /**
      * The current verification generation (changes whenever forget() runs).
-     * A cache failure reads as '?', which differs from any real generation.
      */
     public static function generation(): string
     {
-        try {
-            return (string) Cache::get(self::GENERATION_KEY, '0');
-        } catch (\Throwable) {
-            return '?';
-        }
-    }
-
-    private static function cacheKey(string $chatId): string
-    {
-        return 'telegram-inbox-chat:'.Cache::get(self::GENERATION_KEY, '0').':'.sha1($chatId);
+        return PrivateGroupTarget::generation();
     }
 }
