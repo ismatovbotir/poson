@@ -5,11 +5,13 @@ namespace App\Support\Chat\Skills;
 use App\Enums\ChatChannel;
 use App\Support\Chat\ChatContext;
 use App\Support\Chat\ChatReply;
+use App\Support\Chat\ChatSettings;
 
 /**
  * The topic menu: one button per active rule flagged "in menu" for the
  * channel, in menu order. A rule's menu label is params.label (per locale),
- * falling back to its name. Pure: reads the compiled rules only.
+ * falling back to its name. The intro is the menu rule's answer, else the
+ * greeting text of the settings (CB-31), else the built-in title.
  */
 final class MenuSkill
 {
@@ -48,7 +50,7 @@ final class MenuSkill
         $intro = $rule === null ? '' : trim((string) ($rule['answer'][$context->locale] ?? $rule['answer']['uz'] ?? ''));
 
         return new ChatReply(
-            $intro !== '' ? $intro : __('chatbot.menu_title', [], $context->locale),
+            $intro !== '' ? $intro : (ChatSettings::text('greeting', $context->locale) ?? __('chatbot.menu_title', [], $context->locale)),
             $this->buttons($data, $context),
             $rule['id'] ?? null,
             ChatReply::MENU,

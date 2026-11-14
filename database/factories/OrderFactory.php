@@ -94,6 +94,22 @@ class OrderFactory extends Factory
         ]);
     }
 
+    /**
+     * Placed with this phone (the one a Telegram customer registered with).
+     */
+    public function forPhone(string $phone): static
+    {
+        return $this->state(fn (array $attributes) => ['phone' => $phone]);
+    }
+
+    /**
+     * Created this many months ago (outside the chat bot's lookup window when 13 or more).
+     */
+    public function placedMonthsAgo(int $months): static
+    {
+        return $this->state(fn (array $attributes) => ['created_at' => now()->subMonths($months)->subHour()]);
+    }
+
     public function manual(): static
     {
         return $this->state(fn (array $attributes) => ['source' => OrderSource::Manual]);

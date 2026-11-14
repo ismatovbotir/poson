@@ -54,4 +54,31 @@ return [
     // Absolute https link hosts allowed besides the site's own host (CB-6).
     'link_hosts' => [],
 
+    // Product search in the chat (C3, CB-14): hits before the query, per Telegram customer and over all chats.
+    'search' => [
+        'per_minute_user' => 10,
+        'per_minute_global' => 120,
+        'max_results' => 8,
+    ],
+
+    // Order / repair status lookups, Telegram only (C3, CB-15, CB-16): hits before the query.
+    // A number with failures_alert failed attempts in 24 h raises one counts-only monitoring alert.
+    'lookup' => [
+        'per_hour_user' => 5,
+        'per_hour_global' => 300,
+        'failures_alert' => 5,
+        'order_months' => 12,
+        'repair_closed_days' => 90,
+        'recent' => 5,
+    ],
+
+    // Lead dialogs, Telegram (C4, CB-8, CB-17): hit last, after every refusal.
+    'leads' => [
+        'per_day_user' => 3,
+        'per_hour_global' => 30,
+        'dialog_minutes' => 30,
+        'answer_max' => 500,
+        'dialog_max_bytes' => 2048,
+    ],
+
 ];

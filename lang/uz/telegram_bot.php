@@ -58,6 +58,7 @@ return [
         'catalog' => 'Katalog',
         'faq' => 'Savol-javob',
         'order_status' => 'Buyurtma holati',
+        'repair_status' => 'Taʼmir holati',
         'language' => 'Til',
         'contact_manager_reply' => 'Savolingizni shu yerda yozing — u jamoamizga yetib boradi.',
         'catalog_reply' => 'Uskunalar katalogi: :url',

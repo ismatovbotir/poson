@@ -140,6 +140,7 @@ return [
             'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',
             'telegram_customer_cap' => 'Telegram botdan yangi mijozlar soatlik limiti oshdi (roʻyxatdan oʻtganlar CRMga bogʻlanmadi)',
             'telegram_forward' => 'Telegram bot mijoz fayllarini chatga yubora olmayapti',
+            'chat_lookup_failures' => 'Buyurtma yoki taʼmirlash holatini tekshirish urinishlari ketma-ket muvaffaqiyatsiz',
         ],
         'recovered' => [
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
@@ -159,6 +160,7 @@ return [
             'limit' => 'Soatlik limit',
             'issue' => 'Muammo',
             'reason' => 'Sabab',
+            'failures' => 'Muvaffaqiyatsiz urinishlar',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         'forward_reasons' => [

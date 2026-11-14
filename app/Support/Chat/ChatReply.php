@@ -10,6 +10,14 @@ namespace App\Support\Chat;
  *   {type: url, label, url}  - a validated link
  *   {type: handoff, label}   - talk to a manager
  *   {type: menu, label}      - show the menu
+ *   {type: cancel, label}    - leave a dialog
+ *   {type: product|order|repair|quote|send|skip, label, id} - a server-stored
+ *       choice (Telegram keeps the id in bot_dialog, never in the callback)
+ *
+ * Outcome markers SEARCH, ORDER_STATUS, REPAIR_STATUS and LEAD mean "the
+ * caller must run this" (HandleChatInput, which knows who asks): the engine
+ * has no identity and never searches, looks up or creates anything. $param
+ * carries the typed order/repair number (lookups) or the lead flow (LEAD).
  *
  * @phpstan-type Button array{type: string, label: string, id?: int, url?: string}
  */
@@ -29,6 +37,17 @@ final readonly class ChatReply
 
     public const FALLBACK = 'fallback';
 
+    public const ORDER_STATUS = 'order_status';
+
+    public const REPAIR_STATUS = 'repair_status';
+
+    public const LEAD = 'lead';
+
+    /**
+     * The result of a search, lookup or dialog step: its stats are already recorded.
+     */
+    public const DONE = 'done';
+
     /**
      * @param  list<array{type: string, label: string, id?: int, url?: string}>  $buttons
      * @param  self::*  $outcome
@@ -38,6 +57,7 @@ final readonly class ChatReply
         public array $buttons = [],
         public ?int $ruleId = null,
         public string $outcome = self::HIT,
+        public ?string $param = null,
     ) {}
 
     public function isHandoff(): bool

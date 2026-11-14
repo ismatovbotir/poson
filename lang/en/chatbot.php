@@ -64,4 +64,73 @@ return [
         'too_many_buttons' => 'A rule can have at most :max buttons.',
         'system_rule_delete' => 'A built-in rule cannot be deleted. Switch it off instead.',
     ],
+
+    'after_hours' => 'Our team is offline now. We will reply during working hours.',
+
+    'search' => [
+        'prompt' => 'Write what you are looking for: a model, an article number or a name.',
+        'found' => 'Found:',
+        'line' => ':n. :name — :price',
+        'none' => 'Nothing found. Try other words or ask a manager.',
+        'limited' => 'Too many searches. Please ask a manager or open the catalog.',
+        'unavailable' => 'This product is no longer available. Please ask a manager.',
+        'brand' => 'Brand: :brand',
+        'price' => 'Price: :price',
+        'price_on_request' => 'price on request',
+        'open' => 'Open on the website',
+        'quote' => 'Request a quote',
+    ],
+
+    'lookup' => [
+        'limited' => 'Too many checks. Please ask a manager.',
+        'unavailable' => 'This check is not available right now. Please ask a manager.',
+        'since' => 'Status since: :day',
+        'status' => 'Status: :status',
+        'web' => [
+            'order' => 'Order status is available in our Telegram bot after you share your phone number.',
+            'repair' => 'Repair status is available in our Telegram bot after you share your phone number.',
+        ],
+        'order' => [
+            'none' => 'No orders found for your phone number.',
+            'not_found' => 'No such order found for your phone number. Check the number or ask a manager.',
+            'recent' => 'Your latest orders. Choose one:',
+            'title' => 'Order :number',
+            'payment' => 'Payment: :status',
+        ],
+        'repair' => [
+            'none' => 'No repairs found for your phone number.',
+            'not_found' => 'No such repair found for your phone number. Check the number or ask a manager.',
+            'recent' => 'Your latest repairs. Choose one:',
+            'title' => 'Repair :number',
+            'device' => 'Device: :device',
+            'awaiting_approval' => 'We are waiting for your approval. A manager will contact you.',
+            'ready' => 'Your device is ready for pickup.',
+        ],
+    ],
+
+    'dialog' => [
+        'buttons' => [
+            'cancel' => 'Cancel',
+            'send' => 'Send',
+            'skip' => 'Skip',
+        ],
+        'callback' => ['details' => 'What should we call you about? Write a short message or skip.'],
+        'quote' => [
+            'details' => 'Which equipment do you need? Write the models and quantities.',
+            'details_product' => 'Write the quantity and any wishes for :product.',
+        ],
+        'service' => ['details' => 'Describe the device and the problem.'],
+        'required' => 'This step cannot be skipped.',
+        'confirm' => 'Check your request:',
+        'summary' => [
+            'type' => 'Type: :type',
+            'product' => 'Product: :product',
+            'details' => 'Details: :details',
+            'phone' => 'Phone: :phone',
+        ],
+        'sent' => 'Thank you! Your request :number is accepted. A manager will contact you.',
+        'expired' => 'The request timed out. Please start again.',
+        'limited' => 'Too many requests. Please ask a manager.',
+        'refused' => 'We cannot accept this request here. Please ask a manager.',
+    ],
 ];

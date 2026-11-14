@@ -8,6 +8,7 @@ use App\Models\ChatRule;
 use App\Models\ChatRuleKeyword;
 use App\Support\Chat\ChatContext;
 use App\Support\Chat\ChatReply;
+use App\Support\Chat\ChatSettings;
 use App\Support\Chat\Engine;
 use App\Support\Chat\RuleIndex;
 use Illuminate\Support\Facades\Cache;
@@ -159,14 +160,27 @@ it('sends model-like text to product search instead of the unmatched list', func
         ->and($reply->isUnmatched())->toBeFalse();
 });
 
-it('answers later-phase actions with an ask-a-manager reply', function (ChatAction $action) {
+it('answers the lookup and search actions with their built-in texts on the web', function (ChatAction $action, string $key) {
     chatRule('later', kw(['keyingi']), ['action' => $action, 'answer' => null]);
+
+    $reply = chatAsk('keyingi');
+
+    expect($reply->text)->toBe(__($key, [], 'uz'))
+        ->and(collect($reply->buttons)->pluck('type')->all())->toBe(['handoff']);
+})->with([
+    'search' => [ChatAction::ProductSearch, 'chatbot.search.prompt'],
+    'order' => [ChatAction::OrderStatus, 'chatbot.lookup.web.order'],
+    'repair' => [ChatAction::RepairStatus, 'chatbot.lookup.web.repair'],
+]);
+
+it('answers a lead dialog rule on the web with an ask-a-manager reply', function () {
+    chatRule('later', kw(['keyingi']), ['action' => ChatAction::LeadDialog, 'answer' => null]);
 
     $reply = chatAsk('keyingi');
 
     expect($reply->text)->toBe(__('chatbot.coming_soon', [], 'uz'))
         ->and(collect($reply->buttons)->pluck('type')->all())->toBe(['handoff']);
-})->with([ChatAction::ProductSearch, ChatAction::OrderStatus, ChatAction::RepairStatus, ChatAction::LeadDialog]);
+});
 
 it('flags a hand-off rule', function () {
     chatRule('manager', kw(['menejer']), ['action' => ChatAction::Handoff]);
@@ -178,6 +192,7 @@ it('matches without a single database query on a warm cache', function () {
     chatRule('delivery', kw(['dostavka']));
     chatRule('menu', kw(['menu']), ['action' => ChatAction::Menu, 'in_menu' => true]);
     app(RuleIndex::class)->load();
+    ChatSettings::all();
 
     DB::flushQueryLog();
     DB::enableQueryLog();

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ChatMode;
 use App\Enums\ConversationStatus;
 use App\Enums\TelegramUserState;
+use App\Support\Chat\ChatSettings;
 use App\Support\Search;
 use Database\Factories\TelegramUserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -243,7 +244,8 @@ class TelegramUser extends Model
     /**
      * Whether a "manager" conversation may return to the bot by the clock:
      * not waiting for staff, and handoff_ttl_hours have passed since the
-     * later of the last staff reply and the last inbound message.
+     * later of the last staff reply and the last inbound message
+     * (handoff_ttl_hours from Admin → Chat bot → Settings, 1-72, default 8).
      */
     public function hasChatTtlExpired(): bool
     {
@@ -253,7 +255,7 @@ class TelegramUser extends Model
 
         $last = collect([$this->last_staff_reply_at, $this->last_inbound_at])->filter()->max();
 
-        return $last === null || $last->lte(now()->subHours((int) config('chatbot.handoff_ttl_hours', 8)));
+        return $last === null || $last->lte(now()->subHours(ChatSettings::handoffTtlHours()));
     }
 
     public function isBanned(): bool

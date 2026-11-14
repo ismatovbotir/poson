@@ -140,6 +140,7 @@ return [
             'telegram_token' => 'Telegram не принимает токен бота (401)',
             'telegram_customer_cap' => 'Превышен часовой лимит новых клиентов из Telegram-бота (регистрации не привязаны к CRM)',
             'telegram_forward' => 'Telegram-бот не может переслать файлы клиентов в чат',
+            'chat_lookup_failures' => 'Повторяющиеся неудачные проверки статуса заказа или ремонта в боте',
         ],
         'recovered' => [
             'cron_dead' => 'Планировщик снова работает',
@@ -159,6 +160,7 @@ return [
             'limit' => 'Лимит в час',
             'issue' => 'Проблема',
             'reason' => 'Причина',
+            'failures' => 'Неудачных попыток',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         'forward_reasons' => [

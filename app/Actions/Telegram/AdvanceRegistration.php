@@ -10,6 +10,7 @@ use App\Jobs\AnswerBotCallback;
 use App\Jobs\SendBotPrompt;
 use App\Models\TelegramUser;
 use App\Support\Chat\ChatbotSwitch;
+use App\Support\Chat\LeadDialog;
 use App\Support\Phone;
 use App\Support\Telegram\Bot\BotKeyboards;
 use App\Support\Telegram\Bot\BotText;
@@ -112,6 +113,11 @@ class AdvanceRegistration
     {
         $registered = $user->state === TelegramUserState::Registered;
 
+        // A command or menu button ends a running chat lead dialog (plan 28 C4, CB-17).
+        if ($registered) {
+            LeadDialog::clear($user);
+        }
+
         match (true) {
             $command === 'start' && $registered => $this->mainMenu($user),
             $command === 'start' => $this->currentStep($user),
@@ -120,6 +126,7 @@ class AdvanceRegistration
             $command === 'menu:contact_manager' && $registered => $this->contactManager($user),
             $command === 'menu:faq' && $registered => $this->chat->menuKey($user, 'faq'),
             $command === 'menu:order_status' && $registered => $this->chat->menuKey($user, 'order_status'),
+            $command === 'menu:repair_status' && $registered => $this->chat->menuKey($user, 'repair_status'),
             $command === 'menu:catalog' && $registered => $this->reply($user, ['menu.catalog_reply'], BotKeyboards::MENU),
             // A menu label typed before registration is just text: re-prompt.
             default => $this->currentStep($user, prefix: $this->continuePrefix($user)),
