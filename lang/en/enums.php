@@ -511,6 +511,17 @@ return [
         'exact' => 'Exact message',
     ],
 
+    'lead_flow' => [
+        'callback' => 'Callback',
+        'quote' => 'Quote request',
+        'service' => 'Service request',
+    ],
+
+    'chat_dialog_step' => [
+        'details' => 'Details',
+        'confirm' => 'Confirmation',
+    ],
+
     'chat_metric' => [
         'hit' => 'Answered',
         'unmatched' => 'Not understood',

@@ -140,6 +140,7 @@ return [
             'telegram_token' => 'Telegram refuses the bot token (401)',
             'telegram_customer_cap' => 'Hourly limit of new customers from the Telegram bot reached (registrations stay unlinked)',
             'telegram_forward' => 'The Telegram bot cannot copy customer files to the chat',
+            'chat_lookup_failures' => 'Repeated failed order or repair status lookups in the bot',
         ],
         'recovered' => [
             'cron_dead' => 'Scheduler is running again',
@@ -159,6 +160,7 @@ return [
             'limit' => 'Limit per hour',
             'issue' => 'Problem',
             'reason' => 'Reason',
+            'failures' => 'Failed attempts',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         'forward_reasons' => [

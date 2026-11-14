@@ -15,8 +15,11 @@ use App\Support\Chat\ChatReply;
  *   chat:r:N      another rule by id; accepted only for an active Telegram rule
  *                 that is in the menu or was offered in the last bot answer
  *   chat:b:G:I    button I (0-9) of the answer generation G (0-99), stored server-side
- *                 in telegram_users.bot_dialog (FAQ questions); never an id from the
- *                 client, and ignored when G is not the current generation
+ *                 in telegram_users.bot_dialog (FAQ questions, found products, the
+ *                 customer's own orders and repairs, dialog choices); never an id
+ *                 from the client, and ignored when G is not the current generation.
+ *                 Ten slots (CB-32): at most 8 products, plus hand-off and menu,
+ *                 which have their own callbacks
  *   chat:menu     show the topic menu
  *   chat:handoff  talk to a manager
  *   chat:cancel   leave a dialog and show the menu
@@ -30,6 +33,13 @@ final class TelegramAdapter
     public const MAX_TEXT_UNITS = 4000;
 
     public const LABEL_MAX = 60;
+
+    /**
+     * Button types whose target is kept server-side (chat:b), at most MAX_STORED per answer.
+     */
+    public const STORED = ['faq', 'product', 'order', 'repair', 'quote', 'send', 'skip'];
+
+    public const MAX_STORED = 10;
 
     /**
      * @return array{type: string, id?: int, gen?: int, index?: int}|null null: not chat callback data
@@ -77,9 +87,15 @@ final class TelegramAdapter
                     $rows[] = [['text' => $label, 'callback_data' => 'chat:r:'.(int) $button['id']]];
                     break;
                 case 'faq':
-                    if (count($buttons) < 10) {
+                case 'product':
+                case 'order':
+                case 'repair':
+                case 'quote':
+                case 'send':
+                case 'skip':
+                    if (count($buttons) < self::MAX_STORED) {
                         $index = count($buttons);
-                        $buttons[$index] = ['t' => 'faq', 'id' => (int) $button['id']];
+                        $buttons[$index] = ['t' => $button['type'], 'id' => (int) ($button['id'] ?? 0)];
                         $rows[] = [['text' => $label, 'callback_data' => 'chat:b:'.$generation.':'.$index]];
                     }
                     break;
@@ -92,13 +108,16 @@ final class TelegramAdapter
                 case 'menu':
                     $rows[] = [['text' => $label, 'callback_data' => 'chat:menu']];
                     break;
+                case 'cancel':
+                    $rows[] = [['text' => $label, 'callback_data' => 'chat:cancel']];
+                    break;
             }
         }
 
         return [
             'text' => $this->text($reply->text),
             'inline' => $rows,
-            'dialog' => ['rules' => array_values(array_unique($rules)), 'buttons' => $buttons, 'gen' => $generation, 'at' => now()->unix()],
+            'dialog' => ['rules' => array_slice(array_values(array_unique($rules)), 0, self::MAX_STORED), 'buttons' => $buttons, 'gen' => $generation, 'at' => now()->unix()],
         ];
     }
 

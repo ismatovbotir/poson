@@ -45,6 +45,25 @@ class RepairFactory extends Factory
         ];
     }
 
+    /**
+     * The phone left at intake (a Telegram customer's registered phone).
+     */
+    public function forPhone(string $phone): static
+    {
+        return $this->state(fn (array $attributes) => ['contact_phone' => $phone]);
+    }
+
+    /**
+     * Collected (closed) this many days ago.
+     */
+    public function closedDaysAgo(int $days): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => RepairStatus::Delivered,
+            'closed_at' => now()->subDays($days)->subHour(),
+        ]);
+    }
+
     public function assignedTo(User $user): static
     {
         return $this->state(fn (array $attributes) => ['assigned_to_id' => $user->id]);

@@ -86,3 +86,45 @@ it('accepts exactly the chat callback data', function (string $data, ?array $exp
 it('keeps the older callback data working', function (string $data) {
     expect(BotKeyboards::isAllowedCallback($data))->toBeTrue();
 })->with(['lang:uz', 'lang:ru', 'lang:en', 'skip:company', 'skip:inn', 'name:yes', 'name:change']);
+
+it('renders the cancel button and parses its callback', function () {
+    $rendered = (new TelegramAdapter)->render(new ChatReply('Tasdiqlang', [['type' => 'cancel', 'label' => 'Bekor qilish']]), 2);
+
+    expect($rendered['inline'])->toBe([[['text' => 'Bekor qilish', 'callback_data' => 'chat:cancel']]])
+        ->and($rendered['dialog']['buttons'])->toBe([])
+        ->and(TelegramAdapter::parseCallback('chat:cancel'))->toBe(['type' => 'cancel'])
+        ->and(TelegramAdapter::parseCallback("chat:cancel\n"))->toBeNull();
+});
+
+it('stores at most ten server-side buttons and drops the rest, keeping hand-off and menu', function () {
+    $buttons = [];
+    foreach (range(1, 12) as $n) {
+        $buttons[] = ['type' => 'product', 'label' => "Product {$n}", 'id' => $n];
+    }
+    $buttons[] = ['type' => 'handoff', 'label' => 'Menejer'];
+    $buttons[] = ['type' => 'menu', 'label' => 'Menyu'];
+
+    $rendered = (new TelegramAdapter)->render(new ChatReply('Topildi', $buttons), 9);
+
+    expect(TelegramAdapter::MAX_STORED)->toBe(10)
+        ->and($rendered['dialog']['buttons'])->toHaveCount(10)
+        ->and(array_key_last($rendered['dialog']['buttons']))->toBe(9)
+        ->and($rendered['dialog']['buttons'][9])->toBe(['t' => 'product', 'id' => 10])
+        ->and($rendered['inline'])->toHaveCount(12)
+        ->and(collect($rendered['inline'])->flatten(1)->pluck('callback_data')->take(-2)->values()->all())->toBe(['chat:handoff', 'chat:menu']);
+});
+
+it('stores every button type of the dialogs and the lookups', function (string $type) {
+    $rendered = (new TelegramAdapter)->render(new ChatReply('x', [['type' => $type, 'label' => 'Button', 'id' => 4]]), 1);
+
+    expect($rendered['dialog']['buttons'])->toBe([0 => ['t' => $type, 'id' => 4]])
+        ->and($rendered['inline'][0][0]['callback_data'])->toBe('chat:b:1:0');
+})->with(['faq', 'product', 'order', 'repair', 'quote', 'send', 'skip']);
+
+it('keeps at most ten distinct offered rule ids', function () {
+    $buttons = array_map(fn (int $id) => ['type' => 'rule', 'label' => "Rule {$id}", 'id' => $id], [...range(1, 13), 3, 3]);
+
+    $rendered = (new TelegramAdapter)->render(new ChatReply('x', $buttons));
+
+    expect($rendered['dialog']['rules'])->toBe(range(1, 10));
+});

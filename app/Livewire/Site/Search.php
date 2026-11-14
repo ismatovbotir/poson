@@ -2,11 +2,9 @@
 
 namespace App\Livewire\Site;
 
-use App\Models\Product;
+use App\Actions\Chat\SearchProducts;
 use App\Support\Catalog\ProductCards;
-use App\Support\Search as SearchText;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\Livewire;
@@ -17,18 +15,19 @@ use Livewire\WithPagination;
  * search_text (SKU, model, names in every locale, brand) contains every
  * word of the query, normalized like the admin search (lower case, Uzbek
  * apostrophes ʻ ʼ ' removed), so Cyrillic and apostrophe variants match.
+ * The query itself is SearchProducts, shared with the chat bot (plan 28 C3).
  * Never indexed (noindex,follow; search URLs are disallowed in robots.txt).
  */
 class Search extends Component
 {
     use WithPagination;
 
-    public const MAX_LENGTH = 100;
+    public const MAX_LENGTH = SearchProducts::MAX_LENGTH;
 
     /**
      * Words of the query that must all match.
      */
-    public const MAX_WORDS = 5;
+    public const MAX_WORDS = SearchProducts::MAX_WORDS;
 
     /**
      * Untyped: a wrong type from the URL or the browser becomes '' (term()).
@@ -44,21 +43,12 @@ class Search extends Component
     public function render(): View
     {
         $term = $this->term();
-        $words = $this->words($term);
+        $query = app(SearchProducts::class)->query($term);
         $products = null;
 
-        if ($words !== []) {
-            $products = Product::query()
-                ->visible()
-                ->where(function (Builder $query) use ($words): void {
-                    foreach ($words as $word) {
-                        $query->whereRaw("search_text like ? escape '!'", [SearchText::normalizedPattern($word)]);
-                    }
-                })
+        if ($query !== null) {
+            $products = $query
                 ->with(ProductCards::EAGER_LOADS)
-                ->orderByDesc('products.is_featured')
-                ->orderBy('products.sort')
-                ->orderBy('products.id')
                 ->paginate((int) config('site.per_page', 24))
                 ->withPath(Livewire::originalUrl())
                 ->appends(['q' => $term]);
@@ -88,21 +78,6 @@ class Search extends Component
      */
     protected function term(): string
     {
-        $query = is_string($this->q) ? mb_substr($this->q, 0, self::MAX_LENGTH * 2) : '';
-
-        return mb_substr(trim((string) preg_replace('/\s+/u', ' ', $query)), 0, self::MAX_LENGTH);
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function words(string $term): array
-    {
-        $words = array_filter(
-            explode(' ', SearchText::normalize($term)),
-            fn (string $word): bool => $word !== '',
-        );
-
-        return array_slice(array_values(array_unique($words)), 0, self::MAX_WORDS);
+        return SearchProducts::term($this->q);
     }
 }

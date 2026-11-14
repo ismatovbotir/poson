@@ -186,6 +186,25 @@ return [
     ],
 
     [
+        'key' => 'repair_status',
+        'name' => 'Repair status',
+        'action' => 'repair_status',
+        'params' => [],
+        'priority' => 0,
+        'menu' => 12,
+        'label' => ['uz' => 'Taʼmir holati', 'ru' => 'Статус ремонта', 'en' => 'Repair status'],
+        'answer' => [
+            'uz' => 'Taʼmir holatini menejer aytib beradi. Iltimos, taʼmir raqamingiz bilan menejerga murojaat qiling.',
+            'ru' => 'Статус ремонта сообщает менеджер. Пожалуйста, обратитесь к менеджеру, указав номер ремонта.',
+            'en' => 'A manager will tell you the status of your repair. Please contact a manager and give your repair number.',
+        ],
+        'keywords' => [
+            ['taʼmir holati', 20], ['статус ремонта', 20], ['repair status', 20], ['мой ремонт', 20], ['where is my repair', 20],
+            ['taʼmirim holati', 20], ['remont holati', 20],
+        ],
+    ],
+
+    [
         'key' => 'product_search',
         'name' => 'Choose equipment',
         'action' => 'product_search',

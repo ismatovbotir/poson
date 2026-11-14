@@ -511,6 +511,17 @@ return [
         'exact' => 'Toʻliq xabar',
     ],
 
+    'lead_flow' => [
+        'callback' => 'Qayta qoʻngʻiroq',
+        'quote' => 'Tijoriy taklif soʻrovi',
+        'service' => 'Servis arizasi',
+    ],
+
+    'chat_dialog_step' => [
+        'details' => 'Tafsilotlar',
+        'confirm' => 'Tasdiqlash',
+    ],
+
     'chat_metric' => [
         'hit' => 'Javob berildi',
         'unmatched' => 'Tushunilmadi',

@@ -672,3 +672,17 @@ it('renders the rule form for every action and loads an existing rule with butto
         Livewire::actingAs(staffUser(Role::Admin))->test(RuleFormComponent::class)->set('form.action', $action->value)->assertOk();
     }
 });
+
+it('reports the lookup action for a typed order or repair number without any query', function (string $text, ChatAction $action) {
+    $admin = staffUser(Role::Admin);
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $result = app(TestChatPhrase::class)->handle($admin, $text, 'en', ChatChannel::Telegram);
+    $queries = collect(DB::getQueryLog())->pluck('query')->filter(fn ($q) => preg_match('/\b(orders|repairs)\b/', $q))->all();
+
+    expect($result['would_run'])->toBe($action->label())->and($queries)->toBe([]);
+})->with([
+    'order' => ['O-2026-0001', ChatAction::OrderStatus],
+    'repair' => ['R-2026-000123', ChatAction::RepairStatus],
+]);

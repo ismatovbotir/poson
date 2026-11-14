@@ -6,6 +6,7 @@ use App\Enums\ConversationStatus;
 use App\Enums\TelegramUserState;
 use App\Models\TelegramUser;
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -52,6 +53,22 @@ class TelegramUserFactory extends Factory
             'consent_at' => now()->subDay(),
             'registered_at' => now()->subDay(),
         ]);
+    }
+
+    /**
+     * A registered customer with this phone and registration time.
+     */
+    public function withPhone(string $phone, ?DateTimeInterface $registeredAt = null): static
+    {
+        return $this->registered()->state(fn () => ['phone' => $phone, 'registered_at' => $registeredAt ?? now()->subDay()]);
+    }
+
+    /**
+     * A customer who shared an anonymous +888 number: never looked up, never a lead phone.
+     */
+    public function anonymousNumber(): static
+    {
+        return $this->registered()->state(fn () => ['phone' => '+88800001234567']);
     }
 
     public function assigned(User $manager): static

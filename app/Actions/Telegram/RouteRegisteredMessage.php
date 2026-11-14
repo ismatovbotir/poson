@@ -8,6 +8,7 @@ use App\Enums\ChatMode;
 use App\Enums\TelegramMessageKind;
 use App\Models\TelegramUser;
 use App\Support\Chat\ChatbotSwitch;
+use App\Support\Chat\LeadDialog;
 use App\Support\Telegram\Bot\UpdateParser;
 
 /**
@@ -18,7 +19,8 @@ use App\Support\Telegram\Bot\UpdateParser;
  *  - Chat bot off for Telegram (the default): StoreInboundMessage, exactly as
  *    before the chat bot existed.
  *  - Media (photo, file, voice ...): StoreInboundMessage (TG-21, 22, 25, 26
- *    unchanged) and the conversation switches to "manager". Other non-text
+ *    unchanged), the conversation switches to "manager" and a running lead
+ *    dialog ends (CB-17). Other non-text
  *    (contact, location ...) also goes to StoreInboundMessage, mode unchanged.
  *  - Text from a customer who is waiting for staff (unread, or open with the
  *    last inbound unanswered): StoreInboundMessage, mode set to "manager".
@@ -46,6 +48,7 @@ class RouteRegisteredMessage
 
         if ($update->kind !== TelegramMessageKind::Text || $update->text === null) {
             if ($update->kind?->isForwardable() === true) {
+                LeadDialog::clear($user);
                 $user->forceFill(['chat_mode' => ChatMode::Manager]);
             }
 

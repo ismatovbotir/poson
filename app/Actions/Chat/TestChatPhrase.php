@@ -10,6 +10,7 @@ use App\Support\Chat\ChatContext;
 use App\Support\Chat\ChatReply;
 use App\Support\Chat\ChatText;
 use App\Support\Chat\Engine;
+use App\Support\Chat\LookupNumber;
 use App\Support\Chat\RuleIndex;
 use Illuminate\Support\Facades\Gate;
 
@@ -65,6 +66,12 @@ class TestChatPhrase
             'reply' => null,
             'fallback' => false,
         ];
+
+        $number = LookupNumber::parse($text);
+
+        if ($number !== null) {
+            return [...$result, 'would_run' => ($number['kind'] === LookupNumber::ORDER ? ChatAction::OrderStatus : ChatAction::RepairStatus)->label()];
+        }
 
         $data = $this->index->load();
 

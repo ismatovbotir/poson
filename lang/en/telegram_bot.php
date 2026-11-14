@@ -58,6 +58,7 @@ return [
         'catalog' => 'Catalog',
         'faq' => 'FAQ',
         'order_status' => 'Order status',
+        'repair_status' => 'Repair status',
         'language' => 'Language',
         'contact_manager_reply' => 'Write your question here and it will reach our team.',
         'catalog_reply' => 'Equipment catalog: :url',

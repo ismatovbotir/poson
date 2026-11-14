@@ -7,6 +7,8 @@ use App\Models\Page;
 use App\Models\Setting;
 use App\Support\Telegram\Bot\BotChecklist;
 use ArrayObject;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 /**
  * Admin-editable settings of the chat bot (plan 28 §5): rows of the settings
@@ -29,10 +31,12 @@ final class ChatSettings
 
     public const TEXT_MAX = 500;
 
+    private const CACHE_KEY = 'chatbot.settings.all';
+
     private const STATE = 'chatbot.settings.state';
 
     /**
-     * Memoized for the rest of the request or queued job (scoped container
+     * Cached for an hour (flushed on save) and memoized for the rest of the request or queued job (scoped container
      * instance); dropped when a chatbot setting row is saved.
      */
     public static function register(): void
@@ -43,6 +47,7 @@ final class ChatSettings
     public static function forget(): void
     {
         app(self::STATE)->exchangeArray([]);
+        Cache::forget(self::CACHE_KEY);
     }
 
     public static function key(string $name): string
@@ -69,19 +74,44 @@ final class ChatSettings
     {
         $state = app(self::STATE);
 
-        return $state['all'] ??= self::load();
+        if (isset($state['all'])) {
+            return $state['all'];
+        }
+
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached)) {
+            return $state['all'] = $cached;
+        }
+
+        $failed = false;
+        $loaded = self::load($failed);
+
+        // Defaults from a failed read are never cached: the next request tries the database again.
+        if (! $failed) {
+            Cache::put(self::CACHE_KEY, $loaded, 3600);
+        }
+
+        return $state['all'] = $loaded;
     }
 
     /**
      * @return array<string, mixed>
      */
-    private static function load(): array
+    private static function load(bool &$failed = false): array
     {
-        $rows = Setting::query()
-            ->where('group', SettingsArea::Chatbot->group())
-            ->where('key', 'like', 'chatbot.%')
-            ->pluck('value', 'key')
-            ->all();
+        // A broken row or a failing read never breaks a reply: every value falls back to its default.
+        try {
+            $rows = Setting::query()
+                ->where('group', SettingsArea::Chatbot->group())
+                ->where('key', 'like', 'chatbot.%')
+                ->pluck('value', 'key')
+                ->all();
+        } catch (Throwable $e) {
+            report($e);
+            $failed = true;
+            $rows = [];
+        }
 
         $get = fn (string $name, mixed $default = null): mixed => $rows[self::key($name)] ?? $default;
 
@@ -125,6 +155,15 @@ final class ChatSettings
             'widget_mobile' => $get('widget_mobile', true) !== false,
             'products_shown' => $shown !== false && $shown >= 3 && $shown <= 8 ? $shown : 5,
         ];
+    }
+
+    /**
+     * Hours without activity before a "manager" conversation may go back to
+     * the bot (CB-4, CB-31): the setting, clamped to 1-72, default 8.
+     */
+    public static function handoffTtlHours(): int
+    {
+        return max(1, min(72, (int) self::all()['handoff_ttl_hours']));
     }
 
     /**

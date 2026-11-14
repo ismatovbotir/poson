@@ -4,6 +4,7 @@ namespace App\Support\Chat;
 
 use App\Enums\ChatAction;
 use App\Enums\ChatChannel;
+use App\Enums\LeadFlow;
 use App\Support\Chat\Skills\CompanyInfoSkill;
 use App\Support\Chat\Skills\FaqSkill;
 use App\Support\Chat\Skills\LinkSkill;
@@ -26,7 +27,18 @@ use App\Support\Chat\Skills\MenuSkill;
  * then the lower id. A keyword with a locale
  * counts only for that locale; rules count only on their channels.
  * No match: model-like text (letters and digits, like "ZD421") gets the
- * product search reply, anything else the fallback with the menu.
+ * product search marker, anything else the fallback with the menu.
+ *
+ * Searches, status lookups and lead dialogs are not run here (C3, C4,
+ * CB-28): the engine cannot tell who asks, so it returns an outcome marker
+ * (ChatReply::SEARCH, ORDER_STATUS, REPAIR_STATUS, LEAD) and
+ * HandleChatInput runs it for the locked Telegram user. A whole message
+ * that is an order or repair number (LookupNumber) is routed to the lookup
+ * before any rule. On the website lookups are never offered (plan 28 §15):
+ * the reply asks for a manager.
+ *
+ * Settings (CB-31): respond() reads ChatSettings (one memoized query per
+ * request or job) for the fallback and greeting texts; match() reads nothing.
  */
 class Engine
 {
@@ -40,6 +52,12 @@ class Engine
 
     public function respond(ChatContext $context): ChatReply
     {
+        $number = LookupNumber::parse($context->text);
+
+        if ($number !== null) {
+            return $this->lookup($context, $number['kind'], null, $number['number']);
+        }
+
         $data = $this->index->load();
 
         if ($data === null) {
@@ -55,7 +73,7 @@ class Engine
 
         if (ChatText::looksLikeModel($normalized)) {
             return new ChatReply(
-                __('chatbot.search_soon', [], $context->locale),
+                __('chatbot.search.prompt', [], $context->locale),
                 [['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
                 null,
                 ChatReply::SEARCH,
@@ -63,7 +81,7 @@ class Engine
         }
 
         return new ChatReply(
-            __('chatbot.fallback', [], $context->locale),
+            ChatSettings::text('fallback', $context->locale) ?? __('chatbot.fallback', [], $context->locale),
             [...$this->menu->buttons($data, $context), ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
             null,
             $normalized === '' ? ChatReply::FALLBACK : ChatReply::UNMATCHED,
@@ -227,14 +245,58 @@ class Engine
             ChatAction::Link => $this->link->run($rule, $context),
             ChatAction::Menu => $this->menu->run($data, $context, $rule),
             ChatAction::Handoff => new ChatReply($answer !== '' ? $answer : __('chatbot.handoff', [], $locale), [], $rule['id'], ChatReply::HANDOFF),
-            // Later phases (C3 search and lookups, C4 lead dialogs): for now they ask for a manager.
-            ChatAction::ProductSearch, ChatAction::OrderStatus, ChatAction::RepairStatus, ChatAction::LeadDialog => new ChatReply(
-                $answer !== '' ? $answer : __('chatbot.coming_soon', [], $locale),
-                [$handoff],
-                $rule['id'],
-            ),
+            ChatAction::ProductSearch => new ChatReply($answer !== '' ? $answer : __('chatbot.search.prompt', [], $locale), [$handoff], $rule['id'], ChatReply::SEARCH),
+            ChatAction::OrderStatus => $this->lookup($context, LookupNumber::ORDER, $rule),
+            ChatAction::RepairStatus => $this->lookup($context, LookupNumber::REPAIR, $rule),
+            ChatAction::LeadDialog => $this->leadDialog($context, $rule, $answer, $handoff),
             null => new ChatReply(__('chatbot.coming_soon', [], $locale), [$handoff], $rule['id']),
         };
+    }
+
+    /**
+     * Order / repair status (CB-28): a marker for HandleChatInput on
+     * Telegram (with the typed number, if any); on the website only "ask a
+     * manager" and the hand-off button, nothing is looked up.
+     *
+     * @param  LookupNumber::ORDER|LookupNumber::REPAIR  $kind
+     * @param  array<string, mixed>|null  $rule  The status rule, or null for a typed number
+     */
+    private function lookup(ChatContext $context, string $kind, ?array $rule, ?string $number = null): ChatReply
+    {
+        $locale = $context->locale;
+        $handoff = ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $locale)];
+        $answer = $rule === null ? '' : trim((string) ($rule['answer'][$locale] ?? $rule['answer']['uz'] ?? ''));
+
+        if ($context->channel === ChatChannel::Web) {
+            return new ChatReply($answer !== '' ? $answer : __("chatbot.lookup.web.{$kind}", [], $locale), [$handoff], $rule['id'] ?? null);
+        }
+
+        return new ChatReply(
+            $answer !== '' ? $answer : __("chatbot.lookup.web.{$kind}", [], $locale),
+            [$handoff],
+            $rule['id'] ?? null,
+            $kind === LookupNumber::ORDER ? ChatReply::ORDER_STATUS : ChatReply::REPAIR_STATUS,
+            $number,
+        );
+    }
+
+    /**
+     * A lead dialog rule: on Telegram a marker with the flow (C4); on the
+     * website (C5) the rule's answer and the hand-off button, as before.
+     *
+     * @param  array<string, mixed>  $rule
+     * @param  array{type: string, label: string}  $handoff
+     */
+    private function leadDialog(ChatContext $context, array $rule, string $answer, array $handoff): ChatReply
+    {
+        $flow = is_string($rule['params']['flow'] ?? null) ? LeadFlow::tryFrom($rule['params']['flow']) : null;
+        $text = $answer !== '' ? $answer : __('chatbot.coming_soon', [], $context->locale);
+
+        if ($flow === null || $context->channel === ChatChannel::Web) {
+            return new ChatReply($text, [$handoff], $rule['id']);
+        }
+
+        return new ChatReply($text, [$handoff], $rule['id'], ChatReply::LEAD, $flow->value);
     }
 
     /**

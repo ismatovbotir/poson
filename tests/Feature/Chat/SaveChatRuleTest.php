@@ -266,6 +266,20 @@ it('installs the defaults once, create-only', function () {
         ->and(ChatRule::query()->where('key', 'delivery')->value('name'))->toBe('Edited by owner');
 });
 
+it('inserts only the missing default after launch and leaves edited rules untouched', function () {
+    app(InstallChatbotDefaults::class)->handle();
+
+    ChatRule::query()->where('key', 'repair_status')->delete();
+    ChatRule::query()->where('key', 'delivery')->update(['name' => 'Edited by owner', 'is_active' => false]);
+
+    $result = app(InstallChatbotDefaults::class)->handle();
+
+    expect($result['created'])->toBe(1)
+        ->and(ChatRule::query()->where('key', 'repair_status')->where('is_system', true)->exists())->toBeTrue()
+        ->and(ChatRule::query()->where('key', 'delivery')->value('name'))->toBe('Edited by owner')
+        ->and((bool) ChatRule::query()->where('key', 'delivery')->value('is_active'))->toBeFalse();
+});
+
 it('ships every default in uz, ru and en with brand-safe, plain, short texts', function () {
     $this->seed(ChatbotDefaultsSeeder::class);
 

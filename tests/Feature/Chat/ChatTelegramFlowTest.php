@@ -15,6 +15,7 @@ use App\Models\ChatRule;
 use App\Models\ChatUnmatched;
 use App\Models\FaqItem;
 use App\Models\Page;
+use App\Models\Repair;
 use App\Models\Setting;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
@@ -426,13 +427,13 @@ it('adds the FAQ and order status buttons to the menu only while the switch is o
         ->and(BotKeyboards::menuButton('Order status'))->toBe('order_status');
 });
 
-it('answers the order status button with ask a manager', function () {
+it('answers the order status button with a real lookup', function () {
     chatSetup();
     chatUser(['locale' => 'en']);
 
     chatText('Order status');
 
-    expect(collect(chatSent())->last()['data']['text'])->toContain('manager')
+    expect(collect(chatSent())->last()['data']['text'])->toBe(__('chatbot.lookup.order.none', [], 'en'))
         ->and(chatInbound())->toBe(0);
 });
 
@@ -647,4 +648,16 @@ it('ignores a button of an older generation that would collide under a one-digit
     chatText('savol');
 
     expect($user->fresh()->bot_dialog['gen'])->toBe(0);
+});
+
+it('runs the repair status lookup from the menu button on the default-installed rules', function () {
+    chatSetup();
+    $user = chatUser(['phone' => '+998901234567', 'locale' => 'en']);
+    Repair::factory()->forPhone('+998901234567')->create(['number' => 'R-2026-000123']);
+
+    expect(ChatRule::query()->where('key', 'repair_status')->value('is_system'))->toBeTrue();
+
+    app(HandleTelegramUpdate::class)->handle(telegramPrivateUpdate(chatNextId(), ['text' => __('telegram_bot.menu.repair_status', [], 'en')], CHAT_USER));
+
+    expect($user->fresh()->bot_dialog['buttons'] ?? null)->toBe([0 => ['t' => 'repair', 'id' => Repair::query()->value('id')]]);
 });

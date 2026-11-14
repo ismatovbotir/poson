@@ -58,6 +58,7 @@ return [
         'catalog' => 'Каталог',
         'faq' => 'Частые вопросы',
         'order_status' => 'Статус заказа',
+        'repair_status' => 'Статус ремонта',
         'language' => 'Язык',
         'contact_manager_reply' => 'Напишите свой вопрос здесь — он поступит нашей команде.',
         'catalog_reply' => 'Каталог оборудования: :url',

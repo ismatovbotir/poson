@@ -64,4 +64,73 @@ return [
         'too_many_buttons' => 'Qoidada koʻpi bilan :max ta tugma boʻlishi mumkin.',
         'system_rule_delete' => 'Ichki qoidani oʻchirib boʻlmaydi. Uni oʻchirib qoʻying (nofaol qiling).',
     ],
+
+    'after_hours' => 'Hozir aloqada emasmiz. Ish vaqtida javob beramiz.',
+
+    'search' => [
+        'prompt' => 'Nima izlayotganingizni yozing: model, artikul yoki nom.',
+        'found' => 'Topildi:',
+        'line' => ':n. :name — :price',
+        'none' => 'Hech narsa topilmadi. Boshqa soʻzlarni sinab koʻring yoki menejerdan soʻrang.',
+        'limited' => 'Qidiruvlar juda koʻp. Menejerdan soʻrang yoki katalogni oching.',
+        'unavailable' => 'Bu mahsulot endi mavjud emas. Menejerdan soʻrang.',
+        'brand' => 'Brend: :brand',
+        'price' => 'Narxi: :price',
+        'price_on_request' => 'narxi soʻrov boʻyicha',
+        'open' => 'Saytda ochish',
+        'quote' => 'Taklif soʻrash',
+    ],
+
+    'lookup' => [
+        'limited' => 'Tekshiruvlar juda koʻp. Menejerdan soʻrang.',
+        'unavailable' => 'Hozir tekshirish mavjud emas. Menejerdan soʻrang.',
+        'since' => 'Holat sanasi: :day',
+        'status' => 'Holati: :status',
+        'web' => [
+            'order' => 'Buyurtma holati telefon raqamingizni yuborganingizdan keyin Telegram botimizda koʻrinadi.',
+            'repair' => 'Taʼmir holati telefon raqamingizni yuborganingizdan keyin Telegram botimizda koʻrinadi.',
+        ],
+        'order' => [
+            'none' => 'Telefon raqamingiz boʻyicha buyurtma topilmadi.',
+            'not_found' => 'Telefon raqamingiz boʻyicha bunday buyurtma topilmadi. Raqamni tekshiring yoki menejerdan soʻrang.',
+            'recent' => 'Oxirgi buyurtmalaringiz. Birini tanlang:',
+            'title' => 'Buyurtma :number',
+            'payment' => 'Toʻlov: :status',
+        ],
+        'repair' => [
+            'none' => 'Telefon raqamingiz boʻyicha taʼmir topilmadi.',
+            'not_found' => 'Telefon raqamingiz boʻyicha bunday taʼmir topilmadi. Raqamni tekshiring yoki menejerdan soʻrang.',
+            'recent' => 'Oxirgi taʼmirlaringiz. Birini tanlang:',
+            'title' => 'Taʼmir :number',
+            'device' => 'Qurilma: :device',
+            'awaiting_approval' => 'Sizning kelishuvingizni kutmoqdamiz. Menejer siz bilan bogʻlanadi.',
+            'ready' => 'Qurilmangiz topshirishga tayyor.',
+        ],
+    ],
+
+    'dialog' => [
+        'buttons' => [
+            'cancel' => 'Bekor qilish',
+            'send' => 'Yuborish',
+            'skip' => 'Oʻtkazib yuborish',
+        ],
+        'callback' => ['details' => 'Qaysi masala boʻyicha qoʻngʻiroq qilaylik? Qisqacha yozing yoki oʻtkazib yuboring.'],
+        'quote' => [
+            'details' => 'Qanday uskuna kerak? Model va miqdorini yozing.',
+            'details_product' => ':product uchun miqdor va istaklaringizni yozing.',
+        ],
+        'service' => ['details' => 'Qurilma va muammoni tasvirlab bering.'],
+        'required' => 'Bu bosqichni oʻtkazib boʻlmaydi.',
+        'confirm' => 'Soʻrovingizni tekshiring:',
+        'summary' => [
+            'type' => 'Turi: :type',
+            'product' => 'Mahsulot: :product',
+            'details' => 'Tafsilotlar: :details',
+            'phone' => 'Telefon: :phone',
+        ],
+        'sent' => 'Rahmat! :number raqamli soʻrovingiz qabul qilindi. Menejer siz bilan bogʻlanadi.',
+        'expired' => 'Soʻrov vaqti tugadi. Qaytadan boshlang.',
+        'limited' => 'Soʻrovlar juda koʻp. Menejerga murojaat qiling.',
+        'refused' => 'Bu soʻrovni bu yerda qabul qila olmaymiz. Menejerga murojaat qiling.',
+    ],
 ];

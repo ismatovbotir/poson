@@ -44,12 +44,13 @@ final class BotKeyboards
 
     /**
      * Extra main menu buttons shown only while the chat bot is on for
-     * Telegram (plan 28): "FAQ" and "Order status". With the bot off they are
+     * Telegram (plan 28): "FAQ", "Order status" and "Repair status" (C3b). With the bot off they are
      * neither shown nor recognized, so a typed "FAQ" is an ordinary message.
      */
     public const CHAT_MENU_BUTTONS = [
         'faq' => 'telegram_bot.menu.faq',
         'order_status' => 'telegram_bot.menu.order_status',
+        'repair_status' => 'telegram_bot.menu.repair_status',
     ];
 
     /**
@@ -132,7 +133,7 @@ final class BotKeyboards
     }
 
     /**
-     * Main menu rows; the chat bot adds a "FAQ / Order status" row while it is on.
+     * Main menu rows; the chat bot adds "FAQ" and "Order status / Repair status" rows while it is on.
      *
      * @return list<list<array{text: string}>>
      */
@@ -141,7 +142,8 @@ final class BotKeyboards
         $rows = [[['text' => __(self::MENU_BUTTONS['contact_manager'], [], $locale)]]];
 
         if (ChatbotSwitch::isEnabled()) {
-            $rows[] = [['text' => __(self::CHAT_MENU_BUTTONS['faq'], [], $locale)], ['text' => __(self::CHAT_MENU_BUTTONS['order_status'], [], $locale)]];
+            $rows[] = [['text' => __(self::CHAT_MENU_BUTTONS['faq'], [], $locale)]];
+            $rows[] = [['text' => __(self::CHAT_MENU_BUTTONS['order_status'], [], $locale)], ['text' => __(self::CHAT_MENU_BUTTONS['repair_status'], [], $locale)]];
         }
 
         $rows[] = [['text' => __(self::MENU_BUTTONS['catalog'], [], $locale)], ['text' => __(self::MENU_BUTTONS['language'], [], $locale)]];
