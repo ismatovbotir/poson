@@ -522,6 +522,22 @@ return [
         'confirm' => 'Confirmation',
     ],
 
+    'chat_ai_role' => [
+        'user' => 'Customer',
+        'assistant' => 'AI assistant',
+    ],
+
+    'chat_ai_status' => [
+        'answered' => 'Answered',
+        'truncated' => 'Answered (shortened)',
+        'failed' => 'Failed',
+        'refused' => 'Refused',
+        'blocked' => 'Blocked by the filter',
+        'capped' => 'Limited',
+        'superseded' => 'Not sent',
+        'disabled' => 'Not used: AI was switched off',
+    ],
+
     'chat_metric' => [
         'hit' => 'Answered',
         'unmatched' => 'Not understood',
@@ -530,6 +546,7 @@ return [
         'lookup_ok' => 'Status found',
         'lookup_fail' => 'Status not found',
         'search_empty' => 'Empty search',
+        'ai' => 'AI answers',
     ],
 
     'repair_status' => [

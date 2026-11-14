@@ -55,6 +55,63 @@
             </div>
         </x-admin.card>
 
+        {{-- AI answers (plan 30): Admin enables and edits, Content manager may only switch off (AI-24, P2) --}}
+        <x-admin.card :title="__($t.'.ai')" :description="__($t.'.ai_help')" data-ai-settings>
+            <div class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
+                    <span class="font-semibold">{{ __($t.'.ai_key') }}</span>
+                    <x-admin.badge :color="$aiKeyConfigured ? 'brand' : 'amber'" pill dot data-ai-key="{{ $aiKeyConfigured ? 'configured' : 'missing' }}">{{ $aiKeyConfigured ? __($t.'.ai_key_configured') : __($t.'.ai_key_missing_badge') }}</x-admin.badge>
+                </div>
+                @unless ($aiKeyConfigured)
+                    <p class="text-xs text-slate-500" data-ai-key-help>{{ __($t.'.ai_key_help') }}</p>
+                @endunless
+
+                <p class="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="note" data-ai-privacy>
+                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.ai_privacy_note') }}
+                </p>
+
+                @if ($isAdmin || $form->ai_telegram_enabled)
+                    <x-admin.toggle wire:model="form.ai_telegram_enabled" :label="__($t.'.ai_telegram_enabled')" :description="$isAdmin ? __($t.'.ai_telegram_enabled_hint') : __($t.'.ai_disable_only')" />
+                @else
+                    <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5 text-sm" data-ai-readonly>
+                        <span class="font-semibold">{{ __($t.'.ai_telegram_enabled') }}</span>
+                        <x-admin.badge color="muted" pill dot>{{ __($t.'.off') }}</x-admin.badge>
+                    </div>
+                @endif
+                @if ($webReady && ($isAdmin || $form->ai_web_enabled))
+                    <x-admin.toggle wire:model="form.ai_web_enabled" :label="__($t.'.ai_web_enabled')" />
+                @else
+                    <p class="text-sm text-slate-500" data-ai-web-not-ready>{{ __($t.'.ai_web_not_ready') }}</p>
+                @endif
+
+                @if ($isAdmin)
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <x-admin.input wire:model="form.ai_daily_requests" type="number" min="0" max="{{ config('chatbot.ai.caps.requests_max') }}" :label="__($t.'.ai_daily_requests')" :hint="__($t.'.ai_daily_requests_hint')" />
+                        <x-admin.input wire:model="form.ai_daily_tokens" type="number" min="0" max="{{ config('chatbot.ai.caps.tokens_max') }}" :label="__($t.'.ai_daily_tokens')" :hint="__($t.'.ai_daily_tokens_hint')" />
+                    </div>
+                    <x-admin.textarea wire:model="form.ai_instructions" :label="__($t.'.ai_instructions')" rows="5" maxlength="{{ config('chatbot.ai.instructions_max') }}" :hint="__($t.'.ai_instructions_hint', ['max' => config('chatbot.ai.instructions_max')])" />
+                @else
+                    <dl class="grid gap-2 text-sm sm:grid-cols-2" data-ai-caps-readonly>
+                        <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_daily_requests') }}</dt><dd class="font-semibold tabular-nums">{{ number_format($form->ai_daily_requests, 0, '.', ' ') }}</dd></div>
+                        <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_daily_tokens') }}</dt><dd class="font-semibold tabular-nums">{{ number_format($form->ai_daily_tokens, 0, '.', ' ') }}</dd></div>
+                    </dl>
+                    <div class="text-sm">
+                        <p class="font-semibold">{{ __($t.'.ai_instructions') }}</p>
+                        <p class="mt-1 whitespace-pre-line rounded-lg bg-slate-50 px-3 py-2.5 text-slate-700" data-ai-instructions-readonly>{{ $form->ai_instructions !== '' ? $form->ai_instructions : '—' }}</p>
+                    </div>
+                    <p class="text-xs text-slate-500">{{ __($t.'.ai_admin_only') }}</p>
+                @endif
+
+                <dl class="grid gap-2 text-sm sm:grid-cols-2" data-ai-limits>
+                    <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_model') }}</dt><dd class="font-semibold"><code>{{ $aiLimits['model'] }}</code></dd></div>
+                    <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_direct_min_score') }}</dt><dd class="font-semibold tabular-nums">{{ $aiLimits['direct_min_score'] }}</dd></div>
+                    <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_limit_user') }}</dt><dd class="font-semibold tabular-nums">{{ __($t.'.ai_limit_user_value', ['minute' => $aiLimits['per_minute_user'], 'day' => $aiLimits['per_day_user'], 'anonymous' => $aiLimits['per_day_anonymous']]) }}</dd></div>
+                    <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_limit_global') }}</dt><dd class="font-semibold tabular-nums">{{ __($t.'.ai_limit_global_value', ['minute' => $aiLimits['per_minute_global']]) }}</dd></div>
+                    <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.ai_max_tokens') }}</dt><dd class="font-semibold tabular-nums">{{ $aiLimits['max_tokens'] }}</dd></div>
+                </dl>
+            </div>
+        </x-admin.card>
+
         <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note" data-live-note>
             <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.live_note') }}
         </p>

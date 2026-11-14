@@ -16,7 +16,7 @@ return [
     'sections' => [
         'how' => [
             'title' => 'Bot qanday ishlaydi',
-            'intro' => 'Bot sunʼiy intellekt emas. U siz yozgan qoidalar boʻyicha javob beradi: kalit soʻz tayyor javobga, tugmaga yoki harakatga olib boradi.',
+            'intro' => 'Bot siz yozgan qoidalar boʻyicha javob beradi: kalit soʻz tayyor javobga, tugmaga yoki harakatga olib boradi. Administrator qoidalar qamramagan savollar uchun SI javoblarini ham yoqishi mumkin.',
             'steps' => [
                 'Mijoz xabar yozadi. Bot uni tozalab, qoidalaringizdagi kalit soʻzlarni qidiradi.',
                 'Topilgan har bir kalit soʻz oʻz ogʻirligini ballga qoʻshadi. Eng yuqori ballli qoida, agar eng kam balldan kam boʻlmasa, gʻalaba qozonadi.',
@@ -24,7 +24,7 @@ return [
                 'Ikki rejim bor: bot rejimida bot javob beradi; menejer rejimida mijoz xabarlari xodimlar qutisiga tushadi. Xodim javob yozsa, suhbat menejer rejimiga oʻtadi. Botga menyu yoki /start orqali, yoki 8 soat jimlikdan keyin qaytadi (mijoz javob kutayotgan boʻlsa, qaytmaydi).',
                 'Telegram va sayt farq qiladi: Telegramda bot faqat roʻyxatdan oʻtgan mijozlarga javob beradi; buyurtma va taʼmir holati faqat Telegramda tekshiriladi, saytda hech qachon.',
             ],
-            'note' => 'Bot oʻzidan javob toqmaydi: u faqat siz yozganni aytadi.',
+            'note' => 'SIsiz bot oʻzidan javob toqmaydi: u faqat siz yozganni aytadi.',
         ],
         'teaching' => [
             'title' => 'Botni oʻrgatish: qoidalar va kalit soʻzlar',
@@ -91,6 +91,17 @@ return [
                 'Pastdagi cheklovlar faqat koʻrish uchun.',
             ],
             'note' => 'Har bir oʻzgarish sozlamalar tarixiga yoziladi (kim, qachon, qaysi sozlama; matn hech qachon).',
+        ],
+        'ai' => [
+            'title' => 'SI javoblari',
+            'steps' => [
+                'SI javoblari odatda oʻchiq. Serverda API kaliti kiritilib, maxfiylik sahifasi tayyor boʻlgach, administrator ularni Chat-bot → Sozlamalar boʻlimida yoqadi.',
+                'Aniq yoki kuchli moslikdagi qoidalar, menejerga ulash, buyurtma va taʼmir holati hamda arizalar har doim SIsiz javob beradi. SI kuchsiz moslik va qoidasiz savollarga javob beradi.',
+                'Har bir SI javobida “SI yordamchi” belgisi va “Menejer bilan bogʻlanish” tugmasi boʻladi. Narx, begona havola yoki kontaktli javoblar toʻxtatiladi va oʻrniga qoida boʻyicha javob yuboriladi.',
+                'Xabar SIga yuborilishidan oldin telefon, pochta, karta va buyurtma raqamlari yashiriladi.',
+                'Statistikada kunlik SI soʻrovlari, tokenlar va taxminiy xarajat koʻrinadi. Kontent-menejer SI javoblarini istalgan vaqtda oʻchira oladi.',
+                'Uzun raqamli javoblar (6 va undan ortiq raqam: artikullar, SKU, “EAN” soʻzisiz shtrix-kodlar) ham hozircha toʻxtatiladi va qoida boʻyicha javob yuboriladi; statistikada ular toʻxtatilgan deb hisoblanadi. Bu keyinroq mahsulot qidiruvi bilan birga sozlanadi.',
+            ],
         ],
         'inbox' => [
             'title' => 'Xodimlar uchun chatlar qutisi',

@@ -122,7 +122,9 @@ describe('saving', function () {
             ->and($audit->action)->toBe(AuditAction::Updated)
             ->and($audit->ip)->toBe('127.0.0.1')
             ->and(json_encode($audit->getAttributes()))->not->toContain('sales-desk')
-            ->and(Schema::getColumnListing('settings_audits'))->toBe(['id', 'user_id', 'area', 'key', 'action', 'ip', 'created_at']);
+            ->and(Schema::getColumnListing('settings_audits'))->toBe(['id', 'user_id', 'area', 'key', 'action', 'ip', 'created_at', 'old_text', 'new_text'])
+            ->and($audit->old_text)->toBeNull()
+            ->and($audit->new_text)->toBeNull();
     });
 
     it('writes nothing when nothing changed', function () {

@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms\Admin\Chatbot;
 
 use App\Enums\ChatChannel;
+use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use Livewire\Attributes\Locked;
@@ -11,10 +12,15 @@ use Livewire\Form;
 /**
  * State of Chat bot → Settings (plan 28 C2). SaveChatbotSettings validates
  * and writes; the channel switches are kept out of data() unless the caller
- * is an Admin (the action refuses them for anyone else anyway).
+ * is an Admin (the action refuses them for anyone else anyway). The AI
+ * fields (plan 30) are sent only when they differ from the loaded state; the
+ * action decides who may change them (AI-24, P2). The API key is never a
+ * property here (AI-1).
  */
 class SettingsForm extends Form
 {
+    public const AI_FIELDS = ['ai_telegram_enabled', 'ai_web_enabled', 'ai_daily_requests', 'ai_daily_tokens', 'ai_instructions'];
+
     public bool $web_enabled = false;
 
     public bool $telegram_enabled = false;
@@ -28,6 +34,24 @@ class SettingsForm extends Form
      */
     #[Locked]
     public array $loaded = ['web_enabled' => false, 'telegram_enabled' => false];
+
+    public bool $ai_telegram_enabled = false;
+
+    public bool $ai_web_enabled = false;
+
+    public int $ai_daily_requests = 0;
+
+    public int $ai_daily_tokens = 0;
+
+    public string $ai_instructions = '';
+
+    /**
+     * The AI values shown when the form was loaded (only changed ones are sent).
+     *
+     * @var array<string, bool|int|string>
+     */
+    #[Locked]
+    public array $aiLoaded = [];
 
     /** @var array<string, array<string, string>> */
     public array $texts = [];
@@ -66,6 +90,17 @@ class SettingsForm extends Form
         $this->widget_pages = $settings['widget_pages'];
         $this->widget_mobile = $settings['widget_mobile'];
         $this->products_shown = $settings['products_shown'];
+
+        $this->ai_telegram_enabled = AiSwitch::isStored(ChatChannel::Telegram);
+        $this->ai_web_enabled = AiSwitch::isStored(ChatChannel::Web);
+        $this->ai_daily_requests = $settings['ai']['daily_requests'];
+        $this->ai_daily_tokens = $settings['ai']['daily_tokens'];
+        $this->ai_instructions = $settings['ai']['instructions'];
+        $this->aiLoaded = [];
+
+        foreach (self::AI_FIELDS as $field) {
+            $this->aiLoaded[$field] = $this->{$field};
+        }
     }
 
     /**
@@ -88,6 +123,11 @@ class SettingsForm extends Form
             'widget_pages' => ['required', 'in:'.implode(',', ChatSettings::PAGES)],
             'widget_mobile' => ['boolean'],
             'products_shown' => ['required', 'integer', 'min:3', 'max:8'],
+            'ai_telegram_enabled' => ['boolean'],
+            'ai_web_enabled' => ['boolean'],
+            'ai_daily_requests' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.requests_max')],
+            'ai_daily_tokens' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.tokens_max')],
+            'ai_instructions' => ['nullable', 'string', 'max:'.(int) config('chatbot.ai.instructions_max', 2000)],
         ];
     }
 
@@ -100,7 +140,13 @@ class SettingsForm extends Form
     public function data(bool $withSwitches): array
     {
         $data = $this->all();
-        unset($data['loaded']);
+        unset($data['loaded'], $data['aiLoaded']);
+
+        foreach (self::AI_FIELDS as $field) {
+            if (array_key_exists($field, $this->aiLoaded) && $data[$field] === $this->aiLoaded[$field]) {
+                unset($data[$field]);
+            }
+        }
 
         foreach (['web_enabled', 'telegram_enabled'] as $field) {
             if (! $withSwitches || $data[$field] === ($this->loaded[$field] ?? false)) {

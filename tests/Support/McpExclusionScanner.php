@@ -18,7 +18,7 @@ final class McpExclusionScanner
         'app/Support/Orders/OrderMetrics.php',
     ];
 
-    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched'];
+    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched', 'ChatAiTurn', 'ChatAiUsageDaily'];
 
     /**
      * Exact phrases that are not CRM data, per file (repo-relative path => phrases).
@@ -61,7 +61,7 @@ final class McpExclusionScanner
      */
     public static function tableNeedle(): string
     {
-        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched';
+        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched|chat_ai_turns|chat_ai_usage_daily';
 
         return '/(?:table|from|join|joinSub)\(\s*[\'"](?:'.$tables.')[\'"]|[\'"](?:'.$tables.')\.[a-z][a-z_]*[\'"]/';
     }

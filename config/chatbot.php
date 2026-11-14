@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| Rule-based chat bot (plan 28, no AI)
+| Rule-based chat bot (plan 28) with optional AI answers (plan 30)
 |--------------------------------------------------------------------------
 |
 | Limits and thresholds. Texts, channel switches and working hours are
@@ -79,6 +79,63 @@ return [
         'dialog_minutes' => 30,
         'answer_max' => 500,
         'dialog_max_bytes' => 2048,
+    ],
+
+    // AI answers (plan 30, Claude Haiku via App\Services\Ai only). Off unless an Admin switches it
+    // on in Chat bot → Settings and ANTHROPIC_API_KEY is set. Model and limits are fixed here (read only in admin).
+    'ai' => [
+        'model' => 'claude-haiku-5-5',
+        'max_tokens' => 400,
+        // Seconds: whole request / connection (AI-5). The SDK never retries (maxRetries 0).
+        'timeout' => 12,
+        'connect_timeout' => 3,
+        // A rule hit with at least this score (or an exact keyword) answers directly, without AI (§2.2).
+        'direct_min_score' => 30,
+        // History window (phase B): last turns, minutes, characters.
+        'history' => [
+            'turns' => 10,
+            'minutes' => 30,
+            'chars' => 4000,
+        ],
+        // Rate limits, hit in the webhook before the turn is stored (AI-19, P3).
+        'limits' => [
+            'per_minute_user' => 6,
+            'per_day_user' => 40,
+            // Customers with an anonymous +888 number or no phone.
+            'per_day_anonymous' => 10,
+            'per_minute_global' => 60,
+            // AI jobs waiting in the queue at once (AI-17): over it the rule reply is used.
+            'pending_jobs' => 30,
+        ],
+        // Daily caps (Asia/Tashkent day, enforced in the database, AI-18). Admins can change them in settings.
+        'caps' => [
+            'requests' => 1500,
+            'tokens' => 3000000,
+            'requests_max' => 20000,
+            'tokens_max' => 50000000,
+        ],
+        // USD per million tokens, for the estimate in Stats (cache read billed at 0.1x input).
+        'prices' => [
+            'input' => 0.10,
+            'output' => 0.50,
+            'cache_read' => 0.01,
+            'cache_write' => 0.125,
+        ],
+        // Text caps: the customer message sent and stored, the answer, the admin instructions.
+        'message_max' => 1000,
+        'answer_max' => 1000,
+        'instructions_max' => 2000,
+        // Static knowledge block (characters, about 6k tokens) and its cache lifetime.
+        'knowledge_max' => 24000,
+        'knowledge_ttl' => 3600,
+        // Words ignored by product retrieval (phase B).
+        'stopwords' => [
+            'uz' => ['va', 'bilan', 'uchun', 'bormi', 'kerak', 'qancha', 'narxi', 'narx', 'qanday', 'menga', 'sizda', 'bor'],
+            'ru' => ['и', 'в', 'на', 'для', 'с', 'есть', 'нужен', 'нужна', 'сколько', 'стоит', 'цена', 'какой', 'мне', 'у', 'вас'],
+            'en' => ['the', 'and', 'for', 'with', 'have', 'need', 'how', 'much', 'price', 'what', 'you', 'is', 'a', 'an'],
+        ],
+        // Days AI turns are kept (chat:prune-ai, phase B).
+        'retention_days' => 30,
     ],
 
 ];

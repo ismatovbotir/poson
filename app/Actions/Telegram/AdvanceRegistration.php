@@ -337,6 +337,9 @@ class AdvanceRegistration
             $user->forceFill(['chat_mode' => ChatMode::Bot]);
         }
 
+        // /start begins a new AI conversation context (plan 30 §7).
+        HandleChatInput::resetAiContext($user);
+
         $this->reply($user, ['menu.main'], BotKeyboards::MENU);
     }
 

@@ -135,6 +135,7 @@ return [
             'task_failed' => 'Scheduled task failed',
             'queue_stuck' => 'Queue is stuck',
             'worker_silent' => 'Queue worker is silent',
+            'ai_auth_failed' => 'AI answers paused: the Anthropic API key was rejected',
             'foreign_phone_cap' => 'Hourly limit of foreign phone numbers on the site reached',
             'telegram_webhook' => 'Telegram bot webhook problem',
             'telegram_token' => 'Telegram refuses the bot token (401)',

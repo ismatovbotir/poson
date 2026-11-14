@@ -7,6 +7,7 @@ use App\Enums\ChatChannel;
 use App\Enums\Role;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Forms\Admin\Chatbot\SettingsForm;
+use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -20,6 +21,12 @@ use Livewire\Component;
  * The two channel switches are Admin only and refused unless the privacy gate
  * passes; a Content manager sees their state read-only. Everything is saved
  * by SaveChatbotSettings (which audits to SettingsArea::Chatbot).
+ *
+ * AI answers (plan 30, AI-1, AI-24, P2): the API key status is a bool
+ * computed on the server in render(), never a property and never the value.
+ * Only an Admin switches AI on, changes the daily caps and edits the
+ * instructions; a Content manager sees them read-only and may only switch AI
+ * off. The action enforces the same rules.
  */
 #[Layout('layouts::admin')]
 class Settings extends Component
@@ -77,6 +84,16 @@ class Settings extends Component
             ],
             'webReady' => (bool) config('chatbot.web_ready'),
             'days' => ChatSettings::DAYS,
+            'aiKeyConfigured' => AiSwitch::keyConfigured(),
+            'aiLimits' => [
+                'model' => (string) config('chatbot.ai.model'),
+                'max_tokens' => (int) config('chatbot.ai.max_tokens'),
+                'direct_min_score' => (int) config('chatbot.ai.direct_min_score'),
+                'per_minute_user' => (int) config('chatbot.ai.limits.per_minute_user'),
+                'per_day_user' => (int) config('chatbot.ai.limits.per_day_user'),
+                'per_day_anonymous' => (int) config('chatbot.ai.limits.per_day_anonymous'),
+                'per_minute_global' => (int) config('chatbot.ai.limits.per_minute_global'),
+            ],
         ])->title(__('chatbot_admin.settings.title'));
     }
 }

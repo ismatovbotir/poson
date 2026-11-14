@@ -591,7 +591,10 @@ it('audits chat bot settings with key and action only, never the text or the swi
     expect($audits->pluck('key')->all())->toContain('chatbot.text.greeting', ChatbotSwitch::TELEGRAM_KEY);
 
     foreach ($audits as $audit) {
-        expect(array_keys($audit->getAttributes()))->toEqualCanonicalizing(['id', 'user_id', 'area', 'key', 'action', 'ip', 'created_at'])
+        // Plan 30 AI-10 added old_text / new_text for the AI instructions only: null for every other key.
+        expect(array_keys($audit->getAttributes()))->toEqualCanonicalizing(['id', 'user_id', 'area', 'key', 'action', 'ip', 'old_text', 'new_text', 'created_at'])
+            ->and($audit->old_text)->toBeNull()
+            ->and($audit->new_text)->toBeNull()
             ->and(json_encode($audit->getAttributes()))->not->toContain('Maxfiy');
     }
 

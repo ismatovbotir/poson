@@ -65,17 +65,24 @@ it('schedules and registers no AI commands', function () {
 });
 
 it('has no AI assistant classes or config left', function () {
-    foreach (['Ai', 'Actions/Ai', 'Services/Ai', 'Support/Ai', 'Livewire/Admin/Ai', 'Livewire/Admin/Settings/AiPrompts'] as $directory) {
+    // Plan 30 (owner decision 2026-11-14): App\Services\Ai is the chat bot's model adapter, the only AI in the app.
+    foreach (['Ai', 'Actions/Ai', 'Support/Ai', 'Livewire/Admin/Ai', 'Livewire/Admin/Settings/AiPrompts'] as $directory) {
         expect(is_dir(app_path($directory)))->toBeFalse();
     }
 
     // The two lookaheads let the Plan 29 files through (WithAiFill trait, AiPromptBuilder):
-    // they only build prompt text and parse a pasted answer; no AI runs in the app.
+    // they only build prompt text and parse a pasted answer. Plan 30's chat bot files
+    // (App\Services\Ai, App\Support\Chat\AiPrompt) are the only other exceptions.
     $leftovers = collect(File::allFiles(app_path()))
+        ->reject(fn (SplFileInfo $file): bool => in_array($file->getPathname(), [
+            ...array_map(fn (string $name): string => app_path('Services/Ai/'.$name.'.php'), ['ChatModel', 'AiRequest', 'AiResult', 'AiFailed', 'AiUnavailable', 'AnthropicChatModel']),
+            app_path('Support/Chat/AiPrompt.php'),
+        ], true))
         ->map(fn (SplFileInfo $file): string => $file->getFilename())
         ->filter(fn (string $name): bool => preg_match('/^(WithAi(?!Fill\.php)|AiAssist|AiRequest|AiPrompt(?!Builder\.php)|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
 
     expect($leftovers->all())->toBe([])
+        ->and(array_map(basename(...), glob(app_path('Services/Ai/*'))))->toEqualCanonicalizing(['AiFailed.php', 'AiRequest.php', 'AiResult.php', 'AiUnavailable.php', 'AnthropicChatModel.php', 'ChatModel.php'])
         ->and(array_map(basename(...), glob(config_path('ai*.php'))))->toBe(['ai-bots.php'])
         ->and(config()->has('ai'))->toBeFalse()
         ->and(class_exists('App\Models\AiRequest'))->toBeFalse();

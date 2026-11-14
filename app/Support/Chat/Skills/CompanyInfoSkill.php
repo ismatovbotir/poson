@@ -49,6 +49,39 @@ final class CompanyInfoSkill
     }
 
     /**
+     * Every public company fact (address, hours, phone, email) as lines, for
+     * the AI knowledge block (plan 30 §5, CB-7): the same values this skill
+     * answers with, never a placeholder.
+     *
+     * @return list<string>
+     */
+    public function facts(string $locale): array
+    {
+        return [...$this->address($locale), ...$this->hours($locale), ...$this->contacts($locale)];
+    }
+
+    /**
+     * The company phone numbers and email that are public (the AI output
+     * filter allows exactly these, AI-11).
+     *
+     * @return array{phones: list<string>, emails: list<string>}
+     */
+    public function publicContacts(): array
+    {
+        $phones = [];
+
+        if ($this->isEntered('phones')) {
+            foreach ($this->company->phones() as $phone) {
+                $phones[] = $phone['number'];
+            }
+        }
+
+        $email = $this->isEntered('email') ? $this->company->email() : '';
+
+        return ['phones' => $phones, 'emails' => $email === '' ? [] : [$email]];
+    }
+
+    /**
      * @return list<string>
      */
     private function address(string $locale): array

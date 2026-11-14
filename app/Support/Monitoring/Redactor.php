@@ -14,9 +14,9 @@ use Throwable;
  *  1. control characters stripped;
  *  2. optionally cut at "Stack trace:" / "#0 ";
  *  3. literal values of every Secrets registry secret (and APP_KEY, the DB
- *     password) replaced first, so a leaked key is removed whatever it
+ *     password, the Anthropic key) replaced first, so a leaked key is removed whatever it
  *     looks like;
- *  4. bot token, text after "(Connection:" / "SQL:" (SQLSTATE stays),
+ *  4. Anthropic keys (sk-ant-...), bot token, text after "(Connection:" / "SQL:" (SQLSTATE stays),
  *     base_path() → "~", Auth headers, Bearer/Basic, key=value secrets,
  *     query strings, emails, phone numbers (any country), long hex/base64 runs, 7+ digit
  *     runs;
@@ -44,6 +44,7 @@ final class Redactor
             $text = str_replace($literal, self::MASK, $text);
         }
 
+        $text = (string) preg_replace('/sk-ant-[A-Za-z0-9_-]*/i', '[token]', $text);
         $text = (string) preg_replace('/\d{5,15}:[A-Za-z0-9_-]{30,}/', '[token]', $text);
         $text = self::before($text, ['(Connection:', 'SQL:'], '(…)');
         $text = str_replace(base_path(), '~', $text);
@@ -111,6 +112,8 @@ final class Redactor
             config('mail.mailers.smtp.password'),
             config('database.redis.default.password'),
             config('database.redis.cache.password'),
+            // Plan 30 (AI-3): the Anthropic key lives in .env only, not in the Secrets registry.
+            config('services.anthropic.key'),
             ...(array) config('app.previous_keys', []),
         ];
 

@@ -85,6 +85,28 @@ final class FaqSkill
         return $question === '' || $answer === '' ? null : ['question' => $question, 'answer' => $answer];
     }
 
+    /**
+     * The active general FAQ (always a public owner, CB-7) as question/answer
+     * pairs in a locale, brand-safe only, for the AI knowledge block.
+     *
+     * @return list<array{question: string, answer: string}>
+     */
+    public function generalItems(string $locale, int $limit): array
+    {
+        $items = [];
+
+        foreach (FaqItem::query()->active()->ownedBy(null)->ordered()->limit($limit)->get() as $item) {
+            $question = $this->localized($item, 'question', $locale);
+            $answer = $this->answerOf($item, $locale);
+
+            if ($question !== '' && $answer !== '' && ! BrandSafeText::violates($question)) {
+                $items[] = ['question' => $question, 'answer' => $answer];
+            }
+        }
+
+        return $items;
+    }
+
     private function isPublicOwner(FaqItem $item): bool
     {
         if ($item->isGeneral()) {

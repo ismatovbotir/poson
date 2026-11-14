@@ -13,7 +13,7 @@ namespace App\Support\Chat;
  *     (NBSP, thin space ...) becomes a space, every dash (en dash, minus ...)
  *     becomes "-", every Unicode digit (Arabic-Indic, fullwidth ...) becomes
  *     an ASCII digit;
- *  3. secrets (as in Monitoring\Redactor): bot tokens, "Bearer ..." and
+ *  3. secrets (as in Monitoring\Redactor): Anthropic keys (sk-ant-...), bot tokens, "Bearer ..." and
  *     "key=..." values, hex or alphanumeric runs of 24+ characters;
  *  4. emails (anything around an "@");
  *  5. links: scheme or "www." or "t.me/", and bare domains of common
@@ -43,6 +43,7 @@ final class ChatRedactor
         $text = (string) preg_replace('/\p{Pd}|\x{2212}/u', '-', $text);
         $text = self::asciiDigits($text);
 
+        $text = (string) preg_replace('/sk-ant-[A-Za-z0-9_-]*/i', self::MASK, $text);
         $text = (string) preg_replace('/\d{5,15}:[A-Za-z0-9_-]{30,}/', self::MASK, $text);
         $text = (string) preg_replace('/\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+\/=-]+/i', self::MASK, $text);
         // A secret word followed by a value, with or without ":", "=" or "-": "parol: x", "password x".

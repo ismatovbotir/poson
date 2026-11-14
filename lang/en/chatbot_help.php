@@ -16,7 +16,7 @@ return [
     'sections' => [
         'how' => [
             'title' => 'How the bot works',
-            'intro' => 'The bot is not AI. It answers by the rules you write: a keyword leads to a ready answer, a button or an action.',
+            'intro' => 'The bot answers by the rules you write: a keyword leads to a ready answer, a button or an action. An Admin can also switch on AI answers for questions the rules do not cover.',
             'steps' => [
                 'A customer writes a message. The bot cleans it up and looks for the keywords of your rules.',
                 'Each matched keyword adds its weight to the score. The rule with the highest score wins if it reaches the minimum score.',
@@ -24,7 +24,7 @@ return [
                 'There are two modes: in bot mode the bot answers; in manager mode the customer’s messages go to the staff inbox. A staff reply switches the chat to manager mode. It goes back to the bot from the menu or /start, or after 8 hours of silence (never while a customer is waiting for an answer).',
                 'Telegram and the website differ: in Telegram the bot answers registered customers only; order and repair status are checked in Telegram only, never on the website.',
             ],
-            'note' => 'The bot never makes answers up: it only says what you wrote.',
+            'note' => 'Without AI the bot never makes answers up: it only says what you wrote.',
         ],
         'teaching' => [
             'title' => 'Teaching the bot: rules and keywords',
@@ -91,6 +91,17 @@ return [
                 'The limits at the bottom are read only.',
             ],
             'note' => 'Every change is written to the settings history (who, when, which setting; never the text).',
+        ],
+        'ai' => [
+            'title' => 'AI answers',
+            'steps' => [
+                'AI answers are off by default. An Admin switches them on in Chat bot → Settings once the API key is set on the server and the privacy page is ready.',
+                'Rules with an exact or strong match, hand-offs, order and repair status and requests always answer without AI. AI answers weak matches and questions without a rule.',
+                'Every AI answer is marked “AI assistant” and has a “Talk to a manager” button. Answers with prices, foreign links or contacts are stopped and the rule reply is sent instead.',
+                'Phones, emails, card and order numbers are hidden before a message is sent to the AI.',
+                'Stats show AI requests, tokens and the estimated cost per day. A Content manager can switch AI answers off at any time.',
+                'Answers with long numbers (6 or more digits: part numbers, SKUs, barcodes without the word “EAN”) are also stopped for now and the rule reply is sent; Stats count them as blocked. This is tuned later together with product search.',
+            ],
         ],
         'inbox' => [
             'title' => 'Chats inbox for staff',

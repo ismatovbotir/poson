@@ -3,15 +3,20 @@
 namespace App\Actions\Chat;
 
 use App\Actions\Telegram\StoreInboundMessage;
+use App\Enums\ChatAiRole;
 use App\Enums\ChatChannel;
 use App\Enums\ChatMetric;
 use App\Enums\ChatMode;
 use App\Enums\LeadFlow;
 use App\Jobs\AnswerBotCallback;
+use App\Jobs\AnswerChatWithAi;
 use App\Jobs\SendBotAnswer;
+use App\Models\ChatAiTurn;
 use App\Models\TelegramUser;
 use App\Support\Chat\Adapters\TelegramAdapter;
+use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatContext;
+use App\Support\Chat\ChatRedactor;
 use App\Support\Chat\ChatReply;
 use App\Support\Chat\ChatSettings;
 use App\Support\Chat\Engine;
@@ -49,9 +54,32 @@ use App\Support\Telegram\Bot\UpdateParser;
  * Bot-mode text is not stored; only counters and, when nothing matched, the
  * redacted phrase (RecordUnmatched). The answer goes out in SendBotAnswer
  * (queued after commit).
+ *
+ * AI answers (plan 30, P3, P5, P6): with AI on, the engine may return the
+ * ChatReply::AI marker. GuardAiRequest then decides, still in the webhook
+ * transaction: allowed → the redacted message is stored as a user turn
+ * (chat_ai_turns), its id is kept in bot_dialog["ai"] and AnswerChatWithAi
+ * is queued after commit (no API call here); over a per-customer limit →
+ * once per window a short "ask a manager" reply with the hand-off button
+ * (never an automatic hand-off); otherwise the marker's original reply is
+ * replayed exactly as without AI (a search still searches, an unmatched
+ * phrase is still recorded). Any later answer drops bot_dialog["ai"], so a
+ * queued AI answer for an older message is never sent (superseded). The job
+ * comes back through deliverAi() or replay(). Menu, /start, cancel, hand-off
+ * and a staff reply start a new AI context (ai_context_at).
+ *
+ * Replay from the job (L4, accepted): the raw text is never stored, so the
+ * job re-runs the engine on the stored REDACTED turn. A product search then
+ * searches the redacted text (masked runs of 5+ digits are gone; model names
+ * like "ZD421" survive) and RecordUnmatched gets the redacted phrase.
  */
 class HandleChatInput
 {
+    /**
+     * bot_dialog key of the user turn waiting for its AI answer.
+     */
+    public const AI_KEY = 'ai';
+
     public function __construct(
         private readonly Engine $engine,
         private readonly TelegramAdapter $adapter,
@@ -63,6 +91,7 @@ class HandleChatInput
         private readonly LookupOrderStatus $orders,
         private readonly LookupRepairStatus $repairs,
         private readonly HandleLeadDialog $dialog,
+        private readonly GuardAiRequest $guard,
     ) {}
 
     public function text(TelegramUser $user, UpdateParser $update): void
@@ -83,7 +112,63 @@ class HandleChatInput
             return;
         }
 
-        [$reply, $keepDialog] = $this->run($user, $context, $this->engine->respond($context));
+        $reply = $this->engine->respond($context, AiSwitch::isEnabled(ChatChannel::Telegram));
+
+        if ($reply->isAi()) {
+            $reply = $this->askAi($user, $context, $reply);
+
+            if ($reply === null) {
+                return;
+            }
+        }
+
+        $this->answer($user, $context, $reply, $update);
+    }
+
+    /**
+     * AnswerChatWithAi: deliver a filtered AI answer (already built with the
+     * "AI assistant" marker and the hand-off button) and save the locked user
+     * (AI-15).
+     */
+    public function deliverAi(TelegramUser $user, ChatReply $reply): void
+    {
+        $this->stats->handle(ChatChannel::Telegram, ChatMetric::Ai);
+        $this->deliver($user, $reply);
+        $user->save();
+    }
+
+    /**
+     * AnswerChatWithAi: the AI did not answer (failed, refused, blocked,
+     * capped): replay the engine's original reply as the webhook would have
+     * (P5), from the stored redacted turn, and save the locked user.
+     */
+    public function replay(TelegramUser $user, ChatContext $context, ChatReply $reply): void
+    {
+        $this->answer($user, $context, $reply, null);
+
+        if ($user->isDirty()) {
+            $user->save();
+        }
+    }
+
+    /**
+     * Start a new AI conversation context (plan 30 §7): earlier turns are no
+     * longer sent to the model. Only while AI is on, so nothing changes (and
+     * nothing extra is written) when it is off.
+     */
+    public static function resetAiContext(TelegramUser $user): void
+    {
+        if (AiSwitch::isEnabled(ChatChannel::Telegram)) {
+            $user->forceFill(['ai_context_at' => now()]);
+        }
+    }
+
+    /**
+     * Run and deliver an engine reply (the webhook, or a replay from the AI job).
+     */
+    private function answer(TelegramUser $user, ChatContext $context, ChatReply $reply, ?UpdateParser $update): void
+    {
+        [$reply, $keepDialog] = $this->run($user, $context, $reply);
 
         if ($keepDialog) {
             $this->deliver($user, $reply, keepDialog: true);
@@ -92,16 +177,61 @@ class HandleChatInput
         }
 
         if ($reply->isUnmatched()) {
-            $this->unmatched->handle($user, $context->locale, $update->text);
+            $this->unmatched->handle($user, $context->locale, $context->text);
+        }
+
+        if ($reply->isHandoff() && $update === null) {
+            // A replayed hand-off has no message to store: the system line alerts staff.
+            $this->handoffRequested($user);
         }
 
         $this->deliver($user, $reply);
 
         // The customer typed their request: it belongs in the inbox as written (unread, staff alert).
-        if ($reply->isHandoff()) {
+        if ($reply->isHandoff() && $update !== null) {
             // No auto-ack: the bot's hand-off reply already answers the customer.
             $this->inbox->handle($user, $update, ack: false);
         }
+    }
+
+    /**
+     * The AI marker (P3, P5, P6): queue the AI job and return null, or the
+     * reply to send now (the limit notice or the original reply).
+     */
+    private function askAi(TelegramUser $user, ChatContext $context, ChatReply $marker): ?ChatReply
+    {
+        $original = $marker->original ?? $marker;
+        $guard = $this->guard->handle(ChatChannel::Telegram, $user);
+
+        if ($guard['decision'] === GuardAiRequest::LIMITED && $guard['notify']) {
+            return new ChatReply(
+                __('chatbot.ai.limited', [], $context->locale),
+                [['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],
+                null,
+                ChatReply::DONE,
+            );
+        }
+
+        $text = ChatRedactor::clean($context->text, (int) config('chatbot.ai.message_max', 1000));
+
+        if ($guard['decision'] !== GuardAiRequest::ALLOWED || trim(str_replace(ChatRedactor::MASK, '', $text)) === '') {
+            return $original;
+        }
+
+        $turn = ChatAiTurn::query()->create([
+            'channel' => ChatChannel::Telegram,
+            'telegram_user_id' => $user->id,
+            'role' => ChatAiRole::User,
+            'text' => $text,
+        ]);
+
+        $dialog = is_array($user->bot_dialog) ? $user->bot_dialog : [];
+        $dialog[self::AI_KEY] = $turn->id;
+        $user->forceFill(['bot_dialog' => $dialog]);
+
+        dispatch(new AnswerChatWithAi($turn->id, $user->id, ChatChannel::Telegram->value));
+
+        return null;
     }
 
     /**
@@ -116,6 +246,7 @@ class HandleChatInput
 
         LeadDialog::clear($user);
         $user->forceFill(['chat_mode' => ChatMode::Manager, 'handoff_at' => now()]);
+        self::resetAiContext($user);
 
         if (! $alreadyWaiting) {
             $this->inbox->storeSystemLine($user, __('telegram_bot.inbox.handoff_request', [], 'uz'));
@@ -182,12 +313,15 @@ class HandleChatInput
             $user->forceFill(['chat_mode' => ChatMode::Bot]);
         }
 
+        self::resetAiContext($user);
+
         return $this->engine->menu($context);
     }
 
     private function cancel(TelegramUser $user, ChatContext $context): ChatReply
     {
         $user->forceFill(['bot_dialog' => null]);
+        self::resetAiContext($user);
 
         return $this->engine->menu($context);
     }
@@ -325,6 +459,7 @@ class HandleChatInput
 
         if ($reply->isHandoff()) {
             $user->forceFill(['chat_mode' => ChatMode::Manager, 'handoff_at' => now()]);
+            self::resetAiContext($user);
             $keepDialog = false;
 
             if (! WorkingHours::isOpen()) {
@@ -335,7 +470,8 @@ class HandleChatInput
 
         $current = is_array($user->bot_dialog) ? $user->bot_dialog : [];
         $flow = $keepDialog ? ($current[LeadDialog::KEY] ?? null) : null;
-        unset($current[LeadDialog::KEY]);
+        // Any answer supersedes an AI answer still queued for an older message.
+        unset($current[LeadDialog::KEY], $current[self::AI_KEY]);
         $generation = (((int) ($current['gen'] ?? 0)) + 1) % 100;
         $rendered = $this->adapter->render($reply, $generation);
 

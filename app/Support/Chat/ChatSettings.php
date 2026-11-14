@@ -50,6 +50,15 @@ final class ChatSettings
         Cache::forget(self::CACHE_KEY);
     }
 
+    /**
+     * Drop only the per-request/job memo (the next read sees the cache, which a save flushes):
+     * a long-running job re-reads the switches without wiping the shared cache (plan 30 L3).
+     */
+    public static function forgetMemo(): void
+    {
+        app(self::STATE)->exchangeArray([]);
+    }
+
     public static function key(string $name): string
     {
         return 'chatbot.'.$name;
@@ -67,7 +76,8 @@ final class ChatSettings
      *     widget_position: string,
      *     widget_pages: string,
      *     widget_mobile: bool,
-     *     products_shown: int
+     *     products_shown: int,
+     *     ai: array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
      * }
      */
     public static function all(): array
@@ -154,6 +164,31 @@ final class ChatSettings
             'widget_pages' => in_array($pages, self::PAGES, true) ? $pages : 'all',
             'widget_mobile' => $get('widget_mobile', true) !== false,
             'products_shown' => $shown !== false && $shown >= 3 && $shown <= 8 ? $shown : 5,
+            'ai' => self::ai($get),
+        ];
+    }
+
+    /**
+     * The AI answer settings (plan 30 §9), in the same rows and the same one
+     * memoized read as everything else (CB-31: no extra query).
+     *
+     * @param  callable(string, mixed=): mixed  $get
+     * @return array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
+     */
+    private static function ai(callable $get): array
+    {
+        $requests = filter_var($get('ai_daily_requests'), FILTER_VALIDATE_INT);
+        $tokens = filter_var($get('ai_daily_tokens'), FILTER_VALIDATE_INT);
+        $instructions = $get('ai_instructions');
+
+        return [
+            'telegram_enabled' => $get('ai_telegram_enabled') === true,
+            'web_enabled' => $get('ai_web_enabled') === true,
+            'daily_requests' => $requests !== false && $requests >= 0 && $requests <= (int) config('chatbot.ai.caps.requests_max')
+                ? $requests : (int) config('chatbot.ai.caps.requests'),
+            'daily_tokens' => $tokens !== false && $tokens >= 0 && $tokens <= (int) config('chatbot.ai.caps.tokens_max')
+                ? $tokens : (int) config('chatbot.ai.caps.tokens'),
+            'instructions' => is_string($instructions) ? mb_substr($instructions, 0, (int) config('chatbot.ai.instructions_max', 2000)) : '',
         ];
     }
 

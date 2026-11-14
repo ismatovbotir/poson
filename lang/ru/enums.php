@@ -522,6 +522,22 @@ return [
         'confirm' => 'Подтверждение',
     ],
 
+    'chat_ai_role' => [
+        'user' => 'Клиент',
+        'assistant' => 'ИИ-помощник',
+    ],
+
+    'chat_ai_status' => [
+        'answered' => 'Отвечено',
+        'truncated' => 'Отвечено (сокращено)',
+        'failed' => 'Ошибка',
+        'refused' => 'Отказ',
+        'blocked' => 'Остановлено фильтром',
+        'capped' => 'Лимит',
+        'superseded' => 'Не отправлено',
+        'disabled' => 'Не использован: ИИ выключен',
+    ],
+
     'chat_metric' => [
         'hit' => 'Отвечено',
         'unmatched' => 'Не понято',
@@ -530,6 +546,7 @@ return [
         'lookup_ok' => 'Статус найден',
         'lookup_fail' => 'Статус не найден',
         'search_empty' => 'Пустой поиск',
+        'ai' => 'Ответы ИИ',
     ],
 
     'repair_status' => [

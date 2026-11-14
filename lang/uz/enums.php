@@ -522,6 +522,22 @@ return [
         'confirm' => 'Tasdiqlash',
     ],
 
+    'chat_ai_role' => [
+        'user' => 'Mijoz',
+        'assistant' => 'SI yordamchi',
+    ],
+
+    'chat_ai_status' => [
+        'answered' => 'Javob berildi',
+        'truncated' => 'Javob berildi (qisqartirilgan)',
+        'failed' => 'Xato',
+        'refused' => 'Rad etildi',
+        'blocked' => 'Filtr toʻxtatdi',
+        'capped' => 'Cheklov',
+        'superseded' => 'Yuborilmadi',
+        'disabled' => 'Ishlatilmadi: SI oʻchirilgan',
+    ],
+
     'chat_metric' => [
         'hit' => 'Javob berildi',
         'unmatched' => 'Tushunilmadi',
@@ -530,6 +546,7 @@ return [
         'lookup_ok' => 'Holat topildi',
         'lookup_fail' => 'Holat topilmadi',
         'search_empty' => 'Boʻsh qidiruv',
+        'ai' => 'SI javoblari',
     ],
 
     'repair_status' => [

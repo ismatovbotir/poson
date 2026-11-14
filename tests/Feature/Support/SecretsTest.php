@@ -304,7 +304,10 @@ it('declares every integration field in config without a default and in .env.exa
 it('declares no AI provider or remove.bg keys any more', function () {
     $example = file_get_contents(base_path('.env.example'));
 
-    expect($example)->not->toMatch('/^(AI_[A-Z_]+|ANTHROPIC_API_KEY|OPENAI_API_KEY|OPENROUTER_API_KEY|REMOVEBG_API_KEY)=/m')
-        ->and(config('services'))->not->toHaveKeys(['anthropic', 'openai', 'openrouter', 'removebg'])
+    // Plan 30 (owner decision 2026-11-14): ANTHROPIC_API_KEY / services.anthropic is the chat bot's
+    // .env-only key (not an Integrations secret); every other AI provider key stays gone.
+    expect($example)->not->toMatch('/^(AI_[A-Z_]+|OPENAI_API_KEY|OPENROUTER_API_KEY|REMOVEBG_API_KEY)=/m')
+        ->and(config('services'))->not->toHaveKeys(['openai', 'openrouter', 'removebg'])
+        ->and(array_keys(config('services.anthropic')))->toBe(['key', 'base_url'])
         ->and(IntegrationRegistry::GROUPS)->toBe(['telegram', 'payme', 'click', 'uzqr', 'monitoring', 'indexnow']);
 });

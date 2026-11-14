@@ -14,6 +14,11 @@ return [
     'cancelled' => 'Cancelled.',
     'not_available' => 'This option is not available. Choose a topic from the menu.',
 
+    'ai' => [
+        'marker' => 'AI assistant · for exact prices and orders, ask a manager',
+        'limited' => 'You have asked a lot of questions in a short time. A manager will be glad to help: press the button below.',
+    ],
+
     'buttons' => [
         'handoff' => 'Talk to a manager',
         'menu' => 'Menu',

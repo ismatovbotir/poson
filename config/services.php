@@ -104,4 +104,12 @@ return [
         'enabled' => env('INDEXNOW_ENABLED'),
     ],
 
+    // Plan 30: Claude Haiku answers in the chat bot. The key comes from .env only
+    // (no admin field, no SDK env fallback, AI-1); read it only here and in
+    // App\Services\Ai\AnthropicChatModel. The base URL is fixed (no ANTHROPIC_BASE_URL).
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'base_url' => 'https://api.anthropic.com',
+    ],
+
 ];
