@@ -108,6 +108,7 @@ return [
         'order' => 'Заказ',
         'payment' => 'Оплата',
         'repair' => 'Ремонт',
+        'cv_download' => 'Скачивание резюме',
     ],
 
     'quote_status' => [
@@ -206,6 +207,7 @@ return [
     ],
 
     'settings_area' => [
+        'careers' => 'Вакансии',
         'contacts' => 'Контакты',
         'legal' => 'Реквизиты',
         'social' => 'Соцсети',
@@ -559,4 +561,36 @@ return [
         'other' => 'Другое устройство',
     ],
 
+    'vacancy_department' => [
+        'service' => 'Сервис',
+        'sales' => 'Продажи',
+        'software' => 'Программное обеспечение',
+        'operations' => 'Операции и склад',
+        'management' => 'Управление',
+        'marketing' => 'Маркетинг',
+    ],
+
+    'employment_type' => [
+        'full_time' => 'Полная занятость',
+        'part_time' => 'Частичная занятость',
+        'contract' => 'По договору',
+        'internship' => 'Стажировка',
+    ],
+
+    'job_application_status' => [
+        'new' => 'Новый',
+        'reviewing' => 'На рассмотрении',
+        'interview' => 'Собеседование',
+        'rejected' => 'Отказ',
+        'hired' => 'Принят',
+    ],
+
+    'job_application_cv_status' => [
+        'none' => 'Нет',
+        'pending' => 'Отправляется',
+        'sending' => 'Отправляется',
+        'forwarded' => 'Отправлено',
+        'failed' => 'Не отправлено',
+        'expired' => 'Истёк срок',
+    ],
 ];

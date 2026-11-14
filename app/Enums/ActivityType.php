@@ -20,6 +20,7 @@ enum ActivityType: string
     case Order = 'order';
     case Payment = 'payment';
     case Repair = 'repair';
+    case CvDownload = 'cv_download';
 
     public function label(): string
     {
@@ -44,6 +45,7 @@ enum ActivityType: string
             self::Order => 'bag',
             self::Payment => 'card',
             self::Repair => 'tool',
+            self::CvDownload => 'download',
         };
     }
 
@@ -65,6 +67,7 @@ enum ActivityType: string
             self::Order => 'bg-slate-900',
             self::Payment => 'bg-brand-600',
             self::Repair => 'bg-violet-500',
+            self::CvDownload => 'bg-slate-400',
         };
     }
 

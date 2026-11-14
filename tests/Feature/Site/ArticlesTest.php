@@ -136,7 +136,7 @@ describe('navigation', function () {
 
         $keys = array_column(Navigation::customerPages(), 'key');
 
-        expect(array_slice($keys, -2))->toBe(['news', 'articles']);
+        expect(array_slice($keys, -3))->toBe(['news', 'articles', 'careers']);
     });
 });
 

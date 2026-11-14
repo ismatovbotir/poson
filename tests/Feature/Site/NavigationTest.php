@@ -39,10 +39,10 @@ it('lists the main nav items in order with fixed localized labels', function (st
     $items = Navigation::main();
     $page = fn (string $key): string => __("site.footer.{$key}", [], $locale);
 
-    expect(array_column($items, 'key'))->toBe(['brands', 'b2b', 'services', 'warranty-service', 'delivery-payment', 'news', 'about', 'contacts'])
-        ->and(array_column($items, 'label'))->toBe([$brands, $page('b2b'), $services, $page('warranty_service'), $page('delivery_payment'), __('site.nav.news', [], $locale), $page('about'), $page('contacts')])
+    expect(array_column($items, 'key'))->toBe(['brands', 'b2b', 'services', 'warranty-service', 'delivery-payment', 'news', 'careers', 'about', 'contacts'])
+        ->and(array_column($items, 'label'))->toBe([$brands, $page('b2b'), $services, $page('warranty_service'), $page('delivery_payment'), __('site.nav.news', [], $locale), __('site.nav.careers', [], $locale), $page('about'), $page('contacts')])
         ->and(collect($items)->pluck('label')->intersect(['B2B', 'RU B2B', 'EN Kafolat', 'Kafolat'])->all())->toBe([])
-        ->and(array_column($items, 'accent'))->toBe([false, false, true, false, false, false, false, false])
+        ->and(array_column($items, 'accent'))->toBe([false, false, true, false, false, false, false, false, false])
         ->and($items[0]['url'])->toBe(url("/{$locale}/brands"))
         ->and($items[1]['url'])->toBe(url("/{$locale}/page/b2b"))
         ->and($items[2]['url'])->toBe(url("/{$locale}/catalog/services"))
@@ -71,7 +71,7 @@ it('hides inactive pages from the main nav, without an anchor fallback', functio
 
     $items = Navigation::main();
 
-    expect(array_column($items, 'key'))->toBe(['brands', 'services', 'warranty-service', 'delivery-payment', 'about'])
+    expect(array_column($items, 'key'))->toBe(['brands', 'services', 'warranty-service', 'delivery-payment', 'careers', 'about'])
         ->and(collect($items)->pluck('url')->filter(fn (string $url): bool => str_contains($url, '#'))->reject(fn (string $url): bool => str_ends_with($url, '#services'))->all())->toBe([]);
 
     $nav = mainNavHtml($this->get('/ru')->assertOk()->getContent());

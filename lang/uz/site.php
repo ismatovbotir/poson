@@ -41,6 +41,7 @@ return [
     'nav' => [
         'news' => 'Yangiliklar',
         'articles' => 'Maqolalar',
+        'careers' => 'Vakansiyalar',
         'brands' => 'Brendlar',
         'services' => 'Xizmatlar',
         'aria_label' => 'Asosiy menyu',

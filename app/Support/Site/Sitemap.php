@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\NewsPost;
 use App\Models\Product;
+use App\Models\Vacancy;
 use App\Models\Video;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Content\VideoText;
@@ -25,7 +26,8 @@ use XMLWriter;
  * news list in the locales that have visible news, and every visible post
  * only in its translated locales (alternates and x-default among those).
  * Knowledge articles (decision 2026-10-24) the same way: the articles list
- * and every visible article.
+ * and every visible article. Careers (plan 31): the careers list while a vacancy
+ * is public, and every public vacancy at its per-locale slug URLs.
  *
  * Every URL is built on APP_URL (CanonicalHost), never on the request host,
  * so the cached document can't carry a foreign Host header.
@@ -61,7 +63,7 @@ class Sitemap
      *
      * @var list<string>
      */
-    public const TYPES = ['products', 'categories', 'brands', 'pages', 'news', 'articles', 'other'];
+    public const TYPES = ['products', 'categories', 'brands', 'pages', 'news', 'articles', 'careers', 'other'];
 
     /**
      * @var list<array{loc: string, lastmod: ?string, locale: string, type: string}>
@@ -256,6 +258,8 @@ class Sitemap
             $this->news($xml, $kind);
         }
 
+        $this->careers($xml);
+
         Product::query()
             ->visible()
             ->select(['id', 'slug', 'updated_at'])
@@ -275,6 +279,32 @@ class Sitemap
         $xml->endDocument();
 
         return $xml->outputMemory();
+    }
+
+    /**
+     * The careers list (when a vacancy is public) and every public vacancy at
+     * its own slug per locale; lastmod = updated_at. Drafts and expired
+     * vacancies are not listed. The apply POST and the open-application pages
+     * are never listed.
+     */
+    private function careers(XMLWriter $xml): void
+    {
+        $vacancies = Vacancy::query()->published()->ordered()->get();
+
+        if ($vacancies->isEmpty()) {
+            return;
+        }
+
+        $this->write(
+            $xml,
+            fn (string $locale): string => route('site.careers.index', ['locale' => $locale]),
+            $vacancies->max('updated_at'),
+            type: 'careers',
+        );
+
+        foreach ($vacancies as $vacancy) {
+            $this->write($xml, fn (string $locale): string => $vacancy->url($locale), $vacancy->updated_at, type: 'careers');
+        }
     }
 
     /**

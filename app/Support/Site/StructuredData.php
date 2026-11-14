@@ -5,6 +5,7 @@ namespace App\Support\Site;
 use App\Enums\StockStatus;
 use App\Models\NewsPost;
 use App\Models\Product;
+use App\Models\Vacancy;
 use App\Models\Video;
 use App\Support\Catalog\CategoryTree;
 use App\Support\CompanySettings;
@@ -365,6 +366,74 @@ class StructuredData
     }
 
     /**
+     * JobPosting for a public vacancy (plan 31): title, an HTML description
+     * (every text escaped with e(): paragraphs plus the requirements and
+     * offer lists), datePosted, validThrough (end of that day in Tashkent,
+     * only when set), employmentType, the hiring Organization, the job
+     * location (company city, Region label, UZ), directApply and the
+     * identifier. No baseSalary: salaries are discussed at the interview.
+     *
+     * @return array<string, mixed>
+     */
+    public function jobPosting(Vacancy $vacancy, string $url): array
+    {
+        $locale = app()->getLocale();
+        $html = [];
+
+        foreach (preg_split('/\n{2,}/', trim((string) $vacancy->getTranslation('description', $locale, false))) ?: [] as $paragraph) {
+            if (trim($paragraph) !== '') {
+                $html[] = '<p>'.e(trim($paragraph)).'</p>';
+            }
+        }
+
+        foreach (['requirements', 'offer'] as $field) {
+            $items = $vacancy->listFor($field, $locale);
+
+            if ($items !== []) {
+                $html[] = '<p><strong>'.e(__("careers.site.{$field}")).'</strong></p><ul>'
+                    .implode('', array_map(fn (string $item): string => '<li>'.e($item).'</li>', $items)).'</ul>';
+            }
+        }
+
+        $organization = $this->organization();
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'JobPosting',
+            'title' => (string) $vacancy->getTranslation('title', $locale, false),
+            'description' => implode('', $html),
+            'url' => $url,
+            'inLanguage' => $locale,
+            'datePosted' => ($vacancy->published_at ?? $vacancy->created_at)?->toAtomString(),
+        ];
+
+        if ($vacancy->valid_through !== null) {
+            $data['validThrough'] = Carbon::parse($vacancy->valid_through->toDateString(), Vacancy::TIMEZONE)->endOfDay()->toAtomString();
+        }
+
+        $data['employmentType'] = $vacancy->employment_type->schemaType();
+        $data['hiringOrganization'] = array_filter([
+            '@type' => 'Organization',
+            'name' => $organization['name'],
+            'sameAs' => $organization['url'],
+            'logo' => $organization['logo'] ?? null,
+        ], fn ($value): bool => filled($value));
+        $data['jobLocation'] = [
+            '@type' => 'Place',
+            'address' => array_filter([
+                '@type' => 'PostalAddress',
+                'streetAddress' => $this->company->address(),
+                'addressLocality' => $this->company->city(),
+                'addressRegion' => __('enums.region.'.$vacancy->location->value, [], 'en'),
+                'addressCountry' => 'UZ',
+            ], fn (string $value): bool => $value !== ''),
+        ];
+        $data['directApply'] = true;
+        $data['identifier'] = ['@type' => 'PropertyValue', 'name' => $this->company->name(), 'value' => (string) $vacancy->id];
+
+        return $data;
+    }
+
+    /**
      * NewsArticle for a news post (plan 07 7b), Article for a knowledge
      * article (NewsKind::schemaType()): headline, url, description,
      * language, publication and content dates, the cover image, and the
@@ -504,12 +573,13 @@ class StructuredData
 
     /**
      * Encode for a <script type="application/ld+json"> block. JSON_HEX_TAG
-     * escapes "<" and ">", so values can't close the script element.
+     * escapes "<" and ">", so values can't close the script element; HEX_AMP,
+     * HEX_APOS and HEX_QUOT escape "&", "'" and quotes as well (plan 31 CR-14).
      *
      * @param  array<string, mixed>  $data
      */
     public static function toScript(array $data): string
     {
-        return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR);
+        return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
     }
 }

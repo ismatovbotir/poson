@@ -70,6 +70,12 @@ class RolesAndPermissionsSeeder extends Seeder
     public const CHATBOT = ['chatbot.rules', 'chatbot.settings'];
 
     /**
+     * Careers (plan 31): vacancies, applications and CV download, Admin only
+     * (also added by the add_careers_permissions migration).
+     */
+    public const CAREERS = ['careers.vacancies', 'careers.applications', 'careers.cv'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -245,6 +251,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'repairs.costs',
             // Plan 28 C2: rule chat bot (also added by the add_chatbot_permissions migration).
             ...self::CHATBOT,
+            // Plan 31: careers (also added by the add_careers_permissions migration). Admin only.
+            ...self::CAREERS,
         ];
     }
 

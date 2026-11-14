@@ -18,10 +18,10 @@
         </include>
     </source>
     <php>
-        <ini name="memory_limit" value="512M"/>
-        <!-- Throwaway key for tests only; not a secret. -->
-        <env name="APP_KEY" value="base64:+egLsfY9Qp8r+QakEKLhEwIyvbzoiYuN8dkQcBvEY6M="/>
+        <ini name="memory_limit" value="2G"/>
         <env name="APP_ENV" value="testing"/>
+        <!-- Throwaway test-only key (generated for tests, never from any .env); APP_DEBUG pinned so Livewire surfaces type errors without a .env. -->
+        <env name="APP_KEY" value="base64:muKvYp52xwLxpJ91dhOberWNnooXC/if3d3bLLQqS9U="/>
         <env name="APP_DEBUG" value="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

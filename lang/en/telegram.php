@@ -141,6 +141,7 @@ return [
             'telegram_customer_cap' => 'Hourly limit of new customers from the Telegram bot reached (registrations stay unlinked)',
             'telegram_forward' => 'The Telegram bot cannot copy customer files to the chat',
             'chat_lookup_failures' => 'Repeated failed order or repair status lookups in the bot',
+            'careers_cv' => 'Careers: problem sending CVs to Telegram',
         ],
         'recovered' => [
             'cron_dead' => 'Scheduler is running again',
@@ -161,8 +162,17 @@ return [
             'issue' => 'Problem',
             'reason' => 'Reason',
             'failures' => 'Failed attempts',
+            'count' => 'Count',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
+        // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).
+        'careers_reasons' => [
+            'cap' => 'the site\'s hourly limit was reached (CVs saved without the file)',
+            'refused_target' => 'the management chat is public, a channel or was not found (only a private group is accepted)',
+            'send_failed' => 'Telegram did not accept a CV',
+            'expired' => 'CVs were not sent within 24 hours',
+            'delete_failed' => 'a temporary CV file could not be deleted',
+        ],
         'forward_reasons' => [
             'lost_target' => 'the bot was removed from the chat or cannot post there (files are not copied)',
             'refused_target' => 'the chat is public, a channel or was not found (only a private group is accepted)',

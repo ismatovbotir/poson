@@ -37,4 +37,18 @@ return [
         '/(?<![\pL\pN])[−-]\d+\s?%/u',
     ],
 
+    /*
+    | Narrow allowances per context (App\Rules\BrandSafeText $context): matched
+    | against the lowercased text and blanked out before banned_patterns run.
+    | careers (plan 31): "sales" as part of a job or department name only
+    | ("sales manager", "sales department", "sales team", "B2B sales", "head of
+    | sales"). Never followed by "!" or "%", so promo usages stay blocked.
+    */
+    'allowances' => [
+        'careers' => [
+            '/\bsales(?=[ \-]+(?:managers?|department|team|engineers?|representatives?|specialists?|director|lead|assistants?|consultants?|executives?|operations|office)\b)(?![^.\n]*!)/u',
+            '/\b(?:b2b|b2c|corporate|key account|head of|director of)\s+sales\b(?!\s*[!%])/u',
+        ],
+    ],
+
 ];
