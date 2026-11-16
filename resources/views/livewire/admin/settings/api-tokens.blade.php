@@ -38,19 +38,12 @@
 
     {{-- Show once --}}
     @if ($revealedToken)
-        <div x-data="{ open: true, copied: false }" x-show="open" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="api-token-created-title" data-token-revealed>
+        <div x-data="{ open: true }" x-show="open" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="api-token-created-title" data-token-revealed>
             <div class="absolute inset-0 bg-slate-900/50"></div>
             <div x-trap.noscroll="open" class="relative w-full rounded-t-2xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-lg sm:rounded-2xl sm:pb-5">
                 <h2 id="api-token-created-title" class="text-base font-semibold">{{ __($t.'.created_title', ['name' => $revealedName]) }}</h2>
                 <p class="mt-1 flex gap-2 text-sm text-amber-800"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.created_body') }}</p>
-                <div class="mt-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-                    <code class="min-w-0 flex-1 break-all px-1 font-mono text-xs text-slate-800" data-plain-token>{{ $revealedToken }}</code>
-                    <button type="button" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50" x-on:click="navigator.clipboard?.writeText(@js($revealedToken)); copied = true; setTimeout(() => copied = false, 1500)">
-                        <x-admin.icon name="copy" size="size-4" />
-                        <span x-show="! copied">{{ __($t.'.copy') }}</span>
-                        <span x-cloak x-show="copied">{{ __($t.'.copied') }}</span>
-                    </button>
-                </div>
+                <x-admin.copy-block class="mt-4" :value="$revealedToken" snippet="api-token" :plain="true" />
                 <div class="mt-6 flex justify-end">
                     <x-admin.button x-on:click="open = false">{{ __($t.'.done') }}</x-admin.button>
                 </div>

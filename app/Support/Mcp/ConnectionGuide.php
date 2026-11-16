@@ -2,15 +2,21 @@
 
 namespace App\Support\Mcp;
 
-use App\Livewire\Admin\Settings\McpAccess;
-
 /**
  * Copy-paste snippets for Settings → MCP access (Plan 26). Pure builders: the
  * token is only ever embedded when the caller passes one (the show-once render);
  * otherwise the fixed placeholder is used.
  */
-class ConnectionGuide
+final class ConnectionGuide
 {
+    /**
+     * Version of mcp-remote shown in the Claude Desktop config (C15: pinned, ≥ 0.1.16).
+     */
+    public const MCP_REMOTE_VERSION = '0.1.16';
+
+    /** MCP protocol version used by the copy-paste connection test (checked against the installed laravel/mcp in a test). */
+    public const MCP_PROTOCOL_VERSION = '2025-06-18';
+
     public const PLACEHOLDER = 'PASTE_TOKEN_HERE';
 
     public const MAC_CONFIG_PATH = '~/Library/Application Support/Claude/claude_desktop_config.json';
@@ -32,7 +38,7 @@ class ConnectionGuide
     {
         return [
             'command' => 'npx',
-            'args' => ['-y', 'mcp-remote@'.McpAccess::MCP_REMOTE_VERSION, $endpoint, '--header', 'Authorization:${POSON_MCP_AUTH}'],
+            'args' => ['-y', 'mcp-remote@'.self::MCP_REMOTE_VERSION, $endpoint, '--header', 'Authorization:${POSON_MCP_AUTH}'],
             'env' => ['POSON_MCP_AUTH' => 'Bearer '.($token ?? self::PLACEHOLDER)],
         ];
     }
@@ -60,6 +66,6 @@ class ConnectionGuide
     /** Read-only `initialize` check (M-1), macOS/Linux only. */
     public static function terminalTest(string $endpoint): string
     {
-        return 'read -rs T; printf \'header = "Authorization: Bearer %s"\n\' "$T" | curl -sS --proto \'=https\' --max-time 20 -K - -H \'Content-Type: application/json\' -H \'Accept: application/json, text/event-stream\' -d \'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"'.McpAccess::MCP_PROTOCOL_VERSION.'","capabilities":{},"clientInfo":{"name":"poson-check","version":"1"}}}\' -w \'\nHTTP %{http_code}\n\' \''.$endpoint.'\'; unset T';
+        return 'read -rs T; printf \'header = "Authorization: Bearer %s"\n\' "$T" | curl -sS --proto \'=https\' --max-time 20 -K - -H \'Content-Type: application/json\' -H \'Accept: application/json, text/event-stream\' -d \'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"'.self::MCP_PROTOCOL_VERSION.'","capabilities":{},"clientInfo":{"name":"poson-check","version":"1"}}}\' -w \'\nHTTP %{http_code}\n\' \''.$endpoint.'\'; unset T';
     }
 }

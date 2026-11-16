@@ -1372,7 +1372,6 @@ return [
                 'payme' => 'Endpoint',
                 'click_prepare' => 'Prepare',
                 'click_complete' => 'Complete',
-                'copy' => 'Manzilni nusxalash',
             ],
             'test' => [
                 'button' => 'Ulanishni tekshirish',
@@ -1493,9 +1492,6 @@ return [
             'curl_hint' => 'Tokenni buyruq qatori tarixida va gitʼda saqlanadigan skriptlarda qoldirmang.',
             't_code' => 'butun son (yoki satr)',
             'e_code_invalid' => 'code 0, manfiy, kasr son (258.0) yoki faqat nollardan iborat.',
-            'copy' => 'Nusxalash',
-            'copied' => 'Nusxalandi',
-            'copy_failed' => 'Matnni belgilab, qoʻlda nusxalang.',
         ],
     ],
 

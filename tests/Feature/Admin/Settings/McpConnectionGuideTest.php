@@ -34,8 +34,8 @@ it('builds the config with the token in env only and the pinned mcp-remote (M-2,
         ->and($placeholder['env']['POSON_MCP_AUTH'])->toBe('Bearer PASTE_TOKEN_HERE')
         ->and($merge)->toHaveKeys(['existing-server', 'poson'])
         ->and($merge['poson']['env']['POSON_MCP_AUTH'])->toBe('Bearer PASTE_TOKEN_HERE')
-        ->and(McpAccess::MCP_REMOTE_VERSION)->toBe('0.1.16')
-        ->and(ConnectionGuide::terminalTest('https://x.test'))->toContain('"protocolVersion":"'.McpAccess::MCP_PROTOCOL_VERSION.'"');
+        ->and(ConnectionGuide::MCP_REMOTE_VERSION)->toBe('0.1.16')
+        ->and(ConnectionGuide::terminalTest('https://x.test'))->toContain('"protocolVersion":"'.ConnectionGuide::MCP_PROTOCOL_VERSION.'"');
 });
 
 it('puts the real token into the single guide in the show-once window only', function () {
@@ -141,15 +141,29 @@ it('offers the read-only connection test with the protocol version the server ac
     $this->actingAs($ceo);
 
     $html = Livewire::test(McpAccess::class)->html();
-    expect($html)->toContain('read -rs T;')->toContain('&quot;protocolVersion&quot;:&quot;'.McpAccess::MCP_PROTOCOL_VERSION.'&quot;')
+    expect($html)->toContain('read -rs T;')->toContain('&quot;protocolVersion&quot;:&quot;'.ConnectionGuide::MCP_PROTOCOL_VERSION.'&quot;')
         ->and($html)->not->toContain($plain);
 
     $response = mcpRequest($plain, 'initialize', [
-        'protocolVersion' => McpAccess::MCP_PROTOCOL_VERSION,
+        'protocolVersion' => ConnectionGuide::MCP_PROTOCOL_VERSION,
         'capabilities' => (object) [],
         'clientInfo' => ['name' => 'poson-check', 'version' => '1'],
     ])->assertOk();
 
-    expect($response->json('result.protocolVersion'))->toBe(McpAccess::MCP_PROTOCOL_VERSION)
+    expect($response->json('result.protocolVersion'))->toBe(ConnectionGuide::MCP_PROTOCOL_VERSION)
         ->and($response->json('error'))->toBeNull();
+});
+
+it('keeps the pinned versions on ConnectionGuide (final, no alias on McpAccess)', function () {
+    expect(ConnectionGuide::MCP_REMOTE_VERSION)->toBe('0.1.16')
+        ->and(ConnectionGuide::MCP_PROTOCOL_VERSION)->toBe('2025-06-18')
+        ->and((new ReflectionClass(ConnectionGuide::class))->isFinal())->toBeTrue()
+        ->and(defined(McpAccess::class.'::MCP_REMOTE_VERSION'))->toBeFalse()
+        ->and(defined(McpAccess::class.'::MCP_PROTOCOL_VERSION'))->toBeFalse();
+});
+
+it('has no unused mcp.reveal.endpoint key in any locale', function () {
+    foreach (['uz', 'ru', 'en'] as $locale) {
+        expect(trans('mcp.reveal', [], $locale))->not->toHaveKey('endpoint');
+    }
 });

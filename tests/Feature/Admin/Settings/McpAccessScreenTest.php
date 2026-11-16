@@ -11,6 +11,7 @@ use App\Models\ApiToken;
 use App\Models\McpCall;
 use App\Models\SettingsAudit;
 use App\Models\User;
+use App\Support\Mcp\ConnectionGuide;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
@@ -118,7 +119,7 @@ it('generates a token, shows it once with client setup, and never keeps it (C4)'
     expect($plain)->not->toBeNull()
         ->and($token->token_hash)->toBe(hash('sha256', $plain))
         ->and($token->idle_revoke_days)->toBe(60)
-        ->and($component->html())->toContain('--scope user')->toContain('mcp-remote@'.McpAccess::MCP_REMOTE_VERSION)
+        ->and($component->html())->toContain('--scope user')->toContain('mcp-remote@'.ConnectionGuide::MCP_REMOTE_VERSION)
         // C15: the Claude Code command reads the token with `read -rs`, it never contains it.
         ->and(snippet($component->html(), 'code'))->toContain('read -rs POSON_MCP_TOKEN')->toContain('$POSON_MCP_TOKEN')->not->toContain($plain)->not->toContain('posm_')
         ->and(json_encode($component->snapshot))->not->toContain($plain)
