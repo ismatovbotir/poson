@@ -136,6 +136,7 @@ return [
             'queue_stuck' => 'Queue is stuck',
             'worker_silent' => 'Queue worker is silent',
             'ai_auth_failed' => 'AI answers paused: the Anthropic API key was rejected',
+            'ai_daily_cap' => 'Daily limit of AI answers reached (resumes automatically tomorrow)',
             'foreign_phone_cap' => 'Hourly limit of foreign phone numbers on the site reached',
             'telegram_webhook' => 'Telegram bot webhook problem',
             'telegram_token' => 'Telegram refuses the bot token (401)',
@@ -164,6 +165,9 @@ return [
             'reason' => 'Reason',
             'failures' => 'Failed attempts',
             'count' => 'Count',
+            'channel' => 'Channel',
+            'requests' => 'Requests',
+            'tokens' => 'Tokens',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).

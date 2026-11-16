@@ -22,6 +22,12 @@
         <p class="mt-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger" role="alert">{{ $message }}</p>
     @enderror
 
+    @if ($aiTurnId > 0)
+        <p class="mt-4 flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2.5 text-sm text-brand-700" role="note" data-teach-from-ai>
+            <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.teach.notice', ['locale' => strtoupper($teachLocale)]) }}
+        </p>
+    @endif
+
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
 
@@ -90,10 +96,24 @@
             {{-- Answer --}}
             @if ($answerUsed)
                 <x-admin.card :title="__($t.'.answer')" :description="__($t.'.answer_help', ['max' => config('chatbot.answer_max')])">
-                    <x-admin.locale-tabs :error-keys="['form.answer']" :label="__('admin.form.content_language')">
+                    <x-admin.locale-tabs :error-keys="['form.answer']" :label="__('admin.form.content_language')" :default="$teachLocale !== '' ? $teachLocale : null">
                         @foreach ($locales as $locale)
                             <x-admin.locale-panel :locale="$locale">
                                 <x-admin.textarea wire:model="form.answer.{{ $locale }}" :label="__($t.'.fields.answer')" rows="5" :required="$locale === 'uz' && $action === 'answer'" maxlength="{{ config('chatbot.answer_max') }}" />
+                                @if ($canTranslate)
+                                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                                        <x-admin.button type="button" size="sm" variant="secondary" wire:click="translate('{{ $locale }}')" loading="translate" data-translate="{{ $locale }}">{{ __($t.'.translate.button') }}</x-admin.button>
+                                        <span class="text-xs text-slate-500">{{ __($t.'.translate.hint') }}</span>
+                                    </div>
+                                    @if ($translateConfirm === $locale)
+                                        <div class="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800" data-translate-confirm="{{ $locale }}">
+                                            <span>{{ __($t.'.translate.overwrite_question', ['locales' => collect($locales)->reject(fn ($other) => $other === $locale)->map(fn ($other) => strtoupper($other))->implode(', ')]) }}</span>
+                                            <x-admin.button type="button" size="sm" variant="primary" wire:click="translate('{{ $locale }}', true)" loading="translate">{{ __($t.'.translate.overwrite') }}</x-admin.button>
+                                            <x-admin.button type="button" size="sm" variant="secondary" wire:click="cancelTranslate">{{ __('admin.common.cancel') }}</x-admin.button>
+                                        </div>
+                                    @endif
+
+                                @endif
                             </x-admin.locale-panel>
                         @endforeach
                     </x-admin.locale-tabs>

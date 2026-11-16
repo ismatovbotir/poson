@@ -53,7 +53,12 @@
                                     <span>{{ __($t.'.last_seen', ['when' => $row->last_seen_at->diffForHumans()]) }}</span>
                                 </p>
                             </div>
-                            <x-admin.badge color="amber" pill>{{ __($t.'.times', ['count' => $row->count]) }}</x-admin.badge>
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if ((int) $row->ai_answered > 0)
+                                    <x-admin.badge color="brand" pill data-ai-answered="{{ (int) $row->ai_answered }}">{{ __($t.'.ai_answered', ['count' => (int) $row->ai_answered]) }}</x-admin.badge>
+                                @endif
+                                <x-admin.badge color="amber" pill>{{ __($t.'.times', ['count' => $row->count]) }}</x-admin.badge>
+                            </div>
                         </div>
 
                         @if ($row->resolved_at)
@@ -63,6 +68,9 @@
                             </p>
                         @elseif ($canEdit)
                             <div class="mt-3 flex flex-wrap gap-2">
+                                @if ((int) $row->ai_answered > 0)
+                                    <x-admin.button size="sm" :href="route('admin.chatbot.rules.create', ['teach' => $row->id])" wire:navigate data-teach-ai="{{ $row->id }}">{{ __($t.'.teach_from_ai') }}</x-admin.button>
+                                @endif
                                 <x-admin.button type="button" size="sm" variant="secondary" wire:click="openTeach({{ $row->id }})" data-teach="{{ $row->id }}">{{ __($t.'.add_keyword') }}</x-admin.button>
                                 <x-admin.button size="sm" variant="secondary" :href="route('admin.chatbot.rules.create', ['keyword' => $row->normalized, 'locale' => $row->locale, 'unmatched' => $row->id])" wire:navigate>{{ __($t.'.create_rule') }}</x-admin.button>
                                 <x-admin.button type="button" size="sm" variant="ghost" wire:click="ignore({{ $row->id }})" data-ignore="{{ $row->id }}">{{ __($t.'.ignore') }}</x-admin.button>

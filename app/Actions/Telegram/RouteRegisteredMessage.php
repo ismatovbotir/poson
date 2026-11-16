@@ -50,6 +50,7 @@ class RouteRegisteredMessage
             if ($update->kind?->isForwardable() === true) {
                 LeadDialog::clear($user);
                 $user->forceFill(['chat_mode' => ChatMode::Manager]);
+                HandleChatInput::resetAiContext($user);
             }
 
             $this->inbox->handle($user, $update);
@@ -61,6 +62,7 @@ class RouteRegisteredMessage
         // whatever the stored mode says: unread from before the switch, or after a contact or location.
         if ($user->isWaitingForStaff()) {
             $user->forceFill(['chat_mode' => ChatMode::Manager]);
+            HandleChatInput::resetAiContext($user);
             $this->inbox->handle($user, $update);
 
             return;

@@ -97,10 +97,15 @@ return [
             'steps' => [
                 'AI answers are off by default. An Admin switches them on in Chat bot → Settings once the API key is set on the server and the privacy page is ready.',
                 'Rules with an exact or strong match, hand-offs, order and repair status and requests always answer without AI. AI answers weak matches and questions without a rule.',
-                'Every AI answer is marked “AI assistant” and has a “Talk to a manager” button. Answers with prices, foreign links or contacts are stopped and the rule reply is sent instead.',
+                'Every AI answer is marked “AI assistant” and has a “Talk to a manager” button. Answers with prices, foreign links or contacts are stopped and the rule reply is sent instead. The only price the AI may name is the Retail price of a product found for this question, written exactly as on the site and next to that product.',
                 'Phones, emails, card and order numbers are hidden before a message is sent to the AI.',
                 'Stats show AI requests, tokens and the estimated cost per day. A Content manager can switch AI answers off at any time.',
-                'Answers with long numbers (6 or more digits: part numbers, SKUs, barcodes without the word “EAN”) are also stopped for now and the rule reply is sent; Stats count them as blocked. This is tuned later together with product search.',
+                'For each question the bot looks up to 6 published products (name, brand, key specs, Retail price or “price on request”, link). Under the answer there are buttons for the products it names; a tap shows the current product and price again.',
+                'Within 30 minutes the AI remembers the last answered questions of the same customer. Menu, /start, Cancel, “Talk to a manager”, a staff reply or a ban start a new conversation.',
+                'Long numbers (6 or more digits) are stopped unless they are exactly the SKU or model of a product found for the question.',
+                'Questions answered by AI appear in Chat bot → Teach with “AI answered N customers”, most asked first. “Teach from AI answer” opens a new rule as a draft with that answer and keywords from the phrase; check it and save. Nothing is ever saved automatically.',
+                '“Translate with Claude” in the rule editor fills the other two languages from one; an Admin switches it on in Settings. Check the translation before saving.',
+                'In a staff chat, “Bot conversation” shows the customer’s AI questions and answers of the last 30 days (personal data hidden).',
             ],
         ],
         'inbox' => [

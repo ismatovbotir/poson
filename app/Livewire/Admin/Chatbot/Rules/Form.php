@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Admin\Chatbot\Rules;
 
+use App\Actions\Chat\CheckTaughtRule;
 use App\Actions\Chat\DeleteChatRule;
+use App\Actions\Chat\PrepareTaughtRule;
 use App\Actions\Chat\ResolveUnmatched;
 use App\Actions\Chat\SaveChatRule;
+use App\Actions\Chat\TranslateRuleAnswer;
 use App\Enums\ChatAction;
 use App\Enums\KeywordMatch;
 use App\Enums\Role;
@@ -18,6 +21,8 @@ use App\Support\Chat\ChatText;
 use App\Support\Chat\LinkTargets;
 use App\Support\Chat\Skills\CompanyInfoSkill;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -34,6 +39,18 @@ use Livewire\Component;
  * "Teach" hands a phrase over with ?keyword=...&locale=...&unmatched=ID: the
  * form opens with that keyword added; the unmatched row is resolved by
  * ResolveUnmatched after the rule is saved.
+ *
+ * "Teach from AI answer" (plan 30 §16, AI-B11, AI-B17) opens the form with
+ * ?teach=ID (only the unmatched id): the server picks the AI answer
+ * (PrepareTaughtRule) and pre-fills it in its locale with keywords from the
+ * phrase, as a draft. The picked turn id is #[Locked]; while it is set,
+ * save() runs CheckTaughtRule before SaveChatRule and resolves the phrase.
+ * Nothing is saved without Save.
+ *
+ * "Translate with Claude" (AI-B14) fills the two other locales of the
+ * answer from one locale's text (TranslateRuleAnswer). The per-user and
+ * global limits are hit here before any call; over them a fixed toast.
+ * The result only fills the fields.
  */
 #[Layout('layouts::admin')]
 class Form extends Component
@@ -55,6 +72,29 @@ class Form extends Component
     #[Url(as: 'unmatched', except: 0)]
     public int $unmatchedId = 0;
 
+    #[Locked]
+    #[Url(as: 'teach', except: 0)]
+    public int $teachId = 0;
+
+    /**
+     * The AI answer turn the form was pre-filled from (server-picked; 0 = not a taught rule).
+     */
+    #[Locked]
+    public int $aiTurnId = 0;
+
+    /**
+     * The locale of that AI answer (the answer tab opened first).
+     */
+    #[Locked]
+    public string $teachLocale = '';
+
+    /**
+     * The locale whose "Translate with Claude" waits for the overwrite
+     * confirmation (the other locales already have text); '' = none. UI
+     * state only: the overwrite itself is the second click (N1).
+     */
+    public string $translateConfirm = '';
+
     public function mount(?ChatRule $rule = null): void
     {
         if ($rule?->exists) {
@@ -68,6 +108,12 @@ class Form extends Component
         $this->authorize('create', ChatRule::class);
         $this->form->blank();
 
+        if ($this->teachId > 0) {
+            $this->prefillFromAi();
+
+            return;
+        }
+
         $phrase = trim(mb_substr($this->prefillKeyword, 0, (int) config('chatbot.keyword_max', 120)));
 
         if ($phrase !== '') {
@@ -78,6 +124,36 @@ class Form extends Component
                 'weight' => 10,
             ];
         }
+    }
+
+    /**
+     * Pre-fill from the AI answer of a phrase (AI-B17): the client sent only the unmatched id.
+     */
+    private function prefillFromAi(): void
+    {
+        $unmatched = ChatUnmatched::query()->find($this->teachId);
+        $this->teachId = 0;
+
+        if ($unmatched === null) {
+            return;
+        }
+
+        $this->authorize('update', $unmatched);
+
+        $prefill = app(PrepareTaughtRule::class)->handle($unmatched);
+
+        if ($prefill === null) {
+            return;
+        }
+
+        $this->unmatchedId = $unmatched->id;
+        $this->aiTurnId = $prefill['turn_id'];
+        $this->teachLocale = $prefill['locale'];
+        $this->form->name = $prefill['name'];
+        $this->form->key = $prefill['key'];
+        $this->form->answer[$prefill['locale']] = $prefill['answer'];
+        $this->form->keywords = $prefill['keywords'];
+        $this->form->is_active = false;
     }
 
     public function hydrate(): void
@@ -131,13 +207,20 @@ class Form extends Component
         $this->form->validate();
 
         $creating = $this->rule === null;
+        $taught = $creating && $this->aiTurnId > 0;
+
+        if ($taught) {
+            $this->runFormAction(fn () => app(CheckTaughtRule::class)->handle($this->form->ruleData()));
+        }
+
         $rule = $this->runFormAction(fn (): ChatRule => $saveChatRule->handle($this->form->ruleData(), auth()->user(), $this->rule));
 
         if ($creating && $this->unmatchedId > 0) {
             $unmatched = ChatUnmatched::query()->find($this->unmatchedId);
 
-            // Only when the saved rule really contains the phrase (a URL id alone proves nothing).
-            if ($unmatched !== null && $rule->keywords->contains('normalized', $unmatched->normalized)) {
+            // Only when the saved rule really contains the phrase (a URL id alone proves nothing),
+            // or it was taught from that phrase's AI answer (the id was checked and locked at mount).
+            if ($unmatched !== null && $unmatched->resolved_at === null && ($taught || $rule->keywords->contains('normalized', $unmatched->normalized))) {
                 $resolveUnmatched->handle($unmatched, auth()->user(), $rule);
             }
         }
@@ -153,6 +236,71 @@ class Form extends Component
         $this->form->setRule($rule);
 
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('chatbot_admin.rules.saved', ['name' => $rule->name]));
+    }
+
+    /**
+     * "Translate with Claude": the answer of $from into the other two locales
+     * (AI-B14). Availability and an empty source are checked before the
+     * limiters are hit; when another locale already has text, the first
+     * click only asks to overwrite and the second (overwrite: true) runs it.
+     */
+    public function translate(string $from, TranslateRuleAnswer $translateRuleAnswer, bool $overwrite = false): void
+    {
+        $this->authorizeWrite();
+
+        $locales = config('app.supported_locales');
+
+        if (! in_array($from, $locales, true)) {
+            return;
+        }
+
+        $this->translateConfirm = '';
+
+        if (! TranslateRuleAnswer::isAvailable() || trim((string) ($this->form->answer[$from] ?? '')) === '') {
+            $reason = TranslateRuleAnswer::isAvailable() ? 'empty' : 'off';
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('chatbot_admin.rules.translate.'.$reason), type: 'error');
+
+            return;
+        }
+
+        $filled = array_filter(
+            array_diff($locales, [$from]),
+            fn (string $locale): bool => trim((string) ($this->form->answer[$locale] ?? '')) !== '',
+        );
+
+        if ($filled !== [] && ! $overwrite) {
+            $this->translateConfirm = $from;
+
+            return;
+        }
+
+        $limits = (array) config('chatbot.ai.translate');
+
+        if (RateLimiter::hit('chat-ai:trans:user:'.auth()->id(), 3600) > (int) ($limits['per_hour_user'] ?? 20)
+            || RateLimiter::hit('chat-ai:trans:global:minute', 60) > (int) ($limits['per_minute_global'] ?? 30)) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('chatbot_admin.rules.translate.limited'), type: 'error');
+
+            return;
+        }
+
+        try {
+            $texts = $translateRuleAnswer->handle((string) ($this->form->answer[$from] ?? ''), $from, auth()->user());
+        } catch (ValidationException $exception) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: collect($exception->errors())->flatten()->first(), type: 'error');
+
+            return;
+        }
+
+        foreach ($texts as $locale => $text) {
+            $this->form->answer[$locale] = $text;
+        }
+
+        $this->dispatch('toast', title: __('admin.toast.done'), body: __('chatbot_admin.rules.translate.done'));
+    }
+
+    public function cancelTranslate(): void
+    {
+        $this->translateConfirm = '';
     }
 
     public function delete(DeleteChatRule $deleteChatRule): void
@@ -228,6 +376,7 @@ class Form extends Component
             'canSave' => $rule ? $user->can('update', $rule) : $user->can('create', ChatRule::class),
             'canDelete' => $rule && ! $rule->is_system && $user->can('delete', $rule),
             'canUseUrl' => $user->hasRole(Role::Admin),
+            'canTranslate' => TranslateRuleAnswer::isAvailable() && ($rule ? $user->can('update', $rule) : $user->can('create', ChatRule::class)),
             'actions' => collect(ChatAction::cases())->mapWithKeys(fn (ChatAction $action): array => [$action->value => $action->label()])->all(),
             'matchTypes' => collect(KeywordMatch::cases())->mapWithKeys(fn (KeywordMatch $type): array => [$type->value => $type->label()])->all(),
             'targets' => collect(LinkTargets::targets())->mapWithKeys(fn (string $target): array => [$target => __('chatbot_admin.targets.'.$target)])->all(),

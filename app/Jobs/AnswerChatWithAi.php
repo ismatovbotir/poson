@@ -3,9 +3,12 @@
 namespace App\Jobs;
 
 use App\Actions\Chat\AiAnswer;
+use App\Actions\Chat\AiProductCandidate;
 use App\Actions\Chat\AnswerWithAi;
 use App\Actions\Chat\HandleChatInput;
 use App\Actions\Chat\RecordAiUsage;
+use App\Actions\Chat\RecordUnmatched;
+use App\Enums\AiUsageChannel;
 use App\Enums\ChatAiRole;
 use App\Enums\ChatAiStatus;
 use App\Enums\ChatChannel;
@@ -46,8 +49,9 @@ use Throwable;
  *       the bot is on → the rule reply is replayed, no call.
  *  2. Re-run the engine on the redacted turn: when a rule now answers it
  *     directly, that reply is sent with no call (superseded/"direct").
- *  3. Build the prompt, reserve the daily cap atomically (over: "capped",
- *     rule reply). The reservation is remembered in the cache by turn id,
+ *  3. Product candidates (FindAiProducts) and the history window
+ *     (AiHistory) are read, the prompt built, the daily cap reserved
+ *     atomically (over: "capped", rule reply, once-a-day alert). The reservation is remembered in the cache by turn id,
  *     so failed() can settle it if the worker dies later (M2).
  *  4. "typing…" (3 s, errors swallowed), then the call outside any
  *     transaction. ANY Throwable from here on becomes a "failed" answer:
@@ -56,6 +60,9 @@ use Throwable;
  *     superseded or disabled as in 1, tokens still counted), insert the
  *     assistant row (answers_turn_id is unique: a second run stops here),
  *     settle, then deliverAi() or replay(). SendBotAnswer goes after commit.
+ *     An answered question is also recorded as an unmatched phrase
+ *     (RecordUnmatched, under its caps) and the assistant row is linked to
+ *     it with the reply locale, for "Teach from AI answer" (AI-B15).
  *  A 401/403 pauses AI (AiSwitch) and sends one management alert a day (M3).
  *
  * Logs: ids, status, reason or error class only, never text (AI-21).
@@ -130,12 +137,13 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
         }
 
         $original = $marker->original;
-        $request = $ai->prepare($context, $turn->text, $marker->ruleId);
+        $products = $ai->products($context, $turn->text);
+        $request = $ai->prepare($context, $turn->text, $marker->ruleId, $ai->history($user, $turn), $products);
         $reserved = $request->estimatedBilledTokens();
-        $day = $usage->reserve($channel, $reserved);
+        $day = $usage->reserve(AiUsageChannel::fromChatChannel($channel), $reserved);
 
         if ($day === null) {
-            $usage->capped($channel);
+            $usage->capReached(AiUsageChannel::fromChatChannel($channel));
             $this->finish($chat, $ai, $usage, $context, $original, new AiAnswer(ChatAiStatus::Capped, '', null, 'daily_cap', $ai->promptHash($request)));
 
             return;
@@ -145,7 +153,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
         try {
             $this->typing($telegram, $user);
-            $answer = $ai->answer($model, $request, $channel);
+            $answer = $ai->answer($model, $request, $channel, $products);
         } catch (Throwable $error) {
             $answer = new AiAnswer(ChatAiStatus::Failed, '', null, mb_substr(class_basename($error), 0, 40), $ai->promptHash($request));
         }
@@ -158,7 +166,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
             $this->alertAuthFailed();
         }
 
-        $this->finish($chat, $ai, $usage, $context, $original, $answer);
+        $this->finish($chat, $ai, $usage, $context, $original, $answer, $products);
     }
 
     /**
@@ -174,7 +182,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
             $reservation = Cache::pull($this->reservationKey());
 
             if (is_array($reservation)) {
-                app(RecordAiUsage::class)->settle($channel, (string) $reservation['day'], (int) $reservation['tokens'], ChatAiStatus::Failed, null);
+                app(RecordAiUsage::class)->settle(AiUsageChannel::fromChatChannel($channel), (string) $reservation['day'], (int) $reservation['tokens'], ChatAiStatus::Failed, null);
             }
 
             DB::transaction(function (): void {
@@ -194,13 +202,14 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
     /**
      * @param  ChatReply  $original  The engine's reply without AI (P5)
+     * @param  list<AiProductCandidate>  $products  The candidates the model was given
      */
-    private function finish(HandleChatInput $chat, AnswerWithAi $ai, RecordAiUsage $usage, ChatContext $context, ChatReply $original, AiAnswer $answer): void
+    private function finish(HandleChatInput $chat, AnswerWithAi $ai, RecordAiUsage $usage, ChatContext $context, ChatReply $original, AiAnswer $answer, array $products = []): void
     {
         // L3: see a switch-off that happened during the call (memo only, the cache stays).
         ChatbotSwitch::forgetMemo();
 
-        DB::transaction(function () use ($chat, $ai, $usage, $context, $original, $answer): void {
+        DB::transaction(function () use ($chat, $ai, $usage, $context, $original, $answer, $products): void {
             [$user, $turn] = $this->locked();
             $moot = $user === null || $turn === null ? self::SUPERSEDED : $this->moot($user, $turn);
             $status = match ($moot) {
@@ -212,7 +221,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
             $reservation = Cache::get($this->reservationKey());
 
             if (is_array($reservation)) {
-                $usage->settle($context->channel, (string) $reservation['day'], (int) $reservation['tokens'], $status, $answer->result);
+                $usage->settle(AiUsageChannel::fromChatChannel($context->channel), (string) $reservation['day'], (int) $reservation['tokens'], $status, $answer->result);
                 DB::afterCommit(fn () => Cache::forget($this->reservationKey()));
             }
 
@@ -221,7 +230,8 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
             }
 
             if ($status->isDelivered()) {
-                $chat->deliverAi($user, $ai->reply($answer, $context->locale));
+                $this->linkUnmatched($user, $turn, $context);
+                $chat->deliverAi($user, $ai->reply($answer, $context->locale, $products));
 
                 return;
             }
@@ -306,7 +316,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
                 'cache_write_tokens' => $result->cacheWriteTokens ?? 0,
                 'stop_reason' => $result?->stopReason !== null ? mb_substr($result->stopReason, 0, 30) : ($answer?->reason !== null ? mb_substr($answer->reason, 0, 30) : null),
                 'prompt_hash' => $answer?->promptHash ?: null,
-                'product_ids' => null,
+                'product_ids' => $answer !== null && $answer->productIds !== [] ? $answer->productIds : null,
                 'latency_ms' => $result?->latencyMs,
             ]);
         } catch (UniqueConstraintViolationException) {
@@ -314,6 +324,20 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
         }
 
         return true;
+    }
+
+    /**
+     * An answered question goes on the unmatched list too (RecordUnmatched,
+     * same redaction and caps) and its answer row is linked to that phrase
+     * with the reply locale (plan 30 §16, AI-B15).
+     */
+    private function linkUnmatched(TelegramUser $user, ChatAiTurn $turn, ChatContext $context): void
+    {
+        $unmatchedId = app(RecordUnmatched::class)->handle($user, $context->locale, $turn->text);
+
+        ChatAiTurn::query()
+            ->where('answers_turn_id', $turn->id)
+            ->update(['chat_unmatched_id' => $unmatchedId, 'locale' => $context->locale]);
     }
 
     /**

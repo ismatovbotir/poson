@@ -182,6 +182,34 @@ it('blocks an answer with an amount and sends the rule reply with no amount on t
     'ming som' => ['Narxi 500 ming soʻm', '500 ming'],
     'mln sum ru' => ['Цена 1,5 млн сум', '1,5 млн'],
     'bare number' => ['Нарх: 1500000', '1500000'],
+    // Plan 30 §19 H1, L2.
+    'narxi 9000' => ['ZD421 narxi 9000.', '9000'],
+    '900k' => ['ZD421 narxi 900k.', '900k'],
+    '900 минг' => ['ZD421 нархи 900 минг.', '900 минг'],
+    'delivery fee' => ['Yetkazish narxi 50000.', '50000'],
+    'about $100' => ['ZD421 (about $100)', '$100'],
+    '700 юаней' => ['ZD421 — 700 юаней', '700 юаней'],
+    '100 bucks' => ['ZD421 is 100 bucks', '100 bucks'],
+    '50 000 тенге' => ['ZD421 — 50 000 тенге', '50 000 тенге'],
+]);
+
+it('blocks discount words, bare handles and spelled-out domains in the chat (abuse cases 5 and 6)', function (string $answer, string $needle) {
+    aiaOn();
+    FakeChatModel::bind($answer);
+    cbUser();
+
+    cbText(AIA_PHRASE);
+
+    expect(aiaAssistant()->status)->toBe(ChatAiStatus::Blocked)
+        ->and(cbLast())->toBe(aiaFallback())
+        ->and(aiaWire())->not->toContain($needle);
+})->with([
+    'foiz' => ['Hozir 50 foiz kamroq.', 'foiz'],
+    'процентов' => ['Сейчас минус 30 процентов.', 'процентов'],
+    'skidka' => ['Skidka bor.', 'Skidka'],
+    'bot handle' => ['Xizmat uchun Telegramda poson_support_bot ga yozing.', 'poson_support_bot'],
+    'messenger handle' => ['Напишите в Telegram: posonservice', 'posonservice'],
+    'spelled domain' => ['Saytimiz posonuz dot shop', 'posonuz'],
 ]);
 
 it('blocks an answer with a link or host and sends nothing clickable', function (string $answer, string $needle) {
@@ -551,7 +579,11 @@ it('gives one model call to two jobs at the daily cap minus one and replays the 
         ->and($usage->capped)->toBe(1)
         ->and($usage->requests)->toBe(1500)
         ->and($usage->reserved_tokens)->toBe(0)
-        ->and(cbSentCount())->toBe(2)
+        // The two customer replies plus the once-a-day, counts-only cap alert to management (phase B, AI-B13).
+        ->and(cbSentCount())->toBe(3)
+        ->and(collect(telegramApiCalls())->where('method', 'sendMessage')->filter(fn (array $call): bool => str_contains((string) ($call['data']['text'] ?? ''), e(__('telegram.monitoring.events.ai_daily_cap', [], 'uz')))))->toHaveCount(1)
+        ->and(collect(telegramApiCalls())->where('method', 'sendMessage')->first(fn (array $call): bool => str_contains((string) ($call['data']['text'] ?? ''), e(__('telegram.monitoring.events.ai_daily_cap', [], 'uz'))))['data']['chat_id'] ?? null)->toBe(config('services.telegram.chats.management'))
+
         ->and(cbLast())->toBe(aiaFallback());
 });
 

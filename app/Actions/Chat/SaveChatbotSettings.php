@@ -43,6 +43,9 @@ use Illuminate\Validation\ValidationException;
  * chatbot.ai.instructions_max characters, no links, @handles, emails,
  * phone- or card-like numbers or price-level words; audited with the old and
  * new text (SettingsAudit::recordText).
+ * "ai_translate_enabled" ("Translate with Claude" in the rule editor,
+ * AI-B14): switching ON is Admin only and needs the API key (no customer
+ * data, so no privacy gate); switching OFF is open to chatbot.settings.
  *
  * Input keys are optional: only the ones present are written.
  */
@@ -182,6 +185,25 @@ class SaveChatbotSettings
             $switches[$key] = $want;
         }
 
+        // "Translate with Claude" in the rule editor (AI-B14): its own kill switch, Admin-only to enable,
+        // needs the key; a Content manager may switch it off. No customer data, so no privacy gate.
+        if (array_key_exists('ai_translate_enabled', $data)) {
+            $want = filter_var($data['ai_translate_enabled'], FILTER_VALIDATE_BOOLEAN);
+            $key = ChatSettings::key('ai_translate_enabled');
+
+            if ($want !== ($this->stored($key) === true)) {
+                if ($want && ! $isAdmin) {
+                    throw new AuthorizationException;
+                }
+
+                if ($want && ! AiSwitch::keyConfigured()) {
+                    throw ValidationException::withMessages(['ai_translate_enabled' => __('chatbot_admin.settings.ai_key_missing')]);
+                }
+
+                $switches[$key] = $want;
+            }
+        }
+
         $values = [];
 
         foreach (['ai_daily_requests' => 'requests', 'ai_daily_tokens' => 'tokens'] as $field => $cap) {
@@ -192,7 +214,7 @@ class SaveChatbotSettings
             $value = $this->integer($data[$field], 0, (int) config("chatbot.ai.caps.{$cap}_max"), $field);
             $current = filter_var($this->stored(ChatSettings::key($field)), FILTER_VALIDATE_INT);
 
-            if ($value === ($current === false ? (int) config("chatbot.ai.caps.{$cap}") : $current)) {
+            if ($value === ($current === false ? (int) config("chatbot.ai.caps.telegram.{$cap}") : $current)) {
                 continue;
             }
 

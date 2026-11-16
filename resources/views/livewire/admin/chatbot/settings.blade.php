@@ -83,6 +83,14 @@
                 @else
                     <p class="text-sm text-slate-500" data-ai-web-not-ready>{{ __($t.'.ai_web_not_ready') }}</p>
                 @endif
+                @if ($isAdmin || $form->ai_translate_enabled)
+                    <x-admin.toggle wire:model="form.ai_translate_enabled" :label="__($t.'.ai_translate_enabled')" :description="$isAdmin ? __($t.'.ai_translate_enabled_hint') : __($t.'.ai_disable_only')" data-ai-translate-switch />
+                @else
+                    <div class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5 text-sm" data-ai-translate-readonly>
+                        <span class="font-semibold">{{ __($t.'.ai_translate_enabled') }}</span>
+                        <x-admin.badge color="muted" pill dot>{{ __($t.'.off') }}</x-admin.badge>
+                    </div>
+                @endif
 
                 @if ($isAdmin)
                     <div class="grid gap-4 sm:grid-cols-2">

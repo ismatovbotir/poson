@@ -4,10 +4,13 @@ namespace App\Livewire\Admin\Chatbot\Unmatched;
 
 use App\Actions\Chat\AddKeywordFromUnmatched;
 use App\Actions\Chat\ResolveUnmatched;
+use App\Enums\ChatAiRole;
+use App\Enums\ChatAiStatus;
 use App\Enums\ChatChannel;
 use App\Enums\KeywordMatch;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
+use App\Models\ChatAiTurn;
 use App\Models\ChatRule;
 use App\Models\ChatUnmatched;
 use Illuminate\Contracts\View\View;
@@ -23,6 +26,12 @@ use Livewire\Component;
  * understand, most frequent first. Per phrase: add it as a keyword of a rule
  * (AddKeywordFromUnmatched), start a new rule with it, or ignore it. Phrases
  * are stored already redacted (CB-10) and shown as plain text.
+ *
+ * AI answers (plan 30 §16, AI-B16, AI-B17): each phrase shows how many
+ * customers (distinct telegram_user_id) got an AI answer to it, and the list
+ * is sorted by that first, so the most valuable questions are taught first.
+ * "Teach from AI answer" opens the rule form with only the phrase id; the
+ * server picks the answer there. Counts only: no AI text on this screen.
  */
 #[Layout('layouts::admin')]
 class Index extends Component
@@ -136,9 +145,19 @@ class Index extends Component
         $this->authorize('viewAny', ChatUnmatched::class);
 
         $items = ChatUnmatched::query()
+            ->select('chat_unmatched.*')
+            ->selectSub(
+                ChatAiTurn::query()
+                    ->selectRaw('count(distinct telegram_user_id)')
+                    ->whereColumn('chat_ai_turns.chat_unmatched_id', 'chat_unmatched.id')
+                    ->where('role', ChatAiRole::Assistant->value)
+                    ->whereIn('status', [ChatAiStatus::Answered->value, ChatAiStatus::Truncated->value]),
+                'ai_answered',
+            )
             ->with('resolvedRule:id,name')
             ->when($this->show === 'resolved', fn (Builder $query) => $query->whereNotNull('resolved_at'), fn (Builder $query) => $query->whereNull('resolved_at'))
             ->when(ChatChannel::tryFrom($this->channel), fn (Builder $query, ChatChannel $channel) => $query->where('channel', $channel->value))
+            ->orderByDesc('ai_answered')
             ->orderByDesc('count')
             ->orderByDesc('last_seen_at')
             ->paginate(self::PER_PAGE);

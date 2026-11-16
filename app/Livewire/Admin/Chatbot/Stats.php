@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Chatbot;
 
+use App\Enums\AiUsageChannel;
 use App\Enums\ChatChannel;
 use App\Enums\ChatMetric;
 use App\Models\ChatAiUsageDaily;
@@ -19,8 +20,10 @@ use Livewire\Component;
  * Chat bot → Stats (plan 28 C2, chatbot.rules): the daily counters of the
  * last 7, 30 or 90 days. Totals per metric and channel, the rules that
  * answered most, and the number of phrases waiting to be taught. Counts only.
- * AI answers (plan 30 §9): chat_ai_usage_daily per day and channel with an
- * estimated cost in USD (config chatbot.ai.prices).
+ * AI usage (plan 30 §9, phase B): chat_ai_usage_daily per day and
+ * AiUsageChannel (the chat bot channels and the admin helpers such as
+ * "Translate with Claude") with an estimated cost in USD (config
+ * chatbot.ai.prices). The channel filter narrows it to that chat channel.
  */
 #[Layout('layouts::admin')]
 class Stats extends Component
@@ -94,8 +97,8 @@ class Stats extends Component
             ->when($channel, fn (Builder $query, ChatChannel $channel) => $query->where('channel', $channel->value))
             ->orderByDesc('day')
             ->orderBy('channel')
-            // At most 90 days x 2 channels = 180 rows: one aggregated row per day and channel.
-            ->limit(count(ChatChannel::cases()) * max(self::RANGES))
+            // At most 90 days x 5 usage channels = 450 rows: one aggregated row per day and channel.
+            ->limit(count(AiUsageChannel::cases()) * max(self::RANGES))
             ->get()
             ->map(fn (ChatAiUsageDaily $row): array => [
                 'day' => $row->day->toDateString(),

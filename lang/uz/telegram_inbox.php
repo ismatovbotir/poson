@@ -208,6 +208,16 @@ return [
         'limited' => 'koʻchirilmadi, limitga yetildi',
         'failed' => 'koʻchirilmadi, xatolik',
     ],
+    'ai' => [
+        'title' => 'Bot bilan yozishma',
+        'show' => 'Bot bilan yozishmani koʻrsatish',
+        'hide' => 'Yashirish',
+        'note' => 'Chat sizga kelishidan oldin bot SI yordamida javob bergan savollar. Shaxsiy maʼlumotlar yashirilgan. :days kun saqlanadi.',
+        'empty' => 'Bu chatda SI javoblari yoʻq.',
+        'badge' => 'SI',
+        'customer' => 'Mijoz',
+        'not_delivered' => 'Yuborilmadi: :status',
+    ],
     'history' => [
         'title' => 'Tarix',
         'empty' => 'Hozircha amallar yoʻq.',

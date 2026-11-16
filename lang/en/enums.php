@@ -525,6 +525,14 @@ return [
         'confirm' => 'Confirmation',
     ],
 
+    'ai_usage_channel' => [
+        'web' => 'Website',
+        'telegram' => 'Telegram',
+        'adm_vision' => 'Admin: photo reading',
+        'adm_write' => 'Admin: text writing',
+        'adm_trans' => 'Admin: translation',
+    ],
+
     'chat_ai_role' => [
         'user' => 'Customer',
         'assistant' => 'AI assistant',

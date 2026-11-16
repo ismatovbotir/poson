@@ -4,10 +4,13 @@ namespace App\Actions\Chat;
 
 use App\Enums\ChatAction;
 use App\Enums\ChatChannel;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\FaqItem;
 use App\Models\Setting;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Chat\AiOutputFilter;
+use App\Support\Chat\AiPriceCandidate;
 use App\Support\Chat\AiPrompt;
 use App\Support\Chat\RuleIndex;
 use App\Support\Chat\Skills\CompanyInfoSkill;
@@ -42,6 +45,8 @@ class BuildAiKnowledge
     private const CATEGORY_LIMIT = 80;
 
     private const FIELD_MAX = 500;
+
+    private const BRANDS_TTL = 300;
 
     public function __construct(
         private readonly RuleIndex $index,
@@ -82,6 +87,63 @@ class BuildAiKnowledge
     public function contacts(): array
     {
         return $this->company->publicContacts();
+    }
+
+    /**
+     * The AI output filter with the site's own hosts and the public company
+     * contacts allowed (shared by the chat answers, the taught rules and
+     * "Translate with Claude").
+     *
+     * @param  list<AiPriceCandidate>  $amounts  The only amounts the text may name
+     */
+    public function outputFilter(array $amounts = []): AiOutputFilter
+    {
+        $host = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $hosts = $host === '' ? [] : [$host, str_starts_with($host, 'www.') ? substr($host, 4) : 'www.'.$host];
+        $contacts = $this->contacts();
+
+        return new AiOutputFilter($hosts, $contacts['phones'], $contacts['emails'], $amounts, $this->handles(), $this->brands());
+    }
+
+    /**
+     * The catalog brand names, lowercased (a brand after a messenger word is
+     * not a handle, M2). Cached briefly (BRANDS_TTL).
+     *
+     * @return list<string>
+     */
+    public function brands(): array
+    {
+        return Cache::remember('chatbot:ai:brands', self::BRANDS_TTL, fn (): array => Brand::query()
+            ->orderBy('id')
+            ->limit(1000)
+            ->pluck('name')
+            ->map(fn (mixed $name): string => mb_strtolower(trim((string) $name)))
+            ->filter(fn (string $name): bool => $name !== '')
+            ->unique()
+            ->values()
+            ->all());
+    }
+
+    /**
+     * The company's own messenger handles: the first path segment of each
+     * social link ("https://t.me/poson_uz" → "poson_uz"), lowercased.
+     *
+     * @return list<string>
+     */
+    public function handles(): array
+    {
+        $handles = [];
+
+        foreach ($this->settings->social() as $link) {
+            $path = trim((string) parse_url((string) $link['url'], PHP_URL_PATH), '/');
+            $handle = mb_strtolower(ltrim(explode('/', $path)[0], '@'));
+
+            if ($handle !== '') {
+                $handles[] = $handle;
+            }
+        }
+
+        return array_values(array_unique($handles));
     }
 
     private function build(string $locale, ChatChannel $channel): string

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -63,6 +64,16 @@ class ChatUnmatched extends Model
     public function resolvedRule(): BelongsTo
     {
         return $this->belongsTo(ChatRule::class, 'resolved_rule_id');
+    }
+
+    /**
+     * Assistant turns that answered this phrase with AI (plan 30 §16, AI-B15).
+     *
+     * @return HasMany<ChatAiTurn, $this>
+     */
+    public function aiTurns(): HasMany
+    {
+        return $this->hasMany(ChatAiTurn::class, 'chat_unmatched_id');
     }
 
     /**

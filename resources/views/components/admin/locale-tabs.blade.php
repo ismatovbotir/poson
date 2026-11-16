@@ -1,10 +1,10 @@
-@props(['errorKeys' => [], 'label' => null])
+@props(['errorKeys' => [], 'label' => null, 'default' => null])
 
 {{--
     uz / ru / en tabs for translatable fields. Put one <x-admin.locale-panel locale="…">
     per locale in the slot. errorKeys: field prefixes such as ['form.name', 'form.description'];
     a tab gets a red dot when "<key>.<locale>" has an error, and the first tab with
-    errors opens automatically.
+    errors opens automatically; otherwise the "default" locale (if given), else the first.
 
     <x-admin.locale-tabs :error-keys="['form.name']">
         @foreach (config('app.supported_locales') as $locale)
@@ -20,7 +20,7 @@
         ->filter(fn (string $locale): bool => collect($errorKeys)->contains(fn (string $key): bool => $errors->has("{$key}.{$locale}")))
         ->values()
         ->all();
-    $initial = $withErrors[0] ?? $locales[0];
+    $initial = $withErrors[0] ?? (in_array($default, $locales, true) ? $default : $locales[0]);
     $tabsId = 'lt-'.substr(md5(implode('|', $errorKeys).($label ?? '')), 0, 8);
 @endphp
 

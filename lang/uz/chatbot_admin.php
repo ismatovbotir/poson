@@ -5,6 +5,28 @@
  */
 return [
     'rules' => [
+        'teach' => [
+            'notice' => 'SI javobidan (:locale) qoralama sifatida toʻldirildi. Tilni, faktlarni va kalit soʻzlarni tekshiring, matnda mijozlar ismi va toʻlov boʻyicha koʻrsatmalar yoʻqligiga ishonch hosil qiling, soʻng saqlang. «Saqlash»ni bosmaguningizcha hech narsa saqlanmaydi.',
+            'answer_blocked' => 'Bu javobni SI javobidan saqlab boʻlmaydi: unda havola, kontakt, raqam, summa yoki bot ishlatmasligi kerak boʻlgan ibora bor.',
+            'too_many_keywords' => 'SI javobidan oʻrgatilgan qoidada koʻpi bilan :max ta kalit soʻz boʻlishi mumkin.',
+            'no_exact' => 'SI javobidan oʻrgatilgan qoidada «aniq» kalit soʻzlar ishlatilmaydi.',
+            'weight_max' => 'SI javobidan oʻrgatilgan qoida: ogʻirlik koʻpi bilan :max.',
+        ],
+        'translate' => [
+            'button' => 'Claude bilan tarjima',
+            'hint' => 'Shu matndan qolgan ikki tilni toʻldiradi. Saqlashdan oldin tekshiring.',
+            'done' => 'Qolgan ikki til toʻldirildi. Saqlashdan oldin tekshiring.',
+            'overwrite_question' => ':locales javobida allaqachon matn bor. Uni tarjima bilan almashtirasizmi?',
+            'overwrite' => 'Almashtirish',
+            'limited' => 'Hozir tarjimalar juda koʻp. Keyinroq urinib koʻring.',
+            'off' => 'Claude bilan tarjima oʻchirilgan.',
+            'invalid' => 'Bu tilni tarjima qilib boʻlmaydi.',
+            'empty' => 'Avval shu tilda javob yozing.',
+            'too_long' => 'Matn tarjima uchun juda uzun (koʻpi bilan :max belgi).',
+            'cap' => 'Tarjimalarning kunlik limiti tugadi. Ertaga urinib koʻring.',
+            'failed' => 'Tarjima qilib boʻlmadi. Keyinroq urinib koʻring.',
+            'blocked' => 'Tarjima rad etildi: unda havola, kontakt, summa yoki bot ishlatmasligi kerak boʻlgan ibora bor. Qoʻlda tarjima qiling.',
+        ],
         'title' => 'Qoidalar',
         'subtitle' => 'Bot javob beradigan mavzular: kalit soʻzlar va javoblar.',
         'create' => 'Qoida qoʻshish',
@@ -114,6 +136,8 @@ return [
         'not_teachable' => 'Bu iborani kalit soʻz qilib boʻlmaydi: u juda qisqa yoki faqat yashirilgan maʼlumotdan iborat.',
         'taught' => 'Kalit soʻz «:rule» qoidasiga qoʻshildi.',
         'ignored' => 'Ibora eʼtiborsiz qoldirildi.',
+        'ai_answered' => 'SI javob bergan mijozlar: :count',
+        'teach_from_ai' => 'SI javobidan oʻrgatish',
     ],
     'console' => [
         'title' => 'Sinov konsoli',
@@ -261,6 +285,8 @@ return [
         'ai_web_enabled' => 'Saytdagi chatda SI javoblari',
         'ai_web_not_ready' => 'Saytdagi chatda SI javoblari sayt chati bilan birga ishga tushadi.',
         'ai_disable_only' => 'SI javoblarini oʻchirishingiz mumkin. Yoqishni faqat administrator bajaradi.',
+        'ai_translate_enabled' => 'Qoida muharririda «Claude bilan tarjima»',
+        'ai_translate_enabled_hint' => 'Faqat administrator yoqadi. Muharrirlar qoida javobini qolgan ikki tilga tarjima qiluvchi tugmani oladi; saqlashdan oldin uni tekshiradi.',
         'ai_daily_requests' => 'Kunlik SI soʻrovlari',
         'ai_daily_requests_hint' => 'Shu songa yetgach, bot ertagacha (Toshkent vaqti) qoidalar boʻyicha javob beradi.',
         'ai_daily_tokens' => 'Kunlik SI tokenlari',

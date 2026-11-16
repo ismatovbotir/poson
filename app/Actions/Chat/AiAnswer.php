@@ -9,7 +9,8 @@ use App\Services\Ai\AiResult;
  * The outcome of one AI call after the output filter (plan 30): the status,
  * the filtered text (only for answered / truncated), the raw usage (null
  * when no call returned), a short machine reason (blocked reason or error
- * class, never text) and the prompt hash.
+ * class, never text), the prompt hash and the ids of the product
+ * candidates the model was given.
  */
 final readonly class AiAnswer
 {
@@ -19,5 +20,7 @@ final readonly class AiAnswer
         public ?AiResult $result,
         public ?string $reason,
         public string $promptHash,
+        /** @var list<int> */
+        public array $productIds = [],
     ) {}
 }

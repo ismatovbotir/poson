@@ -5,6 +5,28 @@
  */
 return [
     'rules' => [
+        'teach' => [
+            'notice' => 'Filled in from an AI answer (:locale) as a draft. Check the language, the facts and the keywords, and make sure there are no customer names or payment instructions, then save. Nothing is saved until you press Save.',
+            'answer_blocked' => 'This answer cannot be saved from an AI answer: it contains a link, a contact, a number, an amount or wording the bot may not use.',
+            'too_many_keywords' => 'A rule taught from an AI answer can have at most :max keywords.',
+            'no_exact' => 'A rule taught from an AI answer cannot use “exact” keywords.',
+            'weight_max' => 'A rule taught from an AI answer: weight at most :max.',
+        ],
+        'translate' => [
+            'button' => 'Translate with Claude',
+            'hint' => 'Fills the other two languages from this text. Check them before saving.',
+            'done' => 'The other two languages were filled in. Check them before saving.',
+            'overwrite_question' => 'The :locales answer already has text. Replace it with the translation?',
+            'overwrite' => 'Replace',
+            'limited' => 'Too many translations right now. Please try again later.',
+            'off' => 'Translation with Claude is switched off.',
+            'invalid' => 'This language cannot be translated.',
+            'empty' => 'Write the answer in this language first.',
+            'too_long' => 'The text is too long to translate (at most :max characters).',
+            'cap' => 'The daily translation limit has been reached. Please try again tomorrow.',
+            'failed' => 'The translation did not work. Please try again later.',
+            'blocked' => 'The translation was rejected: it contained a link, a contact, an amount or wording the bot may not use. Please translate by hand.',
+        ],
         'title' => 'Rules',
         'subtitle' => 'The topics the bot answers: keywords and replies.',
         'create' => 'Add rule',
@@ -114,6 +136,8 @@ return [
         'not_teachable' => 'This phrase cannot become a keyword: it is too short or only hidden data.',
         'taught' => 'The keyword was added to the rule “:rule”.',
         'ignored' => 'The phrase was ignored.',
+        'ai_answered' => 'AI answered :count customer(s)',
+        'teach_from_ai' => 'Teach from AI answer',
     ],
     'console' => [
         'title' => 'Test console',
@@ -261,6 +285,8 @@ return [
         'ai_web_enabled' => 'AI answers in the website chat',
         'ai_web_not_ready' => 'AI answers in the website chat arrive with the website chat.',
         'ai_disable_only' => 'You can switch AI answers off. Only an Admin can switch them on.',
+        'ai_translate_enabled' => '“Translate with Claude” in the rule editor',
+        'ai_translate_enabled_hint' => 'Only an Admin can switch this on. Editors get a button that translates a rule answer into the other two languages; they check it before saving.',
         'ai_daily_requests' => 'AI requests per day',
         'ai_daily_requests_hint' => 'After this number the bot answers by the rules until tomorrow (Tashkent time).',
         'ai_daily_tokens' => 'AI tokens per day',
