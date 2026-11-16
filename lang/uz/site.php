@@ -15,6 +15,13 @@ return [
         'en' => 'English',
     ],
 
+    // T7: HTTP 429 page and the toast shown when the Livewire update route is throttled.
+    'throttle' => [
+        'title' => 'Juda koʻp soʻrov',
+        'text' => 'Iltimos, :seconds soniya kutib, qayta urinib koʻring.',
+        'toast' => 'Juda koʻp soʻrov. :seconds soniyadan keyin qayta urinib koʻring.',
+    ],
+
     'a11y' => [
         'skip_to_content' => 'Asosiy mazmunga oʻtish',
     ],
@@ -135,6 +142,11 @@ return [
 
         'brands' => [
             'title' => 'Brendlar',
+        ],
+
+        'social' => [
+            'title' => 'Bizni ijtimoiy tarmoqlarda kuzating',
+            'text' => 'Yangiliklar, yangi mahsulotlar va foydali maslahatlar bizning sahifalarimizda.',
         ],
 
         'lead' => [

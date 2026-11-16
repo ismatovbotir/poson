@@ -12,7 +12,7 @@
                 <a
                     href="{{ $link['url'] }}"
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow"
                     @class([
                         'grid size-10 place-items-center rounded-btn transition-colors',
                         'bg-ink-line text-white hover:bg-brand-600 focus-visible:outline-white' => $variant === 'dark',

@@ -231,6 +231,18 @@
         </div>
     @endif
 
+    {{-- Follow us: links come only from CompanySettings::social(); hidden when there are none;
+         background alternates with the section before it (FAQ is soft, news is white) --}}
+    @if ($socialLinks !== [])
+        <section @class(['py-12 md:py-[72px]', 'bg-bg-soft' => $faq === []]) aria-labelledby="social-title" data-home-social>
+            <div class="site-container flex flex-col items-center gap-4 text-center">
+                <h2 id="social-title" class="text-[24px] leading-[1.15] font-bold tracking-[-0.02em] md:text-[28px]">{{ __('site.home.social.title') }}</h2>
+                <p class="max-w-xl text-ink-2">{{ __('site.home.social.text') }}</p>
+                <x-site.social-links :links="$socialLinks" variant="light" class="justify-center" />
+            </div>
+        </section>
+    @endif
+
     {{-- Lead form --}}
     <section id="lead" class="scroll-mt-28 py-12 md:py-[72px]" aria-labelledby="lead-title">
         <div class="site-container">

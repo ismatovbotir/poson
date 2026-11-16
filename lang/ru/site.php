@@ -15,6 +15,13 @@ return [
         'en' => 'English',
     ],
 
+    // T7: HTTP 429 page and the toast shown when the Livewire update route is throttled.
+    'throttle' => [
+        'title' => 'Слишком много запросов',
+        'text' => 'Пожалуйста, подождите :seconds с и повторите попытку.',
+        'toast' => 'Слишком много запросов. Повторите через :seconds с.',
+    ],
+
     'a11y' => [
         'skip_to_content' => 'Перейти к содержимому',
     ],
@@ -135,6 +142,11 @@ return [
 
         'brands' => [
             'title' => 'Бренды',
+        ],
+
+        'social' => [
+            'title' => 'Мы в соцсетях',
+            'text' => 'Новости, новые поступления и полезные советы — на наших страницах.',
         ],
 
         'lead' => [

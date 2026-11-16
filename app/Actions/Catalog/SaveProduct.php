@@ -19,6 +19,7 @@ use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductSearchText;
+use App\Support\Catalog\ProductTextRules;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\HtmlSanitizer;
 use App\Support\Orders\CheckoutSettings;
@@ -36,7 +37,9 @@ use Illuminate\Validation\ValidationException;
  * - SKU is trimmed and upper-cased; SKU and slug are unique including
  *   trashed products. The slug is generated once from the en name, else
  *   uz, and never changes after that (incoming slugs are ignored).
- * - Descriptions are sanitized (HtmlSanitizer).
+ * - Descriptions are sanitized (HtmlSanitizer). The public texts (name, short
+ *   description, description, meta texts, model, text specs) must carry no
+ *   low-price / discount wording and only known locale keys (ProductTextRules).
  * - Spec rows (ProductAttributeResolver: category chain + extras): one value
  *   row per attribute, a multiselect one row per option; empty values are
  *   not stored. Optional category attributes can be skipped, required ones
@@ -121,6 +124,8 @@ class SaveProduct
     public function handle(?Product $product, array $data, array $specs = []): Product
     {
         $product ??= new Product;
+
+        ProductTextRules::assert($data, $specs);
 
         foreach (['ikpu_code' => CheckoutSettings::IKPU, 'package_code' => CheckoutSettings::PACKAGE_CODE] as $code => $pattern) {
             if (filled($data[$code] ?? null) && ! preg_match($pattern, trim((string) $data[$code]))) {

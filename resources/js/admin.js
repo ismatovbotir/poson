@@ -5,6 +5,7 @@
  */
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import './livewire-throttle';
 
 /**
  * Only https, mailto and site-relative ("/path") links, like the server-side

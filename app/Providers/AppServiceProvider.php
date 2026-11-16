@@ -38,6 +38,7 @@ use App\Support\Cart\CartToken;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
+use App\Support\Http\LivewireThrottle;
 use App\Support\Media\MediaReplacer;
 use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\RunRecorder;
@@ -53,8 +54,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Livewire\Mechanisms\HandleRequests\RequireLivewireHeaders;
 use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 
 class AppServiceProvider extends ServiceProvider
@@ -189,6 +192,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);
+
+        // T7: every component round trip goes through POST /livewire-{hash}/update; throttle it
+        // (staff 600/min by user, others 180/min by IP). RequireLivewireHeaders is kept explicitly.
+        RateLimiter::for('livewire', LivewireThrottle::limit(...));
+        Livewire::setUpdateRoute(fn ($handle, $path) => Route::post($path, $handle)
+            ->middleware(['web', RequireLivewireHeaders::class, 'throttle:livewire'])
+            ->name('default-livewire.update'));
 
         // Re-apply the page locale (site) and the staff check + UI locale (admin) on Livewire update requests.
         Livewire::addPersistentMiddleware([SetLocale::class, EnsureStaff::class, EnsurePasswordChanged::class, SetAdminLocale::class]);

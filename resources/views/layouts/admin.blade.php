@@ -42,6 +42,7 @@
     <title>{{ $title ? $title.' · ' : '' }}{{ __('admin.meta.app_name') }}</title>
 
     @fonts
+    <meta name="livewire-throttle" content="{{ __('site.throttle.toast', ['seconds' => '{seconds}']) }}">
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     @livewireStyles
 </head>

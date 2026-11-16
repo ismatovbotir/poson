@@ -11,6 +11,7 @@ use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
+use App\Support\Catalog\ProductTextRules;
 use App\Support\Catalog\ResolvedAttribute;
 use App\Support\Content\ContentLimits;
 use App\Support\Money;
@@ -216,18 +217,11 @@ class ProductForm extends Form
         }];
 
         return [
-            'name.uz' => ['required', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
-            'name.ru' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
-            'name.en' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
-            'short_description.*' => ['nullable', 'string', 'max:500'],
-            'description.*' => ['nullable', 'string', 'max:'.Product::DESCRIPTION_MAX],
-            'meta_title.*' => ['nullable', 'string', 'max:'.ContentLimits::SHORT_TEXT_MAX],
-            'meta_description.*' => ['nullable', 'string', 'max:500'],
+            ...ProductTextRules::rules(),
             'type' => ['required', Rule::enum(ProductType::class)],
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'brand_id' => ['nullable', 'integer', Rule::exists('brands', 'id')],
             'sku' => ['required', 'string', 'max:64', 'regex:/^[A-Z0-9][A-Z0-9._\/+ -]*$/', Rule::unique('products', 'sku')->ignore($this->component->product?->id)],
-            'model' => ['nullable', 'string', 'max:255'],
             'price' => $price,
             'price_dealer' => $price,
             'price_wholesale' => $price,
@@ -248,7 +242,8 @@ class ProductForm extends Form
             'specs.*.attribute_id' => ['required', 'integer', 'distinct'],
             'specs.*.skipped' => ['boolean'],
             'specs.*.is_key' => ['boolean'],
-            'specs.*.text.*' => ['nullable', 'string', 'max:1000'],
+            'specs.*.text' => ['nullable', 'array:'.implode(',', config('app.supported_locales'))],
+            'specs.*.text.*' => ['nullable', 'string', 'max:'.ProductTextRules::SPEC_MAX, ProductTextRules::textRule()],
             'specs.*.number' => ['nullable', 'string', 'max:32'],
             'specs.*.bool' => ['nullable', 'in:0,1'],
             'specs.*.option' => ['nullable', 'integer'],
