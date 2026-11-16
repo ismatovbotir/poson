@@ -76,10 +76,11 @@ it('creates a token, shows it once and stores only its hash', function () {
         ->assertDispatched('api-token-created');
 
     $token = ApiToken::query()->sole();
-    preg_match('/data-plain-token>(pos_[A-Za-z0-9]{48})</', $component->html(), $matches);
+    preg_match('/data-plain-token\s*>(pos_[A-Za-z0-9]{48})</', $component->html(), $matches);
     $plain = $matches[1] ?? null;
 
     expect($plain)->not->toBeNull()
+        ->and(substr_count($component->html(), $plain))->toBe(1) // S10-2: once, no @js copy of the secret
         ->and($token->name)->toBe('1C main office')
         ->and($token->token_hash)->toBe(hash('sha256', $plain))
         ->and($token->token_prefix)->toBe(substr($plain, 0, 12))
@@ -183,4 +184,17 @@ it('shows integer 1C product codes in the docs examples and the code_invalid err
     $html = $this->actingAs(staffUser())->get(route('admin.settings.api-tokens'))->assertOk()->getContent();
 
     expect($html)->toContain('&quot;code&quot;: 258')->toContain('code_invalid');
+});
+
+it('renders webhook URLs and the API docs through the shared copy block without any secret', function () {
+    $token = ApiToken::factory()->withPlainText($plain = fakeApiTokenValue())->create();
+
+    $html = $this->actingAs(staffUser())->get(route('admin.settings.api-tokens'))->assertOk()->getContent();
+
+    expect($html)->toContain('data-api-docs-block="request"')->toContain('data-guide-snippet="request"')
+        ->not->toContain($plain)->not->toContain($token->token_hash);
+
+    $view = (string) view('livewire.admin.settings.partials.api-docs-code', ['key' => 'request', 'code' => 'POS_PLACEHOLDER', 'label' => 'Request', 'copyable' => false]);
+
+    expect($view)->toContain('data-api-docs-block="request"')->toContain('POS_PLACEHOLDER')->not->toContain('<button');
 });

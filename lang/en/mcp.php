@@ -89,7 +89,6 @@ return [
         'copied' => 'Copied',
         'copy_failed' => 'Copy did not work here. The text is selected: press Ctrl+C (Cmd+C on Mac).',
         'done' => 'I saved it',
-        'endpoint' => 'Server address',
         'rules_title' => 'Keep it safe',
         'rules' => [
             'Protect the config file: chmod 600 on macOS, disk encryption (FileVault or BitLocker) and a screen lock.',

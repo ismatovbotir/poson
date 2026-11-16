@@ -1372,7 +1372,6 @@ return [
                 'payme' => 'Endpoint',
                 'click_prepare' => 'Prepare',
                 'click_complete' => 'Complete',
-                'copy' => 'Copy URL',
             ],
             'test' => [
                 'button' => 'Test connection',
@@ -1493,9 +1492,6 @@ return [
             'curl_hint' => 'Keep the token out of your shell history and out of scripts stored in git.',
             't_code' => 'integer (or string)',
             'e_code_invalid' => 'code is 0, negative, a decimal number (258.0) or only zeros.',
-            'copy' => 'Copy',
-            'copied' => 'Copied',
-            'copy_failed' => 'Select the text and copy it manually.',
         ],
     ],
 

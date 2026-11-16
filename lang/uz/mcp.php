@@ -89,7 +89,6 @@ return [
         'copied' => 'Nusxalandi',
         'copy_failed' => 'Bu yerda nusxalash ishlamadi. Matn belgilangan: Ctrl+C (Macʼda Cmd+C) ni bosing.',
         'done' => 'Saqlab oldim',
-        'endpoint' => 'Server manzili',
         'rules_title' => 'Xavfsiz saqlash',
         'rules' => [
             'Sozlamalar faylini himoyalang: macOS da chmod 600, disk shifrlash (FileVault yoki BitLocker) va ekran qulfi.',

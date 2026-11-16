@@ -76,13 +76,9 @@
             @endunless
             <div class="mt-3 space-y-2">
                 @foreach ($group === 'payme' ? ['payme'] : ['click_prepare', 'click_complete'] as $hook)
-                    <div x-data="{ copied: false }" class="flex items-center gap-2">
-                        <span class="w-24 shrink-0 text-xs text-slate-500">{{ __($t.'.webhooks.'.$hook) }}</span>
-                        <input type="text" readonly value="{{ $webhookUrls[$hook] }}" class="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 font-mono text-xs text-slate-700" aria-label="{{ __($t.'.webhooks.'.$hook) }}" x-on:focus="$el.select()">
-                        <button type="button" class="grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" x-on:click="navigator.clipboard?.writeText(@js($webhookUrls[$hook])); copied = true; setTimeout(() => copied = false, 1500)" aria-label="{{ __($t.'.webhooks.copy') }}">
-                            <x-admin.icon name="copy" size="size-4" x-show="! copied" />
-                            <x-admin.icon name="check" size="size-4" class="text-brand-600" x-show="copied" x-cloak />
-                        </button>
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-2" data-webhook-url="{{ $hook }}">
+                        <span class="w-24 shrink-0 pt-2.5 text-xs text-slate-500">{{ __($t.'.webhooks.'.$hook) }}</span>
+                        <x-admin.copy-block class="min-w-0 flex-1" :value="$webhookUrls[$hook]" :snippet="'webhook-'.$hook" :label="__($t.'.webhooks.'.$hook)" />
                     </div>
                 @endforeach
             </div>

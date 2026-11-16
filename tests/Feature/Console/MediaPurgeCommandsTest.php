@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\ProductDocument;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -148,4 +150,79 @@ it('continues after one product fails', function () {
     expect(Product::withTrashed()->whereKey($first->id)->exists())->toBeTrue()
         ->and(Product::withTrashed()->whereKey($second->id)->exists())->toBeFalse();
     Storage::disk('local')->assertMissing($secondPath);
+});
+
+/**
+ * Points media-library at a throwaway temp base and returns it.
+ */
+function fakeMediaTempBase(): string
+{
+    $base = sys_get_temp_dir().'/poson-media-temp-'.bin2hex(random_bytes(4));
+    mkdir($base.'/temp', 0777, true);
+    mkdir($base.'/outside/keep', 0777, true);
+    file_put_contents($base.'/outside/keep/file.txt', 'x');
+    config(['media-library.temporary_directory_path' => $base.'/temp']);
+
+    return $base;
+}
+
+function fakeMediaTempDir(string $base, string $name, int $hoursOld): void
+{
+    mkdir($base.'/temp/'.$name.'/inner', 0777, true);
+    file_put_contents($base.'/temp/'.$name.'/inner/f.txt', 'x');
+    touch($base.'/temp/'.$name, now()->subHours($hoursOld)->getTimestamp());
+}
+
+it('cleans only stale media temp directories and never follows symlinks', function () {
+    $base = fakeMediaTempBase();
+    fakeMediaTempDir($base, 'old', 25);
+    fakeMediaTempDir($base, 'fresh', 1);
+    file_put_contents($base.'/temp/loose.txt', 'x');
+    touch($base.'/temp/loose.txt', now()->subHours(48)->getTimestamp());
+    symlink($base.'/outside', $base.'/temp/linked');
+    fakeMediaTempDir($base, 'nested', 25);
+    symlink($base.'/outside', $base.'/temp/nested/inner/link');
+
+    Log::spy();
+    $this->artisan('media:clean-temp')->assertSuccessful();
+
+    expect(is_dir($base.'/temp/old'))->toBeFalse()
+        ->and(is_dir($base.'/temp/fresh'))->toBeTrue()
+        ->and(is_dir($base.'/temp/nested'))->toBeFalse()
+        ->and(file_exists($base.'/temp/loose.txt'))->toBeTrue()
+        ->and(is_link($base.'/temp/linked'))->toBeTrue()
+        ->and(file_exists($base.'/outside/keep/file.txt'))->toBeTrue();
+
+    Log::shouldHaveReceived('info')->withArgs(fn ($message, $context = []) => $message === 'media:clean-temp'
+        && $context === ['deleted' => 2, 'skipped' => 3, 'failed' => 0, 'dry_run' => false]
+        && ! str_contains(json_encode($context), $base))->once();
+
+    File::deleteDirectory($base);
+});
+
+it('only counts stale media temp directories with --dry-run', function () {
+    $base = fakeMediaTempBase();
+    fakeMediaTempDir($base, 'old', 25);
+    fakeMediaTempDir($base, 'fresh', 1);
+
+    $this->artisan('media:clean-temp --dry-run')->expectsOutputToContain('Would delete 1')->assertSuccessful();
+
+    expect(is_dir($base.'/temp/old'))->toBeTrue()
+        ->and(is_dir($base.'/temp/fresh'))->toBeTrue();
+
+    File::deleteDirectory($base);
+});
+
+it('exits cleanly when the media temp base is missing and prints no path', function () {
+    config(['media-library.temporary_directory_path' => sys_get_temp_dir().'/poson-missing-'.bin2hex(random_bytes(4))]);
+
+    $this->artisan('media:clean-temp')->assertSuccessful()->doesntExpectOutputToContain(sys_get_temp_dir());
+});
+
+it('schedules media:clean-temp daily without overlap', function () {
+    $event = collect(app(Schedule::class)->events())->first(fn ($event) => str_contains((string) $event->command, 'media:clean-temp'));
+
+    expect($event)->not->toBeNull()
+        ->and($event->expression)->toEndWith('* * *')
+        ->and($event->withoutOverlapping)->toBeTrue();
 });

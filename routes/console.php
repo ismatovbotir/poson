@@ -87,12 +87,14 @@ Schedule::command('carts:prune')->dailyAt('02:10')->timezone('Asia/Tashkent')->w
 |--------------------------------------------------------------------------
 | catalog:purge-trash: products in the trash for more than 30 days are
 | deleted for good, with their files. uploads:purge-tmp: Livewire temporary
-| uploads older than 24 h. Task keys: "catalog:purge-trash --force" and
-| "uploads:purge-tmp".
+| uploads older than 24 h. media:clean-temp: stale media-library temp folders
+| older than 24 h. Task keys: "catalog:purge-trash --force", "uploads:purge-tmp"
+| and "media:clean-temp".
 */
 
 Schedule::command('catalog:purge-trash', ['--force'])->dailyAt('02:15')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 Schedule::command('uploads:purge-tmp')->dailyAt('02:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('media:clean-temp')->dailyAt('02:25')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
 |--------------------------------------------------------------------------

@@ -27,7 +27,7 @@
             <div class="min-w-0 flex-1 space-y-2">
                 <h3 class="font-semibold text-slate-900">{{ __($t.'.steps.node.title') }}</h3>
                 <p>{{ __($t.'.steps.node.body') }}</p>
-                <x-admin.copy-block value="node --version" snippet="node" />
+                <x-admin.copy-block wrap value="node --version" snippet="node" />
             </div>
         </li>
 
@@ -39,8 +39,8 @@
                 <p x-show="os === 'mac'">{{ __($t.'.steps.open.body_mac') }}</p>
                 <p x-cloak x-show="os === 'win'">{{ __($t.'.steps.open.body_win') }}</p>
                 <p class="text-xs font-semibold text-slate-500">{{ __($t.'.steps.open.path_label') }}</p>
-                <x-admin.copy-block x-show="os === 'mac'" :value="ConnectionGuide::MAC_CONFIG_PATH" snippet="path-mac" />
-                <x-admin.copy-block x-cloak x-show="os === 'win'" :value="ConnectionGuide::WIN_CONFIG_PATH" snippet="path-win" />
+                <x-admin.copy-block wrap x-show="os === 'mac'" :value="ConnectionGuide::MAC_CONFIG_PATH" snippet="path-mac" />
+                <x-admin.copy-block wrap x-cloak x-show="os === 'win'" :value="ConnectionGuide::WIN_CONFIG_PATH" snippet="path-win" />
             </div>
         </li>
 
@@ -50,11 +50,11 @@
             <div class="min-w-0 flex-1 space-y-2">
                 <h3 class="font-semibold text-slate-900">{{ __($t.'.steps.paste.title') }}</h3>
                 <p>{{ __($t.'.steps.paste.body') }}</p>
-                <x-admin.copy-block :value="ConnectionGuide::config($endpoint, $token)" snippet="desktop" />
+                <x-admin.copy-block wrap :value="ConnectionGuide::config($endpoint, $token)" snippet="desktop" />
                 @if ($token === null)
                     <p class="text-xs text-slate-500">{{ __($t.'.placeholder_note') }}</p>
                     <p class="pt-1 text-xs font-semibold text-slate-500">{{ __($t.'.steps.paste.merge_title') }}</p>
-                    <x-admin.copy-block :value="ConnectionGuide::mergeExample($endpoint)" snippet="merge-example" />
+                    <x-admin.copy-block wrap :value="ConnectionGuide::mergeExample($endpoint)" snippet="merge-example" />
                 @else
                     <p class="flex gap-2 text-xs text-amber-800"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.steps.paste.token_real') }}</p>
                 @endif
@@ -83,7 +83,7 @@
                 <h3 class="font-semibold text-slate-900">{{ __($t.'.steps.protect.title') }}</h3>
                 <div x-show="os === 'mac'" class="space-y-2">
                     <p>{{ __($t.'.steps.protect.body_mac') }}</p>
-                    <x-admin.copy-block :value="ConnectionGuide::CHMOD_COMMAND" snippet="chmod" />
+                    <x-admin.copy-block wrap :value="ConnectionGuide::CHMOD_COMMAND" snippet="chmod" />
                 </div>
                 <p x-cloak x-show="os === 'win'">{{ __($t.'.steps.protect.body_win') }}</p>
             </div>
@@ -96,7 +96,7 @@
                 <h3 class="font-semibold text-slate-900">{{ __($t.'.steps.check.title') }}</h3>
                 <div x-show="os === 'mac'" class="space-y-2">
                     <p>{{ __($t.'.steps.check.body_mac') }}</p>
-                    <x-admin.copy-block :value="ConnectionGuide::JSON_CHECK_COMMAND" snippet="json-check" />
+                    <x-admin.copy-block wrap :value="ConnectionGuide::JSON_CHECK_COMMAND" snippet="json-check" />
                 </div>
                 <p x-cloak x-show="os === 'win'">{{ __($t.'.steps.check.body_win') }}</p>
             </div>
@@ -108,7 +108,7 @@
             <div class="min-w-0 flex-1 space-y-2">
                 <h3 class="font-semibold text-slate-900">{{ __($t.'.steps.verify.title') }}</h3>
                 <p>{{ __($t.'.steps.verify.body') }}</p>
-                <x-admin.copy-block :value="__($t.'.steps.verify.prompt')" snippet="prompt" />
+                <x-admin.copy-block wrap :value="__($t.'.steps.verify.prompt')" snippet="prompt" />
             </div>
         </li>
     </ol>
@@ -117,7 +117,7 @@
     <div class="mt-6 space-y-2 border-t border-slate-100 pt-5">
         <h3 class="font-semibold text-slate-900">{{ __($t.'.code.title') }}</h3>
         <p>{{ __($t.'.code.body') }}</p>
-        <x-admin.copy-block :value="ConnectionGuide::codeCommand($endpoint)" snippet="code" />
+        <x-admin.copy-block wrap :value="ConnectionGuide::codeCommand($endpoint)" snippet="code" />
     </div>
 
     {{-- Optional terminal test --}}
@@ -125,7 +125,7 @@
         <h3 class="font-semibold text-slate-900">{{ __($t.'.terminal.title') }}</h3>
         <div x-show="os === 'mac'" class="space-y-2">
             <p>{{ __($t.'.terminal.body_mac') }}</p>
-            <x-admin.copy-block :value="ConnectionGuide::terminalTest($endpoint)" snippet="terminal-test" />
+            <x-admin.copy-block wrap :value="ConnectionGuide::terminalTest($endpoint)" snippet="terminal-test" />
             <p class="text-slate-600">{{ __($t.'.terminal.ok') }}</p>
         </div>
         <p x-cloak x-show="os === 'win'">{{ __($t.'.terminal.body_win') }}</p>
@@ -162,7 +162,7 @@
         <p class="flex gap-2 text-amber-800"><x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.logs.warning') }}</p>
         <div x-show="os === 'mac'" class="space-y-2">
             <p>{{ __($t.'.logs.path_mac') }}</p>
-            <x-admin.copy-block :value="ConnectionGuide::LOG_CHECK_COMMAND" snippet="log-check" />
+            <x-admin.copy-block wrap :value="ConnectionGuide::LOG_CHECK_COMMAND" snippet="log-check" />
             <p class="text-slate-600">{{ __($t.'.logs.if_listed') }}</p>
         </div>
         <p x-cloak x-show="os === 'win'">{{ __($t.'.logs.path_win') }}</p>
