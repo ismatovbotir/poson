@@ -23,7 +23,9 @@ use Livewire\Component;
  * AI usage (plan 30 §9, phase B): chat_ai_usage_daily per day and
  * AiUsageChannel (the chat bot channels and the admin helpers such as
  * "Translate with Claude") with an estimated cost in USD (config
- * chatbot.ai.prices). The channel filter narrows it to that chat channel.
+ * chatbot.ai.prices). Plan 32: the admin product wizard stages
+ * (adm_vision / adm_write) are priced at their configured model
+ * (chatbot.ai.product.prices); a bot channel filter shows that channel only.
  */
 #[Layout('layouts::admin')]
 class Stats extends Component
@@ -89,35 +91,69 @@ class Stats extends Component
      */
     private function aiRows(int $days, ?ChatChannel $channel): array
     {
-        $prices = (array) config('chatbot.ai.prices');
         $from = now(WorkingHours::TIMEZONE)->subDays($days - 1)->toDateString();
 
         return ChatAiUsageDaily::query()
             ->where('day', '>=', $from)
-            ->when($channel, fn (Builder $query, ChatChannel $channel) => $query->where('channel', $channel->value))
+            ->when($channel, fn (Builder $query, ChatChannel $channel) => $query->where('channel', AiUsageChannel::fromChatChannel($channel)->value))
+            ->whereIn('channel', array_column(AiUsageChannel::cases(), 'value'))
             ->orderByDesc('day')
             ->orderBy('channel')
-            // At most 90 days x 5 usage channels = 450 rows: one aggregated row per day and channel.
+            // At most 90 days x every usage channel: one aggregated row per day and channel.
             ->limit(count(AiUsageChannel::cases()) * max(self::RANGES))
             ->get()
-            ->map(fn (ChatAiUsageDaily $row): array => [
-                'day' => $row->day->toDateString(),
-                'channel' => $row->channel->label(),
-                'requests' => $row->requests,
-                'answered' => $row->answered,
-                'refused' => $row->refused,
-                'blocked' => $row->blocked,
-                'failed' => $row->failed,
-                'capped' => $row->capped,
-                'input_tokens' => $row->input_tokens,
-                'output_tokens' => $row->output_tokens,
-                'cache_read_tokens' => $row->cache_read_tokens,
-                'cache_write_tokens' => $row->cache_write_tokens,
-                'usd' => ($row->input_tokens * (float) $prices['input']
-                    + $row->output_tokens * (float) $prices['output']
-                    + $row->cache_read_tokens * (float) $prices['cache_read']
-                    + $row->cache_write_tokens * (float) $prices['cache_write']) / 1_000_000,
-            ])
+            ->map(function (ChatAiUsageDaily $row): array {
+                return [
+                    'day' => $row->day->toDateString(),
+                    'channel' => $row->channel->label(),
+                    'requests' => $row->requests,
+                    'answered' => $row->answered,
+                    'refused' => $row->refused,
+                    'blocked' => $row->blocked,
+                    'failed' => $row->failed,
+                    'capped' => $row->capped,
+                    'input_tokens' => $row->input_tokens,
+                    'output_tokens' => $row->output_tokens,
+                    'cache_read_tokens' => $row->cache_read_tokens,
+                    'cache_write_tokens' => $row->cache_write_tokens,
+                    'usd' => self::usd($row->channel, $row->input_tokens, $row->output_tokens, $row->cache_read_tokens, $row->cache_write_tokens),
+                ];
+            })
             ->all();
+    }
+
+    /**
+     * Estimated USD of a channel's tokens (prices per million tokens of its model).
+     */
+    public static function usd(AiUsageChannel $channel, int $input, int $output, int $cacheRead = 0, int $cacheWrite = 0): float
+    {
+        $prices = self::prices($channel);
+
+        return ($input * (float) ($prices['input'] ?? 0)
+            + $output * (float) ($prices['output'] ?? 0)
+            + $cacheRead * (float) ($prices['cache_read'] ?? 0)
+            + $cacheWrite * (float) ($prices['cache_write'] ?? 0)) / 1_000_000;
+    }
+
+    /**
+     * USD per million tokens of the model a usage channel runs on.
+     *
+     * @return array<string, float|int>
+     */
+    public static function prices(AiUsageChannel $channel): array
+    {
+        $stage = match ($channel) {
+            AiUsageChannel::AdminVision => 'vision',
+            AiUsageChannel::AdminWrite => 'write',
+            default => null,
+        };
+
+        if ($stage === null) {
+            return (array) config('chatbot.ai.prices');
+        }
+
+        $model = (string) config("chatbot.ai.product.{$stage}.model");
+
+        return (array) config("chatbot.ai.product.prices.{$model}", []);
     }
 }

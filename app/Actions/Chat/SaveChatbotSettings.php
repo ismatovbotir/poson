@@ -2,6 +2,7 @@
 
 namespace App\Actions\Chat;
 
+use App\Enums\AiUsageChannel;
 use App\Enums\AuditAction;
 use App\Enums\ChatChannel;
 use App\Enums\Role;
@@ -46,6 +47,11 @@ use Illuminate\Validation\ValidationException;
  * "ai_translate_enabled" ("Translate with Claude" in the rule editor,
  * AI-B14): switching ON is Admin only and needs the API key (no customer
  * data, so no privacy gate); switching OFF is open to chatbot.settings.
+ *
+ * AI product wizard (plan 32, PW-24): "ai_admin_enabled" changes only for an
+ * Admin (on or off) and switching on is refused without the key; the daily
+ * caps of the admin usage channels ("ai_adm_vision_daily_requests", …)
+ * are Admin only when they change. Audited like the other switches.
  *
  * Input keys are optional: only the ones present are written.
  */
@@ -103,7 +109,7 @@ class SaveChatbotSettings
     {
         $changes = [];
 
-        foreach (ChatChannel::cases() as $channel) {
+        foreach (ChatChannel::bots() as $channel) {
             $field = $channel->value.'_enabled';
 
             if (! array_key_exists($field, $data)) {
@@ -150,7 +156,7 @@ class SaveChatbotSettings
         $isAdmin = $actor->hasRole(Role::Admin);
         $switches = [];
 
-        foreach (ChatChannel::cases() as $channel) {
+        foreach (ChatChannel::bots() as $channel) {
             $field = 'ai_'.$channel->value.'_enabled';
 
             if (! array_key_exists($field, $data)) {
@@ -223,6 +229,53 @@ class SaveChatbotSettings
             }
 
             $values[ChatSettings::key($field)] = $value;
+        }
+
+        // Plan 32: the AI product wizard switch is Admin only in both directions (§14 plan change 8);
+        // switching it on is refused while ANTHROPIC_API_KEY is missing (PW-24).
+        if (array_key_exists('ai_admin_enabled', $data)) {
+            $want = filter_var($data['ai_admin_enabled'], FILTER_VALIDATE_BOOLEAN);
+            $key = ChatSettings::key('ai_admin_enabled');
+
+            if ($want !== ($this->stored($key) === true)) {
+                if (! $isAdmin) {
+                    throw new AuthorizationException;
+                }
+
+                if ($want && ! AiSwitch::keyConfigured()) {
+                    throw ValidationException::withMessages(['ai_admin_enabled' => __('chatbot_admin.settings.ai_key_missing')]);
+                }
+
+                $switches[$key] = $want;
+            }
+        }
+
+        // Plan 32 (PW-12): daily caps of the admin usage channels, Admin only when they change.
+        foreach (AiUsageChannel::cases() as $channel) {
+            if (! $channel->isAdmin()) {
+                continue;
+            }
+
+            foreach (['requests', 'tokens'] as $cap) {
+                $field = "ai_{$channel->value}_daily_{$cap}";
+
+                if (! array_key_exists($field, $data)) {
+                    continue;
+                }
+
+                $value = $this->integer($data[$field], 0, (int) config("chatbot.ai.caps.{$cap}_max"), $field);
+                $current = filter_var($this->stored(ChatSettings::key($field)), FILTER_VALIDATE_INT);
+
+                if ($value === ($current === false ? (int) config("chatbot.ai.caps.{$channel->value}.{$cap}", 0) : $current)) {
+                    continue;
+                }
+
+                if (! $isAdmin) {
+                    throw new AuthorizationException;
+                }
+
+                $values[ChatSettings::key($field)] = $value;
+            }
         }
 
         $instructions = null;

@@ -16,9 +16,15 @@ use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 
 /**
- * The in-admin AI assistant is removed (decision 2026-10-28): no screens,
- * routes, permissions, schedule entries or classes are left, while the
- * brand rule on content forms and the AI-crawler features stay.
+ * Guard against UNAPPROVED AI surfaces. The in-admin AI assistant stays removed
+ * (decision 2026-10-28): no assistant screens, routes, prompt settings, usage
+ * pages, admin API-key fields or leftover classes. Since 2026-11-14 three AI
+ * surfaces are approved and allowed here, and nothing else:
+ *  - Plan 29 AI-fill (prompt building and a pasted answer, no API call),
+ *  - Plan 30 chat bot (App\Services\Ai, key only in .env via config/services.php),
+ *  - Plan 32 product wizard (ai.generate permission, ai:prune-drafts schedule,
+ *    AiPromptRules, the RunAiDraftStage job).
+ * The brand rule on content forms and the AI-crawler features stay too.
  */
 it('404s the removed AI screens for the admin', function (string $url) {
     $this->actingAs(staffUser())->get($url)->assertNotFound();
@@ -41,6 +47,40 @@ it('stores audit areas from the enum only and reads unknown values as null', fun
         ->and((new SettingsAudit)->setRawAttributes(['area' => 'ai_prompts'])->area)->toBeNull();
 });
 
+it('keeps AI keys in config/services.php and .env only, with no admin key field', function () {
+    $configKeys = collect(File::allFiles(config_path()))
+        ->filter(fn (SplFileInfo $file): bool => preg_match('/anthropic|photoroom|openai/i', File::get($file->getPathname())) === 1 && preg_match('/env\(\s*[\'"][A-Z_]*(ANTHROPIC|PHOTOROOM|OPENAI)[A-Z_]*[\'"]/', File::get($file->getPathname())) === 1)
+        ->map(fn (SplFileInfo $file): string => $file->getFilename())
+        ->values()
+        ->all();
+
+    expect($configKeys)->toBe(['services.php'])
+        ->and(config('services.anthropic.key'))->toBeEmpty();
+
+    // No integration registry entry, settings area or admin view takes an AI key.
+    $secretKeys = collect(File::allFiles(app_path('Support/Integrations')))->map(fn (SplFileInfo $file): string => strtolower(File::get($file->getPathname())))->implode("\n");
+    expect($secretKeys)->not->toContain('anthropic')->not->toContain('openai')->not->toContain('photoroom');
+
+    foreach (File::allFiles(resource_path('views/livewire/admin')) as $view) {
+        $html = strtolower(File::get($view->getPathname()));
+
+        foreach (['anthropic_api_key', 'anthropic.key', 'openai_api_key', 'ai_api_key', 'anthropic-key'] as $needle) {
+            expect($html)->not->toContain($needle, "{$view->getFilename()} contains {$needle}");
+        }
+    }
+});
+
+it('reads env() only in config files', function () {
+    $offenders = collect([...File::allFiles(app_path()), ...File::allFiles(base_path('routes')), ...File::allFiles(base_path('database'))])
+        ->filter(fn (SplFileInfo $file): bool => $file->getExtension() === 'php')
+        ->filter(fn (SplFileInfo $file): bool => preg_match('/(?<![\w>:$])env\(\s*[\'"]/', File::get($file->getPathname())) === 1)
+        ->map(fn (SplFileInfo $file): string => str_replace(base_path().'/', '', $file->getPathname()))
+        ->values()
+        ->all();
+
+    expect($offenders)->toBe([]);
+});
+
 it('opens the admin dashboard for every staff role', function (Role $role) {
     $this->actingAs(staffUser($role))->get(route('admin.dashboard'))->assertOk();
 })->with([
@@ -50,17 +90,20 @@ it('opens the admin dashboard for every staff role', function (Role $role) {
     'service engineer' => [Role::ServiceEngineer],
 ]);
 
-it('seeds no AI permissions but keeps analytics', function () {
+it('seeds only the approved ai.generate permission and keeps analytics', function () {
     staffUser();
 
-    expect(Permission::query()->where('name', 'like', 'ai%')->pluck('name')->all())->toBe([])
+    expect(Permission::query()->where('name', 'like', 'ai%')->pluck('name')->all())->toBe(['ai.generate'])
         ->and(Permission::query()->where('name', 'analytics.view')->exists())->toBeTrue();
 });
 
-it('schedules and registers no AI commands', function () {
+it('schedules and registers only the approved ai:prune-drafts command', function () {
     Artisan::call('schedule:list');
 
-    expect(Artisan::output())->not->toContain('ai:')
+    preg_match_all('/artisan[\'"]?\s+(ai:[\w:-]+)/', Artisan::output(), $scheduled);
+
+    expect(array_unique($scheduled[1]))->toBe(['ai:prune-drafts'])
+        ->and(array_values(array_filter(array_keys(Artisan::all()), fn (string $name): bool => str_starts_with($name, 'ai:'))))->toBe(['ai:prune-drafts'])
         ->and(Artisan::all())->not->toHaveKey('ai:prune-requests');
 });
 
@@ -70,7 +113,7 @@ it('has no AI assistant classes or config left', function () {
         expect(is_dir(app_path($directory)))->toBeFalse();
     }
 
-    // The two lookaheads let the Plan 29 files through (WithAiFill trait, AiPromptBuilder):
+    // The lookaheads let the Plan 29 files through (WithAiFill trait, AiPromptBuilder, AiPromptRules):
     // they only build prompt text and parse a pasted answer. Plan 30's chat bot files
     // (App\Services\Ai, App\Support\Chat\AiPrompt) are the only other exceptions.
     $leftovers = collect(File::allFiles(app_path()))
@@ -79,7 +122,7 @@ it('has no AI assistant classes or config left', function () {
             app_path('Support/Chat/AiPrompt.php'),
         ], true))
         ->map(fn (SplFileInfo $file): string => $file->getFilename())
-        ->filter(fn (string $name): bool => preg_match('/^(WithAi(?!Fill\.php)|AiAssist|AiRequest|AiPrompt(?!Builder\.php)|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
+        ->filter(fn (string $name): bool => preg_match('/^(WithAi(?!Fill\.php)|AiAssist|AiRequest|AiPrompt(?!Builder\.php|Rules\.php)|AiFeature|AiProvider|AiErrorCode|BrandGuard|RunAiRequest|PruneAiRequests)/', $name) === 1);
 
     expect($leftovers->all())->toBe([])
         ->and(array_map(basename(...), glob(app_path('Services/Ai/*'))))->toEqualCanonicalizing(['AiFailed.php', 'AiRequest.php', 'AiResult.php', 'AiUnavailable.php', 'AnthropicChatModel.php', 'ChatModel.php'])

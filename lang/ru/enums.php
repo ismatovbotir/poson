@@ -109,6 +109,8 @@ return [
         'payment' => 'Оплата',
         'repair' => 'Ремонт',
         'cv_download' => 'Скачивание резюме',
+        'ai_create' => 'Создан с ИИ',
+        'ai_improve' => 'Улучшен с ИИ',
     ],
 
     'quote_status' => [
@@ -627,4 +629,21 @@ return [
         'failed' => 'Не отправлено',
         'expired' => 'Истёк срок',
     ],
+
+    // Plan 32: AI product wizard drafts (the AI usage channels are above).
+    'ai_draft_status' => [
+        'open' => 'Открыт',
+        'seeing' => 'Смотрит фото',
+        'facts_ready' => 'Факты готовы',
+        'writing' => 'Пишет',
+        'ready' => 'Готово',
+        'truncated' => 'Оборвано',
+        'failed' => 'Ошибка',
+        'refused' => 'Отклонено',
+        'capped' => 'Дневной лимит',
+        'applying' => 'Сохраняется',
+        'applied' => 'Сохранено',
+        'expired' => 'Истёк',
+    ],
+
 ];

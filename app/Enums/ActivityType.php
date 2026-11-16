@@ -21,6 +21,9 @@ enum ActivityType: string
     case Payment = 'payment';
     case Repair = 'repair';
     case CvDownload = 'cv_download';
+    // Plan 32: a product created / improved with the AI wizard (body: field keys and counts only, PW-19).
+    case AiCreate = 'ai_create';
+    case AiImprove = 'ai_improve';
 
     public function label(): string
     {
@@ -46,6 +49,7 @@ enum ActivityType: string
             self::Payment => 'card',
             self::Repair => 'tool',
             self::CvDownload => 'download',
+            self::AiCreate, self::AiImprove => 'sparkles',
         };
     }
 
@@ -68,6 +72,7 @@ enum ActivityType: string
             self::Payment => 'bg-brand-600',
             self::Repair => 'bg-violet-500',
             self::CvDownload => 'bg-slate-400',
+            self::AiCreate, self::AiImprove => 'bg-violet-500',
         };
     }
 

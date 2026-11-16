@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * AI usage of the chat bot per Asia/Tashkent day and channel (plan 30,
- * AI-18). Counts and tokens only. Written only by RecordAiUsage (atomic
+ * AI usage per Asia/Tashkent day and usage channel (plan 30, AI-18; plan 32:
+ * also the admin wizard stages, AiUsageChannel). Counts and tokens only. Written only by RecordAiUsage (atomic
  * reservations and settlements); never exposed to MCP (AI-23).
  *
  * @property int $id

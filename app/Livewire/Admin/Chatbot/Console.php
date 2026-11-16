@@ -53,7 +53,7 @@ class Console extends Component
         $this->validate([
             'phrase' => ['required', 'string', 'max:'.self::MAX_CHARS],
             'locale' => ['required', 'in:'.implode(',', config('app.supported_locales'))],
-            'channel' => ['required', 'in:'.implode(',', array_column(ChatChannel::cases(), 'value'))],
+            'channel' => ['required', 'in:'.implode(',', array_column(ChatChannel::bots(), 'value'))],
         ]);
 
         // A cheap guard so a stuck key or script cannot hammer the cache and the database.

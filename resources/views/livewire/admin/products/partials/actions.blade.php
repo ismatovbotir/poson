@@ -1,4 +1,4 @@
-{{-- Row actions: edit / delete, or restore / permanent delete in the trash. --}}
+{{-- Row actions: improve with AI (plan 32) / edit / delete, or restore / permanent delete in the trash. --}}
 <span class="flex shrink-0 items-center justify-end">
     @if ($product->trashed())
         @if (in_array($product->id, $deletable, true))
@@ -19,6 +19,9 @@
             ><x-admin.icon name="trash" size="size-4" /></button>
         @endif
     @else
+        @if (in_array($product->id, $aiImprovable, true))
+            <a href="{{ route('admin.products.ai.improve', $product) }}" wire:navigate class="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700" aria-label="{{ __('admin.ai_wizard.improve_button') }}: {{ $product->name }}" title="{{ __('admin.ai_wizard.improve_button') }}" data-ai-improve><x-admin.icon name="sparkles" size="size-4" /></a>
+        @endif
         @if (in_array($product->id, $editable, true))
             <a href="{{ route('admin.products.edit', $product) }}" wire:navigate class="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="{{ __('admin.common.edit') }}: {{ $product->name }}" data-edit><x-admin.icon name="edit" size="size-4" /></a>
         @else

@@ -44,9 +44,11 @@ arch('chat actions and the AI job use only the ChatModel interface')
     ->expect(['App\Actions\Chat', 'App\Jobs\AnswerChatWithAi'])
     ->not->toUse(['App\Services\Ai\AnthropicChatModel', 'GuzzleHttp']);
 
-arch('only the AI job and its fakes resolve the chat model')
+arch('only the AI jobs and their fakes resolve the chat model')
     ->expect('App\Services\Ai\ChatModel')
-    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Actions\Chat\TranslateRuleAnswer', 'App\Providers\AppServiceProvider']);
+    // Plan 30 AI-B14: "Translate with Claude" (TranslateRuleAnswer); plan 32: the AI product wizard's queued stage job
+    // (RunAiDraftStage). Never a Livewire component or another action.
+    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Actions\Chat\TranslateRuleAnswer', 'App\Jobs\RunAiDraftStage', 'App\Providers\AppServiceProvider']);
 
 // Plan 30 AI-B14: "Translate with Claude" reaches the model through its action, never from a component.
 arch('no Livewire component resolves the chat model')

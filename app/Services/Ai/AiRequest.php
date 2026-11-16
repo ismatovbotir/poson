@@ -7,18 +7,36 @@ namespace App\Services\Ai;
  * (a block with cache = true ends a prompt cache breakpoint), the alternating
  * user/assistant messages (always ending with the user), and the output
  * token limit. Never carries a person's identity (AI-6).
+ *
+ * Plan 32 (PW-5) optional overrides, all null/empty for the chat bot (its
+ * request stays byte-identical): model (AnthropicChatModel::MODELS only),
+ * effort (low/medium), timeout in seconds (clamped by the adapter), images
+ * (JPEG files under storage/app/private/ai-drafts, attached base64 to the
+ * last user message) and an output JSON schema (output_config.format).
  */
 final readonly class AiRequest
 {
     /**
      * @param  list<array{text: string, cache: bool}>  $system
      * @param  list<array{role: 'user'|'assistant', content: string}>  $messages
+     * @param  list<array{mediaType: string, path: string}>  $images
+     * @param  array<string, mixed>|null  $outputSchema
      */
     public function __construct(
         public array $system,
         public array $messages,
         public int $maxTokens,
+        public ?string $model = null,
+        public ?string $effort = null,
+        public ?float $timeout = null,
+        public array $images = [],
+        public ?array $outputSchema = null,
     ) {}
+
+    /**
+     * Rough input tokens of one attached image (vision copies are at most ~1.15 MP).
+     */
+    public const IMAGE_TOKENS = 1600;
 
     /**
      * A rough input size in tokens (3 characters a token, rounded up), for
@@ -36,7 +54,7 @@ final readonly class AiRequest
             $chars += mb_strlen($message['content']);
         }
 
-        return (int) ceil($chars / 3);
+        return (int) ceil($chars / 3) + count($this->images) * self::IMAGE_TOKENS;
     }
 
     /**
@@ -62,11 +80,12 @@ final readonly class AiRequest
             $fresh += mb_strlen($message['content']);
         }
 
-        return (int) ceil($fresh / 3) + (int) ceil($cached / 30) + $this->maxTokens;
+        return (int) ceil($fresh / 3) + (int) ceil($cached / 30) + count($this->images) * self::IMAGE_TOKENS + $this->maxTokens;
     }
 
     /**
      * Every text of the request in one string (tests scan it for personal data).
+     * Images are not text: they are left out.
      */
     public function allText(): string
     {

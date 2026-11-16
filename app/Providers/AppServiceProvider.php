@@ -31,6 +31,8 @@ use App\Models\User;
 use App\Models\Video;
 use App\Services\Ai\AnthropicChatModel;
 use App\Services\Ai\ChatModel;
+use App\Services\Images\ImageBackgroundRemover;
+use App\Services\Images\NullBackgroundRemover;
 use App\Support\Analytics\DnsResolver;
 use App\Support\Analytics\SystemDnsResolver;
 use App\Support\Careers\CareersSwitchMemo;
@@ -89,6 +91,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Plan 30: AI answers in the chat bot (tests bind Tests\Support\FakeChatModel).
         $this->app->bind(ChatModel::class, AnthropicChatModel::class);
+
+        // Plan 32 §4: Tier 2 background removal is not approved yet (no provider, no network).
+        $this->app->bind(ImageBackgroundRemover::class, NullBackgroundRemover::class);
     }
 
     /**

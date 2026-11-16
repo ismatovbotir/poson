@@ -145,6 +145,10 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     Route::livewire('/products', Products\Index::class)->name('products.index');
     Route::livewire('/products/create', Products\Form::class)->name('products.create');
     Route::livewire('/products/{product}/edit', Products\Form::class)->name('products.edit');
+    // Plan 32: AI product wizard (create from photos / improve a product). Authorized in the component on every request
+    // (ai.generate + the Admin switch with a key + create / update + useType, AiWizardGate); rate limits inside the actions.
+    Route::livewire('/products/ai/create', Products\AiWizard::class)->name('products.ai.create');
+    Route::livewire('/products/{product}/ai', Products\AiWizard::class)->whereNumber('product')->name('products.ai.improve');
     Route::get('/products/documents/{document}/download', DownloadProductDocumentController::class)->name('products.documents.download');
 
     // Price API log (plan 09): price-sync.view (Admin only), authorized in the components.

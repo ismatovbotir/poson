@@ -96,7 +96,7 @@ final class AiOutputFilter
      */
     public const DOMAIN = '~(?<![\pL\pN@._-])((?:[\pL\pN](?:[\pL\pN-]{0,62})\.)+(?:(?!(?:pdf|docx?|xlsx?|pptx?|csv|txt|jpe?g|png|gif|webp|svg|zip|rar|exe|bin|hex)(?![\pL\pN-]))[a-z]{2,24}|xn--[a-z0-9-]{1,59}|рф|рус|укр|бел|срб|мкд|қаз|каз|мон|орг|ком|сайт|онлайн|дети|москва|рв|упр))(?![\pL\pN-])~u';
 
-    private const BRAND_PATTERNS = [
+    public const BRAND_PATTERNS = [
         '/%/u',
         '/past\s+narx/u',
         '/qulay\s+narx/u',
@@ -207,9 +207,10 @@ final class AiOutputFilter
 
     /**
      * Scale words that make any number an amount, also without a currency
-     * (group 1: thousand, 2: million, 3: billion).
+     * (group 1: thousand, 2: million, 3: billion). Public for the AI product
+     * text guard (plan 32, ProductTextGuard::hasAmount, match/no match only).
      */
-    private const SCALE = '(?:(ming|минг\pL*|тыс\.?\pL*|тыщ\pL*|thousand\pL*)|(mln\.?|million\pL*|млн\.?|миллион\pL*)|(mlrd\.?|milliard\pL*|млрд\.?|миллиард\pL*|billion\pL*))';
+    public const SCALE = '(?:(ming|минг\pL*|тыс\.?\pL*|тыщ\pL*|thousand\pL*)|(mln\.?|million\pL*|млн\.?|миллион\pL*)|(mlrd\.?|milliard\pL*|млрд\.?|миллиард\pL*|billion\pL*))';
 
     /**
      * A number: thousands groups (space, NBSP, NNBSP, thin space, "." or ","),
@@ -223,11 +224,18 @@ final class AiOutputFilter
     private const PER_LABEL = '~^\s*(?:/|per|за|har(?:\s+bir)?|bir)?\s*(?:yorliq|этикетк|labels?(?!\pL))~u';
 
     /**
+     * Any currency (soʻm family or foreign), for the AI product text guard
+     * (plan 32, ProductTextGuard): product texts never carry an amount. "eurs"
+     * keeps the plan 32 pattern's spelling.
+     */
+    public const CURRENCY = '(?:'.self::SOM.'|'.self::FOREIGN.'|eurs)';
+
+    /**
      * Units after a number in thousands groups: a quantity or a spec, not money.
      */
     private const UNITS = '(?:mm|cm|km|m|kg|g|dpi|pcs|шт\pL*\.?|dona\pL*|ta(?:dan|gacha)?|etiket\pL*|yorliq\pL*|labels?|cycles?|rolls?|мм|см|км|м|кг|г|метр\pL*|этикет\pL*|рулон\pL*|mah|мач)';
 
-    private const EAN_LABEL = '(?:ean(?:-?(?:8|13))?|gtin|upc|barcode|bar\s+code|(?:shtrix|штрих)\pL*(?:[\s-]*(?:kod|код)\pL*)?)[\s:#№-]*';
+    public const EAN_LABEL = '(?:ean(?:-?(?:8|13))?|gtin|upc|barcode|bar\s+code|(?:shtrix|штрих)\pL*(?:[\s-]*(?:kod|код)\pL*)?)[\s:#№-]*';
 
     private const EAN_WORDS = '/'.self::EAN_LABEL.'$/u';
 

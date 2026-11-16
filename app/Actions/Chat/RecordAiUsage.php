@@ -4,6 +4,7 @@ namespace App\Actions\Chat;
 
 use App\Enums\AiUsageChannel;
 use App\Enums\ChatAiStatus;
+use App\Enums\ChatChannel;
 use App\Jobs\SendAiCapAlert;
 use App\Models\ChatAiUsageDaily;
 use App\Services\Ai\AiResult;
@@ -21,8 +22,9 @@ use Illuminate\Support\Facades\DB;
  * from values).
  *
  *  - caps(): the chat bot channels use the Admin's settings (one value for
- *    both, defaults from config chatbot.ai.caps.telegram); every other
- *    channel config("chatbot.ai.caps.{value}"), 0 when it has no entry.
+ *    both, defaults from config chatbot.ai.caps.telegram); every admin
+ *    channel its stored setting, else config("chatbot.ai.caps.{value}"),
+ *    0 when it has no entry.
  *
  *  - reserve(): right before an API call, ONE conditional update both checks
  *    and takes the reservation (requests < cap AND billed + reserved +
@@ -38,6 +40,12 @@ use Illuminate\Support\Facades\DB;
  *    (Cache::add, AI-B13).
  *  - withinCaps(): a read-only check for the webhook (P3); the reservation
  *    in the job is what enforces the cap.
+ *
+ * Channels (plan 32 §14 plan change 3, PW-12): AiUsageChannel, a chat
+ * ChatChannel is mapped to it. caps() is per channel: the bot channels use
+ * the chat caps (settings, default chatbot.ai.caps.telegram), each
+ * admin stage its own (chatbot.ai.caps.{value}, settings override), so an
+ * admin stage never consumes a chat cap and the other way round.
  */
 class RecordAiUsage
 {
@@ -47,16 +55,22 @@ class RecordAiUsage
     }
 
     /**
-     * Today's caps of a channel.
+     * Today's request and token caps of a usage channel.
      *
      * @return array{requests: int, tokens: int}
      */
     public static function caps(AiUsageChannel $channel): array
     {
-        if (! $channel->isAdmin()) {
-            $settings = ChatSettings::all()['ai'];
+        $ai = ChatSettings::all()['ai'];
 
-            return ['requests' => max(0, (int) $settings['daily_requests']), 'tokens' => max(0, (int) $settings['daily_tokens'])];
+        if (! $channel->isAdmin()) {
+            return ['requests' => max(0, (int) $ai['daily_requests']), 'tokens' => max(0, (int) $ai['daily_tokens'])];
+        }
+
+        $caps = $ai['caps'][$channel->value] ?? null;
+
+        if (is_array($caps)) {
+            return ['requests' => max(0, (int) ($caps['requests'] ?? 0)), 'tokens' => max(0, (int) ($caps['tokens'] ?? 0))];
         }
 
         $config = (array) config('chatbot.ai.caps.'.$channel->value, []);
@@ -64,8 +78,9 @@ class RecordAiUsage
         return ['requests' => max(0, (int) ($config['requests'] ?? 0)), 'tokens' => max(0, (int) ($config['tokens'] ?? 0))];
     }
 
-    public function withinCaps(AiUsageChannel $channel): bool
+    public function withinCaps(ChatChannel|AiUsageChannel $channel): bool
     {
+        $channel = self::channel($channel);
         $caps = self::caps($channel);
         $row = $this->row($channel, self::day())->first(['requests', 'billed_tokens', 'reserved_tokens']);
 
@@ -79,8 +94,9 @@ class RecordAiUsage
     /**
      * @return string|null The day the reservation was taken on (pass it to settle()), or null when a cap is reached
      */
-    public function reserve(AiUsageChannel $channel, int $tokens): ?string
+    public function reserve(ChatChannel|AiUsageChannel $channel, int $tokens): ?string
     {
+        $channel = self::channel($channel);
         $day = self::day();
         $caps = self::caps($channel);
         $tokens = max(0, $tokens);
@@ -95,8 +111,9 @@ class RecordAiUsage
         return $updated === 1 ? $day : null;
     }
 
-    public function settle(AiUsageChannel $channel, string $day, int $reserved, ChatAiStatus $status, ?AiResult $result): void
+    public function settle(ChatChannel|AiUsageChannel $channel, string $day, int $reserved, ChatAiStatus $status, ?AiResult $result): void
     {
+        $channel = self::channel($channel);
         $reserved = max(0, $reserved);
 
         if ($reserved > 0) {
@@ -126,8 +143,9 @@ class RecordAiUsage
         }
     }
 
-    public function capped(AiUsageChannel $channel): void
+    public function capped(ChatChannel|AiUsageChannel $channel): void
     {
+        $channel = self::channel($channel);
         $day = self::day();
         $this->ensureRow($channel, $day);
 
@@ -138,8 +156,9 @@ class RecordAiUsage
      * A request refused by the daily cap: counted, and once per channel and
      * Tashkent day a counts-only alert, queued after the commit (AI-B13).
      */
-    public function capReached(AiUsageChannel $channel): void
+    public function capReached(ChatChannel|AiUsageChannel $channel): void
     {
+        $channel = self::channel($channel);
         $this->capped($channel);
 
         $day = self::day();
@@ -160,6 +179,11 @@ class RecordAiUsage
     public static function alertKey(AiUsageChannel $channel, string $day): string
     {
         return 'chatbot:ai:cap_alert:'.$channel->value.':'.str_replace('-', '', $day);
+    }
+
+    private static function channel(ChatChannel|AiUsageChannel $channel): AiUsageChannel
+    {
+        return $channel instanceof ChatChannel ? AiUsageChannel::fromChatChannel($channel) : $channel;
     }
 
     private function counter(ChatAiStatus $status): ?string

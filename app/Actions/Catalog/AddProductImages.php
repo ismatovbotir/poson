@@ -27,7 +27,8 @@ use Throwable;
  * WebP conversions run during the upload (no queue worker needed). A file that
  * passes the type check but cannot be converted (truncated, corrupt) fails the
  * whole batch with a localized error and leaves no rows or files behind.
- * Alt text starts empty.
+ * Alt text starts empty. Returns the created media in input order (callers
+ * may ignore it).
  */
 class AddProductImages
 {
@@ -40,10 +41,11 @@ class AddProductImages
 
     /**
      * @param  list<UploadedFile>  $files
+     * @return list<Media> the created media, in the order of $files
      *
      * @throws ValidationException
      */
-    public function handle(Product $product, array $files, string $field = 'uploads'): void
+    public function handle(Product $product, array $files, string $field = 'uploads'): array
     {
         $files = array_values($files);
         $extensions = [];
@@ -72,6 +74,8 @@ class AddProductImages
 
             throw $exception;
         }
+
+        return $added;
     }
 
     /**

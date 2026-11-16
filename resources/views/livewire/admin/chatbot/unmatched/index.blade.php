@@ -22,7 +22,7 @@
             <span class="sr-only">{{ __($t.'.columns.channel') }}</span>
             <select wire:model.live="channel" class="{{ $selectClass }}">
                 <option value="">{{ __($t.'.channel_all') }}</option>
-                @foreach (\App\Enums\ChatChannel::cases() as $case)
+                @foreach (\App\Enums\ChatChannel::bots() as $case)
                     <option value="{{ $case->value }}">{{ $case->label() }}</option>
                 @endforeach
             </select>

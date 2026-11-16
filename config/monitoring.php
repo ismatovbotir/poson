@@ -72,7 +72,7 @@ return [
 
     /*
     | Queue of the "Run now" job (MON-S2). The worker must listen to it:
-    | `queue:work --queue=default,monitoring`.
+    | `queue:work --queue=default,monitoring,ai-admin` (ai-admin: the AI product wizard stages, plan 32).
     */
 
     'queue' => 'monitoring',
