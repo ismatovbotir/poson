@@ -241,3 +241,30 @@ it('keeps product drafts quote-only whatever the input, so an activated draft ca
     expect(Product::query()->sole()->sale_mode->value)->toBe('quote')
         ->and(mcpCallTool($plain, 'create_product_draft', ['type' => 'hardware', 'category_id' => $category->id, 'sku' => 'QO-2', 'name' => ['uz' => 'Skaner'], 'sale_mode' => 'cart'])->json('result.isError'))->toBeTrue();
 });
+
+it('rejects banned wording and bypass attempts in create_product_draft per field and locale', function (array $over) {
+    mcpHolder($plain = fakeMcpTokenValue());
+    $category = Category::factory()->create();
+
+    $response = mcpCallTool($plain, 'create_product_draft', ['type' => 'hardware', 'category_id' => $category->id, 'sku' => 'BS-1', 'name' => ['uz' => 'Skaner'], ...$over]);
+
+    expect($response->json('result.isError'))->toBeTrue()
+        ->and(Product::query()->count())->toBe(0);
+})->with([
+    'name ru' => [['name' => ['uz' => 'Skaner', 'ru' => 'Скидка']]],
+    'short en' => [['short_description' => ['en' => 'cheapest']]],
+    'meta title' => [['meta_title' => ['uz' => 'arzon']]],
+    'description tag split' => [['description' => ['uz' => '<p>ски<b>дка</b></p>']]],
+    'description entity' => [['description' => ['uz' => '<p>&#1089;кидка</p>']]],
+    'description zero width' => [['description' => ['uz' => "<p>dis\u{200B}count</p>"]]],
+    'unknown locale' => [['name' => ['uz' => 'Skaner', 'xx' => 'Skaner']]],
+]);
+
+it('accepts point of sale in an MCP product draft', function () {
+    mcpHolder($plain = fakeMcpTokenValue());
+    $category = Category::factory()->create();
+
+    mcpCallTool($plain, 'create_product_draft', ['type' => 'hardware', 'category_id' => $category->id, 'sku' => 'POS-1', 'name' => ['uz' => 'Point of sale terminal']])->assertOk();
+
+    expect(Product::query()->count())->toBe(1);
+});

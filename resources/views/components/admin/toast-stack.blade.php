@@ -18,6 +18,7 @@
     x-init="@if (session('toast')) add(@js(session('toast'))) @endif"
     x-on:toast.window="add($event.detail)"
     aria-live="polite"
+    data-admin-toasts
     class="pointer-events-none fixed inset-x-0 top-3 z-[70] flex flex-col items-center gap-2 px-3 sm:inset-x-auto sm:right-4 sm:top-4 sm:items-end"
 >
     <template x-for="t in items" :key="t.id">

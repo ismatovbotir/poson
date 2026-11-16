@@ -124,7 +124,7 @@ class LlmsTxt
         foreach ($nodes as $node) {
             $name = CategoryTree::name($node['id'], 'en');
 
-            if ($name === '' || BrandSafeText::violates($name)) {
+            if ($name === '' || BrandSafeText::violates($name, BrandSafeText::PRODUCT)) {
                 continue;
             }
 
@@ -151,7 +151,7 @@ class LlmsTxt
         $lines = ['- '.$this->link((string) ($labels['all_brands'] ?? 'All brands'), route('site.brands.index', ['locale' => 'en']))];
 
         foreach ($brands as $brand) {
-            if (BrandSafeText::violates($brand->name)) {
+            if (BrandSafeText::violates($brand->name, BrandSafeText::PRODUCT)) {
                 continue;
             }
 

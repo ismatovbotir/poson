@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Models\Setting;
 use App\Models\User;
+use App\Rules\BrandSafeText;
 use App\Support\Site\Analytics;
 
 /**
@@ -213,4 +214,48 @@ describe('structured data', function () {
             ->and($organization)->not->toHaveKey('taxID')
             ->not->toHaveKey('email');
     });
+});
+
+it('home follow-us block shows only validated social links with nofollow', function () {
+    setCompany('social', [
+        ['network' => 'telegram', 'url' => 'https://t.me/poson_uz'],
+        ['network' => 'instagram', 'url' => 'javascript:alert(1)'],
+        ['network' => 'instagram', 'url' => 'http://instagram.com/x'],
+        ['network' => 'instagram', 'url' => 'https://instagram.com.evil.tld/x'],
+        ['network' => 'telegram', 'url' => 'https://t.me/x"onmouseover='],
+        ['network' => 'myspace', 'url' => 'https://myspace.com/x'],
+    ]);
+
+    $html = $this->get('/uz')->assertOk()->getContent();
+
+    expect($html)->toContain('data-home-social')
+        ->toContain('https://t.me/poson_uz')
+        ->toContain('rel="noopener noreferrer nofollow"')
+        ->toContain('target="_blank"')
+        ->not->toContain('javascript:alert')
+        ->not->toContain('http://instagram.com')
+        ->not->toContain('instagram.com.evil.tld')
+        ->not->toContain('onmouseover')
+        ->not->toContain('myspace');
+});
+
+it('home follow-us block sits before the lead form with the standard section spacing', function () {
+    setCompany('social', [['network' => 'telegram', 'url' => 'https://t.me/poson_uz']]);
+
+    $html = $this->get('/uz')->assertOk()->getContent();
+
+    expect(strpos($html, 'data-home-social'))->toBeLessThan(strpos($html, 'id="lead"'))
+        ->and($html)->toMatch('/<section class="[^"]*py-12 md:py-\[72px\][^"]*" aria-labelledby="social-title"/');
+});
+
+it('home follow-us block is hidden without social links and its copy passes the brand check', function () {
+    setCompany('social', []);
+
+    $this->get('/uz')->assertOk()->assertDontSee('data-home-social', false);
+
+    foreach (['uz', 'ru', 'en'] as $locale) {
+        foreach (['title', 'text'] as $key) {
+            expect(BrandSafeText::violates(trans("site.home.social.{$key}", [], $locale)))->toBeFalse();
+        }
+    }
 });

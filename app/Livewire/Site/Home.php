@@ -30,6 +30,7 @@ class Home extends Component
             'services' => $content->services(),
             'brands' => $content->brands(),
             'news' => NewsCards::latest(),
+            'socialLinks' => $company->social(),
             'organization' => StructuredData::toScript($structuredData->organization()),
             'localBusiness' => StructuredData::toScript($structuredData->localBusiness()),
             'faq' => $faq,

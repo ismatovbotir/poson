@@ -4,9 +4,9 @@ namespace App\Mcp\Support;
 
 use App\Enums\AttributeType;
 use App\Models\Attribute;
-use App\Rules\BrandSafeText;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductDraftRules;
+use App\Support\Catalog\ProductTextRules;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -164,7 +164,7 @@ final class SpecInput
                 return [];
             }
 
-            if (BrandSafeText::violates($string)) {
+            if (ProductTextRules::violatesPlain($string)) {
                 $errors["{$field}.value"] = __('validation.brand_safe', ['attribute' => 'value']);
 
                 return [];

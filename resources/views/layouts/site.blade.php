@@ -23,6 +23,7 @@
     @stack('head')
 
     @fonts
+    <meta name="livewire-throttle" content="{{ __('site.throttle.toast', ['seconds' => '{seconds}']) }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
