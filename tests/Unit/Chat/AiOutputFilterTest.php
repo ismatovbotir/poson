@@ -494,3 +494,31 @@ it('blocks price-drop and promo-code wording (brand)', function (string $text) {
     'promokod' => ['Promokod: POSON10'],
     'промокод' => ['Промокод POSON'],
 ]);
+
+it('blocks hidden forms of blocked own-host paths with no list and with a non-matching list', function (string $link) {
+    $text = "See {$link} now";
+    $none = new AiOutputFilter(['poson.uz'], [], [], []);
+    $listed = new AiOutputFilter(['poson.uz'], [], [], [], [], [], ['poson.uz/ru/page/about']);
+
+    expect($none->apply($text)['blocked'])->toBe('link')->and($listed->apply($text)['blocked'])->toBe('link');
+})->with([
+    'encoded g' => 'https://poson.uz/ru/%67o/slug',
+    'encoded slash' => 'https://poson.uz/ru%2fgo%2fslug',
+    'double encoded' => 'https://poson.uz/ru/%2567o/slug',
+    'backslashes' => 'poson.uz\\ru\\go\\x',
+    'double slash' => 'https://poson.uz//go/x',
+    'dot segment' => 'https://poson.uz/./go/x',
+    'dot dot' => 'https://poson.uz/ru/page/../go/x',
+    'encoded dot dot' => 'https://poson.uz/ru/page/%2e%2e/go/x',
+    'encoded admin' => 'https://poson.uz/%61dmin/users',
+    'encoded query' => 'https://poson.uz/ru/page/about%3fx=1',
+    'encoded fragment' => 'https://poson.uz/ru/page/about%23x',
+]);
+
+it('compares the normalized path with the list', function () {
+    $listed = new AiOutputFilter(['poson.uz'], [], [], [], [], [], ['poson.uz/ru/page/about']);
+
+    expect($listed->apply('See https://poson.uz/ru/page/about now')['blocked'])->toBeNull()
+        ->and($listed->apply('See https://poson.uz//ru/./page/about/ now')['blocked'])->toBeNull()
+        ->and($listed->apply('See https://poson.uz/ru/page/other now')['blocked'])->toBe('link');
+});

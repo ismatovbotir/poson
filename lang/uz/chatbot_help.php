@@ -108,6 +108,16 @@ return [
                 'Xodim chatida «Bot bilan yozishma» bloki shu mijozning soʻnggi 30 kundagi SI savol-javoblarini koʻrsatadi (shaxsiy maʼlumotlar yashirilgan).',
             ],
         ],
+        'knowledge' => [
+            'title' => 'Sayt bilimi',
+            'steps' => [
+                'AI yordamchi saytdagi eʼlon qilingan sahifalardan javob beradi: xizmatlar va dasturlar sahifalari (hujjatlar bor-yoʻqligi bilan), maqolalar va yangiliklar, brend sahifalari hamda “Biz haqimizda”, yetkazib berish, kafolat va aloqa kabi statik sahifalar.',
+                'AI hech qachon oʻqimaydi: summalar (indekslashda yashiriladi va “sahifaga qarang” bilan almashtiriladi), faqat admin uchun mavjud sahifalar, maxfiylik, oferta va boshqa huquqiy sahifalar hamda mijozlar maʼlumotlari.',
+                'Bilim avtomatik yangilanadi: sahifa eʼlon qilinganda yoki tahrirlanganda va har soatlik tekshiruvda. Darhol yangilash uchun Chat bot → Sozlamalar boʻlimidagi “Hozir qayta qurish” tugmasidan foydalaning.',
+                'Javob notoʻgʻri boʻlsa, avval saytdagi tegishli sahifani tuzating: bot yangilangan matndan foydalanadi. Aniq javob kerak boʻlsa, “Oʻrgatish” boʻlimida qoida qoʻshing; qoidalar AIʼdan oldin javob beradi.',
+                'Javob ostidagi “Ochish: …” tugmalari bot tayangan sahifalarga olib boradi. Brend uchun xavfli yoki summa, aloqa maʼlumoti va havola oʻz ichiga olgan matnlar indeksga kiritilmaydi.',
+            ],
+        ],
         'inbox' => [
             'title' => 'Xodimlar uchun chatlar qutisi',
             'steps' => [

@@ -132,7 +132,7 @@ return [
             'meta_max' => 60,
             'specs' => 4,
             'spec_max' => 60,
-            'line_max' => 400,
+            'line_max' => 450,
             'block_max' => 2500,
             // Product buttons under an AI answer (only products the answer names).
             'buttons' => 3,
@@ -158,6 +158,30 @@ return [
             'uz' => ['va', 'bilan', 'uchun', 'bormi', 'kerak', 'qancha', 'narxi', 'narx', 'qanday', 'menga', 'sizda', 'bor'],
             'ru' => ['и', 'в', 'на', 'для', 'с', 'есть', 'нужен', 'нужна', 'сколько', 'стоит', 'цена', 'какой', 'мне', 'у', 'вас'],
             'en' => ['the', 'and', 'for', 'with', 'have', 'need', 'how', 'much', 'price', 'what', 'you', 'is', 'a', 'an'],
+        ],
+        // Website knowledge index (plan 33, chat:index-knowledge): public page, news, article, brand, service and
+        // software text, chunked per locale in ai_knowledge_chunks. Hardware descriptions, legal pages and prices never go in.
+        'knowledge' => [
+            // Queue a re-index when a page, news post, brand or service/software product is saved (off in phpunit.xml).
+            'hooks' => env('CHATBOT_KNOWLEDGE_HOOKS', true),
+            // Own queue (add it LAST to the worker's --queue list) and the job limits (timeout below retry_after).
+            'queue' => 'knowledge',
+            'job_timeout' => 60,
+            'job_tries' => 3,
+            // One chunk: characters, chunks per source and locale, title length.
+            'chunk_max' => 1200,
+            'chunks_max' => 6,
+            'title_max' => 200,
+            // Source text read per locale before chunking (characters).
+            'source_max' => 8000,
+            // Months a news post stays knowledge (articles stay).
+            'news_months' => 24,
+            // Retrieval (the <site> block): entries, characters, and page buttons under an answer.
+            'entries' => 4,
+            'site_max' => 3000,
+            'buttons' => 2,
+            // The hourly command stops after this many seconds and continues next hour.
+            'command_seconds' => 20,
         ],
         // Days AI turns are kept (chat:prune-ai, phase B).
         'retention_days' => 30,

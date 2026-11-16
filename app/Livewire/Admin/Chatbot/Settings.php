@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Chatbot;
 
+use App\Actions\Chat\Knowledge\KnowledgeOverview;
+use App\Actions\Chat\Knowledge\QueueKnowledgeRebuild;
 use App\Actions\Chat\SaveChatbotSettings;
 use App\Enums\ChatChannel;
 use App\Enums\Role;
@@ -12,6 +14,7 @@ use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -66,6 +69,31 @@ class Settings extends Component
         $this->dispatch('toast', title: __('admin.toast.saved'), body: $changed > 0 ? __('chatbot_admin.settings.saved') : __('chatbot_admin.settings.unchanged'));
     }
 
+    /**
+     * "Rebuild now" of the website knowledge (plan 33 K-11): chatbot.settings, one request per five minutes.
+     */
+    public function rebuildKnowledge(QueueKnowledgeRebuild $rebuild): void
+    {
+        $this->authorize('chatbot.settings');
+
+        $started = $rebuild->handle(auth()->user(), request()->ip());
+
+        unset($this->knowledge);
+
+        $this->dispatch('toast', title: __('chatbot_admin.settings.knowledge.title'), body: $started ? __('chatbot_admin.settings.knowledge.rebuild_started') : __('chatbot_admin.settings.knowledge.rebuild_running'));
+    }
+
+    /**
+     * The "Website knowledge" card data, once per request (cleared after a rebuild request).
+     *
+     * @return array<string, mixed>
+     */
+    #[Computed]
+    public function knowledge(): array
+    {
+        return app(KnowledgeOverview::class)->handle();
+    }
+
     private function isAdmin(): bool
     {
         return auth()->user()->hasRole(Role::Admin);
@@ -82,6 +110,7 @@ class Settings extends Component
                 'telegram' => ChatbotSwitch::isStored(ChatChannel::Telegram) && ! ChatbotSwitch::isEnabled(ChatChannel::Telegram),
                 'web' => ChatbotSwitch::isStored(ChatChannel::Web) && ! ChatbotSwitch::isEnabled(ChatChannel::Web),
             ],
+            'knowledge' => $this->knowledge,
             'webReady' => (bool) config('chatbot.web_ready'),
             'days' => ChatSettings::DAYS,
             'aiKeyConfigured' => AiSwitch::keyConfigured(),

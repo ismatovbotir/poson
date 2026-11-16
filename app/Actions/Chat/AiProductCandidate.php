@@ -17,6 +17,8 @@ final readonly class AiProductCandidate
         public string $label,
         public string $line,
         public AiPriceCandidate $price,
+        /** The product page URL, route-built (an entry of the request's URL allow-list, K-6) */
+        public string $url = '',
     ) {}
 
     /**

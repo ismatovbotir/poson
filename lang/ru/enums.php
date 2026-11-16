@@ -538,6 +538,15 @@ return [
         'assistant' => 'ИИ-помощник',
     ],
 
+    'ai_knowledge_source' => [
+        'page' => 'Страница',
+        'news' => 'Новость',
+        'article' => 'Статья',
+        'brand' => 'Бренд',
+        'service' => 'Услуга',
+        'software' => 'Программа',
+    ],
+
     'chat_ai_status' => [
         'answered' => 'Отвечено',
         'truncated' => 'Отвечено (сокращено)',

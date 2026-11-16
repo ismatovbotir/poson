@@ -6,6 +6,7 @@ use App\Enums\PageTemplate;
 use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Site\IndexNow;
+use App\Support\Site\KnowledgeIndex;
 use App\Support\Site\PageDirectory;
 use Database\Factories\PageFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -59,6 +60,13 @@ class Page extends Model implements HasMedia
     public const INDEXNOW_IGNORED = ['sort', 'needs_review'];
 
     /**
+     * Columns whose change re-indexes the chat bot AI knowledge (plan 33 K-7).
+     *
+     * @var list<string>
+     */
+    public const AI_KNOWLEDGE_FIELDS = ['slug', 'template', 'title', 'body', 'is_active'];
+
+    /**
      * System pages: slug => template (plan 07 K3).
      *
      * @var array<string, PageTemplate>
@@ -90,6 +98,10 @@ class Page extends Model implements HasMedia
 
     protected static function booted(): void
     {
+        static::created(fn (Page $model) => KnowledgeIndex::queue($model, KnowledgeIndex::CREATED));
+        static::updated(fn (Page $model) => KnowledgeIndex::queue($model, KnowledgeIndex::UPDATED));
+        static::deleted(fn (Page $model) => KnowledgeIndex::queue($model, KnowledgeIndex::DELETED));
+
         $flush = function (Page $page): void {
             IndexNow::record($page);
             PageDirectory::flush();

@@ -22,5 +22,7 @@ final readonly class AiAnswer
         public string $promptHash,
         /** @var list<int> */
         public array $productIds = [],
+        /** @var list<int> The [Sn] numbers of <site> entries the answer cited (K-5, memory only) */
+        public array $cited = [],
     ) {}
 }

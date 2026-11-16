@@ -48,6 +48,14 @@ class SearchProducts
     ];
 
     /**
+     * Relations AI retrieval loads. The documents are only id, type and
+     * locale: their availability is printed, never a title, file name or URL (K-13).
+     *
+     * @var list<string>
+     */
+    public const ANY_RELATIONS = ['brand', 'category', 'keySpecValues.attribute', 'keySpecValues.option', 'documents:id,product_id,type,locale'];
+
+    /**
      * Up to $limit (1 to MAX_RESULTS) published products, featured first;
      * empty without a query (no database query then).
      *
@@ -135,8 +143,31 @@ class SearchProducts
             ->orderByDesc('products.is_featured')
             ->orderBy('products.sort')
             ->orderBy('products.id')
-            ->with(['brand', 'category', 'keySpecValues.attribute', 'keySpecValues.option'])
+            ->with(self::ANY_RELATIONS)
             ->limit(max(1, min($limit, self::MAX_ANY_RESULTS)))
+            ->get();
+    }
+
+    /**
+     * Published products by id (the service and software pages the AI found,
+     * plan 33 K-13): the same columns, scope and relations as anyQuery(), so a
+     * hidden product is never returned.
+     *
+     * @param  list<int>  $ids
+     * @return Collection<int, Product>
+     */
+    public function visibleByIds(array $ids): Collection
+    {
+        if ($ids === []) {
+            return new Collection;
+        }
+
+        return Product::query()
+            ->select(self::ANY_COLUMNS)
+            ->visible()
+            ->whereIn('products.id', array_slice(array_values(array_unique($ids)), 0, self::MAX_ANY_RESULTS))
+            ->orderBy('products.id')
+            ->with(self::ANY_RELATIONS)
             ->get();
     }
 

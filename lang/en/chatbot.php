@@ -138,4 +138,13 @@ return [
         'limited' => 'Too many requests. Please ask a manager.',
         'refused' => 'We cannot accept this request here. Please ask a manager.',
     ],
+
+    // Website knowledge index (plan 33): replaces a money amount found in site text.
+    'knowledge' => [
+        'docs' => 'Docs',
+        'open_prefix' => 'Open: ',
+        'open_button' => 'Open: :title',
+        'sources' => 'Source pages:',
+        'amount_masked' => '(see the page)',
+    ],
 ];

@@ -138,4 +138,13 @@ return [
         'limited' => 'Soʻrovlar juda koʻp. Menejerga murojaat qiling.',
         'refused' => 'Bu soʻrovni bu yerda qabul qila olmaymiz. Menejerga murojaat qiling.',
     ],
+
+    // Website knowledge index (plan 33): replaces a money amount found in site text.
+    'knowledge' => [
+        'docs' => 'Hujjatlar',
+        'open_prefix' => 'Ochish: ',
+        'open_button' => 'Ochish: :title',
+        'sources' => 'Manba sahifalar:',
+        'amount_masked' => '(sahifaga qarang)',
+    ],
 ];

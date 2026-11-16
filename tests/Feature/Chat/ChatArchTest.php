@@ -93,3 +93,8 @@ it('never calls an HTTP client from the chat files', function () {
         expect(file_get_contents($file))->not->toMatch('/Http::|new Client\(|curl_init|file_get_contents\(\s*[\'"]http/');
     }
 });
+
+// Plan 33 (K-7, §10): the knowledge indexer reads the website only and never reaches the model, HTTP or another model's save.
+arch('the knowledge indexer makes no HTTP calls and never uses the AI services')
+    ->expect(['App\Actions\Chat\Knowledge', 'App\Jobs\IndexAiKnowledge', 'App\Support\Site\KnowledgeIndex', 'App\Console\Commands\IndexKnowledge'])
+    ->not->toUse(['App\Services\Ai', 'Anthropic', 'Illuminate\Support\Facades\Http', 'Illuminate\Http\Client', 'GuzzleHttp', 'App\Services\Telegram']);

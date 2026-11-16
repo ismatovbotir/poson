@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Gate;
  *   keywords: list<{keyword, type, weight}>, priority: int|null,
  *   would_run: string|null (action label or "product search" for model-like text),
  *   reply: {text: string, buttons: list<{label, kind}>}|null, fallback: bool,
+ *   site: list<{n, label, title, url}> — the website passages the AI would get in its <site> block
+ *   (plan 33 K-14: FindAiKnowledge, the same public re-check; never a model call),
  *   ai: {reason: string, enabled: bool}|null — "would ask AI" (plan 30, AI-24):
  *   the engine's reason, never a model call (the model is never resolved here)
  */
@@ -42,7 +44,7 @@ class TestChatPhrase
      */
     private const NOT_RUN = [ChatAction::ProductSearch, ChatAction::OrderStatus, ChatAction::RepairStatus, ChatAction::LeadDialog, ChatAction::Handoff];
 
-    public function __construct(private readonly Engine $engine, private readonly RuleIndex $index) {}
+    public function __construct(private readonly Engine $engine, private readonly RuleIndex $index, private readonly FindAiKnowledge $knowledge) {}
 
     /**
      * @return array<string, mixed>
@@ -55,6 +57,7 @@ class TestChatPhrase
         $context = new ChatContext($channel, $locale, $text);
         $normalized = $context->normalized();
         $aiReason = $this->engine->aiReason($context);
+        $hits = $this->knowledge->handle($text, $locale);
 
         $result = [
             'normalized' => $normalized,
@@ -69,6 +72,12 @@ class TestChatPhrase
             'would_run' => null,
             'reply' => null,
             'fallback' => false,
+            'site' => array_map(fn (AiKnowledgeHit $hit, int $index): array => [
+                'n' => $index + 1,
+                'label' => (string) __('enums.ai_knowledge_source.'.$hit->type->value, [], $locale),
+                'title' => $hit->title,
+                'url' => $hit->url,
+            ], $hits, array_keys($hits)),
             'ai' => $aiReason === null ? null : [
                 'reason' => __('chatbot_admin.console.ai_reasons.'.$aiReason),
                 'enabled' => AiSwitch::isEnabled($channel),

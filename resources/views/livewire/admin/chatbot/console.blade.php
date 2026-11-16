@@ -75,6 +75,22 @@
                 @endif
             </x-admin.card>
 
+            <x-admin.card :title="__($t.'.site_title')" :description="__($t.'.site_help')" data-console-site>
+                @if ($result['site'] !== [])
+                    <ul class="space-y-3 text-sm">
+                        @foreach ($result['site'] as $hit)
+                            <li wire:key="site-{{ $hit['n'] }}">
+                                <span class="font-semibold tabular-nums">[S{{ $hit['n'] }}]</span> {{ $hit['title'] }}
+                                <span class="text-xs text-slate-500">· {{ $hit['label'] }}</span>
+                                <code class="mt-0.5 block break-all rounded bg-slate-100 px-1.5 py-0.5 text-xs">{{ $hit['url'] }}</code>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-sm text-slate-500">{{ __($t.'.site_none') }}</p>
+                @endif
+            </x-admin.card>
+
             <x-admin.card :title="__($t.'.reply')">
                 @if ($result['reply'])
                     {{-- Plain text, escaped, line breaks kept (CB-5). --}}

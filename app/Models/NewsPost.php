@@ -9,6 +9,7 @@ use App\Models\Concerns\HasCatalogImage;
 use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Site\IndexNow;
+use App\Support\Site\KnowledgeIndex;
 use App\Support\Site\NewsDirectory;
 use App\Support\Site\StructuredData;
 use Database\Factories\NewsPostFactory;
@@ -67,6 +68,13 @@ class NewsPost extends Model implements HasMedia
     public const INDEXNOW_IGNORED = [];
 
     /**
+     * Columns whose change re-indexes the chat bot AI knowledge (plan 33 K-7).
+     *
+     * @var list<string>
+     */
+    public const AI_KNOWLEDGE_FIELDS = ['slug', 'kind', 'status', 'published_at', 'title', 'excerpt', 'body', 'locales'];
+
+    /**
      * Time zone of the admin date input and of the dates shown on the site.
      */
     public const TIMEZONE = 'Asia/Tashkent';
@@ -92,6 +100,10 @@ class NewsPost extends Model implements HasMedia
 
     protected static function booted(): void
     {
+        static::created(fn (NewsPost $model) => KnowledgeIndex::queue($model, KnowledgeIndex::CREATED));
+        static::updated(fn (NewsPost $model) => KnowledgeIndex::queue($model, KnowledgeIndex::UPDATED));
+        static::deleted(fn (NewsPost $model) => KnowledgeIndex::queue($model, KnowledgeIndex::DELETED));
+
         static::saving(function (NewsPost $post): void {
             $post->locales = $post->translatedLocales();
         });
