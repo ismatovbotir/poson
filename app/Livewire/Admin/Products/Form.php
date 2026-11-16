@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Products;
 
+use App\Actions\Catalog\Ai\AiWizardGate;
 use App\Actions\Catalog\CreateAttributeOption;
 use App\Actions\Catalog\DeleteProduct;
 use App\Actions\Catalog\SaveProduct;
@@ -511,6 +512,8 @@ class Form extends Component
             'priceSynced' => $this->product?->isPriceSynced() ?? false,
             'priceSyncLogId' => $this->product?->isPriceSynced() && $user->can('viewAny', PriceSyncLog::class) ? $this->product->price_sync_log_id : null,
             'canUnlinkPriceSync' => $this->product !== null && $user->can('unlinkPriceSync', $this->product),
+            // Plan 32: link to the AI wizard (improve) when ai.generate, the switch and the key allow it.
+            'canAiImprove' => $this->product !== null && AiWizardGate::allowsImprove($user, $this->product),
         ])->title($title);
     }
 

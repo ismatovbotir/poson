@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Products;
 
+use App\Actions\Catalog\Ai\AiWizardGate;
 use App\Actions\Catalog\DeleteProduct;
 use App\Actions\Catalog\ForceDeleteProduct;
 use App\Actions\Catalog\RestoreProduct;
@@ -271,6 +272,8 @@ class Index extends Component
 
         $products = $query->paginate(self::PER_PAGE);
         $user = auth()->user();
+        // Plan 32: the AI wizard links only when ai.generate, the Admin switch and the key allow it.
+        $aiWizard = AiWizardGate::allowsUser($user);
 
         return view('livewire.admin.products.index', [
             'items' => $products,
@@ -280,6 +283,10 @@ class Index extends Component
             'editable' => $products->getCollection()->filter(fn (Product $product): bool => $user->can('update', $product))->modelKeys(),
             'deletable' => $products->getCollection()->filter(fn (Product $product): bool => $user->can('delete', $product))->modelKeys(),
             'canForceDelete' => $user->can('forceDelete', Product::class),
+            'canAiCreate' => $aiWizard && $user->can('create', Product::class),
+            'aiImprovable' => $aiWizard && $tab !== 'trash'
+                ? $products->getCollection()->filter(fn (Product $product): bool => AiWizardGate::allowsProduct($user, $product))->modelKeys()
+                : [],
         ])->title(__('admin.products.title'));
     }
 

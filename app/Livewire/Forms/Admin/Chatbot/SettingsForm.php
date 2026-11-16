@@ -19,7 +19,19 @@ use Livewire\Form;
  */
 class SettingsForm extends Form
 {
-    public const AI_FIELDS = ['ai_telegram_enabled', 'ai_web_enabled', 'ai_daily_requests', 'ai_daily_tokens', 'ai_instructions'];
+    public const AI_FIELDS = [
+        'ai_telegram_enabled', 'ai_web_enabled', 'ai_daily_requests', 'ai_daily_tokens', 'ai_instructions',
+        // Plan 32: the AI product wizard switch and its stage caps (Admin only).
+        'ai_admin_enabled', 'ai_adm_vision_daily_requests', 'ai_adm_vision_daily_tokens', 'ai_adm_write_daily_requests', 'ai_adm_write_daily_tokens',
+    ];
+
+    /**
+     * The daily cap fields (Plan 30 bot + Plan 32 wizard channels).
+     */
+    public const CAP_FIELDS = [
+        'ai_daily_requests', 'ai_daily_tokens',
+        'ai_adm_vision_daily_requests', 'ai_adm_vision_daily_tokens', 'ai_adm_write_daily_requests', 'ai_adm_write_daily_tokens',
+    ];
 
     public bool $web_enabled = false;
 
@@ -39,11 +51,51 @@ class SettingsForm extends Form
 
     public bool $ai_web_enabled = false;
 
-    public int $ai_daily_requests = 0;
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_daily_requests = 0;
 
-    public int $ai_daily_tokens = 0;
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_daily_tokens = 0;
 
     public string $ai_instructions = '';
+
+    public bool $ai_admin_enabled = false;
+
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_adm_vision_daily_requests = 0;
+
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_adm_vision_daily_tokens = 0;
+
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_adm_write_daily_requests = 0;
+
+    /**
+     * Untyped on purpose: a non-numeric client value is a validation error, never a TypeError.
+     *
+     * @var int|string|null
+     */
+    public $ai_adm_write_daily_tokens = 0;
 
     /**
      * The AI values shown when the form was loaded (only changed ones are sent).
@@ -96,6 +148,12 @@ class SettingsForm extends Form
         $this->ai_daily_requests = $settings['ai']['daily_requests'];
         $this->ai_daily_tokens = $settings['ai']['daily_tokens'];
         $this->ai_instructions = $settings['ai']['instructions'];
+        $this->ai_admin_enabled = $settings['ai']['admin_enabled'];
+
+        foreach (['adm_vision', 'adm_write'] as $channel) {
+            $this->{"ai_{$channel}_daily_requests"} = $settings['ai']['caps'][$channel]['requests'] ?? 0;
+            $this->{"ai_{$channel}_daily_tokens"} = $settings['ai']['caps'][$channel]['tokens'] ?? 0;
+        }
         $this->aiLoaded = [];
 
         foreach (self::AI_FIELDS as $field) {
@@ -128,6 +186,11 @@ class SettingsForm extends Form
             'ai_daily_requests' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.requests_max')],
             'ai_daily_tokens' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.tokens_max')],
             'ai_instructions' => ['nullable', 'string', 'max:'.(int) config('chatbot.ai.instructions_max', 2000)],
+            'ai_admin_enabled' => ['boolean'],
+            'ai_adm_vision_daily_requests' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.requests_max')],
+            'ai_adm_vision_daily_tokens' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.tokens_max')],
+            'ai_adm_write_daily_requests' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.requests_max')],
+            'ai_adm_write_daily_tokens' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.tokens_max')],
         ];
     }
 
@@ -141,6 +204,13 @@ class SettingsForm extends Form
     {
         $data = $this->all();
         unset($data['loaded'], $data['aiLoaded']);
+
+        // Validated integers (the untyped cap fields may hold "100" from the client).
+        foreach (self::CAP_FIELDS as $field) {
+            if (is_numeric($data[$field] ?? null)) {
+                $data[$field] = (int) $data[$field];
+            }
+        }
 
         foreach (self::AI_FIELDS as $field) {
             if (array_key_exists($field, $this->aiLoaded) && $data[$field] === $this->aiLoaded[$field]) {

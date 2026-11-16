@@ -76,6 +76,12 @@ class RolesAndPermissionsSeeder extends Seeder
     public const CAREERS = ['careers.vacancies', 'careers.applications', 'careers.cv'];
 
     /**
+     * AI product wizard (plan 32, PW-27): Content manager (Admin via Gate::before
+     * and allPermissions). Also added by the add_ai_generate_permission migration.
+     */
+    public const AI = ['ai.generate'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -155,6 +161,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'products.manage-services',
                 ...self::SITEMAP,
                 ...self::CHATBOT,
+                ...self::AI,
             ],
 
             Role::SalesManager->value => [
@@ -253,6 +260,8 @@ class RolesAndPermissionsSeeder extends Seeder
             ...self::CHATBOT,
             // Plan 31: careers (also added by the add_careers_permissions migration). Admin only.
             ...self::CAREERS,
+            // Plan 32: AI product wizard (also added by the add_ai_generate_permission migration).
+            ...self::AI,
         ];
     }
 

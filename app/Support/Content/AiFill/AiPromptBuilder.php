@@ -11,6 +11,7 @@ use App\Support\HtmlSanitizer;
  * read-only context and current texts (as an escaped JSON data block, marked
  * as data and not instructions) and the exact JSON shape the answer must
  * have. No AI runs in the app: this is text building only (AI-9, AI-11).
+ * The shared brand and language lines live in AiPromptRules (plan 32, PW-25).
  */
 class AiPromptBuilder
 {
@@ -18,33 +19,6 @@ class AiPromptBuilder
      * Current texts are cut to this many characters in the prompt.
      */
     public const CURRENT_MAX = 1500;
-
-    /**
-     * Wording the brand rule forbids (CLAUDE.md), listed for the AI to avoid.
-     *
-     * @var array<string, list<string>>
-     */
-    private const BANNED = [
-        'English' => ['cheap', 'cheapest', 'low price', 'discount', 'sale', 'promo'],
-        'Russian' => ['дешевле', 'дёшево', 'цена ниже', 'скидки', 'акции'],
-        'Uzbek' => ['arzon', 'chegirma'],
-    ];
-
-    /**
-     * en / ru / uz names of the usual Auto-ID words.
-     *
-     * @var list<array{0: string, 1: string, 2: string}>
-     */
-    private const TERMS = [
-        ['Barcode scanner', 'Сканер штрих-кода', 'Shtrix-kod skaneri'],
-        ['Label printer', 'Принтер этикеток', 'Yorliq printeri'],
-        ['Receipt printer', 'Чековый принтер', 'Chek printeri'],
-        ['Mobile computer', 'Терминал сбора данных (ТСД)', 'Maʼlumot yigʻish terminali (TSD)'],
-        ['Ribbon', 'Риббон', 'Ribbon'],
-        ['Labels', 'Этикетки', 'Yorliqlar'],
-        ['Quote request', 'Запрос коммерческого предложения', 'Tijorat taklifi soʻrovi'],
-        ['Service / repair', 'Сервис / ремонт', 'Servis / taʼmirlash'],
-    ];
 
     /**
      * @param  string  $subject  English name of the record kind ("product", "brand", …)
@@ -55,21 +29,15 @@ class AiPromptBuilder
     public function build(string $subject, array $fields, array $context, array $current): string
     {
         $lines = [
-            'You are a senior copywriter for Poson, a company in Uzbekistan that sells and services Auto-ID products (barcode scanners, label and receipt printers, mobile computers, RFID and POS equipment, labels, ribbons, receipt paper, software, and device services). Customers are mostly businesses (B2B).',
+            'You are a senior copywriter for '.AiPromptRules::COMPANY,
             '',
             "TASK: write the website texts of one {$subject} in three languages: Uzbek (uz), Russian (ru) and English (en). Always fill all three languages for every field below.",
             '',
-            'BRAND RULES:',
-            '- Poson sells on service quality, never on low price: expert selection, setup and integration, official warranty, its own service centre, fast support, reliable stock and delivery.',
-            '- Never mention low prices, discounts or promotions, never use percent-off badges or old/crossed-out prices. Do not use these words or their forms: '.$this->bannedList().'.',
-            '- Do not state prices at all.',
+            ...AiPromptRules::brandLines(),
             '',
             'FACTS: use only the facts in the CONTEXT and CURRENT TEXTS data below. Do not invent specifications, numbers, model names, certificates, warranty terms, delivery terms or customers. If a fact is unknown, stay general.',
             '',
-            'LANGUAGE:',
-            '- Uzbek is written in Latin script. Use ʻ (U+02BB) in oʻ and gʻ (oʻzbek, gʻoya) and ʼ (U+02BC) as the tutuq belgisi (maʼlumot, taʼminot, eʼlon). Never use the plain apostrophe or typographic quotes inside Uzbek words.',
-            '- Keep brand and model names as they are. Use these terms:',
-            ...array_map(fn (array $term): string => "  - {$term[0]} = {$term[1]} = {$term[2]}", self::TERMS),
+            ...AiPromptRules::languageLines(),
             '',
             'FIELDS (key, limit in characters per language, format):',
             ...array_map($this->fieldLine(...), $fields),
@@ -102,17 +70,6 @@ class AiPromptBuilder
         }
 
         return $field->hint !== null ? $line.'. '.$field->hint : $line;
-    }
-
-    private function bannedList(): string
-    {
-        $parts = [];
-
-        foreach (self::BANNED as $language => $words) {
-            $parts[] = "{$language}: ".implode(', ', array_map(fn (string $word): string => "\"{$word}\"", $words));
-        }
-
-        return implode('; ', $parts);
     }
 
     private function allowedTags(): string

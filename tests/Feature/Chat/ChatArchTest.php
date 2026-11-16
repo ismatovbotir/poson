@@ -44,9 +44,10 @@ arch('chat actions and the AI job use only the ChatModel interface')
     ->expect(['App\Actions\Chat', 'App\Jobs\AnswerChatWithAi'])
     ->not->toUse(['App\Services\Ai\AnthropicChatModel', 'GuzzleHttp']);
 
-arch('only the AI job and its fakes resolve the chat model')
+arch('only the AI jobs and their fakes resolve the chat model')
     ->expect('App\Services\Ai\ChatModel')
-    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Providers\AppServiceProvider']);
+    // Plan 32: the AI product wizard's queued stage job is the second consumer (never a Livewire component or another action).
+    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Jobs\RunAiDraftStage', 'App\Providers\AppServiceProvider']);
 
 it('does not use preg functions in the matching code', function (string $file) {
     $code = (string) file_get_contents(base_path($file));

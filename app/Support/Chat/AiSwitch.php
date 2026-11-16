@@ -53,6 +53,22 @@ final class AiSwitch
         return self::keyConfigured() && self::isStored($channel) && ChatbotSwitch::isEnabled($channel) && ! self::authFailed();
     }
 
+    /**
+     * The AI product wizard switch an Admin saved (plan 32, "chatbot.ai_admin_enabled").
+     */
+    public static function adminStored(): bool
+    {
+        return ChatSettings::all()['ai']['admin_enabled'] ?? false;
+    }
+
+    /**
+     * The AI product wizard may call the model: switch on, key set, not paused by a 401/403.
+     */
+    public static function adminEnabled(): bool
+    {
+        return self::keyConfigured() && self::adminStored() && ! self::authFailed();
+    }
+
     public static function markAuthFailed(): void
     {
         Cache::put(self::AUTH_FAILED_KEY, true, self::AUTH_PAUSE_SECONDS);

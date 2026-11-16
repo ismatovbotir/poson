@@ -2,6 +2,7 @@
 
 namespace App\Support\Chat;
 
+use App\Enums\AiUsageChannel;
 use App\Enums\SettingsArea;
 use App\Models\Page;
 use App\Models\Setting;
@@ -172,8 +173,12 @@ final class ChatSettings
      * The AI answer settings (plan 30 §9), in the same rows and the same one
      * memoized read as everything else (CB-31: no extra query).
      *
+     * Plan 32: "admin_enabled" is the product wizard switch (Admin only) and
+     * "caps" the daily caps of each admin usage channel (AiUsageChannel value
+     * => requests, tokens; settings override config chatbot.ai.caps.{value}).
+     *
      * @param  callable(string, mixed=): mixed  $get
-     * @return array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
+     * @return array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string, admin_enabled: bool, caps: array<string, array{requests: int, tokens: int}>}
      */
     private static function ai(callable $get): array
     {
@@ -189,7 +194,36 @@ final class ChatSettings
             'daily_tokens' => $tokens !== false && $tokens >= 0 && $tokens <= (int) config('chatbot.ai.caps.tokens_max')
                 ? $tokens : (int) config('chatbot.ai.caps.tokens'),
             'instructions' => is_string($instructions) ? mb_substr($instructions, 0, (int) config('chatbot.ai.instructions_max', 2000)) : '',
+            'admin_enabled' => $get('ai_admin_enabled') === true,
+            'caps' => self::adminCaps($get),
         ];
+    }
+
+    /**
+     * @param  callable(string, mixed=): mixed  $get
+     * @return array<string, array{requests: int, tokens: int}>
+     */
+    private static function adminCaps(callable $get): array
+    {
+        $caps = [];
+
+        foreach (AiUsageChannel::cases() as $channel) {
+            if (! $channel->isAdmin()) {
+                continue;
+            }
+
+            $requests = filter_var($get("ai_{$channel->value}_daily_requests"), FILTER_VALIDATE_INT);
+            $tokens = filter_var($get("ai_{$channel->value}_daily_tokens"), FILTER_VALIDATE_INT);
+
+            $caps[$channel->value] = [
+                'requests' => $requests !== false && $requests >= 0 && $requests <= (int) config('chatbot.ai.caps.requests_max')
+                    ? $requests : (int) config("chatbot.ai.caps.{$channel->value}.requests", 0),
+                'tokens' => $tokens !== false && $tokens >= 0 && $tokens <= (int) config('chatbot.ai.caps.tokens_max')
+                    ? $tokens : (int) config("chatbot.ai.caps.{$channel->value}.tokens", 0),
+            ];
+        }
+
+        return $caps;
     }
 
     /**

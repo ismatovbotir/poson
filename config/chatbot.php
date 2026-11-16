@@ -113,6 +113,11 @@ return [
             'tokens' => 3000000,
             'requests_max' => 20000,
             'tokens_max' => 50000000,
+            // Plan 32 (PW-12): every admin usage channel (AiUsageChannel value) has its own daily caps,
+            // never shared with the chat caps above. An Admin can change them in Chat bot → Settings.
+            'adm_vision' => ['requests' => 150, 'tokens' => 2000000],
+            'adm_write' => ['requests' => 100, 'tokens' => 1000000],
+            'adm_trans' => ['requests' => 200, 'tokens' => 500000],
         ],
         // USD per million tokens, for the estimate in Stats (cache read billed at 0.1x input).
         'prices' => [
@@ -136,6 +141,68 @@ return [
         ],
         // Days AI turns are kept (chat:prune-ai, phase B).
         'retention_days' => 30,
+
+        // AI product wizard (plan 32): stage A "look at the photos" (Haiku, images attached, facts only),
+        // stage B "write" (Sonnet, no images). Off unless an Admin switches it on (chatbot.ai_admin_enabled).
+        // Models must be in AnthropicChatModel::MODELS (checked again in the adapter).
+        'product' => [
+            'vision' => [
+                'model' => 'claude-haiku-5-5',
+                'effort' => 'low',
+                'max_tokens' => 1500,
+                // Seconds: SDK total timeout and the queued job's timeout (retry_after > job > SDK + connect, PW-10).
+                'timeout' => 45,
+                'job_timeout' => 60,
+            ],
+            'write' => [
+                'model' => 'claude-sonnet-5-5',
+                'effort' => 'medium',
+                'max_tokens' => 6000,
+                'timeout' => 120,
+                'job_timeout' => 150,
+            ],
+            // Queue of both stages (listed after default,monitoring in the worker command).
+            'queue' => 'ai-admin',
+            // Send output_config.format (JSON schema). false = prompt-only JSON skeleton (fallback).
+            'structured' => true,
+            'max_images' => 6,
+            'upload_max_kb' => 5120,
+            'upload_total_kb' => 30720,
+            // Vision copies: longest edge, megapixels, JPEG quality.
+            'ai_edge' => 1568,
+            'ai_megapixels' => 1.15,
+            'ai_quality' => 85,
+            // Tier 1 cleaning: longest edge, margin and trim threshold (fractions), JPEG quality.
+            'clean' => ['edge' => 1600, 'margin' => 0.06, 'trim' => 0.08, 'quality' => 88],
+            'notes_max' => 2000,
+            'attributes_max' => 60,
+            'options_max' => 50,
+            // Characters of the whole <attributes> prompt block (options trimmed first, L6).
+            'attributes_chars' => 24000,
+            'current_max' => 1500,
+            // Rate limits per stage (hit inside the component methods, PW-29) and pending stages.
+            'limits' => [
+                'vision_per_hour_user' => 20,
+                'write_per_hour_user' => 10,
+                'vision_per_hour_global' => 60,
+                'write_per_hour_global' => 60,
+                'pending_user' => 1,
+                'pending_global' => 2,
+            ],
+            // USD per million tokens, per model (Stats estimate).
+            'prices' => [
+                'claude-haiku-5-5' => ['input' => 0.10, 'output' => 0.50, 'cache_read' => 0.01, 'cache_write' => 0.125],
+                'claude-sonnet-5-5' => ['input' => 2.00, 'output' => 10.00, 'cache_read' => 0.20, 'cache_write' => 2.50],
+            ],
+            // Hours a draft stays open; vision copies are pruned after vision_ttl_minutes; rows after keep_days.
+            'draft_ttl_hours' => 24,
+            // Hours a draft may stay "applying" (a crashed apply) before the prune marks it failed.
+            'applying_stale_hours' => 2,
+            // Open (not applied / expired) drafts per user (L9).
+            'open_drafts_user' => 5,
+            'vision_ttl_minutes' => 60,
+            'keep_days' => 7,
+        ],
     ],
 
 ];

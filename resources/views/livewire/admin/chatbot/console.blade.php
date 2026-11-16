@@ -15,7 +15,7 @@
     <form wire:submit="run" novalidate class="mt-5 grid gap-4 lg:grid-cols-12">
         <x-admin.input wire:model="phrase" name="phrase" :label="__($t.'.phrase')" maxlength="{{ \App\Livewire\Admin\Chatbot\Console::MAX_CHARS }}" autocomplete="off" required class="lg:col-span-6" />
         <x-admin.select wire:model="locale" name="locale" :label="__($t.'.locale')" :options="['uz' => 'UZ', 'ru' => 'RU', 'en' => 'EN']" class="lg:col-span-2" />
-        <x-admin.select wire:model="channel" name="channel" :label="__($t.'.channel')" :options="collect(\App\Enums\ChatChannel::cases())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all()" class="lg:col-span-2" />
+        <x-admin.select wire:model="channel" name="channel" :label="__($t.'.channel')" :options="collect(\App\Enums\ChatChannel::bots())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all()" class="lg:col-span-2" />
         <div class="flex items-end lg:col-span-2">
             <x-admin.button type="submit" icon="search" loading="run" class="w-full">{{ __($t.'.run') }}</x-admin.button>
         </div>

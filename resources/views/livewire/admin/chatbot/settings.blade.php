@@ -112,6 +112,67 @@
             </div>
         </x-admin.card>
 
+        {{-- AI product wizard (plan 32): Admin only switch and stage caps (PW-24); usage of the last days per stage --}}
+        @php($w = 'admin.ai_wizard.settings')
+        <x-admin.card :title="__($w.'.title')" :description="__($w.'.help')" data-ai-wizard-settings>
+            <div class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
+                    <span class="font-semibold">{{ __($t.'.ai_key') }}</span>
+                    <x-admin.badge :color="$aiKeyConfigured ? 'brand' : 'amber'" pill dot>{{ $aiKeyConfigured ? __($t.'.ai_key_configured') : __($t.'.ai_key_missing_badge') }}</x-admin.badge>
+                </div>
+                <p class="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="note">
+                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($w.'.privacy') }}
+                </p>
+
+                @if ($isAdmin)
+                    <x-admin.toggle wire:model="form.ai_admin_enabled" :label="__($w.'.enabled')" :description="__($w.'.enabled_hint')" data-ai-wizard-switch />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        @foreach (['adm_vision', 'adm_write'] as $channel)
+                            <x-admin.input wire:model="form.ai_{{ $channel }}_daily_requests" type="number" min="0" max="{{ config('chatbot.ai.caps.requests_max') }}" :label="__($w.'.requests_'.$channel)" />
+                            <x-admin.input wire:model="form.ai_{{ $channel }}_daily_tokens" type="number" min="0" max="{{ config('chatbot.ai.caps.tokens_max') }}" :label="__($w.'.tokens_'.$channel)" />
+                        @endforeach
+                    </div>
+                @else
+                    <dl class="grid gap-2 text-sm sm:grid-cols-2" data-ai-wizard-readonly>
+                        <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($w.'.enabled') }}</dt><dd><x-admin.badge :color="$form->ai_admin_enabled ? 'brand' : 'muted'" pill dot>{{ $form->ai_admin_enabled ? __($t.'.on') : __($t.'.off') }}</x-admin.badge></dd></div>
+                        @foreach (['adm_vision', 'adm_write'] as $channel)
+                            <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($w.'.requests_'.$channel) }}</dt><dd class="font-semibold tabular-nums">{{ number_format($form->{'ai_'.$channel.'_daily_requests'}, 0, '.', ' ') }}</dd></div>
+                            <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($w.'.tokens_'.$channel) }}</dt><dd class="font-semibold tabular-nums">{{ number_format($form->{'ai_'.$channel.'_daily_tokens'}, 0, '.', ' ') }}</dd></div>
+                        @endforeach
+                    </dl>
+                    <p class="text-xs text-slate-500">{{ __($w.'.admin_only') }}</p>
+                @endif
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm" data-ai-wizard-usage>
+                        <thead class="text-left text-xs font-semibold uppercase text-slate-500">
+                            <tr>
+                                <th class="py-2 pr-3">{{ __($w.'.stage') }}</th>
+                                <th class="py-2 pr-3">{{ __($t.'.ai_model') }}</th>
+                                <th class="py-2 pr-3 text-right">{{ __($w.'.limit_hour') }}</th>
+                                <th class="py-2 pr-3 text-right">{{ __($w.'.requests', ['days' => $wizard['days']]) }}</th>
+                                <th class="py-2 pr-3 text-right">{{ __($w.'.tokens') }}</th>
+                                <th class="py-2 text-right">{{ __($w.'.usd') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach ($wizard['stages'] as $channel => $stage)
+                                <tr wire:key="wizard-{{ $channel }}">
+                                    <td class="py-2 pr-3 font-semibold">{{ \App\Enums\AiUsageChannel::from($channel)->label() }}</td>
+                                    <td class="py-2 pr-3"><code>{{ $stage['model'] }}</code> <span class="text-xs text-slate-500">· {{ $stage['effort'] }} · {{ $stage['max_tokens'] }}</span></td>
+                                    <td class="py-2 pr-3 text-right tabular-nums">{{ __($w.'.limit_value', ['user' => $stage['per_hour_user'], 'global' => $stage['per_hour_global']]) }}</td>
+                                    <td class="py-2 pr-3 text-right tabular-nums">{{ number_format($wizard['usage'][$channel]['requests'], 0, '.', ' ') }}</td>
+                                    <td class="py-2 pr-3 text-right tabular-nums">{{ number_format($wizard['usage'][$channel]['input_tokens'] + $wizard['usage'][$channel]['output_tokens'], 0, '.', ' ') }}</td>
+                                    <td class="py-2 text-right tabular-nums">${{ number_format($wizard['usage'][$channel]['usd'], 2, '.', ' ') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-slate-500">{{ __($w.'.usage_note') }} <a href="{{ route('admin.chatbot.stats') }}" wire:navigate class="font-semibold text-brand-700 hover:underline">{{ __($w.'.stats_link') }}</a></p>
+            </div>
+        </x-admin.card>
+
         <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note" data-live-note>
             <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.live_note') }}
         </p>

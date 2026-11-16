@@ -109,6 +109,8 @@ return [
         'payment' => 'Payment',
         'repair' => 'Repair',
         'cv_download' => 'CV download',
+        'ai_create' => 'Created with AI',
+        'ai_improve' => 'Improved with AI',
     ],
 
     'quote_status' => [
@@ -610,4 +612,29 @@ return [
         'failed' => 'Not delivered',
         'expired' => 'Expired',
     ],
+
+    // Plan 32: AI product wizard drafts and AI usage channels.
+    'ai_draft_status' => [
+        'open' => 'Open',
+        'seeing' => 'Looking at photos',
+        'facts_ready' => 'Facts ready',
+        'writing' => 'Writing',
+        'ready' => 'Ready',
+        'truncated' => 'Cut off',
+        'failed' => 'Failed',
+        'refused' => 'Declined',
+        'capped' => 'Daily limit',
+        'applying' => 'Saving',
+        'applied' => 'Saved',
+        'expired' => 'Expired',
+    ],
+
+    'ai_usage_channel' => [
+        'web' => 'Website',
+        'telegram' => 'Telegram',
+        'adm_vision' => 'Admin: photo check',
+        'adm_write' => 'Admin: writing',
+        'adm_trans' => 'Admin: translation',
+    ],
+
 ];

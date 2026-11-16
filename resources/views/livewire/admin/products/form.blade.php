@@ -40,6 +40,10 @@
             <span>{{ __('admin.products.fields.sku') }} <span class="font-mono">{{ $product->sku }}</span></span>
             <span aria-hidden="true">·</span>
             <span>{{ __('admin.products.last_changed', ['date' => \App\Support\DateFormat::iso($product->updated_at, 'D MMM YYYY, HH:mm')]) }}</span>
+            @if ($canAiImprove)
+                <span aria-hidden="true">·</span>
+                <a href="{{ route('admin.products.ai.improve', $product) }}" wire:navigate class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline" data-ai-improve><x-admin.icon name="sparkles" size="size-3.5" />{{ __('admin.ai_wizard.improve_button') }}</a>
+            @endif
         </div>
     @endif
 

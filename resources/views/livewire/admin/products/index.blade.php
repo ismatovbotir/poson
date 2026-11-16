@@ -11,6 +11,9 @@
         <x-slot:breadcrumbs>{{ __('admin.nav.groups.catalog') }} <span class="text-slate-300">/</span> {{ __('admin.products.title') }}</x-slot:breadcrumbs>
         @if ($canCreate)
             <x-slot:actions>
+                @if ($canAiCreate)
+                    <x-admin.button variant="soft" :href="route('admin.products.ai.create')" wire:navigate icon="sparkles" data-ai-create>{{ __('admin.ai_wizard.create_button') }}</x-admin.button>
+                @endif
                 <x-admin.button :href="route('admin.products.create')" wire:navigate icon="plus">{{ __('admin.products.create') }}</x-admin.button>
             </x-slot:actions>
         @endif

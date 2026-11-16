@@ -109,6 +109,8 @@ return [
         'payment' => 'Toʻlov',
         'repair' => 'Taʼmirlash',
         'cv_download' => 'Rezyume yuklab olindi',
+        'ai_create' => 'AI bilan yaratildi',
+        'ai_improve' => 'AI bilan yaxshilandi',
     ],
 
     'quote_status' => [
@@ -610,4 +612,29 @@ return [
         'failed' => 'Yuborilmadi',
         'expired' => 'Muddati oʻtdi',
     ],
+
+    // Plan 32: AI product wizard drafts and AI usage channels.
+    'ai_draft_status' => [
+        'open' => 'Ochiq',
+        'seeing' => 'Suratlarni koʻrmoqda',
+        'facts_ready' => 'Faktlar tayyor',
+        'writing' => 'Yozmoqda',
+        'ready' => 'Tayyor',
+        'truncated' => 'Uzilib qolgan',
+        'failed' => 'Xato',
+        'refused' => 'Rad etildi',
+        'capped' => 'Kunlik chegara',
+        'applying' => 'Saqlanmoqda',
+        'applied' => 'Saqlandi',
+        'expired' => 'Muddati tugagan',
+    ],
+
+    'ai_usage_channel' => [
+        'web' => 'Sayt',
+        'telegram' => 'Telegram',
+        'adm_vision' => 'Admin: surat tekshiruvi',
+        'adm_write' => 'Admin: yozish',
+        'adm_trans' => 'Admin: tarjima',
+    ],
+
 ];

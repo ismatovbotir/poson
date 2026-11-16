@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\ChatChannel;
+use App\Enums\AiUsageChannel;
 use App\Models\ChatAiUsageDaily;
 use App\Support\Chat\WorkingHours;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,7 +21,7 @@ class ChatAiUsageDailyFactory extends Factory
     {
         return [
             'day' => now(WorkingHours::TIMEZONE)->toDateString(),
-            'channel' => ChatChannel::Telegram,
+            'channel' => AiUsageChannel::Telegram,
             'requests' => 10,
             'answered' => 9,
             'failed' => 1,

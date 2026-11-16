@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ChatChannel;
+use App\Enums\AiUsageChannel;
 use Database\Factories\ChatAiUsageDailyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * AI usage of the chat bot per Asia/Tashkent day and channel (plan 30,
- * AI-18). Counts and tokens only. Written only by RecordAiUsage (atomic
+ * AI usage per Asia/Tashkent day and usage channel (plan 30, AI-18; plan 32:
+ * also the admin wizard stages, AiUsageChannel). Counts and tokens only. Written only by RecordAiUsage (atomic
  * reservations and settlements); never exposed to MCP (AI-23).
  *
  * @property int $id
  * @property Carbon $day
- * @property ChatChannel $channel
+ * @property AiUsageChannel $channel
  * @property int $requests
  * @property int $answered
  * @property int $failed
@@ -57,7 +57,7 @@ class ChatAiUsageDaily extends Model
     {
         return [
             'day' => 'date',
-            'channel' => ChatChannel::class,
+            'channel' => AiUsageChannel::class,
             'requests' => 'integer',
             'answered' => 'integer',
             'failed' => 'integer',

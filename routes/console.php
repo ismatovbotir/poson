@@ -183,6 +183,16 @@ Schedule::command('telegram:scrub-banned')->dailyAt('03:10')->timezone('Asia/Tas
 Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
+|--------------------------------------------------------------------------
+| AI product wizard (plan 32, PW-28)
+|--------------------------------------------------------------------------
+| Hourly: expire drafts past their TTL, delete vision copies after an hour,
+| folders of expired drafts and orphans, rows after 7 days.
+*/
+
+Schedule::command('ai:prune-drafts')->hourly()->withoutOverlapping(30)->onOneServer();
+
+/*
 | Keep the last output of every command (overwritten each run, never
 | appended; stays in storage/logs) so RunRecorder can store the redacted
 | tail of a failed run (MON-S11). Must stay the last statement here.
