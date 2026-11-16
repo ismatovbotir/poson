@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Actions\Chat\Knowledge;
+
+use App\Enums\AiKnowledgeSource;
+use App\Models\AiKnowledgeChunk;
+use App\Support\Chat\KnowledgeStats;
+use App\Support\Chat\WorkingHours;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+
+/**
+ * What the Settings card "Website knowledge" shows (plan 33 §8, K-4): chunk
+ * count, last indexing time, the skip counters and the last 20 indexed
+ * sources with an admin link. Counts and titles of public content only.
+ */
+class KnowledgeOverview
+{
+    /**
+     * @return array{chunks: int, last_indexed_at: ?Carbon, skipped: array<string, int>, recent: list<array{type: string, title: string, url: ?string}>}
+     */
+    public function handle(): array
+    {
+        $last = AiKnowledgeChunk::query()->max('indexed_at');
+
+        $recent = AiKnowledgeChunk::query()
+            ->selectRaw('source_type, source_id, max(indexed_at) as indexed')
+            ->groupBy('source_type', 'source_id')
+            ->orderByDesc('indexed')
+            ->orderByDesc('source_id')
+            ->limit(20)
+            ->get();
+
+        $titles = $this->titles($recent);
+
+        return [
+            'chunks' => AiKnowledgeChunk::query()->count(),
+            'last_indexed_at' => $last === null ? null : Carbon::parse($last, 'UTC')->setTimezone(WorkingHours::TIMEZONE),
+            'skipped' => KnowledgeStats::skipCounts(),
+            'recent' => $recent->map(fn (AiKnowledgeChunk $row): array => [
+                'type' => $row->source_type->label(),
+                'title' => $titles[$row->source_type->value.':'.$row->source_id] ?? '',
+                'url' => $this->adminUrl($row->source_type, $row->source_id),
+            ])->all(),
+        ];
+    }
+
+    /**
+     * The title of each source from its first chunk, in the admin's language
+     * (uz when that locale has none).
+     *
+     * @param  Collection<int, AiKnowledgeChunk>  $recent
+     * @return array<string, string>
+     */
+    private function titles(Collection $recent): array
+    {
+        if ($recent->isEmpty()) {
+            return [];
+        }
+
+        $locale = app()->getLocale();
+        $titles = [];
+
+        $rows = AiKnowledgeChunk::query()
+            ->where('chunk', 0)
+            ->whereIn('source_id', $recent->pluck('source_id')->all())
+            ->whereIn('locale', array_unique([$locale, 'uz']))
+            ->get(['source_type', 'source_id', 'locale', 'title']);
+
+        foreach ($rows->sortBy(fn (AiKnowledgeChunk $row): int => $row->locale === $locale ? 1 : 0) as $row) {
+            $titles[$row->source_type->value.':'.$row->source_id] = $row->title;
+        }
+
+        return $titles;
+    }
+
+    private function adminUrl(AiKnowledgeSource $type, int $id): ?string
+    {
+        return match ($type) {
+            AiKnowledgeSource::Page => route('admin.pages.edit', $id),
+            AiKnowledgeSource::News => route('admin.news.edit', $id),
+            AiKnowledgeSource::Article => route('admin.articles.edit', $id),
+            AiKnowledgeSource::Brand => route('admin.brands.edit', $id),
+            AiKnowledgeSource::Service, AiKnowledgeSource::Software => route('admin.products.edit', $id),
+        };
+    }
+}

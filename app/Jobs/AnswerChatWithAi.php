@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\Chat\AiAnswer;
+use App\Actions\Chat\AiKnowledgeHit;
 use App\Actions\Chat\AiProductCandidate;
 use App\Actions\Chat\AnswerWithAi;
 use App\Actions\Chat\HandleChatInput;
@@ -137,8 +138,9 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
         }
 
         $original = $marker->original;
-        $products = $ai->products($context, $turn->text);
-        $request = $ai->prepare($context, $turn->text, $marker->ruleId, $ai->history($user, $turn), $products);
+        $sites = $ai->sites($context, $turn->text);
+        $products = $ai->products($context, $turn->text, $sites);
+        $request = $ai->prepare($context, $turn->text, $marker->ruleId, $ai->history($user, $turn), $products, $sites);
         $reserved = $request->estimatedBilledTokens();
         $day = $usage->reserve(AiUsageChannel::fromChatChannel($channel), $reserved);
 
@@ -153,7 +155,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
         try {
             $this->typing($telegram, $user);
-            $answer = $ai->answer($model, $request, $channel, $products);
+            $answer = $ai->answer($model, $request, $channel, $products, $sites, $context->locale);
         } catch (Throwable $error) {
             $answer = new AiAnswer(ChatAiStatus::Failed, '', null, mb_substr(class_basename($error), 0, 40), $ai->promptHash($request));
         }
@@ -166,7 +168,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
             $this->alertAuthFailed();
         }
 
-        $this->finish($chat, $ai, $usage, $context, $original, $answer, $products);
+        $this->finish($chat, $ai, $usage, $context, $original, $answer, $products, $sites);
     }
 
     /**
@@ -203,13 +205,14 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
     /**
      * @param  ChatReply  $original  The engine's reply without AI (P5)
      * @param  list<AiProductCandidate>  $products  The candidates the model was given
+     * @param  list<AiKnowledgeHit>  $sites  The website passages the model was given (memory only)
      */
-    private function finish(HandleChatInput $chat, AnswerWithAi $ai, RecordAiUsage $usage, ChatContext $context, ChatReply $original, AiAnswer $answer, array $products = []): void
+    private function finish(HandleChatInput $chat, AnswerWithAi $ai, RecordAiUsage $usage, ChatContext $context, ChatReply $original, AiAnswer $answer, array $products = [], array $sites = []): void
     {
         // L3: see a switch-off that happened during the call (memo only, the cache stays).
         ChatbotSwitch::forgetMemo();
 
-        DB::transaction(function () use ($chat, $ai, $usage, $context, $original, $answer, $products): void {
+        DB::transaction(function () use ($chat, $ai, $usage, $context, $original, $answer, $products, $sites): void {
             [$user, $turn] = $this->locked();
             $moot = $user === null || $turn === null ? self::SUPERSEDED : $this->moot($user, $turn);
             $status = match ($moot) {
@@ -231,7 +234,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
             if ($status->isDelivered()) {
                 $this->linkUnmatched($user, $turn, $context);
-                $chat->deliverAi($user, $ai->reply($answer, $context->locale, $products));
+                $chat->deliverAi($user, $ai->reply($answer, $context->locale, $products, $sites));
 
                 return;
             }

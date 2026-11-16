@@ -32,6 +32,7 @@ class Help extends Component
         'stats' => ['chatbot.rules'],
         'settings' => ['chatbot.settings'],
         'ai' => ['chatbot.settings'],
+        'knowledge' => ['chatbot.settings'],
         'inbox' => ['telegram.inbox'],
     ];
 

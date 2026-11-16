@@ -238,6 +238,7 @@ final class AiOutputFilter
      * @param  list<AiPriceCandidate>  $candidates  Prices (and codes) the answer may name
      * @param  list<string>  $handles  The company's own messenger handles (no "@")
      * @param  list<string>  $brands  Lowercased catalog brand names (not handles, M2)
+     * @param  list<string>|null  $allowedUrls  Own-host URLs of this request (normalizeUrl()): an own-host link with a path passes only when listed; null = any (taught rules, translations). Paths such as /go, /admin and any query string are blocked either way (plan 33 K-6)
      */
     public function __construct(
         private readonly array $hosts = [],
@@ -246,6 +247,7 @@ final class AiOutputFilter
         private readonly array $candidates = [],
         private readonly array $handles = [],
         private readonly array $brands = [],
+        private readonly ?array $allowedUrls = null,
     ) {}
 
     /**
@@ -278,6 +280,19 @@ final class AiOutputFilter
         $text = $this->clean($text);
 
         return trim($text) === '' ? 'empty' : $this->violation($text);
+    }
+
+    /**
+     * check() without the money rules: for site text whose amounts are about
+     * to be masked, so contacts, long numbers (phones, cards), links, payment
+     * instructions, brand-unsafe wording and human claims are judged on the
+     * unmasked text (plan 33 K-3). Null when it may be used.
+     */
+    public function checkWithoutMoney(string $text): ?string
+    {
+        $text = $this->clean($text);
+
+        return trim($text) === '' ? 'empty' : $this->violation($text, false);
     }
 
     /**
@@ -343,7 +358,7 @@ final class AiOutputFilter
         return rtrim($space !== false && $space > $max / 2 ? mb_substr($cut, 0, $space) : $cut).'…';
     }
 
-    private function violation(string $text): ?string
+    private function violation(string $text, bool $checkMoney = true): ?string
     {
         $lower = mb_strtolower(self::normalize($text));
         $digits = $this->asciiDigits($lower);
@@ -351,14 +366,14 @@ final class AiOutputFilter
         $scrubbed = $this->withoutCodes($digits);
 
         return match (true) {
-            $this->hasForeignLink($lower) => 'link',
+            $this->hasForeignLink($lower) || $this->hasUnlistedOwnLink($lower) => 'link',
             $this->hasForeignContact($lower) => 'contact',
             ($long = $this->longNumber($scrubbed)) !== null => $long,
             preg_match(self::PAYMENT_PATTERN, $lower) === 1 => 'contact',
 
             BrandSafeText::violates($lower) || $this->matchesAny($lower, self::BRAND_PATTERNS) => 'brand',
             $this->matchesAny($lower, self::HUMAN_PATTERNS) => 'human',
-            $this->hasForeignAmount($this->withoutAllowedContacts($scrubbed), $digits) => 'money',
+            $checkMoney && $this->hasForeignAmount($this->withoutAllowedContacts($scrubbed), $digits) => 'money',
             default => null,
         };
     }
@@ -383,6 +398,150 @@ final class AiOutputFilter
         }
 
         return array_values($found);
+    }
+
+    /**
+     * Where the money amounts of a text are (byte start and length of the
+     * number with its scale word and soʻm currency), for masking them in
+     * knowledge text (plan 33 K-3). The text must be the exact string the
+     * detector reads: NFKC, lowercase, ASCII digits (see normalizeForAmounts()),
+     * and the spans are only valid on that string. Foreign-currency amounts
+     * are left to check(), which blocks them.
+     *
+     * @return list<array{start: int, length: int}>
+     */
+    public static function moneySpans(string $normalized): array
+    {
+        $spans = [];
+
+        foreach ((new self)->amounts($normalized) as $amount) {
+            if ($amount['money'] && ! $amount['foreign']) {
+                $spans[] = ['start' => $amount['start'], 'length' => max(1, $amount['end'] - $amount['start'])];
+            }
+        }
+
+        return $spans;
+    }
+
+    /**
+     * The string the amount detector reads: NFKC, lowercase, ASCII digits.
+     */
+    public static function normalizeForAmounts(string $text): string
+    {
+        return (new self)->asciiDigits(mb_strtolower(self::normalize($text)));
+    }
+
+    /**
+     * Paths on the site's own host the model may never link to (redirects,
+     * admin, Livewire, webhooks, MCP, OAuth, storage), with or without the
+     * locale prefix (plan 33 K-6).
+     */
+    private const BLOCKED_PATHS = ['/go', '/admin', '/livewire', '/webhooks', '/mcp', '/oauth', '/storage'];
+
+    /**
+     * The lowercase key of an own-host URL for comparing: no scheme, no
+     * "www.", no trailing punctuation or slash.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        $url = mb_strtolower(trim($url));
+        $url = (string) preg_replace('~^[a-z][a-z0-9+.-]*://~', '', $url);
+        $url = rtrim($url, '.,;:!?)]}»"\'/');
+
+        return str_starts_with($url, 'www.') ? substr($url, 4) : $url;
+    }
+
+    /**
+     * The path of an own-host URL as a browser and the server would read it:
+     * percent-decoded until stable, backslashes as slashes, repeated slashes
+     * collapsed, "." and ".." resolved, lowercase, no trailing slash. Null
+     * when it carries a query string or fragment or a control character.
+     */
+    private static function normalizePath(string $rest): ?string
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $decoded = rawurldecode($rest);
+
+            if ($decoded === $rest) {
+                break;
+            }
+
+            $rest = $decoded;
+        }
+
+        if (preg_match('/[?#\x00-\x1f\x7f]/', $rest) === 1) {
+            return null;
+        }
+
+        $segments = [];
+
+        foreach (explode('/', str_replace('\\', '/', mb_strtolower($rest))) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                array_pop($segments);
+
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        return $segments === [] ? '' : '/'.implode('/', $segments);
+    }
+
+    /**
+     * An own-host link with a path that is blocked, carries a query string or
+     * fragment, or (when a list is given) is not one of this request's URLs.
+     * A bare host or a locale root is harmless.
+     */
+    private function hasUnlistedOwnLink(string $text): bool
+    {
+        if ($this->hosts === []) {
+            return false;
+        }
+
+        $hosts = implode('|', array_map(fn (string $host): string => preg_quote($host, '~'), $this->hosts));
+        preg_match_all('~(?<![\pL\pN@._-])(?:[a-z][a-z0-9+.-]{1,15}://)?(?:'.$hosts.')(?::\d+)?([/\\\\?#][^\s<>"\']*)?~u', $text, $found, PREG_SET_ORDER);
+
+        foreach ($found as $match) {
+            $rest = rtrim($match[1] ?? '', '.,;:!?)]}»');
+
+            if ($rest === '') {
+                continue;
+            }
+
+            $path = self::normalizePath($rest);
+
+            // A query, a fragment (also percent-encoded) or a control character: never.
+            if ($path === null) {
+                return true;
+            }
+
+            $bare = (string) preg_replace('~^/(?:uz|ru|en)(?=/|$)~', '', $path);
+
+            foreach (self::BLOCKED_PATHS as $blocked) {
+                if ($path === $blocked || $bare === $blocked || str_starts_with($path, $blocked.'/') || str_starts_with($bare, $blocked.'/')) {
+                    return true;
+                }
+            }
+
+            if ($bare === '' || $path === '') {
+                continue;
+            }
+
+            if ($this->allowedUrls !== null) {
+                $host = self::normalizeUrl(substr($match[0], 0, strlen($match[0]) - strlen($match[1] ?? '')));
+
+                if (! in_array($host.$path, $this->allowedUrls, true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function hasForeignLink(string $text): bool
@@ -696,7 +855,7 @@ final class AiOutputFilter
     /**
      * Every number of the text with its amount reading.
      *
-     * @return list<array{offset: int, money: bool, foreign: bool, tiyin: ?int, per_label: bool, currency_at: ?int}>
+     * @return list<array{offset: int, start: int, end: int, money: bool, foreign: bool, tiyin: ?int, per_label: bool, currency_at: ?int}>
      */
     private function amounts(string $text): array
     {
@@ -745,12 +904,14 @@ final class AiOutputFilter
             if (preg_match('/^(\s*)'.self::SOM.'(?!\pL)/u', $rest, $match) === 1) {
                 $som = true;
                 $currencyAt = $end + strlen($match[1]);
+                $end += strlen($match[0]);
                 $rest = substr($rest, strlen($match[0]));
             } elseif (preg_match('/^\s*'.self::FOREIGN.'(?!\pL)/u', $rest) === 1) {
                 $foreign = true;
             }
 
             $before = mb_scrub(substr($text, max(0, $offset - 16), min(16, $offset)), 'UTF-8');
+            $start = $offset;
 
             if (preg_match('/(?<!\pL)'.self::FOREIGN.'\s*$/u', $before) === 1) {
                 $foreign = true;
@@ -758,6 +919,7 @@ final class AiOutputFilter
                 // "UZS 1 250 000": the currency right in front, not the one of the amount before.
                 $som = true;
                 $currencyAt = $offset - strlen($match[0]);
+                $start = $currencyAt;
             }
 
             if ($currencyAt !== null) {
@@ -782,6 +944,8 @@ final class AiOutputFilter
 
             $amounts[] = [
                 'offset' => $offset,
+                'start' => $start,
+                'end' => $end,
                 'money' => $money,
                 'foreign' => $foreign,
                 'tiyin' => $money ? $this->tiyin($integer, $decimals, $scale) : null,
@@ -817,7 +981,7 @@ final class AiOutputFilter
      * exactly when that candidate is priced per label, in the same line or
      * sentence as that candidate's code or name (or an "anywhere" amount).
      *
-     * @param  array{offset: int, money: bool, foreign: bool, tiyin: ?int, per_label: bool, currency_at: ?int}  $amount
+     * @param  array{offset: int, start: int, end: int, money: bool, foreign: bool, tiyin: ?int, per_label: bool, currency_at: ?int}  $amount
      */
     private function isAllowed(array $amount, string $original): bool
     {

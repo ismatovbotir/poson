@@ -32,6 +32,7 @@
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="CHATBOT_KNOWLEDGE_HOOKS" value="false"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="SITE_DEMO_CONTENT" value="false"/>
         <env name="ADMIN_DEV_LOGIN" value="false"/>

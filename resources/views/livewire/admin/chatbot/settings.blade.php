@@ -120,6 +120,49 @@
             </div>
         </x-admin.card>
 
+        {{-- Website knowledge (plan 33): what the AI may use from the site; Rebuild now (K-11) --}}
+        <x-admin.card :title="__($t.'.knowledge.title')" :description="__($t.'.knowledge.help')" data-knowledge-card>
+            <dl class="grid gap-2 text-sm sm:grid-cols-2">
+                <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.knowledge.chunks') }}</dt><dd class="font-semibold tabular-nums" data-knowledge-chunks>{{ number_format($knowledge['chunks'], 0, '.', ' ') }}</dd></div>
+                <div class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><dt class="text-slate-600">{{ __($t.'.knowledge.last_indexed_at') }}</dt><dd class="font-semibold" data-knowledge-last>{{ $knowledge['last_indexed_at']?->format('d.m.Y H:i') ?? __($t.'.knowledge.never') }}</dd></div>
+            </dl>
+
+            @if ($knowledge['skipped'] !== [])
+                <div class="mt-4" data-knowledge-skipped>
+                    <p class="text-sm font-semibold">{{ __($t.'.knowledge.skipped_title') }}</p>
+                    <ul class="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+                        @foreach ($knowledge['skipped'] as $reason => $count)
+                            <li class="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span class="text-slate-600">{{ __($t.'.knowledge.skipped.'.$reason) }}</span><span class="font-semibold tabular-nums">{{ $count }}</span></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if ($knowledge['recent'] !== [])
+                <div class="mt-4" data-knowledge-recent>
+                    <p class="text-sm font-semibold">{{ __($t.'.knowledge.recent_sources') }}</p>
+                    <ul class="mt-2 divide-y divide-slate-100 text-sm">
+                        @foreach ($knowledge['recent'] as $source)
+                            <li class="flex items-center justify-between gap-3 py-2">
+                                <span class="min-w-0 truncate">
+                                    @if ($source['url'])
+                                        <a href="{{ $source['url'] }}" wire:navigate class="font-medium hover:text-brand-700">{{ $source['title'] }}</a>
+                                    @else
+                                        {{ $source['title'] }}
+                                    @endif
+                                </span>
+                                <span class="shrink-0 text-xs text-slate-500">{{ $source['type'] }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="mt-4">
+                <x-admin.button type="button" variant="secondary" wire:click="rebuildKnowledge" loading="rebuildKnowledge" wire:confirm="{{ __($t.'.knowledge.rebuild_confirm') }}" data-knowledge-rebuild>{{ __($t.'.knowledge.rebuild') }}</x-admin.button>
+            </div>
+        </x-admin.card>
+
         <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note" data-live-note>
             <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.live_note') }}
         </p>

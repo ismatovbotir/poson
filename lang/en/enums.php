@@ -538,6 +538,15 @@ return [
         'assistant' => 'AI assistant',
     ],
 
+    'ai_knowledge_source' => [
+        'page' => 'Page',
+        'news' => 'News',
+        'article' => 'Article',
+        'brand' => 'Brand',
+        'service' => 'Service',
+        'software' => 'Software',
+    ],
+
     'chat_ai_status' => [
         'answered' => 'Answered',
         'truncated' => 'Answered (shortened)',

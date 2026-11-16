@@ -16,6 +16,7 @@ use App\Support\Catalog\HttpsUrl;
 use App\Support\Catalog\RollPricing;
 use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\IndexNow;
+use App\Support\Site\KnowledgeIndex;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\ProductFactory;
@@ -111,6 +112,13 @@ class Product extends Model implements HasMedia
      */
     public const INDEXNOW_IGNORED = ['price', 'price_dealer', 'price_wholesale', 'price_synced_at', 'price_sync_log_id', 'sort', 'is_featured', 'search_text', 'has_missing_specs'];
 
+    /**
+     * Columns whose change re-indexes the chat bot AI knowledge (plan 33 K-7).
+     *
+     * @var list<string>
+     */
+    public const AI_KNOWLEDGE_FIELDS = ['type', 'category_id', 'slug', 'is_active', 'name', 'short_description', 'description'];
+
     public const IMAGES = 'images';
 
     /**
@@ -140,6 +148,11 @@ class Product extends Model implements HasMedia
      */
     protected static function booted(): void
     {
+        static::created(fn (Product $model) => KnowledgeIndex::queue($model, KnowledgeIndex::CREATED));
+        static::updated(fn (Product $model) => KnowledgeIndex::queue($model, KnowledgeIndex::UPDATED));
+        static::deleted(fn (Product $model) => KnowledgeIndex::queue($model, KnowledgeIndex::DELETED));
+        static::restored(fn (Product $model) => KnowledgeIndex::queue($model, KnowledgeIndex::RESTORED));
+
         $flush = function (Product $product): void {
             IndexNow::record($product);
 

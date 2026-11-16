@@ -108,6 +108,16 @@ return [
                 'In a staff chat, “Bot conversation” shows the customer’s AI questions and answers of the last 30 days (personal data hidden).',
             ],
         ],
+        'knowledge' => [
+            'title' => 'Website knowledge',
+            'steps' => [
+                'The AI assistant answers from published website pages: service and software pages (with whether documents are available), articles and news, brand pages, and static pages such as About, Delivery, Warranty and Contacts.',
+                'The AI never reads: amounts (they are masked when indexed and replaced with “see the page”), admin-only pages, privacy, offer and other legal pages, or customer data.',
+                'Knowledge updates automatically when a page is published or edited, and in an hourly check. To update right away, press “Rebuild now” in Chat bot → Settings.',
+                'If an answer is wrong, first fix the page on the site: the bot will use the updated text. If you need an exact answer, add a rule in Teach; rules answer before the AI.',
+                'The “Open: …” buttons under an answer lead to the pages the bot relied on. Texts that are unsafe for the brand, or that contain amounts, contacts or links, are not indexed.',
+            ],
+        ],
         'inbox' => [
             'title' => 'Chats inbox for staff',
             'steps' => [

@@ -538,6 +538,15 @@ return [
         'assistant' => 'SI yordamchi',
     ],
 
+    'ai_knowledge_source' => [
+        'page' => 'Sahifa',
+        'news' => 'Yangilik',
+        'article' => 'Maqola',
+        'brand' => 'Brend',
+        'service' => 'Xizmat',
+        'software' => 'Dasturiy taʼminot',
+    ],
+
     'chat_ai_status' => [
         'answered' => 'Javob berildi',
         'truncated' => 'Javob berildi (qisqartirilgan)',

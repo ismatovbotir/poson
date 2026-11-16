@@ -7,6 +7,8 @@ use App\Support\Catalog\ProductCards;
 use App\Support\Chat\AiPriceCandidate;
 use App\Support\Chat\AiPrompt;
 use App\Support\Search as SearchText;
+use App\Support\Site\CanonicalHost;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\App;
 
 /**
@@ -32,17 +34,25 @@ class FindAiProducts
     public function __construct(private readonly SearchProducts $search) {}
 
     /**
+     * @param  list<int>  $extraIds  Service and software products of the website hits (FindAiKnowledge::productIds), joined after the search results within the same cap
      * @return list<AiProductCandidate>
      */
-    public function handle(string $text, string $locale): array
+    public function handle(string $text, string $locale, array $extraIds = []): array
     {
         $words = self::words($text);
+        $limit = (int) config('chatbot.ai.products.limit', SearchProducts::MAX_ANY_RESULTS);
+        $products = $words === [] ? new Collection : $this->search->anyQuery($words, $limit);
 
-        if ($words === []) {
+        if ($extraIds !== []) {
+            $known = $products->pluck('id')->all();
+            $extra = $this->search->visibleByIds(array_values(array_diff($extraIds, $known)));
+            $products = $products->concat($extra)->take($limit)->values();
+        }
+
+        if ($products->isEmpty()) {
             return [];
         }
 
-        $products = $this->search->anyQuery($words, (int) config('chatbot.ai.products.limit', SearchProducts::MAX_ANY_RESULTS));
         $previous = App::getLocale();
         $candidates = [];
         $length = 0;
@@ -97,6 +107,20 @@ class FindAiProducts
         return array_slice(array_keys($words), 0, SearchProducts::MAX_WORDS);
     }
 
+    /**
+     * "Docs: Datasheet, Driver": which document types exist (any locale), never a title, file name or URL (K-13).
+     */
+    private function documents(Product $product): string
+    {
+        $types = [];
+
+        foreach ($product->getRelationValue('documents') ?? [] as $document) {
+            $types[$document->type->value] = $document->type->label();
+        }
+
+        return $types === [] ? '' : AiPrompt::field(__('chatbot.knowledge.docs').': '.implode(', ', $types), 80);
+    }
+
     private function candidate(Product $product, string $locale): AiProductCandidate
     {
         $name = AiPrompt::field((string) $product->getTranslation('name', $locale), (int) config('chatbot.ai.products.name_max', 120));
@@ -111,13 +135,15 @@ class FindAiProducts
             $specs[] = AiPrompt::field($spec['label'].': '.$spec['value'], (int) config('chatbot.ai.products.spec_max', 60));
         }
 
+        $url = CanonicalHost::using(fn (): string => route('site.product', ['locale' => $locale, 'product' => $product->slug]));
         $line = AiPrompt::field(implode(' | ', array_filter([
             AiPrompt::field((string) $product->sku, 60),
             $name,
             $meta,
             implode('; ', $specs),
             AiPrompt::field(AnswerProductSearch::price($product, $locale), 60),
-            route('site.product', ['locale' => $locale, 'product' => $product->slug]),
+            $this->documents($product),
+            $url,
         ], fn (string $field): bool => $field !== '')), (int) config('chatbot.ai.products.line_max', 400));
 
         return new AiProductCandidate(
@@ -125,6 +151,7 @@ class FindAiProducts
             $name,
             str_replace("\n", ' ', $line),
             AiPriceCandidate::product($product->price, $product->isPricedPerLabel(), [(string) $product->sku, (string) $product->model], [$name]),
+            $url,
         );
     }
 }

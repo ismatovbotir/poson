@@ -8,6 +8,7 @@ use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\HttpsUrl;
 use App\Support\Site\IndexNow;
+use App\Support\Site\KnowledgeIndex;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Database\Factories\BrandFactory;
@@ -50,6 +51,13 @@ class Brand extends Model implements HasMedia
     public const INDEXNOW_IGNORED = ['sort'];
 
     /**
+     * Columns whose change re-indexes the chat bot AI knowledge (plan 33 K-7).
+     *
+     * @var list<string>
+     */
+    public const AI_KNOWLEDGE_FIELDS = ['name', 'slug', 'description', 'is_active'];
+
+    /**
      * SEO meta lengths (plan 12): the brand form and SaveBrand enforce them.
      */
     public const META_TITLE_MAX = 60;
@@ -68,6 +76,10 @@ class Brand extends Model implements HasMedia
 
     protected static function booted(): void
     {
+        static::created(fn (Brand $model) => KnowledgeIndex::queue($model, KnowledgeIndex::CREATED));
+        static::updated(fn (Brand $model) => KnowledgeIndex::queue($model, KnowledgeIndex::UPDATED));
+        static::deleted(fn (Brand $model) => KnowledgeIndex::queue($model, KnowledgeIndex::DELETED));
+
         $flush = function (Brand $brand): void {
             IndexNow::record($brand);
 

@@ -138,4 +138,13 @@ return [
         'limited' => 'Слишком много заявок. Обратитесь к менеджеру.',
         'refused' => 'Мы не можем принять эту заявку здесь. Обратитесь к менеджеру.',
     ],
+
+    // Website knowledge index (plan 33): replaces a money amount found in site text.
+    'knowledge' => [
+        'docs' => 'Документы',
+        'open_prefix' => 'Открыть: ',
+        'open_button' => 'Открыть: :title',
+        'sources' => 'Страницы-источники:',
+        'amount_masked' => '(см. страницу)',
+    ],
 ];

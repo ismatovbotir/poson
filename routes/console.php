@@ -168,6 +168,17 @@ Schedule::command('telegram:check-webhook')->everyFifteenMinutes()->withoutOverl
 
 /*
 |--------------------------------------------------------------------------
+| Chat bot AI website knowledge (plan 33 K-10)
+|--------------------------------------------------------------------------
+| Hourly incremental catch-up of ai_knowledge_chunks with the public pages,
+| news, brands and services (saves are indexed by jobs on the "knowledge"
+| queue). Foreground, about 20 s budget, counts-only logs. No runInBackground().
+*/
+
+Schedule::command('chat:index-knowledge')->hourly()->withoutOverlapping(10)->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | Telegram retention (plan 21 B3, TG-27 amended), Tashkent time
 |--------------------------------------------------------------------------
 | Daily: model:prune for TelegramUser (unregistered visitors after 30 days,
