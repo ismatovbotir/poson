@@ -313,8 +313,8 @@ it('refuses a contact that is not the sender\'s own and stores nothing', functio
     'forwarded own contact' => [fn () => regContact('+998901234567', REG_USER, extra: ['forward_origin' => ['type' => 'user', 'date' => 1]]), 'contact.not_own'],
     'vcard only, no phone_number' => [fn () => regContact(null), 'contact.invalid'],
     'unreadable number' => [fn () => regContact('12'), 'contact.invalid'],
-    'typed phone instead of the button' => [fn () => regText('+998901234567'), 'contact.use_button'],
-    'photo' => [fn () => regMessage(['photo' => [['file_id' => 'x', 'file_unique_id' => 'y', 'width' => 1, 'height' => 1]]]), 'contact.use_button'],
+    'typed phone instead of the button' => [fn () => regText('+998901234567'), 'contact.intro'],
+    'photo' => [fn () => regMessage(['photo' => [['file_id' => 'x', 'file_unique_id' => 'y', 'width' => 1, 'height' => 1]]]), 'contact.intro'],
 ]);
 
 it('normalizes the shared number from its digits and sets consent', function (string $shared, string $expected) {
@@ -658,6 +658,19 @@ it('sends exactly the same texts whether the phone and INN are known or not (con
         ->and(collect(regSent())->pluck('text')->implode(' '))->not->toContain('Secret');
 });
 
+it('sends the contact intro exactly once, then the use_button reply', function () {
+    $user = TelegramUser::factory()->unregistered()->create(['telegram_id' => REG_USER, 'locale' => 'en']);
+
+    regText('hello');
+    regText('hello again');
+
+    $texts = collect(regSent())->pluck('text');
+
+    expect($texts->filter(fn ($text) => $text === __('telegram_bot.contact.intro', [], 'en')))->toHaveCount(1)
+        ->and(regLastText())->toBe(__('telegram_bot.contact.use_button', [], 'en'))
+        ->and($user->fresh()->contact_intro_sent_at)->not->toBeNull();
+});
+
 // --- Limits (condition 8) ---------------------------------------------------
 
 it('drops updates over 20 a minute with one rate_limited notice', function () {
@@ -669,7 +682,8 @@ it('drops updates over 20 a minute with one rate_limited notice', function () {
 
     $texts = collect(regSent())->pluck('text');
 
-    expect($texts->filter(fn ($text) => $text === __('telegram_bot.contact.use_button', [], 'en')))->toHaveCount(BotLimits::PER_MINUTE)
+    expect($texts->filter(fn ($text) => $text === __('telegram_bot.contact.intro', [], 'en')))->toHaveCount(1)
+        ->and($texts->filter(fn ($text) => $text === __('telegram_bot.contact.use_button', [], 'en')))->toHaveCount(BotLimits::PER_MINUTE - 1)
         ->and($texts->filter(fn ($text) => $text === __('telegram_bot.rate_limited', [], 'en')))->toHaveCount(1);
 
     // A new minute: processed again.

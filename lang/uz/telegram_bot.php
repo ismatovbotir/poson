@@ -27,6 +27,8 @@ return [
         'not_own' => 'Bu sizning raqamingiz emas. Iltimos, quyidagi tugma orqali oʻz telefon raqamingizni ulashing.',
         // Phone could not be read.
         'invalid' => 'Telefon raqamini aniqlab boʻlmadi. Iltimos, quyidagi tugmadan foydalaning.',
+        // First non-contact message at the phone step (once per user).
+        'intro' => 'Bu Poson rasmiy boti: uskunalarni tanlash, sozlash, kafolat va servis. Savolingizga javob berish va sizni jamoamiz bilan bogʻlash uchun quyidagi tugma orqali telefon raqamingizni ulashing.',
         // User typed text instead of sharing contact.
         'use_button' => 'Davom etish uchun quyidagi tugma orqali telefon raqamingizni ulashing.',
     ],

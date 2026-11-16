@@ -27,6 +27,8 @@ return [
         'not_own' => 'This is not your own number. Please share your own phone number using the button below.',
         // Phone could not be read.
         'invalid' => 'We could not read the phone number. Please use the button below.',
+        // First non-contact message at the phone step (once per user).
+        'intro' => 'This is the official Poson bot: equipment selection, setup, warranty and service. To answer your question and connect you with our team, please share your phone number using the button below.',
         // User typed text instead of sharing contact.
         'use_button' => 'To continue, please share your phone number using the button below.',
     ],

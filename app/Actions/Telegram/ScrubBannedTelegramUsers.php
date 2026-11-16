@@ -33,6 +33,7 @@ class ScrubBannedTelegramUsers
         'consent_at', 'registered_at', 'customer_id', 'contact_id', 'link_verified_at', 'link_verified_by_id',
         'forward_header_message_id', 'forward_header_at', 'forward_header_chat_id',
         'locale', 'last_message_at', 'last_inbound_at', 'last_alert_at', 'closed_at', 'blocked_at', 'manager_id',
+        'contact_intro_sent_at',
     ];
 
     /**

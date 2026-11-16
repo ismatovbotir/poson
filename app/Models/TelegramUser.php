@@ -62,6 +62,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $handoff_at
  * @property Carbon|null $last_staff_reply_at
  * @property Carbon|null $ai_context_at
+ * @property Carbon|null $contact_intro_sent_at
  */
 #[Fillable([
     'telegram_id', 'username', 'first_name', 'last_name', 'locale', 'state',
@@ -100,6 +101,7 @@ class TelegramUser extends Model
             'handoff_at' => 'datetime',
             'last_staff_reply_at' => 'datetime',
             'ai_context_at' => 'datetime',
+            'contact_intro_sent_at' => 'datetime',
             'account_changed' => 'boolean',
             'unread_count' => 'integer',
             'consent_at' => 'datetime',
@@ -226,6 +228,20 @@ class TelegramUser extends Model
     public function isRegistered(): bool
     {
         return $this->registered_at !== null;
+    }
+
+    /**
+     * Owner rule (decision 2026-11-16): the AI answers only registered users
+     * with a phone, consent and a supported locale. Anonymous +888 numbers
+     * stay allowed (GuardAiRequest lowers their cap).
+     */
+    public function mayUseAi(): bool
+    {
+        return $this->state === TelegramUserState::Registered
+            && $this->isRegistered()
+            && filled($this->phone)
+            && $this->consent_at !== null
+            && in_array($this->locale, (array) config('app.supported_locales'), true);
     }
 
     /**

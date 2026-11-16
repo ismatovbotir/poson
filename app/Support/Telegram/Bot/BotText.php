@@ -22,7 +22,7 @@ final class BotText
     public const PROMPTS = [
         'language.prompt', 'language.changed',
         'consent.text',
-        'contact.not_own', 'contact.invalid', 'contact.use_button',
+        'contact.not_own', 'contact.invalid', 'contact.intro', 'contact.use_button',
         'name.confirm', 'name.prompt', 'name.invalid',
         'company.prompt', 'company.invalid',
         'inn.prompt', 'inn.invalid',
