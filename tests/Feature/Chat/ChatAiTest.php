@@ -4,6 +4,7 @@ require_once __DIR__.'/ChatBotHelpers.php';
 
 use App\Actions\Chat\GuardAiRequest;
 use App\Actions\Chat\RecordAiUsage;
+use App\Enums\AiUsageChannel;
 use App\Enums\ChatAction;
 use App\Enums\ChatAiRole;
 use App\Enums\ChatAiStatus;
@@ -458,8 +459,8 @@ it('reserves the daily cap atomically: two reservations at cap - 1 give one call
     ChatAiUsageDaily::factory()->create(['day' => RecordAiUsage::day(), 'requests' => 1499, 'billed_tokens' => 0]);
     $usage = app(RecordAiUsage::class);
 
-    expect($usage->reserve(ChatChannel::Telegram, 1000))->not->toBeNull()
-        ->and($usage->reserve(ChatChannel::Telegram, 1000))->toBeNull()
+    expect($usage->reserve(AiUsageChannel::Telegram, 1000))->not->toBeNull()
+        ->and($usage->reserve(AiUsageChannel::Telegram, 1000))->toBeNull()
         ->and(ChatAiUsageDaily::query()->value('requests'))->toBe(1500);
 });
 

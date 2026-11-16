@@ -525,6 +525,14 @@ return [
         'confirm' => 'Подтверждение',
     ],
 
+    'ai_usage_channel' => [
+        'web' => 'Сайт',
+        'telegram' => 'Telegram',
+        'adm_vision' => 'Админ: чтение фото',
+        'adm_write' => 'Админ: написание текста',
+        'adm_trans' => 'Админ: перевод',
+    ],
+
     'chat_ai_role' => [
         'user' => 'Клиент',
         'assistant' => 'ИИ-помощник',

@@ -19,7 +19,7 @@ use Livewire\Form;
  */
 class SettingsForm extends Form
 {
-    public const AI_FIELDS = ['ai_telegram_enabled', 'ai_web_enabled', 'ai_daily_requests', 'ai_daily_tokens', 'ai_instructions'];
+    public const AI_FIELDS = ['ai_telegram_enabled', 'ai_web_enabled', 'ai_translate_enabled', 'ai_daily_requests', 'ai_daily_tokens', 'ai_instructions'];
 
     public bool $web_enabled = false;
 
@@ -38,6 +38,8 @@ class SettingsForm extends Form
     public bool $ai_telegram_enabled = false;
 
     public bool $ai_web_enabled = false;
+
+    public bool $ai_translate_enabled = false;
 
     public int $ai_daily_requests = 0;
 
@@ -93,6 +95,7 @@ class SettingsForm extends Form
 
         $this->ai_telegram_enabled = AiSwitch::isStored(ChatChannel::Telegram);
         $this->ai_web_enabled = AiSwitch::isStored(ChatChannel::Web);
+        $this->ai_translate_enabled = $settings['ai']['translate_enabled'];
         $this->ai_daily_requests = $settings['ai']['daily_requests'];
         $this->ai_daily_tokens = $settings['ai']['daily_tokens'];
         $this->ai_instructions = $settings['ai']['instructions'];
@@ -125,6 +128,7 @@ class SettingsForm extends Form
             'products_shown' => ['required', 'integer', 'min:3', 'max:8'],
             'ai_telegram_enabled' => ['boolean'],
             'ai_web_enabled' => ['boolean'],
+            'ai_translate_enabled' => ['boolean'],
             'ai_daily_requests' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.requests_max')],
             'ai_daily_tokens' => ['required', 'integer', 'min:0', 'max:'.(int) config('chatbot.ai.caps.tokens_max')],
             'ai_instructions' => ['nullable', 'string', 'max:'.(int) config('chatbot.ai.instructions_max', 2000)],

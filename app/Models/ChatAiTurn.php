@@ -18,14 +18,17 @@ use Illuminate\Support\Carbon;
  * the customer's message after ChatRedactor (never the raw text); an
  * assistant row answers exactly one user row (answers_turn_id, unique) and
  * holds the filtered answer, its status and usage. No prompt is stored, only
- * its hash. Deleted with the conversation; kept 30 days. Never exposed to
- * MCP (AI-23).
+ * its hash. An answered row links to the unmatched phrase of its question
+ * (chat_unmatched_id, locale) for teaching (AI-B15). Deleted with the
+ * conversation; kept 30 days (chat:prune-ai). Never exposed to MCP (AI-23).
  *
  * @property int $id
  * @property ChatChannel $channel
  * @property int|null $telegram_user_id
  * @property int|null $web_chat_id
  * @property int|null $answers_turn_id
+ * @property int|null $chat_unmatched_id
+ * @property string|null $locale
  * @property ChatAiRole $role
  * @property string $text
  * @property ChatAiStatus|null $status
@@ -41,7 +44,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  */
 #[Fillable([
-    'channel', 'telegram_user_id', 'web_chat_id', 'answers_turn_id', 'role', 'text', 'status', 'model',
+    'channel', 'telegram_user_id', 'web_chat_id', 'answers_turn_id', 'chat_unmatched_id', 'locale', 'role', 'text', 'status', 'model',
     'input_tokens', 'output_tokens', 'cache_read_tokens', 'cache_write_tokens', 'stop_reason', 'prompt_hash',
     'product_ids', 'latency_ms',
 ])]
@@ -79,6 +82,24 @@ class ChatAiTurn extends Model
     public function telegramUser(): BelongsTo
     {
         return $this->belongsTo(TelegramUser::class);
+    }
+
+    /**
+     * @return BelongsTo<ChatUnmatched, $this>
+     */
+    public function unmatched(): BelongsTo
+    {
+        return $this->belongsTo(ChatUnmatched::class, 'chat_unmatched_id');
+    }
+
+    /**
+     * The user turn this assistant row answers.
+     *
+     * @return BelongsTo<ChatAiTurn, $this>
+     */
+    public function question(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'answers_turn_id');
     }
 
     /**

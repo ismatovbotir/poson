@@ -61,6 +61,9 @@ Schedule::command('model:prune', ['--model' => [PriceSyncLog::class]])->dailyAt(
 
 Schedule::command('model:prune', ['--model' => [ChatUnmatched::class]])->dailyAt('02:00')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
+// Plan 30 (AI-21, AI-B12): AI conversation turns older than 30 days are deleted.
+Schedule::command('chat:prune-ai')->dailyAt('03:25')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
 /*
 |--------------------------------------------------------------------------
 | Careers (plan 31, CR-5)

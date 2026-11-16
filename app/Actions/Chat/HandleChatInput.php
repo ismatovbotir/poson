@@ -153,14 +153,12 @@ class HandleChatInput
 
     /**
      * Start a new AI conversation context (plan 30 §7): earlier turns are no
-     * longer sent to the model. Only while AI is on, so nothing changes (and
-     * nothing extra is written) when it is off.
+     * longer sent to the model. Always, also while AI is off, so turning AI
+     * back on after a reset never resends the turns before it (AI-B7, L1).
      */
     public static function resetAiContext(TelegramUser $user): void
     {
-        if (AiSwitch::isEnabled(ChatChannel::Telegram)) {
-            $user->forceFill(['ai_context_at' => now()]);
-        }
+        $user->forceFill(['ai_context_at' => now()]);
     }
 
     /**

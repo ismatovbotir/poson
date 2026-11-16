@@ -208,6 +208,16 @@ return [
         'limited' => 'not copied, the limit is reached',
         'failed' => 'not copied, error',
     ],
+    'ai' => [
+        'title' => 'Bot conversation',
+        'show' => 'Show the conversation with the bot',
+        'hide' => 'Hide',
+        'note' => 'Questions the bot answered with AI before the chat came to you. Personal data is hidden. Kept for :days day.|Questions the bot answered with AI before the chat came to you. Personal data is hidden. Kept for :days days.',
+        'empty' => 'No AI answers in this chat.',
+        'badge' => 'AI',
+        'customer' => 'Customer',
+        'not_delivered' => 'Not sent: :status',
+    ],
     'history' => [
         'title' => 'History',
         'empty' => 'No actions yet.',

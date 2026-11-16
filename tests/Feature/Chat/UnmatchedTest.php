@@ -56,7 +56,7 @@ dataset('sensitive text', [
 it('masks personal data before storing sample and normalized', function (string $text, array $leaks) {
     $user = TelegramUser::factory()->registered()->create();
 
-    expect(app(RecordUnmatched::class)->handle($user, 'uz', $text))->toBeTrue();
+    expect(app(RecordUnmatched::class)->handle($user, 'uz', $text))->not->toBeNull();
 
     $row = ChatUnmatched::query()->sole();
 
@@ -79,7 +79,7 @@ it('keeps short model numbers readable', function () {
 it('records only registered telegram users', function () {
     $visitor = TelegramUser::factory()->unregistered()->create();
 
-    expect(app(RecordUnmatched::class)->handle($visitor, 'uz', 'noaniq savol'))->toBeFalse()
+    expect(app(RecordUnmatched::class)->handle($visitor, 'uz', 'noaniq savol'))->toBeNull()
         ->and(ChatUnmatched::query()->count())->toBe(0);
 });
 
@@ -106,7 +106,7 @@ it('drops empty, masked-only and one-letter phrases', function () {
     $user = TelegramUser::factory()->registered()->create();
 
     foreach (['', '   ', '+998901234567', '?!', 'a'] as $text) {
-        expect(app(RecordUnmatched::class)->handle($user, 'uz', $text))->toBeFalse();
+        expect(app(RecordUnmatched::class)->handle($user, 'uz', $text))->toBeNull();
     }
 
     expect(ChatUnmatched::query()->count())->toBe(0);
@@ -118,11 +118,11 @@ it('caps unmatched phrases per customer and overall each day', function () {
     $second = TelegramUser::factory()->registered()->create();
     $third = TelegramUser::factory()->registered()->create();
 
-    expect(app(RecordUnmatched::class)->handle($first, 'uz', 'bir savol'))->toBeTrue()
-        ->and(app(RecordUnmatched::class)->handle($first, 'uz', 'ikki savol'))->toBeTrue()
-        ->and(app(RecordUnmatched::class)->handle($first, 'uz', 'uch savol'))->toBeFalse()
-        ->and(app(RecordUnmatched::class)->handle($second, 'uz', 'tort savol'))->toBeTrue()
-        ->and(app(RecordUnmatched::class)->handle($third, 'uz', 'besh savol'))->toBeFalse()
+    expect(app(RecordUnmatched::class)->handle($first, 'uz', 'bir savol'))->not->toBeNull()
+        ->and(app(RecordUnmatched::class)->handle($first, 'uz', 'ikki savol'))->not->toBeNull()
+        ->and(app(RecordUnmatched::class)->handle($first, 'uz', 'uch savol'))->toBeNull()
+        ->and(app(RecordUnmatched::class)->handle($second, 'uz', 'tort savol'))->not->toBeNull()
+        ->and(app(RecordUnmatched::class)->handle($third, 'uz', 'besh savol'))->toBeNull()
         ->and(ChatUnmatched::query()->count())->toBe(3);
 });
 

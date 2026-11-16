@@ -97,10 +97,15 @@ return [
             'steps' => [
                 'SI javoblari odatda oʻchiq. Serverda API kaliti kiritilib, maxfiylik sahifasi tayyor boʻlgach, administrator ularni Chat-bot → Sozlamalar boʻlimida yoqadi.',
                 'Aniq yoki kuchli moslikdagi qoidalar, menejerga ulash, buyurtma va taʼmir holati hamda arizalar har doim SIsiz javob beradi. SI kuchsiz moslik va qoidasiz savollarga javob beradi.',
-                'Har bir SI javobida “SI yordamchi” belgisi va “Menejer bilan bogʻlanish” tugmasi boʻladi. Narx, begona havola yoki kontaktli javoblar toʻxtatiladi va oʻrniga qoida boʻyicha javob yuboriladi.',
+                'Har bir SI javobida “SI yordamchi” belgisi va “Menejer bilan bogʻlanish” tugmasi boʻladi. Narx, begona havola yoki kontaktli javoblar toʻxtatiladi va oʻrniga qoida boʻyicha javob yuboriladi. SI faqat shu savol uchun topilgan mahsulotning chakana narxini, saytdagidek aniq va shu mahsulot yonida ayta oladi.',
                 'Xabar SIga yuborilishidan oldin telefon, pochta, karta va buyurtma raqamlari yashiriladi.',
                 'Statistikada kunlik SI soʻrovlari, tokenlar va taxminiy xarajat koʻrinadi. Kontent-menejer SI javoblarini istalgan vaqtda oʻchira oladi.',
-                'Uzun raqamli javoblar (6 va undan ortiq raqam: artikullar, SKU, “EAN” soʻzisiz shtrix-kodlar) ham hozircha toʻxtatiladi va qoida boʻyicha javob yuboriladi; statistikada ular toʻxtatilgan deb hisoblanadi. Bu keyinroq mahsulot qidiruvi bilan birga sozlanadi.',
+                'Har bir savol uchun bot 6 tagacha eʼlon qilingan mahsulotni topadi (nomi, brendi, asosiy xususiyatlari, chakana narxi yoki «narxi soʻrov boʻyicha», havola). Javob ostida u nomlagan mahsulotlar tugmalari boʻladi; bosilganda mahsulot va narx qaytadan koʻrsatiladi.',
+                '30 daqiqa ichida SI shu mijozning oxirgi javob berilgan savollarini eslab qoladi. Menyu, /start, «Bekor qilish», «Menejer bilan bogʻlanish», xodim javobi yoki bloklash yangi suhbatni boshlaydi.',
+                'Uzun raqamlar (6 va undan ortiq raqam) toʻxtatiladi, agar ular savol uchun topilgan mahsulotning aniq artikuli yoki modeli boʻlmasa.',
+                'SI javob bergan savollar «Chat-bot → Oʻrgatish» boʻlimida «SI javob bergan mijozlar: N» belgisi bilan chiqadi, eng koʻp soʻralganlari tepada. «SI javobidan oʻrgatish» shu javob va iboradagi kalit soʻzlar bilan yangi qoidani qoralama sifatida ochadi; tekshirib, saqlang. Hech narsa avtomatik saqlanmaydi.',
+                'Qoida muharriridagi «Claude bilan tarjima» bitta tildan qolgan ikkitasini toʻldiradi; uni administrator Sozlamalarda yoqadi. Saqlashdan oldin tarjimani tekshiring.',
+                'Xodim chatida «Bot bilan yozishma» bloki shu mijozning soʻnggi 30 kundagi SI savol-javoblarini koʻrsatadi (shaxsiy maʼlumotlar yashirilgan).',
             ],
         ],
         'inbox' => [

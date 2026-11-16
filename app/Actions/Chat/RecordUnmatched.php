@@ -22,24 +22,29 @@ use Illuminate\Support\Facades\RateLimiter;
  *  - Daily caps: per customer (chatbot.unmatched.per_day_chat) and overall
  *    (per_day_global); over a cap nothing is stored.
  *  - A phrase that is nothing but masks or shorter than 2 characters is dropped.
+ *
+ * Returns the id of the row (null when nothing was recorded). AnswerChatWithAi
+ * also records every question the AI answered (plan 30 §16, AI-B15), under
+ * the same caps, and links its assistant turn to that row, so the owner can
+ * teach a rule from the answer.
  */
 class RecordUnmatched
 {
-    public function handle(TelegramUser $user, string $locale, ?string $text): bool
+    public function handle(TelegramUser $user, string $locale, ?string $text): ?int
     {
         if (! $user->isRegistered() || ! in_array($locale, config('app.supported_locales'), true)) {
-            return false;
+            return null;
         }
 
         $sample = ChatRedactor::clean($text);
         $normalized = ChatText::normalize($sample, 120);
 
         if (mb_strlen($normalized) < 2) {
-            return false;
+            return null;
         }
 
         if (! $this->withinCaps($user)) {
-            return false;
+            return null;
         }
 
         $key = ['channel' => ChatChannel::Telegram->value, 'locale' => $locale, 'normalized' => $normalized];
@@ -59,7 +64,9 @@ class RecordUnmatched
             ChatUnmatched::query()->where($key)->increment('count', 1, ['last_seen_at' => $now, 'updated_at' => $now]);
         }
 
-        return true;
+        $id = ChatUnmatched::query()->where($key)->value('id');
+
+        return $id === null ? null : (int) $id;
     }
 
     /**

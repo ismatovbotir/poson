@@ -2,6 +2,7 @@
 
 namespace App\Actions\Chat;
 
+use App\Enums\AiUsageChannel;
 use App\Enums\ChatAiRole;
 use App\Enums\ChatChannel;
 use App\Models\ChatAiTurn;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\RateLimiter;
  *     an automatic hand-off); later messages in the window get the rule reply;
  *  3. global per minute (60) → DENIED (rule reply);
  *  4. today's caps, read only (RecordAiUsage::withinCaps; the job reserves
- *     atomically) → DENIED;
+ *     atomically) → DENIED, with the once-a-day cap alert (capReached);
  *  5. pending AI jobs (AI-17): customer turns of the last PENDING_MINUTES
  *     without an answer row, counted in the database (exact, nothing to
  *     release, rolled back with the webhook) → DENIED.
@@ -53,6 +54,7 @@ class GuardAiRequest
             return $this->result(self::DENIED);
         }
 
+        $usage = AiUsageChannel::fromChatChannel($channel);
         $limits = (array) config('chatbot.ai.limits');
         $perDay = $this->isAnonymous($user) ? (int) $limits['per_day_anonymous'] : (int) $limits['per_day_user'];
         $day = str_replace('-', '', RecordAiUsage::day());
@@ -62,20 +64,26 @@ class GuardAiRequest
             "chat-ai:user:day:{$day}:{$user->id}" => [$perDay, 86400],
         ] as $key => [$max, $decay]) {
             if (RateLimiter::hit($key, $decay) > $max) {
-                $this->usage->capped($channel);
+                $this->usage->capped($usage);
 
                 return $this->result(self::LIMITED, Cache::add($key.':noticed', true, max(1, RateLimiter::availableIn($key))));
             }
         }
 
-        if (RateLimiter::hit('chat-ai:global:minute', 60) > (int) $limits['per_minute_global'] || ! $this->usage->withinCaps($channel)) {
-            $this->usage->capped($channel);
+        if (RateLimiter::hit('chat-ai:global:minute', 60) > (int) $limits['per_minute_global']) {
+            $this->usage->capped($usage);
+
+            return $this->result(self::DENIED);
+        }
+
+        if (! $this->usage->withinCaps($usage)) {
+            $this->usage->capReached($usage);
 
             return $this->result(self::DENIED);
         }
 
         if ($this->pending($channel) >= (int) $limits['pending_jobs']) {
-            $this->usage->capped($channel);
+            $this->usage->capped($usage);
 
             return $this->result(self::DENIED);
         }

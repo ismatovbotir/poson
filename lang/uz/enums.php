@@ -525,6 +525,14 @@ return [
         'confirm' => 'Tasdiqlash',
     ],
 
+    'ai_usage_channel' => [
+        'web' => 'Sayt',
+        'telegram' => 'Telegram',
+        'adm_vision' => 'Admin: rasmlarni oʻqish',
+        'adm_write' => 'Admin: matn yozish',
+        'adm_trans' => 'Admin: tarjima',
+    ],
+
     'chat_ai_role' => [
         'user' => 'Mijoz',
         'assistant' => 'SI yordamchi',

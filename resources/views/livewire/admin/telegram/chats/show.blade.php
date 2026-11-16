@@ -206,6 +206,7 @@
 
             @include('livewire.admin.telegram.chats.partials.crm-panel')
             @include('livewire.admin.telegram.chats.partials.manage-panel')
+            @include('livewire.admin.telegram.chats.partials.ai-panel')
         </aside>
     </div>
 </div>

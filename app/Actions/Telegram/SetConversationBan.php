@@ -75,7 +75,14 @@ class SetConversationBan
             $query = TelegramUser::query()->whereKey($fresh->id);
             $banned ? $query->whereNull('banned_at') : $query->whereNotNull('banned_at');
 
-            if ($query->update(['banned_at' => $banned ? now() : null, 'banned_by_id' => $banned ? $actor->id : null]) !== 1) {
+            // A ban also ends the AI conversation context (plan 30 AI-B7): earlier turns never go to the model again.
+            $changes = ['banned_at' => $banned ? now() : null, 'banned_by_id' => $banned ? $actor->id : null];
+
+            if ($banned) {
+                $changes['ai_context_at'] = now();
+            }
+
+            if ($query->update($changes) !== 1) {
                 return false;
             }
 

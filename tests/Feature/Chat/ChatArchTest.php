@@ -46,7 +46,27 @@ arch('chat actions and the AI job use only the ChatModel interface')
 
 arch('only the AI job and its fakes resolve the chat model')
     ->expect('App\Services\Ai\ChatModel')
-    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Providers\AppServiceProvider']);
+    ->toOnlyBeUsedIn(['App\Services\Ai', 'App\Actions\Chat\AnswerWithAi', 'App\Jobs\AnswerChatWithAi', 'App\Actions\Chat\TranslateRuleAnswer', 'App\Providers\AppServiceProvider']);
+
+// Plan 30 AI-B14: "Translate with Claude" reaches the model through its action, never from a component.
+arch('no Livewire component resolves the chat model')
+    ->expect('App\Livewire')
+    ->not->toUse(['App\Services\Ai\ChatModel', 'App\Services\Ai\AnthropicChatModel']);
+
+// Plan 30 AI-B19: a rule is never saved from a job or the AI code; only an editor saves a taught rule.
+arch('rules are never saved by jobs or the AI actions')
+    ->expect([
+        'App\Jobs',
+        'App\Services\Ai',
+        'App\Actions\Chat\AnswerWithAi',
+        'App\Actions\Chat\AiHistory',
+        'App\Actions\Chat\FindAiProducts',
+        'App\Actions\Chat\PrepareTaughtRule',
+        'App\Actions\Chat\CheckTaughtRule',
+        'App\Actions\Chat\TranslateRuleAnswer',
+        'App\Actions\Chat\RecordUnmatched',
+    ])
+    ->not->toUse(['App\Actions\Chat\SaveChatRule', 'App\Actions\Chat\AddKeywordFromUnmatched']);
 
 it('does not use preg functions in the matching code', function (string $file) {
     $code = (string) file_get_contents(base_path($file));

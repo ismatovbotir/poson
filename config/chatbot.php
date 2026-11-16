@@ -107,13 +107,38 @@ return [
             // AI jobs waiting in the queue at once (AI-17): over it the rule reply is used.
             'pending_jobs' => 30,
         ],
-        // Daily caps (Asia/Tashkent day, enforced in the database, AI-18). Admins can change them in settings.
+        // Daily caps per AiUsageChannel value (Asia/Tashkent day, enforced in the database, AI-18).
+        // The chat bot channels: Admins can change them in settings (one value for both). A channel
+        // without an entry here has a cap of 0 (no calls).
         'caps' => [
-            'requests' => 1500,
-            'tokens' => 3000000,
+            'telegram' => ['requests' => 1500, 'tokens' => 3000000],
+            'web' => ['requests' => 1500, 'tokens' => 3000000],
+            // "Translate with Claude" in the rule editor (AI-B14).
+            'adm_trans' => ['requests' => 200, 'tokens' => 500000],
             'requests_max' => 20000,
             'tokens_max' => 50000000,
         ],
+        // "Translate with Claude" (AI-B14): per editor per hour, over all editors per minute, output tokens, source text.
+        'translate' => [
+            'per_hour_user' => 20,
+            'per_minute_global' => 30,
+            'max_tokens' => 800,
+            'source_max' => 1000,
+        ],
+        // Product candidates of one question (AI-B4, AI-B5): count and the caps of a <products> line.
+        'products' => [
+            'limit' => 6,
+            'name_max' => 120,
+            'meta_max' => 60,
+            'specs' => 4,
+            'spec_max' => 60,
+            'line_max' => 400,
+            'block_max' => 2500,
+            // Product buttons under an AI answer (only products the answer names).
+            'buttons' => 3,
+        ],
+        // Teaching from AI answers (AI-B11): keywords pre-filled from a phrase.
+        'teach_keywords' => 10,
         // USD per million tokens, for the estimate in Stats (cache read billed at 0.1x input).
         'prices' => [
             'input' => 0.10,

@@ -136,6 +136,7 @@ return [
             'queue_stuck' => 'Navbat qotib qoldi',
             'worker_silent' => 'Navbat ishlovchisi jim',
             'ai_auth_failed' => 'SI javoblari toʻxtatildi: Anthropic API kaliti rad etildi',
+            'ai_daily_cap' => 'SI javoblarining kunlik limiti tugadi (ertaga avtomatik davom etadi)',
             'foreign_phone_cap' => 'Xorijiy raqamlar soatlik limiti oshdi',
             'telegram_webhook' => 'Telegram bot webhookida muammo',
             'telegram_token' => 'Telegram bot tokenini qabul qilmayapti (401)',
@@ -164,6 +165,9 @@ return [
             'reason' => 'Sabab',
             'failures' => 'Muvaffaqiyatsiz urinishlar',
             'count' => 'Soni',
+            'channel' => 'Kanal',
+            'requests' => 'Soʻrovlar',
+            'tokens' => 'Tokenlar',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).

@@ -21,6 +21,7 @@ use App\Enums\LeadType;
 use App\Enums\TelegramDirection;
 use App\Jobs\DeleteForwardedCopies;
 use App\Models\Activity;
+use App\Models\ChatAiTurn;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\Lead;
@@ -37,6 +38,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -58,6 +60,12 @@ use Throwable;
  * so a reassignment gives 403 on the next poll. Message ids are never taken
  * from the client; messages are always read through this thread, with no
  * file_id (none is stored) and no telegram_id.
+ *
+ * "Bot conversation" (plan 30 §7, AI-22, AI-B10): the latest AI_TURNS
+ * redacted AI turns of this customer, queried only while the panel is open
+ * and only through $conversation->aiTurns() after the "view" check. Answers
+ * carry an AI badge; a turn that was not delivered (blocked, refused,
+ * failed, capped …) shows its status only, never its text.
  */
 #[Layout('layouts::admin')]
 class Show extends Component
@@ -69,6 +77,8 @@ class Show extends Component
     public const LINK_RESULTS = 8;
 
     public const HISTORY_ROWS = 10;
+
+    public const AI_TURNS = 20;
 
     private const COLUMNS = [
         'id', 'username', 'first_name', 'last_name', 'locale', 'name', 'phone', 'declared_company', 'declared_inn',
@@ -99,6 +109,8 @@ class Show extends Component
     public bool $linkOpen = false;
 
     public bool $historyOpen = false;
+
+    public bool $aiOpen = false;
 
     public bool $deleteOpen = false;
 
@@ -614,6 +626,27 @@ class Show extends Component
         $header = TelegramUser::query()->select(['id', 'forward_header_chat_id', 'forward_header_message_id', 'forward_header_at'])->findOrFail($this->conversationId);
 
         return DeleteForwardedCopies::pairsFor($header) !== [];
+    }
+
+    /**
+     * The customer's latest AI turns, oldest first (AI-B10). Only through the
+     * conversation's own relation, after the "view" check of this request.
+     *
+     * @return Collection<int, ChatAiTurn>
+     */
+    #[Computed]
+    public function aiTurns(): Collection
+    {
+        $conversation = $this->conversation();
+        $this->authorize('view', $conversation);
+
+        return $conversation->aiTurns()
+            ->select(['id', 'telegram_user_id', 'role', 'text', 'status', 'created_at'])
+            ->orderByDesc('id')
+            ->limit(self::AI_TURNS)
+            ->get()
+            ->reverse()
+            ->values();
     }
 
     /**

@@ -77,7 +77,7 @@ final class ChatSettings
      *     widget_pages: string,
      *     widget_mobile: bool,
      *     products_shown: int,
-     *     ai: array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
+     *     ai: array{telegram_enabled: bool, web_enabled: bool, translate_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
      * }
      */
     public static function all(): array
@@ -173,7 +173,7 @@ final class ChatSettings
      * memoized read as everything else (CB-31: no extra query).
      *
      * @param  callable(string, mixed=): mixed  $get
-     * @return array{telegram_enabled: bool, web_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
+     * @return array{telegram_enabled: bool, web_enabled: bool, translate_enabled: bool, daily_requests: int, daily_tokens: int, instructions: string}
      */
     private static function ai(callable $get): array
     {
@@ -184,10 +184,11 @@ final class ChatSettings
         return [
             'telegram_enabled' => $get('ai_telegram_enabled') === true,
             'web_enabled' => $get('ai_web_enabled') === true,
+            'translate_enabled' => $get('ai_translate_enabled') === true,
             'daily_requests' => $requests !== false && $requests >= 0 && $requests <= (int) config('chatbot.ai.caps.requests_max')
-                ? $requests : (int) config('chatbot.ai.caps.requests'),
+                ? $requests : (int) config('chatbot.ai.caps.telegram.requests'),
             'daily_tokens' => $tokens !== false && $tokens >= 0 && $tokens <= (int) config('chatbot.ai.caps.tokens_max')
-                ? $tokens : (int) config('chatbot.ai.caps.tokens'),
+                ? $tokens : (int) config('chatbot.ai.caps.telegram.tokens'),
             'instructions' => is_string($instructions) ? mb_substr($instructions, 0, (int) config('chatbot.ai.instructions_max', 2000)) : '',
         ];
     }
