@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\RateLimiter;
  * RateLimiter::hit (the hit itself decides, no check-then-hit race), per
  * customer first so one chatty customer cannot use up the global limit:
  *
+ *  0. the user must pass TelegramUser::mayUseAi() (checked first, burns no quota);
  *  1. the AI switch, the key and the chat bot switch (AiSwitch);
  *  2. per customer: chatbot.ai.limits.per_minute_user (6) and per_day_user
  *     (40; per_day_anonymous, 10, for a +888 or missing phone) → LIMITED,
@@ -48,7 +49,7 @@ class GuardAiRequest
      */
     public function handle(ChatChannel $channel, TelegramUser $user): array
     {
-        if (! AiSwitch::isEnabled($channel)) {
+        if (! $user->mayUseAi() || ! AiSwitch::isEnabled($channel)) {
             return $this->result(self::DENIED);
         }
 

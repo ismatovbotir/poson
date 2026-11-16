@@ -262,7 +262,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
         $superseded = ! BotSwitch::isEnabled()
             || ! ChatbotSwitch::isEnabled($turn->channel)
-            || ! $user->isRegistered()
+            || ! $user->mayUseAi()
             || $user->isBanned()
             || $user->chat_mode !== ChatMode::Bot
             || $user->isWaitingForStaff()

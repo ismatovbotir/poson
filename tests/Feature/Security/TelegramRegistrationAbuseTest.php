@@ -350,7 +350,7 @@ it('case 8: drops the 21st update of a minute (callbacks included) with exactly 
 
     expect($beforeDrop)->toBe(10)
         ->and($notices)->toHaveCount(1)
-        ->and(collect(abzSent())->where('text', __('telegram_bot.contact.use_button', [], 'en')))->toHaveCount(10)
+        ->and(collect(abzSent())->where('text', __('telegram_bot.contact.use_button', [], 'en')))->toHaveCount(9)
         ->and(abzUser()->state)->toBe(TelegramUserState::Contact);
 });
 

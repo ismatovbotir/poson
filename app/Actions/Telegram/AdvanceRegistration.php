@@ -192,9 +192,21 @@ class AdvanceRegistration
         $this->currentStep($user, prefix: $first ? [] : ['language.changed'], answer: $answer);
     }
 
+    /**
+     * The phone step. A non-contact message gets the intro once per user
+     * (marker contact_intro_sent_at, decision 2026-11-16), then the short
+     * "use the button" reminder; the marker is never reset.
+     */
     private function contact(TelegramUser $user, UpdateParser $update): void
     {
         if ($update->kind !== TelegramMessageKind::Contact) {
+            if ($user->contact_intro_sent_at === null) {
+                $user->forceFill(['contact_intro_sent_at' => now()])->save();
+                $this->reply($user, ['contact.intro'], BotKeyboards::CONTACT);
+
+                return;
+            }
+
             $this->reply($user, ['contact.use_button'], BotKeyboards::CONTACT);
 
             return;
