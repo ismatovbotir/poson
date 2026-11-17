@@ -306,11 +306,11 @@
 
     {{-- Related products --}}
     @foreach ($related as $type => $cards)
-        <section class="mt-10" aria-labelledby="related-{{ $type }}" wire:key="related-{{ $type }}" data-related="{{ $type }}">
+        <section class="mt-8" aria-labelledby="related-{{ $type }}" wire:key="related-{{ $type }}" data-related="{{ $type }}">
             <x-site.section-head :id="'related-'.$type" :title="__('site.product.related.'.$type)" />
-            <div class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($cards as $card)
-                    <x-site.product-card :product="$card" wire:key="related-{{ $type }}-{{ $card->slug }}" />
+                    <x-site.product-card-compact :product="$card" wire:key="related-{{ $type }}-{{ $card->slug }}" />
                 @endforeach
             </div>
         </section>

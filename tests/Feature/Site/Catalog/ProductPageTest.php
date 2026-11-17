@@ -225,6 +225,33 @@ it('lists published related products by type', function () {
         ->not->toContain('Старый');
 });
 
+it('renders related products as compact cards with the retail price or price on request', function () {
+    $product = pageProduct();
+    $priced = Product::factory()->create(['price' => 250_000_00, 'name' => ['uz' => 'Stand', 'ru' => 'Подставка', 'en' => 'Stand']]);
+    $onRequest = Product::factory()->priceOnRequest()->create(['name' => ['uz' => 'Holder', 'ru' => 'Держатель', 'en' => 'Holder']]);
+    ProductRelation::factory()->create(['product_id' => $product->id, 'related_id' => $priced->id, 'type' => RelationType::Accessory, 'sort' => 1]);
+    ProductRelation::factory()->create(['product_id' => $product->id, 'related_id' => $onRequest->id, 'type' => RelationType::Accessory, 'sort' => 2]);
+
+    $html = $this->get('/ru/product/zebra-ds2208')->assertOk()->getContent();
+
+    expect(substr_count($html, 'data-product-card-compact'))->toBe(2)
+        ->and($html)->toContain('Подставка')
+        ->toContain('Держатель')
+        ->toContain(e(Money::format($priced->price)))
+        ->toContain(__('site.card.price_on_request', [], 'ru'));
+});
+
+it('shows a related label product priced per label', function () {
+    $product = pageProduct();
+    $labels = Product::factory()->perLabel()->create(['name' => ['uz' => 'Labels', 'ru' => 'Этикетки', 'en' => 'Labels']]);
+    ProductRelation::factory()->create(['product_id' => $product->id, 'related_id' => $labels->id, 'type' => RelationType::Consumable]);
+
+    $html = $this->get('/ru/product/zebra-ds2208')->assertOk()->getContent();
+
+    expect($html)->toContain('data-product-card-compact')
+        ->toContain(e(__('catalog.roll.per_label', ['price' => Money::format($labels->price)], 'ru')));
+});
+
 it('adds Product, Offer and BreadcrumbList JSON-LD', function () {
     $product = pageProduct(['stock_status' => StockStatus::OnOrder, 'price' => 145_000_050]);
 

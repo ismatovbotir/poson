@@ -160,8 +160,6 @@ it('exposes the CTAs as plain arrays for other clients', function () {
 
 it('renders Try and Contact us on the product page and the card, and Try in the sticky bar', function () {
     $product = Product::factory()->withPartnerLink()->priceOnRequest()->featured()->create(['slug' => 'pospoint']);
-    $related = Product::factory()->create();
-    $related->relations()->create(['related_id' => $product->id, 'type' => 'alternative']);
 
     $html = $this->get('/uz/product/pospoint')->assertOk()->getContent();
     $tryLink = '#<a\s+href="'.preg_quote(url('/uz/go/pospoint'), '#').'"\s+target="_blank" rel="nofollow sponsored noopener"#';
@@ -176,9 +174,10 @@ it('renders Try and Contact us on the product page and the card, and Try in the 
         // The referral link itself never reaches the page (only the tracked redirect).
         ->and($html)->not->toContain('partner.example.uz');
 
-    $card = $this->get('/ru/product/'.$related->slug)->assertOk()->getContent();
+    $card = $this->get('/ru')->assertOk()->getContent();
     preg_match('#<article[^>]*data-product-card[^>]*>(.*?)</article>#s', $card, $match);
 
+    expect($match)->not->toBeEmpty();
     expect($match[1])->toContain('href="'.url('/ru/go/pospoint').'"')
         ->toContain('rel="nofollow sponsored noopener"')
         ->toContain('data-cta="contact"')
