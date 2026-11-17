@@ -577,7 +577,7 @@ it('sends a 1–2 hit warranty question to AI', function (string $text) {
     expect($reply->outcome)->toBe(ChatReply::AI)
         ->and($reply->ruleId)->toBe(aiRuleId('warranty_service'))
         ->and($reply->original->outcome)->toBe(ChatReply::HIT);
-})->with(['my printer ne rabotaet', 'warranty for a scanner repair']);
+})->with(['garantiya for my printer', 'warranty for a scanner repair']);
 
 it('answers soft-match texts exactly as before when AI is off (A2-S8)', function (string $text, string $locale, string $key, string $outcome) {
     $reply = aiAsk($text, ai: false, locale: $locale);
