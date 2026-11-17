@@ -151,6 +151,16 @@ return [
             'problem' => 'Not registered: new customer messages send no alert to the team.',
             'next' => 'Deploy the current code, clear the cached event list ("php artisan event:clear") and restart the queue workers.',
         ],
+        'chatbot' => [
+            'label' => 'Website chat',
+            'ok' => 'Website chat is on. Unmatched phrases in 24 h: :unmatched. Most new chats from one IP today: :busiest_ip.',
+            'neutral' => 'Website chat is off. That is fine until you switch it on.',
+            'problem' => 'Website chat has a problem.',
+            'unanswered' => ':unanswered website chat(s) have waited for staff for more than :minutes min.',
+            'alert_cap' => 'The hourly limit of website chat alerts was reached: further alerts are paused, so check the inbox by hand.',
+            'prune_stale' => 'The nightly chat cleanup (chat:prune) has not run for more than 36 hours.',
+            'next' => 'Open Chat bot → Chats and answer the waiting visitors, or check that the queue worker and the scheduler run.',
+        ],
         'queue_connection' => [
             'label' => 'Queue connection',
             'ok' => 'Queue connection: :connection.',

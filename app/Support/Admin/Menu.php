@@ -11,6 +11,7 @@ use App\Models\Lead;
 use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Models\User;
+use App\Models\WebChat;
 
 /**
  * Single source of truth for the admin navigation (sidebar, drawer and the
@@ -175,7 +176,9 @@ final class Menu
 
         // Plan 21 A1: conversations with unread messages the user can see.
         if ($user->can('viewAny', TelegramUser::class)) {
-            $badges['telegram-chats'] = TelegramUser::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
+            // Plan 28 C5c: website chats count too (each channel through its own visibleTo scope).
+            $badges['telegram-chats'] = TelegramUser::query()->visibleTo($user)->where('unread_count', '>', 0)->count()
+                + WebChat::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
         }
 
         // Plan 31 (CR-11): new applications, only for users with careers.applications.

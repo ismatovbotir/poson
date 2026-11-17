@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Cache;
  * AI-24): the stored "chatbot.ai_{channel}_enabled" switch (Admin enables,
  * Content manager may disable) AND an API key in .env AND the channel's chat
  * bot switch with its privacy gate (ChatbotSwitch). The website also needs
- * chatbot.web_ready. Read from the memoized ChatSettings row: no extra query
+ * chatbot.ai.web_ready (plan 33 B; separate from the widget's
+ * chatbot.web_ready, WC-4). Read from the memoized ChatSettings row: no extra query
  * (CB-31). Never resolves the model or the SDK.
  *
  * M3: a 401/403 from the API (key revoked or wrong) pauses AI answers for
@@ -46,7 +47,7 @@ final class AiSwitch
 
     public static function isEnabled(ChatChannel $channel): bool
     {
-        if ($channel === ChatChannel::Web && ! config('chatbot.web_ready')) {
+        if ($channel === ChatChannel::Web && config('chatbot.ai.web_ready') !== true) {
             return false;
         }
 

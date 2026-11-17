@@ -5,6 +5,9 @@ namespace App\Support\Monitoring;
 use App\Enums\TaskRunStatus;
 use App\Models\MonitoringState;
 use App\Models\ScheduledTaskRun;
+use App\Support\Chat\WebChatBacklog;
+use App\Support\Chat\WorkingHours;
+use Throwable;
 
 /**
  * Evaluates the monitored problems and keeps their alert state in
@@ -54,6 +57,7 @@ final class ProblemMonitor
 
         $this->evaluateTasks();
         $this->evaluateQueue();
+        $this->evaluateWebChats();
 
         if (! $cronDead) {
             $this->evaluateWorker();
@@ -129,6 +133,27 @@ final class ProblemMonitor
         $this->track('problem:queue_stuck', $stuck, 'queue_stuck', [
             'age' => $stats['oldest_age'] === null ? null : (int) floor($stats['oldest_age'] / 60),
             'pending' => $stats['pending'],
+        ]);
+    }
+
+    /**
+     * chat_web_unanswered (plan 28 C5d): website hand-offs waiting for staff
+     * longer than chatbot.web.unanswered_minutes during working hours. Counts
+     * only. A failing check never stops the other problems.
+     */
+    public function evaluateWebChats(): void
+    {
+        try {
+            $count = WorkingHours::isOpen() ? WebChatBacklog::unanswered() : 0;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return;
+        }
+
+        $this->track('problem:chat_web_unanswered', $count > 0, 'chat_web_unanswered', [
+            'count' => $count,
+            'age' => max(1, (int) config('chatbot.web.unanswered_minutes', 15)),
         ]);
     }
 

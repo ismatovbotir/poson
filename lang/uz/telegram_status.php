@@ -151,6 +151,16 @@ return [
             'problem' => 'Roʻyxatdan oʻtmagan: mijozlarning yangi xabarlari haqida jamoaga ogohlantirish bormaydi.',
             'next' => 'Joriy kodni joylang, hodisalar roʻyxati keshini tozalang («php artisan event:clear») va navbat ishchilarini qayta ishga tushiring.',
         ],
+        'chatbot' => [
+            'label' => 'Saytdagi chat',
+            'ok' => 'Saytdagi chat yoqilgan. 24 soatdagi tanilmagan iboralar: :unmatched. Bugun bitta IPdan eng koʻp yangi chatlar: :busiest_ip.',
+            'neutral' => 'Saytdagi chat oʻchirilgan. Yoqmaguningizcha bu normal.',
+            'problem' => 'Saytdagi chatda muammo bor.',
+            'unanswered' => 'Xodimni :minutes daqiqadan koʻp kutayotgan sayt chatlari: :unanswered.',
+            'alert_cap' => 'Sayt chatlari haqidagi xabarnomalarning soatlik chegarasiga yetildi: yangi xabarnomalar toʻxtatildi, kiruvchilarni qoʻlda tekshiring.',
+            'prune_stale' => 'Chatlarni tungi tozalash (chat:prune) 36 soatdan ortiq ishlamadi.',
+            'next' => 'Chat-bot → Chatlar boʻlimini oching va kutayotgan tashrifchilarga javob bering yoki navbat ishchisi va rejalashtiruvchi ishlayotganini tekshiring.',
+        ],
         'queue_connection' => [
             'label' => 'Navbat ulanishi',
             'ok' => 'Navbat ulanishi: :connection.',

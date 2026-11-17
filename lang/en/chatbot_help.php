@@ -128,5 +128,16 @@ return [
                 'Block abusers: their messages stop arriving.',
             ],
         ],
+        'web_chat' => [
+            'title' => 'Website chat for staff',
+            'steps' => [
+                'Website chats appear in Chat bot → Chats next to Telegram, marked "Website". Use the channel filter to see only one of them. You see a website chat only after the visitor asked for a manager, and only if it is unassigned or yours.',
+                'Open the chat and take it. Write the reply: it reaches the visitor on their next refresh (every few seconds while the widget is open) and the chat switches to manager mode.',
+                'The visitor\'s name and phone are typed by the visitor and are not verified. Do not disclose order, repair or price-level details in a website chat: ask them to call or write from the registered Telegram account.',
+                'Create a lead from the chat when the visitor leaves a phone number. The lead is never linked to a customer automatically.',
+                'A closed, expired or banned chat cannot receive replies. Closing ends the chat for the visitor; a ban makes the chat unavailable to them and limits new chats from the same address for 24 hours.',
+                'Chats are cleaned up automatically: idle chats close after 24 hours, bot-only chats are deleted after 30 days, handed-off chats without a lead after 90 days, chats with a lead after 12 months. The text of banned chats is deleted after 30 days.',
+            ],
+        ],
     ],
 ];

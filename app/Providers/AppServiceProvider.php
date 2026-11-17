@@ -39,6 +39,7 @@ use App\Support\Careers\CareersSwitchMemo;
 use App\Support\Cart\CartToken;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
+use App\Support\Chat\WebChatToken;
 use App\Support\CompanySettings;
 use App\Support\Http\LivewireThrottle;
 use App\Support\Media\MediaReplacer;
@@ -80,6 +81,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Scoped: the cart token issued during a request is seen by the rest of that request only.
         $this->app->scoped(CartToken::class);
+        // Scoped: the same for the website chat token (plan 28 C5).
+        $this->app->scoped(WebChatToken::class);
         $this->app->scoped(MediaReplacer::class);
 
         // Singleton: keeps the captured .env values and the applied version

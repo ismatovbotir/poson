@@ -6,6 +6,7 @@ use App\Data\Leads\LeadData;
 use App\Data\Leads\LeadItemData;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadType;
+use App\Models\Lead;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -21,6 +22,11 @@ use Illuminate\Support\Facades\Log;
  * Logs only non-personal data (plan 05 C8): lead id, type, source, locale,
  * channel and product SKU; never the name, phone, company, message,
  * page URL or query-string data.
+ *
+ * lead() returns the Lead itself (plan 28 C5: the website chat's inline lead
+ * form links it to the chat); handle() delegates to it. Neither validates or
+ * rate-limits: the caller's GuardsLeadSubmissions does (Site\LeadForm, the
+ * chat widget), in its fixed order, before calling.
  */
 class SubmitSiteLead
 {
@@ -30,6 +36,11 @@ class SubmitSiteLead
      * @return string Lead reference ("L-152")
      */
     public function handle(SiteLeadData $data): string
+    {
+        return $this->lead($data)->reference();
+    }
+
+    public function lead(SiteLeadData $data): Lead
     {
         $type = $data->productId !== null ? LeadType::Quote : $data->type;
 
@@ -47,6 +58,7 @@ class SubmitSiteLead
             trafficChannel: $data->trafficChannel,
             trafficSource: $data->trafficSource,
             landingPath: $data->landingPath,
+            matchCustomer: $data->matchCustomer,
         ));
 
         Log::info('Site lead received', array_filter([
@@ -59,6 +71,6 @@ class SubmitSiteLead
             'items' => $data->productId === null && $data->items !== [] ? count($data->items) : null,
         ], fn (int|string|null $value): bool => $value !== null));
 
-        return $lead->reference();
+        return $lead;
     }
 }

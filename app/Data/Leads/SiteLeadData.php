@@ -15,6 +15,8 @@ use App\Enums\TrafficChannel;
  * A label product (plan 08) also carries the chosen roll type and rolls.
  * A cart quote request (plan 11a, type checkout) carries several items
  * instead of one product (ConvertCartToLead).
+ * matchCustomer: false for a website chat lead (plan 28 C5, WC-9): the
+ * visitor's phone is never verified, so it never picks a CRM customer.
  */
 final readonly class SiteLeadData
 {
@@ -40,5 +42,6 @@ final readonly class SiteLeadData
         public ?int $rollTypeId = null,
         public ?int $rolls = null,
         public array $items = [],
+        public bool $matchCustomer = true,
     ) {}
 }

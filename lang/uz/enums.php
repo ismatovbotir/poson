@@ -504,6 +504,13 @@ return [
         'telegram' => 'Telegram',
     ],
 
+    'chat_author' => [
+        'visitor' => 'Tashrif buyuruvchi',
+        'bot' => 'Bot',
+        'staff' => 'Xodim',
+        'system' => 'Tizim',
+    ],
+
     'chat_mode' => [
         'bot' => 'Bot',
         'manager' => 'Menejer',

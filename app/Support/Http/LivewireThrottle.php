@@ -21,6 +21,12 @@ use Illuminate\Http\Request;
  * lazy, deferred, polled or island components, so a page view makes 0 update
  * requests; only interactions (cart add, filters, forms) do. 180 per minute
  * for a guest is far above 5x that.
+ *
+ * Website chat (plan 28 C5b, WC-11): the widget sends update requests only
+ * after the visitor clicks the launcher (or right after the page for a chat
+ * with recent staff replies); its poll runs in manager mode only, at most
+ * 12 per minute per open tab, and handles a 429 quietly. Keep
+ * GUEST_PER_MINUTE at 180 or more.
  */
 final class LivewireThrottle
 {

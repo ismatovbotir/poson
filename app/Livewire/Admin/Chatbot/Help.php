@@ -34,6 +34,7 @@ class Help extends Component
         'ai' => ['chatbot.settings'],
         'knowledge' => ['chatbot.settings'],
         'inbox' => ['telegram.inbox'],
+        'web_chat' => ['telegram.inbox'],
     ];
 
     public const PERMISSIONS = ['chatbot.rules', 'chatbot.settings', 'telegram.inbox'];

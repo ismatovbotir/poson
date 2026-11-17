@@ -129,6 +129,16 @@ return [
         'open_in_admin' => 'Admin panelda ochish',
     ],
 
+    'web_chat' => [
+        'title' => 'Sayt chati: mijoz menejerni kutmoqda',
+        'chat' => 'Sayt chati W-:id',
+        'reason' => [
+            'handoff' => 'Menejer bilan bogʻlanishni soʻradi',
+            'message' => 'Menejer kutilayotgan chatda yangi xabar',
+        ],
+        'limited' => 'Bu soatda sayt chati xabarnomalari juda koʻp: keyingilari toʻxtatildi. Kirish qutisini tekshiring.',
+    ],
+
     'monitoring' => [
         'events' => [
             'cron_dead' => 'Rejalashtiruvchi ishlamayapti',
@@ -143,9 +153,11 @@ return [
             'telegram_customer_cap' => 'Telegram botdan yangi mijozlar soatlik limiti oshdi (roʻyxatdan oʻtganlar CRMga bogʻlanmadi)',
             'telegram_forward' => 'Telegram bot mijoz fayllarini chatga yubora olmayapti',
             'chat_lookup_failures' => 'Buyurtma yoki taʼmirlash holatini tekshirish urinishlari ketma-ket muvaffaqiyatsiz',
+            'chat_web_unanswered' => 'Sayt chati tashrifchilari menejerni kutmoqda',
             'careers_cv' => 'Vakansiyalar: rezyumelarni Telegramga yuborishda muammo',
         ],
         'recovered' => [
+            'chat_web_unanswered' => 'Sayt chatida kutayotgan tashrifchi yoʻq',
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
             'task_failed' => 'Rejali vazifa yana ishlayapti',
             'queue_stuck' => 'Navbat yana yuryapti',

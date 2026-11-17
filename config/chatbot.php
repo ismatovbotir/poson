@@ -19,8 +19,47 @@ return [
     // or customer activity, never while the customer is waiting for staff (CB-4).
     'handoff_ttl_hours' => 8,
 
-    // The website chat widget (C5) is not built yet: the web channel switch cannot be turned on until this is true.
-    'web_ready' => false,
+    // The website chat widget is built (C5): the web channel switch can be turned on by an Admin once the privacy gate is met.
+    // The runtime switch stays off by default. Web AI answers have their own flag (ai.web_ready, plan 33 B).
+    'web_ready' => true,
+
+    // Website chat widget (plan 28 C5, CB-18, CB-19, WC-3, WC-14): every limit is hit before any transaction opens.
+    'web' => [
+        // Visitor messages: per chat per minute and per day, per IP hash per minute, over all chats per minute.
+        'per_minute_chat' => 15,
+        'per_day_chat' => 200,
+        'per_minute_ip' => 60,
+        'per_minute_global' => 600,
+        // New chats per hour: per IP hash, over all visitors, and per IP hash for 24 h after a chat from it was banned.
+        'new_per_hour_ip' => 10,
+        'new_per_hour_global' => 300,
+        'new_per_hour_banned_ip' => 1,
+        'banned_ip_cooldown_hours' => 24,
+        // Widget refresh (poll) calls per chat per minute (C5b, WC-11).
+        'refresh_per_minute' => 30,
+        // "Leave your phone" saves per chat per hour (C5b).
+        'contact_per_hour' => 3,
+        // Visitor text: characters kept (after control characters are removed).
+        'message_max' => 1000,
+        // The same text again within this many seconds is ignored (double tap).
+        'double_send_seconds' => 3,
+        // Visitor messages in a row without a staff reply in manager mode; the next ones get "please wait" and are not stored.
+        'unanswered_max' => 20,
+        // A chat without a message for this many hours is over: the cookie starts a new one.
+        'expire_hours' => 24,
+        // Cookie lifetime (minutes), re-sent with every visitor message.
+        'cookie_minutes' => 1440,
+        // Version of the consent text the visitor accepted by sending (stored with the chat).
+        'consent_version' => '2026-11-16',
+        // Staff alerts (sales chat): one per chat per alert_minutes, at most alerts_per_hour over all chats,
+        // then one "limited" notice per hour (WC-13).
+        'alert_minutes' => 10,
+        'alerts_per_hour' => 30,
+        // Product buttons under one search answer.
+        'product_buttons' => 8,
+        // Monitoring: a hand-off waiting for staff longer than this many minutes (working hours) is a problem.
+        'unanswered_minutes' => 15,
+    ],
 
     // Input (CB-1): cut to this many bytes before normalizing, to this many characters after.
     'input_max_bytes' => 1000,
@@ -44,6 +83,8 @@ return [
     'unmatched' => [
         'per_day_global' => 1000,
         'per_day_chat' => 20,
+        // Website phrases over all chats per day: their own budget, so anonymous web traffic never uses up Telegram's (WC-1).
+        'per_day_global_web' => 300,
     ],
 
     // Telegram: FAQ questions offered as buttons (at most 10).
@@ -54,10 +95,12 @@ return [
     // Absolute https link hosts allowed besides the site's own host (CB-6).
     'link_hosts' => [],
 
-    // Product search in the chat (C3, CB-14): hits before the query, per Telegram customer and over all chats.
+    // Product search in the chat (C3, CB-14): hits before the query, per customer and over all chats.
     'search' => [
         'per_minute_user' => 10,
         'per_minute_global' => 120,
+        // Website searches over all chats per minute: their own budget (WC-1).
+        'per_minute_global_web' => 60,
         'max_results' => 8,
     ],
 
@@ -84,6 +127,9 @@ return [
     // AI answers (plan 30, Claude Haiku via App\Services\Ai only). Off unless an Admin switches it
     // on in Chat bot → Settings and ANTHROPIC_API_KEY is set. Model and limits are fixed here (read only in admin).
     'ai' => [
+        // AI answers on the website (plan 33 B) are not built: the web AI switch cannot be turned on and never
+        // counts as on until this is true. A literal, never from .env (WC-4).
+        'web_ready' => false,
         'model' => 'claude-haiku-5-5',
         'max_tokens' => 400,
         // Seconds: whole request / connection (AI-5). The SDK never retries (maxRetries 0).
