@@ -181,6 +181,7 @@ it('WC7_an_index_of_an_older_bot_message_is_a_no_op', function () {
 });
 
 it('WC7_never_outputs_a_stored_url_that_is_no_longer_allowed', function () {
+    config(['app.url' => 'https://poson.example.uz']);
     [$chat, $token] = wcChat();
     WebChatMessage::factory()->create(['web_chat_id' => $chat->id, 'author' => ChatAuthor::Bot, 'text' => 'Links', 'buttons' => [
         ['type' => 'url', 'label' => 'Evil', 'url' => 'javascript:alert(1)'],
