@@ -97,6 +97,13 @@ return [
     'supported_locales' => ['uz', 'ru', 'en'],
 
     /*
+    | Optional build id of the home page data cache key (plan 34, HC-6). Empty:
+    | derived from the Vite manifest, config cache and lang file times.
+    */
+
+    'deploy_id' => env('APP_DEPLOY_ID'),
+
+    /*
     | Default site locale (root redirect, hreflang x-default). Same source as
     | "locale" above, but kept separately because app()->setLocale() rewrites
     | "app.locale" on every localized request. Read it via LocaleUrl::defaultLocale().

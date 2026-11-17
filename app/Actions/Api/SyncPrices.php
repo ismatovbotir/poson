@@ -7,6 +7,7 @@ use App\Enums\PriceSyncStatus;
 use App\Events\PriceSyncCompleted;
 use App\Models\ApiToken;
 use App\Models\PriceSyncLog;
+use App\Support\Site\HomeCache;
 use App\Support\Site\Sitemap;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +113,7 @@ class SyncPrices
         // Committed: a failure from here on must not turn the batch into a server error.
         try {
             if ($result->log->updated > 0) {
+                HomeCache::bump();
                 DB::afterCommit(fn () => Sitemap::flush());
             }
 

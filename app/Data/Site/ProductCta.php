@@ -18,6 +18,9 @@ use App\Enums\ProductCtaKind;
  *   label product's roll is picked; the site adds other products in place
  *   with Site\Cart\AddButton).
  * - primary: the main button (filled); others are secondary (outlined).
+ *
+ * Cached by HomeCache (plan 34): when toArray()/fromArray() change shape, raise
+ * HomeCache::SCHEMA.
  */
 final readonly class ProductCta
 {
@@ -90,5 +93,20 @@ final readonly class ProductCta
             'product_id' => $this->productId,
             'primary' => $this->primary,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            kind: ProductCtaKind::from($data['kind']),
+            labelKey: (string) $data['label_key'],
+            action: (string) $data['action'],
+            url: (string) $data['url'],
+            productId: (int) $data['product_id'],
+            primary: (bool) $data['primary'],
+        );
     }
 }

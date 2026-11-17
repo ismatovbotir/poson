@@ -3,6 +3,7 @@
 namespace App\Actions\Faq;
 
 use App\Models\FaqItem;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,6 +34,8 @@ class MoveFaqItem
             foreach ($ids as $index => $id) {
                 FaqItem::query()->whereKey($id)->update(['sort' => $index + 1]);
             }
+
+            HomeCache::bump();
         });
     }
 }

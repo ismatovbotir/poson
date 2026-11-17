@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Product;
 use App\Support\Media\MediaReplacer;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -28,6 +29,9 @@ class UpdateProductImages
 
         // Images missing from the list keep their relative order at the end.
         Media::setNewOrder([...$ordered, ...array_values(array_diff($own, $ordered))]);
+
+        // setNewOrder() fires no model events: the home card's main image may have changed.
+        HomeCache::bump();
     }
 
     /**

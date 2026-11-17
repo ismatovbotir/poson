@@ -2,6 +2,7 @@
 
 namespace App\Support\Media;
 
+use App\Support\Site\HomeCache;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -67,6 +68,9 @@ class MediaReplacer
         // Everything else in the collection goes, also rows a concurrent save added meanwhile.
         $this->forget($all->reject(fn (Media $media): bool => $new->contains('id', $media->id)));
         $this->unload($model);
+
+        // After the old files are queued for removal: one bump covers the whole replace.
+        HomeCache::bump();
     }
 
     /**

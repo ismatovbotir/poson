@@ -17,6 +17,9 @@ use App\Models\RollType;
  * (the generic placeholder is drawn instead). Needs "media", "labelSizeValues.attribute"
  * (or "attributeValues.attribute") and "activeRollTypes" loaded; returns null
  * rather than lazy loading when the size values are not loaded.
+ *
+ * Cached by HomeCache (plan 34): when toArray()/fromArray() change shape, raise
+ * HomeCache::SCHEMA.
  */
 final readonly class LabelDiagram
 {
@@ -294,5 +297,23 @@ final readonly class LabelDiagram
         }
 
         return __('catalog.label_diagram.caption', ['count' => $labels, 'core' => self::format(round($core, 2))]);
+    }
+
+    /**
+     * The inputs of make() as a plain array for the home cache (HC-2); the geometry is recomputed.
+     *
+     * @return array{width: float, height: float, caption: string|null, product_id: int, variant: string}
+     */
+    public function toArray(): array
+    {
+        return ['width' => $this->width, 'height' => $this->height, 'caption' => $this->caption, 'product_id' => $this->productId, 'variant' => $this->variant];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return self::make((float) $data['width'], (float) $data['height'], $data['caption'], (int) $data['product_id'], (string) $data['variant']);
     }
 }

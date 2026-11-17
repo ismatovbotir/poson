@@ -210,6 +210,16 @@ Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:20')->t
 Schedule::command('ai:prune-drafts')->hourly()->withoutOverlapping(30)->onOneServer();
 
 /*
+|--------------------------------------------------------------------------
+| Home page cache (plan 34, HC-11)
+|--------------------------------------------------------------------------
+| The database cache store never deletes expired rows (versioned home page
+| keys pile up), so they are pruned daily. Deploy step: `php artisan site:home-cache-clear`.
+*/
+
+Schedule::command('cache:prune-expired')->dailyAt('04:05')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
 | Keep the last output of every command (overwritten each run, never
 | appended; stays in storage/logs) so RunRecorder can store the redacted
 | tail of a failed run (MON-S11). Must stay the last statement here.

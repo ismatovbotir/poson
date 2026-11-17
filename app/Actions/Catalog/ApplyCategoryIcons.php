@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\HomeCache;
 
 /**
  * Gives the seeded categories their own icons (the old seed reused scan,
@@ -84,6 +85,7 @@ class ApplyCategoryIcons
         }
 
         if ($changed > 0) {
+            HomeCache::bump();
             CategoryTree::flush();
         }
 

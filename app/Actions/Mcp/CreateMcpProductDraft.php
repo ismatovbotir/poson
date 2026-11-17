@@ -12,6 +12,7 @@ use App\Mcp\Support\SpecInput;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\Catalog\ProductAttributeResolver;
+use App\Support\Site\HomeCache;
 use Database\Seeders\ProductsSeeder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -92,6 +93,8 @@ class CreateMcpProductDraft
         }
 
         $missing = $this->missingRequired($product);
+
+        HomeCache::bump();
 
         return ['product' => $product, 'missing_required' => $missing, 'issues' => $this->issues($product), 'warnings' => $this->warnings($missing)];
     }

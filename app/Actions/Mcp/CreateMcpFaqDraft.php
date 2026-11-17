@@ -6,6 +6,7 @@ use App\Actions\Faq\SaveFaqItem;
 use App\Mcp\Support\FaqOwner;
 use App\Models\FaqItem;
 use App\Models\User;
+use App\Support\Site\HomeCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -36,10 +37,14 @@ class CreateMcpFaqDraft
             throw ValidationException::withMessages(['owner' => self::OWNER_NOT_FOUND]);
         }
 
-        return $this->save->handle($owner, null, [
+        $item = $this->save->handle($owner, null, [
             'question' => $data['question'],
             'answer' => $data['answer'],
             'is_active' => false,
         ]);
+
+        HomeCache::bump();
+
+        return $item;
     }
 }

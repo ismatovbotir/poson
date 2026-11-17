@@ -10,6 +10,7 @@ use App\Models\NewsPost;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Mcp\McpAlerts;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -66,6 +67,8 @@ class UnpublishMcpPost
         });
 
         McpAlerts::postUnpublished($post, $by);
+
+        HomeCache::bump();
 
         return $post;
     }

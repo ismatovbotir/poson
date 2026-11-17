@@ -20,6 +20,7 @@ use App\Models\FaqItem;
 use App\Models\JobApplication;
 use App\Models\Lead;
 use App\Models\McpCall;
+use App\Models\NewsPost;
 use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
@@ -47,6 +48,7 @@ use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\RunRecorder;
 use App\Support\Secrets;
 use App\Support\Site\BannerDirectory;
+use App\Support\Site\HomeCache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
@@ -62,6 +64,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Livewire\Mechanisms\HandleRequests\RequireLivewireHeaders;
 use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -221,6 +224,12 @@ class AppServiceProvider extends ServiceProvider
             if ($event->media->model_type === (new Banner)->getMorphClass()) {
                 BannerDirectory::flush();
             }
+
+            // Any finished conversion may add a product / brand / banner image to the home page data (plan 34, HC-4).
+            HomeCache::bump();
         });
+
+        // Home page data cache (plan 34, HC-4): every model whose rows or images appear on the home page.
+        HomeCache::bumpOnModelEvents([Product::class, Category::class, Brand::class, Banner::class, NewsPost::class, FaqItem::class, Media::class]);
     }
 }
