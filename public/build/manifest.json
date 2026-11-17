@@ -83,8 +83,12 @@
     "file": "assets/inter-800-normal-D1mf63XC.woff",
     "src": "_inter-800-normal-D1mf63XC.woff"
   },
+  "_livewire-throttle-CgsT-bj1.js": {
+    "file": "assets/livewire-throttle-CgsT-bj1.js",
+    "name": "livewire-throttle"
+  },
   "resources/css/admin.css": {
-    "file": "assets/admin-BvyyKxzY.css",
+    "file": "assets/admin-DoaOY8WX.css",
     "name": "admin",
     "names": [
       "admin.css"
@@ -93,7 +97,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Bsc6AWTd.css",
+    "file": "assets/app-CnlCgMs7.css",
     "name": "app",
     "names": [
       "app.css"
@@ -102,15 +106,21 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-Chs-BU4g.js",
+    "file": "assets/admin-BzffRsaU.js",
     "name": "admin",
     "src": "resources/js/admin.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_livewire-throttle-CgsT-bj1.js"
+    ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-2ZScDIXx.js",
+    "file": "assets/app-DY4kGiMj.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_livewire-throttle-CgsT-bj1.js"
+    ]
   }
 }
