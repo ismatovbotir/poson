@@ -61,6 +61,8 @@ use Throwable;
  *     superseded or disabled as in 1, tokens still counted), insert the
  *     assistant row (answers_turn_id is unique: a second run stops here),
  *     settle, then deliverAi() or replay(). SendBotAnswer goes after commit.
+ *     A soft search / quote hit (plan 33 A2-2) gets that rule's button
+ *     under the answer; any failure replays the search or lead reply.
  *     An answered question is also recorded as an unmatched phrase
  *     (RecordUnmatched, under its caps) and the assistant row is linked to
  *     it with the reply locale, for "Teach from AI answer" (AI-B15).
@@ -140,7 +142,7 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
         $original = $marker->original;
         $sites = $ai->sites($context, $turn->text);
         $products = $ai->products($context, $turn->text, $sites);
-        $request = $ai->prepare($context, $turn->text, $marker->ruleId, $ai->history($user, $turn), $products, $sites);
+        $request = $ai->prepare($context, $turn->text, $marker->ruleId, $ai->history($user, $turn), $products, $sites, $original);
         $reserved = $request->estimatedBilledTokens();
         $day = $usage->reserve(AiUsageChannel::fromChatChannel($channel), $reserved);
 
@@ -234,7 +236,8 @@ class AnswerChatWithAi implements ShouldQueueAfterCommit
 
             if ($status->isDelivered()) {
                 $this->linkUnmatched($user, $turn, $context);
-                $chat->deliverAi($user, $ai->reply($answer, $context->locale, $products, $sites));
+                // A2-S7: the soft rule's button comes only from this job's own engine run ($original), re-checked in reply().
+                $chat->deliverAi($user, $ai->reply($answer, $context->locale, $products, $sites, $original, $context->channel));
 
                 return;
             }

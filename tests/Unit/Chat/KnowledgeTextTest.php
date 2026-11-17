@@ -72,7 +72,8 @@ it('masks percentages with digits and leaves a bare percent sign', function (str
     expect(KnowledgeText::maskPercents($text, '(X)'))->toBe($expected);
 })->with([
     ['Toʻlov 100% oldindan', 'Toʻlov (X) oldindan'],
-    ['НДС 12 % включён', 'НДС (X) включён'],
+    // A2-S4: the configured VAT rate next to a VAT word stays (see "keeps the VAT rate unmasked").
+    ['НДС 12 % включён', 'НДС 12 % включён'],
     ['VAT 12.5% included', 'VAT (X) included'],
     ['20 foiz ustama', '(X) ustama'],
     ['15 процентов', '(X)'],
@@ -84,7 +85,8 @@ it('leaves a promotional percentage so the brand check skips it, and masks neutr
     expect(KnowledgeText::maskPercents($text, '(X)'))->toBe($expected);
 })->with([
     ['100% original', '(X) original'],
-    ['12% QQS', '(X) QQS'],
+    ['12% QQS', '12% QQS'],
+    ['20% QQS', '(X) QQS'],
     ['Narx -20% past', 'Narx -20% past'],
     ['up to 30% more', 'up to 30% more'],
     ['до 15% выгоды', 'до 15% выгоды'],
@@ -99,3 +101,38 @@ it('masks amounts on a string with multibyte lower-casing differences without br
 
     expect(mb_check_encoding($masked, 'UTF-8'))->toBeTrue()->and($masked)->toBe('İstanbul (X)');
 });
+
+/*
+| Plan 33 A2-4 (A2-S4, A2-S5, A2-S13): the same rules as the output filter
+*/
+
+it('keeps the VAT rate unmasked', function (string $text) {
+    expect(KnowledgeText::maskPercents($text, '(X)'))->toBe($text)
+        ->and(KnowledgeText::maskAmounts($text, '(X)'))->toBe($text);
+})->with('a2 vat allowed');
+
+it('keeps a signed, promotional or saving VAT rate so the chunk is skipped, and masks another rate', function () {
+    expect(KnowledgeText::maskPercents('QQS -12%', '(X)'))->toBe('QQS -12%')
+        ->and(KnowledgeText::maskPercents('12% VAT off', '(X)'))->toBe('12% VAT off')
+        ->and(KnowledgeText::maskPercents('Narxlar 30% QQS', '(X)'))->toBe('Narxlar (X) QQS')
+        ->and(KnowledgeText::maskPercents('Save 12% VAT with us', '(X)'))->toBe('Save (X) VAT with us');
+});
+
+it('masks the VAT rate when vat_percent is not a valid int', function () {
+    config(['chatbot.ai.vat_percent' => null]);
+
+    expect(KnowledgeText::maskPercents('Narxlar 12% QQS bilan', '(X)'))->toBe('Narxlar (X) QQS bilan');
+});
+
+it('does not mask frequency ranges or ISO numbers', function (string $text) {
+    expect(KnowledgeText::maskAmounts($text, '(X)'))->toBe($text);
+})->with('a2 frequencies and standards');
+
+it('still masks a priced range', function (string $text, string $expected) {
+    expect(KnowledgeText::maskAmounts($text, '(X)'))->toBe($expected);
+})->with([
+    'priced range' => ['Narxi 500–900 ming soʻm', 'Narxi (X)–(X)'],
+    'dash zero' => ['Uskunaning qiymati 45000-0', 'Uskunaning qiymati (X)-0'],
+    'iso then price' => ['ISO 9001, narxi 450 000 soʻm', 'ISO 9001, narxi (X)'],
+    'grouped range' => ['1 200–1 500 000', '(X)–(X)'],
+]);

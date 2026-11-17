@@ -6,12 +6,15 @@ use App\Actions\Chat\AnswerWithAi;
 use App\Actions\Chat\BuildAiKnowledge;
 use App\Actions\Chat\FindAiKnowledge;
 use App\Actions\Chat\Knowledge\RebuildAiKnowledge;
+use App\Enums\AiKnowledgeSource;
 use App\Enums\ChatAiStatus;
 use App\Enums\ChatChannel;
 use App\Enums\DocumentType;
+use App\Enums\PageTemplate;
 use App\Models\AiKnowledgeChunk;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\FaqItem;
 use App\Models\Page;
 use App\Models\Product;
 use App\Models\ProductDocument;
@@ -396,4 +399,81 @@ describe('products (K-13)', function () {
         expect($all)->toContain('SRV-1')->not->toContain('SRV-2')->not->toContain('411')
             ->and($all)->toContain('[S1] Service');
     });
+});
+
+/*
+| Plan 33 A2-3: category and page FAQ in <site> (A2-S10, A2-S11)
+*/
+
+function kaFaq(Category|Page $owner, string $en): FaqItem
+{
+    return FaqItem::factory()->owner($owner)->create([
+        'question' => ['uz' => 'Savol?', 'ru' => 'Вопрос?', 'en' => 'Warehouse scanner question?'],
+        'answer' => ['uz' => 'Javob.', 'ru' => 'Ответ.', 'en' => $en],
+    ]);
+}
+
+describe('FAQ entries (A2-3)', function () {
+    it('retrieves at most two FAQ entries', function () {
+        $category = Category::factory()->create();
+
+        foreach (range(1, 4) as $n) {
+            kaFaq($category, "Warehouse scanner tip number {$n}: pair the scanner with the dock first.");
+        }
+
+        kaPage('We install and configure warehouse scanners on site.');
+        FaqItem::factory()->create(['answer' => ['uz' => 'Umumiy.', 'ru' => 'Общий.', 'en' => 'General warehouse scanner answer.']]);
+        kaIndex();
+
+        $hits = app(FindAiKnowledge::class)->handle('warehouse scanner dock', 'en');
+        $faq = collect($hits)->filter(fn (AiKnowledgeHit $hit) => $hit->type === AiKnowledgeSource::Faq);
+
+        expect($faq)->toHaveCount(2)
+            ->and(count($hits))->toBeLessThanOrEqual(4)
+            ->and(mb_strlen(FindAiKnowledge::block($hits)))->toBeLessThanOrEqual(3000 + 20)
+            ->and($faq->pluck('url')->unique()->all())->toBe([''])
+            ->and(FindAiKnowledge::block($hits))->toContain('FAQ | Warehouse scanner question?'."\n")
+            ->and(FindAiKnowledge::block($hits))->not->toContain('General warehouse scanner answer');
+    });
+
+    it('gives no button for a cited FAQ entry and keeps the allowed URLs (A2-S11)', function () {
+        $category = Category::factory()->create();
+        kaFaq($category, 'Warehouse scanner pairing: pair the scanner with the dock first.');
+        kaIndex();
+
+        [, , $answer, $reply, $sites] = kaRun('warehouse scanner pairing dock', 'Pair the scanner with its dock first. [S1]');
+
+        expect($sites)->toHaveCount(1)
+            ->and($sites[0]->type)->toBe(AiKnowledgeSource::Faq)
+            ->and($answer->status)->toBe(ChatAiStatus::Answered)
+            ->and($answer->cited)->toBe([1])
+            ->and($answer->text)->toBe('Pair the scanner with its dock first.')
+            ->and(collect($reply->buttons)->pluck('type')->all())->toBe(['handoff']);
+
+        $url = CanonicalHost::using(fn () => route('site.catalog.category', ['locale' => 'en', 'category' => $category->slug]));
+        [, , $linked] = kaRun('warehouse scanner pairing dock', "See {$url}?q=1 for the dock.");
+
+        expect($linked->status)->toBe(ChatAiStatus::Blocked)
+            ->and($linked->reason)->toBe('link');
+    });
+
+    it('re-checks the FAQ owner at retrieval (K-1)', function (Closure $hide) {
+        $parent = Category::factory()->create();
+        $category = Category::factory()->create(['parent_id' => $parent->id]);
+        $item = kaFaq($category, 'Warehouse scanner pairing: pair the scanner with the dock first.');
+        kaIndex();
+        expect(app(FindAiKnowledge::class)->handle('warehouse scanner pairing', 'en'))->toHaveCount(1);
+
+        $hide($item, $category, $parent);
+
+        expect(app(FindAiKnowledge::class)->handle('warehouse scanner pairing', 'en'))->toBe([]);
+    })->with([
+        'hidden category' => [fn (FaqItem $item, Category $category) => $category->update(['is_active' => false])],
+        'hidden ancestor' => [fn (FaqItem $item, Category $category, Category $parent) => $parent->update(['is_active' => false])],
+        'inactive item' => [fn (FaqItem $item) => FaqItem::query()->whereKey($item->id)->update(['is_active' => false])],
+        'owner mass-deleted' => [fn (FaqItem $item, Category $category) => Category::query()->whereKey($category->id)->delete()],
+        'moved to a legal page' => [fn (FaqItem $item) => FaqItem::query()->whereKey($item->id)->update(['faqable_type' => 'page', 'faqable_id' => Page::factory()->create(['template' => PageTemplate::Legal])->id])],
+        'moved to the offer page' => [fn (FaqItem $item) => FaqItem::query()->whereKey($item->id)->update(['faqable_type' => 'page', 'faqable_id' => Page::factory()->create(['slug' => 'offer'])->id])],
+        'moved to a product' => [fn (FaqItem $item) => FaqItem::query()->whereKey($item->id)->update(['faqable_type' => 'product', 'faqable_id' => Product::factory()->create()->id])],
+    ]);
 });

@@ -91,6 +91,14 @@ return [
         'connect_timeout' => 3,
         // A rule hit with at least this score (or an exact keyword) answers directly, without AI (§2.2).
         'direct_min_score' => 30,
+        // Soft match (plan 33 A2-2, A2-S16): a weak product-search or quote-request hit (no exact keyword, score
+        // below direct_min_score) on a message of at least soft_min_words words goes to AI, with the rule's button
+        // under the answer. Kill switch soft_match (read only while AI is on); the existing caps apply.
+        'soft_match' => true,
+        'soft_min_words' => 3,
+        // The only percentage the AI and the knowledge index may state, next to a VAT word ("12% QQS", A2-S4).
+        // Must be an int from 1 to 99; anything else turns the exemption off.
+        'vat_percent' => 12,
         // History window (phase B): last turns, minutes, characters.
         'history' => [
             'turns' => 10,
@@ -183,6 +191,8 @@ return [
             'news_months' => 24,
             // Retrieval (the <site> block): entries, characters, and page buttons under an answer.
             'entries' => 4,
+            // Category and page FAQ entries among them (plan 33 A2-3).
+            'faq_entries' => 2,
             'site_max' => 3000,
             'buttons' => 2,
             // The hourly command stops after this many seconds and continues next hour.

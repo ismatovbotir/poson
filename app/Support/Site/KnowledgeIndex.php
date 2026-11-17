@@ -7,6 +7,8 @@ use App\Enums\NewsKind;
 use App\Enums\ProductType;
 use App\Jobs\IndexAiKnowledge;
 use App\Models\Brand;
+use App\Models\Category;
+use App\Models\FaqItem;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
@@ -16,7 +18,7 @@ use Throwable;
 
 /**
  * The model hook of the website knowledge index (plan 33 §4, K-7), called
- * from booted() of Page, NewsPost, Brand and Product like IndexNow::record():
+ * from booted() of Page, NewsPost, Brand, Product and FaqItem like IndexNow::record():
  * everything in try/catch (a failed hook never breaks a save) and the job is
  * queued after commit, one unique job per source (a hundred saves in one
  * transaction make one job). It queues only when the record is created,
@@ -84,6 +86,7 @@ final class KnowledgeIndex
         $types = match (true) {
             $model instanceof Page => [AiKnowledgeSource::Page],
             $model instanceof Brand => [AiKnowledgeSource::Brand],
+            $model instanceof FaqItem => self::faqTypes($model),
             $model instanceof NewsPost => self::newsTypes($model),
             $model instanceof Product => self::productTypes($model),
             default => [],
@@ -115,6 +118,24 @@ final class KnowledgeIndex
             fn (NewsKind $kind): AiKnowledgeSource => $kind === NewsKind::Article ? AiKnowledgeSource::Article : AiKnowledgeSource::News,
             $kinds,
         ), SORT_REGULAR));
+    }
+
+    /**
+     * Only category and page items are knowledge (the general FAQ is in the
+     * static block, product FAQ never): a general or product item queues
+     * nothing unless it just moved away from another owner (its chunks must go).
+     *
+     * @return list<AiKnowledgeSource>
+     */
+    private static function faqTypes(FaqItem $item): array
+    {
+        $owners = [(new Category)->getMorphClass(), (new Page)->getMorphClass()];
+
+        if (in_array($item->faqable_type, $owners, true) || $item->wasChanged(['faqable_type', 'faqable_id'])) {
+            return [AiKnowledgeSource::Faq];
+        }
+
+        return [];
     }
 
     /**

@@ -547,6 +547,7 @@ return [
         'brand' => 'Brend',
         'service' => 'Xizmat',
         'software' => 'Dasturiy taʼminot',
+        'faq' => 'Savol-javob',
     ],
 
     'chat_ai_status' => [

@@ -173,24 +173,38 @@ final class KnowledgeText
      * A percentage with digits ("100%", "12 %", "20 foiz", "15 процентов",
      * "5 percent") is an amount like a price: replaced by $mask. A bare "%"
      * or a percent word without a number stays, so the output filter still
-     * skips that chunk (fails closed).
+     * skips that chunk (fails closed). A promotional percentage stays too
+     * (checked first). The configured VAT rate right next to a VAT word
+     * ("12% QQS", AiOutputFilter::vatRateSpans, the same rule the output
+     * filter uses, A2-S4) stays as written: it is a fact the AI may repeat.
      */
     public static function maskPercents(string $text, string $mask): string
     {
         $normalized = (string) Normalizer::normalize($text, Normalizer::FORM_KC);
         $text = $normalized !== '' ? $normalized : $text;
+        $vat = AiOutputFilter::vatRateSpans($text);
 
         return (string) preg_replace_callback(
             '/(?<![\pL\pN.,])\d+(?:[.,]\d+)?[ \x{00A0}]?(?:%|(?<!\pL)(?:foiz|процент|percent|per[ ]?cent)\pL*)/iu',
-            function (array $match) use ($text, $mask): string {
+            function (array $match) use ($text, $mask, $vat): string {
                 $before = mb_substr(substr($text, max(0, $match[0][1] - 24), min(24, $match[0][1])), -12);
                 $after = substr($text, $match[0][1] + strlen($match[0][0]), 24);
 
                 // A promotional percentage ("-20%", "up to 30%", "15% off", "20% chegirma") stays so the brand check skips the chunk (L-2).
                 $promo = preg_match('/(?:[−–—-]|(?<!\pL)до|up\s+to|(?<!\pL)gacha)\s*$/iu', mb_scrub($before, 'UTF-8')) === 1
-                    || preg_match('/^\s*(?:off(?!\pL)|скидк|chegirma|arzon|gacha(?!\pL)|до(?!\pL))/iu', mb_scrub($after, 'UTF-8')) === 1;
+                    || preg_match('/^\s*(?:'.AiOutputFilter::VAT_WORD.'\s+)?(?:off(?!\pL)|скидк|chegirma|arzon|gacha(?!\pL)|до(?!\pL))/iu', mb_scrub($after, 'UTF-8')) === 1;
 
-                return $promo ? $match[0][0] : $mask;
+                if ($promo) {
+                    return $match[0][0];
+                }
+
+                foreach ($vat as $span) {
+                    if ($match[0][1] >= $span['start'] && $match[0][1] < $span['start'] + $span['length']) {
+                        return $match[0][0];
+                    }
+                }
+
+                return $mask;
             },
             $text,
             -1,

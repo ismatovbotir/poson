@@ -547,6 +547,7 @@ return [
         'brand' => 'Бренд',
         'service' => 'Услуга',
         'software' => 'Программа',
+        'faq' => 'Частые вопросы',
     ],
 
     'chat_ai_status' => [

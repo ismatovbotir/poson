@@ -75,7 +75,7 @@ final class FaqSkill
     {
         $item = FaqItem::query()->active()->with('faqable')->find($id);
 
-        if (! $item instanceof FaqItem || ! $this->isPublicOwner($item)) {
+        if (! $item instanceof FaqItem || ! self::isPublic($item)) {
             return null;
         }
 
@@ -107,7 +107,13 @@ final class FaqSkill
         return $items;
     }
 
-    private function isPublicOwner(FaqItem $item): bool
+    /**
+     * Whether the item's owner is public now: the general FAQ, a visible
+     * category (its ancestors too), a visible product or an active page. The
+     * one rule for the bot and the AI knowledge index (plan 33 A2-S10); the
+     * index adds its own page limits on top. Load faqable first.
+     */
+    public static function isPublic(FaqItem $item): bool
     {
         if ($item->isGeneral()) {
             return true;

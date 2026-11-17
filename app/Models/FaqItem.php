@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\StoresTranslations;
+use App\Support\Site\KnowledgeIndex;
 use Database\Factories\FaqItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,10 @@ use Spatie\Translatable\HasTranslations;
 /**
  * FAQ item (plan 04 §2, T12): a question and a plain-text answer per locale
  * (uz required, ru/en fall back to uz). The owner (faqable) is a Category or
- * a Product; null = the general FAQ (home page, Settings → Company → FAQ).
+ * a Product or a Page; null = the general FAQ (home page, Settings → Company
+ * → FAQ). Category and page items are AI website knowledge (plan 33 A2-3):
+ * a create, a delete or a change of AI_KNOWLEDGE_FIELDS queues a re-index
+ * after commit (KnowledgeIndex); a sort change does not.
  *
  * Written only through App\Actions\Faq\*; answers are rendered escaped with
  * line breaks only (never as HTML).
@@ -39,9 +43,23 @@ class FaqItem extends Model
     public const ANSWER_MAX = 2000;
 
     /**
+     * Fields whose change re-indexes the item in the AI knowledge (plan 33 K-7, A2-S12).
+     *
+     * @var list<string>
+     */
+    public const AI_KNOWLEDGE_FIELDS = ['question', 'answer', 'is_active', 'faqable_type', 'faqable_id'];
+
+    /**
      * @var list<string>
      */
     public array $translatable = ['question', 'answer'];
+
+    protected static function booted(): void
+    {
+        static::created(fn (FaqItem $model) => KnowledgeIndex::queue($model, KnowledgeIndex::CREATED));
+        static::updated(fn (FaqItem $model) => KnowledgeIndex::queue($model, KnowledgeIndex::UPDATED));
+        static::deleted(fn (FaqItem $model) => KnowledgeIndex::queue($model, KnowledgeIndex::DELETED));
+    }
 
     /**
      * Get the attributes that should be cast.

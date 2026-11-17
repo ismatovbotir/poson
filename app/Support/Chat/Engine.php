@@ -5,6 +5,7 @@ namespace App\Support\Chat;
 use App\Enums\ChatAction;
 use App\Enums\ChatChannel;
 use App\Enums\LeadFlow;
+use App\Rules\BrandSafeText;
 use App\Support\Chat\Skills\CompanyInfoSkill;
 use App\Support\Chat\Skills\FaqSkill;
 use App\Support\Chat\Skills\LinkSkill;
@@ -47,6 +48,14 @@ use App\Support\Chat\Skills\MenuSkill;
  * deterministic or has side effects (hand-off, status lookups, lead dialog,
  * menu, product search, company info, link), when a keyword matched exactly
  * (the whole message), or when the score reaches chatbot.ai.direct_min_score.
+ * One exception, the soft match (plan 33 A2-2, A2-S16): a weak hit of a
+ * product-search rule or a quote-request lead dialog (no exact keyword, score
+ * below direct_min_score) on a message of at least chatbot.ai.soft_min_words
+ * words goes to AI too, while chatbot.ai.soft_match is on; the AI answer
+ * then carries that rule's button (softRuleButton()), so the deterministic
+ * search or dialog is one tap away and no dialog input ever reaches the
+ * model. Callback dialogs, menu keys, pressed buttons (respondToRule,
+ * respondToKey) and short messages are never soft.
  * Lookup numbers, an unavailable index and empty text (emoji, stickers)
  * never reach AI. With $aiEnabled false the result is exactly as before. The
  * engine never calls the model: HandleChatInput queues the job.
@@ -140,7 +149,7 @@ class Engine
         }
 
         if ($match !== null) {
-            return $this->answersDirectly($data['rules'][$match->ruleId], $match) ? null : 'weak_match';
+            return $this->answersDirectly($data['rules'][$match->ruleId], $match, $normalized) ? null : 'weak_match';
         }
 
         return ChatText::looksLikeModel($normalized) ? 'model_like' : 'no_match';
@@ -149,12 +158,16 @@ class Engine
     /**
      * A rule hit the model never overrides (§2.2): a deterministic or
      * side-effect action, an exact keyword (the whole message), or a strong
-     * score.
+     * score; a soft hit (isSoftHit()) is the one deterministic action that may go to AI.
      *
      * @param  array<string, mixed>  $rule  Compiled rule
      */
-    private function answersDirectly(array $rule, ChatMatch $match): bool
+    private function answersDirectly(array $rule, ChatMatch $match, string $normalized): bool
     {
+        if ($this->isSoftHit($rule, $match, $normalized)) {
+            return false;
+        }
+
         if (! in_array(ChatAction::tryFrom($rule['action']), self::AI_ACTIONS, true)) {
             return true;
         }
@@ -166,6 +179,66 @@ class Engine
         }
 
         return $match->score >= (int) config('chatbot.ai.direct_min_score', 30);
+    }
+
+    /**
+     * A weak hit of a product-search or quote-request rule on a message of
+     * soft_min_words or more words, while the soft match is on (A2-2, A2-S16).
+     *
+     * @param  array<string, mixed>  $rule  Compiled rule
+     */
+    private function isSoftHit(array $rule, ChatMatch $match, string $normalized): bool
+    {
+        if (! config('chatbot.ai.soft_match', true) || ! self::isSoftRule($rule)) {
+            return false;
+        }
+
+        foreach ($match->keywords as $hit) {
+            if ($hit['type'] === 'exact') {
+                return false;
+            }
+        }
+
+        return $match->score < (int) config('chatbot.ai.direct_min_score', 30)
+            && count(explode(' ', $normalized)) >= max(1, (int) config('chatbot.ai.soft_min_words', 3));
+    }
+
+    /**
+     * A product-search rule or a lead dialog with the quote flow (never the callback flow).
+     *
+     * @param  array<string, mixed>  $rule  Compiled rule
+     */
+    private static function isSoftRule(array $rule): bool
+    {
+        return match (ChatAction::tryFrom($rule['action'])) {
+            ChatAction::ProductSearch => true,
+            ChatAction::LeadDialog => ($rule['params']['flow'] ?? null) === LeadFlow::Quote->value,
+            default => false,
+        };
+    }
+
+    /**
+     * The button of a soft rule under an AI answer (A2-S7): the rule must
+     * still be active, on the channel and a product-search or quote rule; its
+     * menu label, cut to 40 characters and brand-safe. A tap goes through the
+     * offered-rule check to respondToRule(), which is deterministic. Null
+     * otherwise.
+     *
+     * @return array{type: string, label: string, id: int}|null
+     */
+    public function softRuleButton(ChatContext $context, int $ruleId): ?array
+    {
+        $data = $this->index->load();
+        $rule = $data['rules'][$ruleId] ?? null;
+
+        if ($rule === null || ! MenuSkill::visibleOn($rule, $context->channel) || ! self::isSoftRule($rule)) {
+            return null;
+        }
+
+        $labels = is_array($rule['params']['label'] ?? null) ? $rule['params']['label'] : [];
+        $label = AiPrompt::field(trim((string) ($labels[$context->locale] ?? $labels['uz'] ?? $rule['name'])), (int) config('chatbot.label_max', 40));
+
+        return $label === '' || BrandSafeText::violates($label) || AiOutputFilter::violatesBrand($label) ? null : ['type' => 'rule', 'label' => $label, 'id' => $ruleId];
     }
 
     /**
