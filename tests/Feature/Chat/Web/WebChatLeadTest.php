@@ -162,7 +162,7 @@ it('L1_per_user_limits_are_hit_before_the_transaction_and_a_refused_attempt_stil
 
     expect(fn () => app(ConvertWebChatToLead::class)->handle($noPhone, $sales, LeadType::Quote))->toThrow(InboxRefused::class);
 
-    $firstCache = collect($queries)->search(fn (string $sql): bool => str_contains($sql, '"cache"'));
+    $firstCache = collect($queries)->search(fn (string $sql): bool => preg_match('/[`"]cache[`"]/', $sql) === 1);
     $lock = collect($queries)->search(fn (string $sql): bool => str_contains($sql, 'web_chats') && str_contains($sql, 'select'));
 
     expect($firstCache)->not->toBeFalse()

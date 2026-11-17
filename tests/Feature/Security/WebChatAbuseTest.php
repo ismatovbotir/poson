@@ -571,9 +571,9 @@ it('C5 abuse 16: an idle refresh stays within its ceiling, the 31st a minute run
     });
 
     $widget->call('refresh')->assertReturned(false);
-    $app = array_values(array_filter($queries, fn (string $sql): bool => ! str_contains($sql, '"cache') && ! str_contains($sql, '"sessions"')));
+    $app = array_values(array_filter($queries, fn (string $sql): bool => preg_match('/[`"](cache|sessions)/', $sql) !== 1));
 
-    expect($app)->toHaveCount(1)->and($app[0])->toContain('"web_chats"');
+    expect($app)->toHaveCount(1)->and($app[0])->toMatch('/[`"]web_chats[`"]/');
 
     // A rolled-back staff reply never changes the version.
     $seen = WebChatVersion::get($chat->id);
@@ -600,7 +600,7 @@ it('C5 abuse 16: an idle refresh stays within its ceiling, the 31st a minute run
     WebChatVersion::bump($chat->id);
     $widget->call('refresh')->assertReturned(false)->assertDontSee('Late reply');
 
-    expect(array_filter($queries, fn (string $sql): bool => str_contains($sql, '"web_chats"')))->toBe([]);
+    expect(array_filter($queries, fn (string $sql): bool => preg_match('/[`"]web_chats[`"]/', $sql) === 1))->toBe([]);
 });
 
 it('C5 abuse 17: a chat idle for 25 hours starts fresh before any prune and a staff reply to a closed or expired chat is refused', function () {
@@ -871,7 +871,7 @@ it('C5 abuse 24: every retention class is pruned at its age, banned chats lose a
 it('C5 abuse 25: with the web switch off an open widget stores nothing and says unavailable, and the launcher is absent on checkout, /o, /q, admin and in print', function () {
     [$chat, $token] = wcChat();
     $widget = wgWidget($token);
-    Setting::query()->where('key', ChatbotSwitch::WEB_KEY)->update(['value' => false]);
+    Setting::query()->where('key', ChatbotSwitch::WEB_KEY)->firstOrFail()->update(['value' => false]);
     ChatbotSwitch::forget();
     $before = WebChatMessage::query()->count();
 

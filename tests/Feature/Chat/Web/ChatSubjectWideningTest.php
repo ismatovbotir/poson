@@ -76,7 +76,7 @@ it('WC1_search_stats_go_to_the_subject_channel', function () {
 
     wcSearch(WebChat::factory()->create());
 
-    expect(ChatStatDaily::query()->where('channel', ChatChannel::Web->value)->where('metric', ChatMetric::Hit->value)->sum('count'))->toBe(1)
+    expect(ChatStatDaily::query()->where('channel', ChatChannel::Web->value)->where('metric', ChatMetric::Hit->value)->sum('count'))->toEqual(1)
         ->and(ChatStatDaily::query()->where('channel', ChatChannel::Telegram->value)->count())->toBe(0);
 });
 

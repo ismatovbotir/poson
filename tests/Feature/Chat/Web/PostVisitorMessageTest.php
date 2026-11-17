@@ -202,7 +202,7 @@ it('WC3_limits_run_outside_the_transaction_and_survive_a_rollback', function () 
             break;
         }
     }
-    $cache = fn (array $slice): array => array_values(array_filter($slice, fn (string $sql): bool => str_contains($sql, '"cache"')));
+    $cache = fn (array $slice): array => array_values(array_filter($slice, fn (string $sql): bool => preg_match('/[`"]cache[`"]/', $sql) === 1));
 
     expect($begin)->toBeInt()
         ->and($end)->toBeGreaterThan($begin)
@@ -358,7 +358,7 @@ it('stores a search answer with product ids only: no names or prices in the text
     $bot = WebChatMessage::query()->where('author', ChatAuthor::Bot)->sole();
 
     expect($bot->text)->toBe(__('chatbot.search.found', [], 'en'))
-        ->and($bot->buttons[0])->toBe(['type' => 'product', 'id' => $product->id])
+        ->and($bot->buttons[0])->toEqualCanonicalizing(['type' => 'product', 'id' => $product->id])
         ->and(json_encode($bot->buttons))->not->toContain('QX9901')
         ->and($bot->text)->not->toContain('1 234');
 });
