@@ -8,6 +8,7 @@ use App\Models\NewsPost;
 use App\Models\User;
 use App\Support\HtmlSanitizer;
 use App\Support\Mcp\McpAlerts;
+use App\Support\Site\HomeCache;
 use Carbon\CarbonInterface;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -86,6 +87,8 @@ class CreateMcpPost
         if ($confirmed) {
             McpAlerts::postPublished($post, $user, $scheduled);
         }
+
+        HomeCache::bump();
 
         return ['post' => $post, 'published' => $confirmed, 'scheduled' => $scheduled, 'warnings' => $warnings];
     }

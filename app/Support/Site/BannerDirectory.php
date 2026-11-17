@@ -147,6 +147,14 @@ class BannerDirectory
     }
 
     /**
+     * When the cached banner rows next change (see expiry()), for the home page cache TTL.
+     */
+    public static function nextBoundary(): CarbonInterface
+    {
+        return static::expiry(static::rows());
+    }
+
+    /**
      * The next starts_at / ends_at still in the future, at most MAX_TTL away.
      *
      * @param  list<Row>  $rows

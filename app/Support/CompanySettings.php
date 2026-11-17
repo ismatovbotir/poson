@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Rules\BrandSafeText;
 use App\Support\Settings\SettingsFormat;
 use App\Support\Site\AiBotRules;
+use App\Support\Site\HomeCache;
 use App\Support\Site\LlmsTxt;
 use Closure;
 use Illuminate\Database\QueryException;
@@ -574,6 +575,9 @@ class CompanySettings
     {
         Cache::forget(self::CACHE_KEY);
         Cache::forget(self::MEDIA_CACHE_KEY);
+
+        // The home page data (hero stats, social links, JSON-LD) reads the settings (plan 34, HC-4).
+        HomeCache::bump();
 
         // /llms.txt prints the contacts.
         LlmsTxt::flush();

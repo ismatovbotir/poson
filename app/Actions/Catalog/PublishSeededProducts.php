@@ -12,6 +12,7 @@ use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\HomeCache;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Carbon\CarbonInterface;
@@ -201,6 +202,7 @@ class PublishSeededProducts
         CategoryTree::flush();
         Sitemap::flush();
         LlmsTxt::flush();
+        HomeCache::bump();
     }
 
     /**

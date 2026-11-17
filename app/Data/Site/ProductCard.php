@@ -21,6 +21,9 @@ use InvalidArgumentException;
  * ctas are the card's buttons from App\Support\Catalog\ProductCtas (compact).
  *
  * Brand rule: there is no old price and no sale badge, by design.
+ *
+ * Cached by HomeCache (plan 34): when toArray()/fromArray() change shape, raise
+ * HomeCache::SCHEMA.
  */
 final readonly class ProductCard
 {
@@ -48,5 +51,61 @@ final readonly class ProductCard
         if ($price !== null && $price < 0) {
             throw new InvalidArgumentException('Product price must not be negative.');
         }
+    }
+
+    /**
+     * Plain array for the home cache (HC-2): enums as values, nested DTOs as arrays.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'sku' => $this->sku,
+            'specs' => $this->specs,
+            'price' => $this->price,
+            'stock_status' => $this->stockStatus->value,
+            'sale_mode' => $this->saleMode->value,
+            'image' => $this->image,
+            'url' => $this->url,
+            'badge' => $this->badge?->value,
+            'brand' => $this->brand,
+            'category' => $this->category,
+            'placeholder' => $this->placeholder,
+            'image_alt' => $this->imageAlt,
+            'ctas' => array_map(fn (ProductCta $cta): array => $cta->toArray(), $this->ctas),
+            'show_stock' => $this->showStock,
+            'priced_per_label' => $this->pricedPerLabel,
+            'diagram' => $this->diagram?->toArray(),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            name: (string) $data['name'],
+            slug: (string) $data['slug'],
+            sku: (string) $data['sku'],
+            specs: (string) $data['specs'],
+            price: $data['price'] === null ? null : (int) $data['price'],
+            stockStatus: StockStatus::from($data['stock_status']),
+            saleMode: SaleMode::from($data['sale_mode']),
+            image: $data['image'],
+            url: (string) $data['url'],
+            badge: $data['badge'] === null ? null : ProductBadge::from($data['badge']),
+            brand: $data['brand'],
+            category: $data['category'],
+            placeholder: (string) $data['placeholder'],
+            imageAlt: $data['image_alt'],
+            ctas: array_map(ProductCta::fromArray(...), $data['ctas']),
+            showStock: (bool) $data['show_stock'],
+            pricedPerLabel: (bool) $data['priced_per_label'],
+            diagram: $data['diagram'] === null ? null : LabelDiagram::fromArray($data['diagram']),
+        );
     }
 }

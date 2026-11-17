@@ -4,6 +4,7 @@ namespace App\Actions\Banners;
 
 use App\Models\Banner;
 use App\Support\Site\BannerDirectory;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -37,6 +38,7 @@ class MoveBanner
                 Banner::query()->whereKey($id)->update(['sort' => $index + 1]);
             }
 
+            HomeCache::bump();
             BannerDirectory::flush();
             DB::afterCommit(fn () => BannerDirectory::flush());
         });

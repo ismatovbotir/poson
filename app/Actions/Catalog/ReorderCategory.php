@@ -4,6 +4,7 @@ namespace App\Actions\Catalog;
 
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\HomeCache;
 use App\Support\Site\LlmsTxt;
 use App\Support\Site\Sitemap;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,7 @@ class ReorderCategory
             }
         });
 
+        HomeCache::bump();
         // Mass updates skip model events.
         CategoryTree::flush();
         DB::afterCommit(function (): void {
