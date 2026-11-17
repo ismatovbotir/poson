@@ -55,6 +55,7 @@ final class ChatbotSwitch
     {
         app(self::STATE)->exchangeArray([]);
         ChatSettings::forget();
+        WebChatSwitch::forget();
     }
 
     /**

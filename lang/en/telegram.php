@@ -129,6 +129,16 @@ return [
         'open_in_admin' => 'Open in admin',
     ],
 
+    'web_chat' => [
+        'title' => 'Website chat: a visitor is waiting for a manager',
+        'chat' => 'Website chat W-:id',
+        'reason' => [
+            'handoff' => 'Asked for a manager',
+            'message' => 'New message in a chat waiting for a manager',
+        ],
+        'limited' => 'Too many website chat alerts this hour: further alerts are paused. Check the inbox.',
+    ],
+
     'monitoring' => [
         'events' => [
             'cron_dead' => 'Scheduler is not running',
@@ -143,9 +153,11 @@ return [
             'telegram_customer_cap' => 'Hourly limit of new customers from the Telegram bot reached (registrations stay unlinked)',
             'telegram_forward' => 'The Telegram bot cannot copy customer files to the chat',
             'chat_lookup_failures' => 'Repeated failed order or repair status lookups in the bot',
+            'chat_web_unanswered' => 'Website chat visitors are waiting for a manager',
             'careers_cv' => 'Careers: problem sending CVs to Telegram',
         ],
         'recovered' => [
+            'chat_web_unanswered' => 'Website chat has no waiting visitors',
             'cron_dead' => 'Scheduler is running again',
             'task_failed' => 'Scheduled task works again',
             'queue_stuck' => 'Queue is moving again',

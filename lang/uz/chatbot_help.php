@@ -128,5 +128,16 @@ return [
                 'Haqorat qiluvchilarni bloklang: ularning xabarlari kelmay qoʻyadi.',
             ],
         ],
+        'web_chat' => [
+            'title' => 'Xodimlar uchun sayt chati',
+            'steps' => [
+                'Sayt chatlari Chat-bot → Chatlar boʻlimida Telegram yonida “Sayt” belgisi bilan chiqadi. Kanal filtri ulardan faqat birini koʻrsatadi. Sayt chatini tashrifchi menejerni soʻragandan keyingina va u biriktirilmagan yoki sizniki boʻlsagina koʻrasiz.',
+                'Chatni oching va oʻzingizga oling. Javob yozing: tashrifchi uni keyingi yangilanishda koʻradi (vidjet ochiq boʻlsa, har bir necha soniyada) va chat menejer rejimiga oʻtadi.',
+                'Ism va telefonni tashrifchining oʻzi kiritgan, ular tekshirilmagan. Sayt chatida buyurtma, taʼmir va narx darajasi haqida maʼlumot bermang: qoʻngʻiroq qilishni yoki roʻyxatdan oʻtgan Telegram hisobidan yozishni soʻrang.',
+                'Tashrifchi telefon raqamini qoldirsa, chatdan lid yarating. Lid hech qachon mijozga avtomatik bogʻlanmaydi.',
+                'Yopilgan, muddati tugagan yoki bloklangan chatga javob yozib boʻlmaydi. Yopish chatni tashrifchi uchun yakunlaydi; bloklash chatni unga mavjud qilmaydi va shu manzildan yangi chatlarni 24 soatga cheklaydi.',
+                'Chatlar avtomatik tozalanadi: faol boʻlmaganlari 24 soatdan keyin yopiladi, faqat bot bilan chatlar 30 kundan, menejerga uzatilib lidsiz qolganlari 90 kundan, lidli chatlar 12 oydan keyin oʻchiriladi. Bloklangan chatlar matni 30 kundan keyin oʻchiriladi.',
+            ],
+        ],
     ],
 ];

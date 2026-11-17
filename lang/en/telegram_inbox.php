@@ -92,6 +92,8 @@ return [
         'only_author' => 'Only :name or an Admin can send this again.',
     ],
     'refused' => [
+        'closed' => 'This chat is closed, so a reply cannot be delivered.',
+        'expired' => 'This chat has expired (no message for 24 hours), so a reply cannot be delivered.',
         'unregistered' => 'This visitor has not finished registration, so this is not available.',
         'banned' => 'This customer is banned.',
         'blocked' => 'The customer blocked the bot.',
@@ -117,6 +119,7 @@ return [
         'text_too_long' => 'The selected text is too long for a lead. Select fewer messages.',
     ],
     'toasts' => [
+        'reply_sent' => 'The reply is sent.',
         'reply_queued' => 'The reply is queued for delivery.',
         'resent' => 'The message is queued for delivery again.',
         'no_change' => 'Nothing changed.',
@@ -234,4 +237,36 @@ return [
         'convert' => ':actor created lead :lead from the chat',
     ],
 
+    'channels' => [
+        'all' => 'All channels',
+        'telegram' => 'Telegram',
+        'web' => 'Website',
+    ],
+    'channel_filter' => 'Channel',
+    'waiting' => 'Waiting for staff',
+
+    'web' => [
+        'handoff_line' => 'The visitor asked for a manager (website chat).',
+        'ended_line' => 'The visitor ended the chat.',
+        'contact_line' => 'The visitor left a phone number (given by the visitor, not verified).',
+        'show_title' => 'Website chat',
+        'chat_title' => 'Website chat W-:id',
+        'subtitle' => 'Website chat W-:id',
+        'row_name' => 'Website chat W-:id',
+        'banner_banned' => 'This visitor is banned. The chat is unavailable to them and nothing is accepted.',
+        'banner_closed' => 'This chat is closed. A reply cannot be delivered; reopen it first.',
+        'banner_purged' => 'The text of this banned chat was deleted after the retention period.',
+        'banner_unverified' => 'The name and phone were typed by the visitor and are not verified. Do not share order, repair or price-level details in a website chat.',
+        'from_visitor' => 'Visitor',
+        'from_staff' => 'Manager',
+        'panel_title' => 'Visitor',
+        'unverified' => 'Given by the visitor, not verified',
+        'first_page' => 'Started on page',
+        'consent_at' => 'Consent given',
+        'lead' => 'Lead',
+        'ban' => 'Ban visitor',
+        'ban_confirm' => 'Ban this visitor? The chat becomes unavailable to them.',
+        'unban_confirm' => 'Lift the ban on this visitor?',
+        'convert_hint' => 'The visitor\'s latest messages (stored with personal data hidden) are copied to the lead. The lead is not linked to a customer.',
+    ],
 ];

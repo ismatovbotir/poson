@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\ChatChannel;
 use App\Enums\ChatMode;
 use App\Enums\ConversationStatus;
 use App\Enums\TelegramUserState;
 use App\Support\Chat\ChatSettings;
+use App\Support\Chat\ChatSubject;
 use App\Support\Search;
 use Database\Factories\TelegramUserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -70,7 +72,7 @@ use Illuminate\Support\Carbon;
     'conversation_status', 'unread_count', 'last_message_at', 'last_inbound_at', 'last_alert_at', 'closed_at',
     'forward_header_message_id', 'forward_header_at', 'forward_header_chat_id', 'blocked_at',
 ])]
-class TelegramUser extends Model
+class TelegramUser extends Model implements ChatSubject
 {
     /** @use HasFactory<TelegramUserFactory> */
     use HasFactory, Prunable;
@@ -228,6 +230,27 @@ class TelegramUser extends Model
     public function isRegistered(): bool
     {
         return $this->registered_at !== null;
+    }
+
+    public function chatChannel(): ChatChannel
+    {
+        return ChatChannel::Telegram;
+    }
+
+    /**
+     * The bare id, so the Telegram limiter keys stay as before C5 (WC-1).
+     */
+    public function chatLimiterKey(): string
+    {
+        return (string) $this->id;
+    }
+
+    /**
+     * Only registered customers' phrases are recorded (CB-10).
+     */
+    public function mayRecordPhrases(): bool
+    {
+        return $this->isRegistered();
     }
 
     /**

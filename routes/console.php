@@ -195,6 +195,7 @@ Schedule::command('chat:index-knowledge')->hourly()->withoutOverlapping(10)->onO
 */
 
 Schedule::command('model:prune', ['--model' => [TelegramUser::class, TelegramUpdate::class]])->dailyAt('03:00')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+Schedule::command('chat:prune')->dailyAt('03:15')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 Schedule::command('telegram:scrub-banned')->dailyAt('03:10')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:20')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 

@@ -7,6 +7,8 @@ use App\Models\Repair;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
+use App\Models\WebChat;
+use App\Models\WebChatMessage;
 use Tests\Support\McpExclusionScanner;
 
 /**
@@ -28,7 +30,7 @@ const MCP_ALLOWED_MODELS = [
 
 const MCP_FORBIDDEN_CLASSES = [
     TelegramUser::class, TelegramMessage::class, TelegramUpdate::class,
-    Customer::class, Contact::class, Activity::class, Repair::class,
+    Customer::class, Contact::class, Activity::class, Repair::class, WebChat::class, WebChatMessage::class,
 ];
 
 /**
@@ -191,4 +193,32 @@ it('keeps Telegram, contact, customer, personal data and CRM table names out of 
     foreach ($files as $path) {
         expect(McpExclusionScanner::labelsForFile(mcpRoot(), $path))->toBe([], "{$path} trips the MCP exclusion scan");
     }
+});
+
+/**
+ * Plan 28 C5d (CB-26, WC-12): website chats are visitor data. Neither the models, the tables nor
+ * the chat actions and admin screens may be reached from MCP code (or the Support classes behind it).
+ */
+const WEB_CHAT_NAMESPACES = ['App\Actions\Chat\Web', 'App\Livewire\Admin\Chat', 'App\Livewire\Site\Chat'];
+
+arch('MCP never uses the website chat actions or screens')
+    ->expect(MCP_NAMESPACES)
+    ->not->toUse(WEB_CHAT_NAMESPACES);
+
+arch('the App\Support classes behind MCP never use the website chat actions or screens')
+    ->expect(mcpSupportClasses())
+    ->not->toUse(WEB_CHAT_NAMESPACES);
+
+it('keeps website chat models and tables out of MCP and sees them in the scanner', function () {
+    foreach (array_merge(mcpPhpFiles('app/Mcp', 'app/Actions/Mcp'), mcpSupportFiles()) as $path) {
+        $code = McpExclusionScanner::withoutComments((string) file_get_contents(mcpRoot($path)));
+
+        expect(preg_match('/\bWebChat(?:Message|Version|Token|Dialog|Backlog)?\b|web_chat/', $code))->toBe(0, "{$path} reaches website chats");
+    }
+
+    expect(McpExclusionScanner::CRM_MODELS)->toContain('WebChat', 'WebChatMessage')
+        ->and(McpExclusionScanner::tableNeedle())->toContain('web_chats')->toContain('web_chat_messages')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("web_chats")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("web_chat_messages")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("x")->where("web_chats.id", 1);', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name');
 });

@@ -92,6 +92,8 @@ return [
         'only_author' => 'Buni faqat :name yoki administrator qayta yubora oladi.',
     ],
     'refused' => [
+        'closed' => 'Chat yopilgan, javob yetkazilmaydi.',
+        'expired' => 'Chat muddati tugagan (24 soat xabar yoʻq), javob yetkazilmaydi.',
         'unregistered' => 'Tashrifchi roʻyxatdan oʻtishni tugatmagan, shuning uchun bu mavjud emas.',
         'banned' => 'Mijoz bloklangan.',
         'blocked' => 'Mijoz botni bloklagan.',
@@ -117,6 +119,7 @@ return [
         'text_too_long' => 'Tanlangan matn murojaat uchun juda uzun. Kamroq xabar tanlang.',
     ],
     'toasts' => [
+        'reply_sent' => 'Javob yuborildi.',
         'reply_queued' => 'Javob yetkazish navbatiga qoʻyildi.',
         'resent' => 'Xabar yana yetkazish navbatiga qoʻyildi.',
         'no_change' => 'Hech narsa oʻzgarmadi.',
@@ -234,4 +237,36 @@ return [
         'convert' => ':actor chatdan :lead murojaatini yaratdi',
     ],
 
+    'channels' => [
+        'all' => 'Barcha kanallar',
+        'telegram' => 'Telegram',
+        'web' => 'Sayt',
+    ],
+    'channel_filter' => 'Kanal',
+    'waiting' => 'Xodimni kutmoqda',
+
+    'web' => [
+        'handoff_line' => 'Tashrif buyuruvchi menejer bilan bogʻlanishni soʻradi (sayt chati).',
+        'ended_line' => 'Tashrif buyuruvchi chatni yakunladi.',
+        'contact_line' => 'Tashrif buyuruvchi telefon raqamini qoldirdi (uning soʻzi bilan, tekshirilmagan).',
+        'show_title' => 'Saytdagi chat',
+        'chat_title' => 'Saytdagi chat W-:id',
+        'subtitle' => 'Saytdagi chat W-:id',
+        'row_name' => 'Saytdagi chat W-:id',
+        'banner_banned' => 'Tashrifchi bloklangan. Chat unga mavjud emas, xabarlar qabul qilinmaydi.',
+        'banner_closed' => 'Chat yopilgan. Javob yetkazilmaydi; avval uni qayta oching.',
+        'banner_purged' => 'Bloklangan chat matni saqlash muddati tugagach oʻchirildi.',
+        'banner_unverified' => 'Ism va telefonni tashrifchining oʻzi kiritgan, ular tekshirilmagan. Sayt chatida buyurtma, taʼmir va narx darajasi haqida maʼlumot bermang.',
+        'from_visitor' => 'Tashrifchi',
+        'from_staff' => 'Menejer',
+        'panel_title' => 'Tashrifchi',
+        'unverified' => 'Tashrifchi kiritgan, tekshirilmagan',
+        'first_page' => 'Boshlangan sahifa',
+        'consent_at' => 'Rozilik berilgan',
+        'lead' => 'Lid',
+        'ban' => 'Tashrifchini bloklash',
+        'ban_confirm' => 'Tashrifchini bloklaysizmi? Chat unga mavjud boʻlmaydi.',
+        'unban_confirm' => 'Tashrifchi blokini olib tashlaysizmi?',
+        'convert_hint' => 'Tashrifchining oxirgi xabarlari (shaxsiy maʼlumotlari yashirilgan holda saqlanadi) lidga koʻchiriladi. Lid mijozga bogʻlanmaydi.',
+    ],
 ];

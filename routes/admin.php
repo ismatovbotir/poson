@@ -18,6 +18,7 @@ use App\Livewire\Admin\Banners;
 use App\Livewire\Admin\Brands;
 use App\Livewire\Admin\Careers;
 use App\Livewire\Admin\Categories;
+use App\Livewire\Admin\Chat;
 use App\Livewire\Admin\Chatbot;
 use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
@@ -214,6 +215,8 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     Route::livewire('/chatbot/settings', Chatbot\Settings::class)->name('chatbot.settings');
     Route::livewire('/chatbot/help', Chatbot\Help::class)->name('chatbot.help');
     Route::livewire('/telegram/chats', Telegram\Chats\Index::class)->name('telegram.chats');
+    // Plan 28 C5c: website chat thread (telegram.inbox + WebChatPolicy), authorized in the component.
+    Route::livewire('/chats/web/{webChat}', Chat\Web\Show::class)->name('telegram.chats.web.show')->whereNumber('webChat');
     Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show')->whereNumber('telegramUser');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');

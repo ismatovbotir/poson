@@ -179,7 +179,8 @@ class SaveChatbotSettings
                     throw ValidationException::withMessages([$field => __('chatbot_admin.settings.ai_key_missing')]);
                 }
 
-                if ($channel === ChatChannel::Web && ! config('chatbot.web_ready')) {
+                // Web AI has its own readiness flag (plan 33 B, WC-4); chatbot.web_ready is the widget's.
+                if ($channel === ChatChannel::Web && config('chatbot.ai.web_ready') !== true) {
                     throw ValidationException::withMessages([$field => __('chatbot_admin.settings.web_not_ready')]);
                 }
 

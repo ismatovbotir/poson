@@ -3,6 +3,9 @@
 namespace App\Support\Telegram\Bot;
 
 use App\Actions\Telegram\CheckTelegramWebhook;
+use App\Enums\ChatChannel;
+use App\Enums\TaskRunStatus;
+use App\Events\Chat\WebChatHandedOff;
 use App\Events\Telegram\TelegramInboxMessage;
 use App\Jobs\AnswerBotCallback;
 use App\Jobs\DeliverBotMessage;
@@ -13,10 +16,15 @@ use App\Listeners\NotifyFinanceOfPriceSyncIssues;
 use App\Listeners\SendLeadToTelegram;
 use App\Listeners\SendTelegramAlerts;
 use App\Listeners\SendTelegramInboxAlert;
+use App\Models\ChatUnmatched;
 use App\Models\MonitoringState;
+use App\Models\ScheduledTaskRun;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Services\Telegram\TelegramClient;
+use App\Support\Chat\ChatbotSwitch;
+use App\Support\Chat\WebChatBacklog;
+use App\Support\Chat\WorkingHours;
 use App\Support\Monitoring\FailedJobs;
 use App\Support\Monitoring\Heartbeat;
 use App\Support\Monitoring\MonitoringAlerts;
@@ -268,6 +276,7 @@ final class TelegramStatus
             $this->guardedRow('invalid_env', fn (): array => $this->invalidEnv()),
             $this->guardedRow('inbox_listener', fn (): array => $this->inboxListener()),
             $this->guardedRow('queue_connection', fn (): array => $this->queueConnection()),
+            $this->guardedRow('chatbot', fn (): array => $this->chatbot()),
         ];
 
         return ['rows' => $rows, 'counts' => $this->guarded(fn (): array => $this->counts()), 'checked_at' => $snapshot['checked_at'] ?? null];
@@ -583,6 +592,42 @@ final class TelegramStatus
         });
 
         return $this->row('inbox_listener', $registered ? self::OK : self::PROBLEM);
+    }
+
+    /**
+     * Website chat health (plan 28 C5d, CB-27): counts and booleans only.
+     * Problems, first match wins: hand-offs unanswered past the limit during
+     * working hours, the hourly alert cap hit (the count is then the only
+     * signal), the nightly chat:prune not run for 36 hours. Neutral while the
+     * web channel switch is off.
+     *
+     * @return array<string, mixed>
+     */
+    private function chatbot(): array
+    {
+        $webOn = ChatbotSwitch::isEnabled(ChatChannel::Web);
+        $unanswered = WorkingHours::isOpen() ? WebChatBacklog::unanswered() : 0;
+
+        $params = [
+            'unanswered' => $unanswered,
+            'minutes' => max(1, (int) config('chatbot.web.unanswered_minutes', 15)),
+            'unmatched' => ChatUnmatched::query()->where('updated_at', '>=', now()->subDay())->count(),
+            'busiest_ip' => WebChatBacklog::busiestIpToday(),
+        ];
+
+        if (! $webOn) {
+            return $this->row('chatbot', self::NEUTRAL, $params);
+        }
+
+        $lastPrune = ScheduledTaskRun::query()->where('task', 'chat:prune')->where('status', TaskRunStatus::Success)->max('started_at');
+        $pruneStale = $lastPrune === null || Carbon::parse($lastPrune)->lt(now()->subHours(36));
+
+        return match (true) {
+            $unanswered > 0 => $this->row('chatbot', self::PROBLEM, $params, 'monitoring', variant: 'unanswered'),
+            Cache::has(WebChatHandedOff::LIMITED_KEY) => $this->row('chatbot', self::PROBLEM, $params, variant: 'alert_cap'),
+            $pruneStale => $this->row('chatbot', self::PROBLEM, $params, 'monitoring', variant: 'prune_stale'),
+            default => $this->row('chatbot', self::OK, $params),
+        };
     }
 
     /**

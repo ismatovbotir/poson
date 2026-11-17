@@ -4,6 +4,7 @@
     'image' => null,
     'robots' => null,
     'type' => 'website',
+    'chat' => true,
 ])
 
 {{--
@@ -12,6 +13,7 @@
     Livewire: default component_layout; #[Title] fills $title.
     Extra <head> tags (JSON-LD, robots): @push('head'); content after the footer
     (e.g. room for a fixed mobile bar): @push('after-footer').
+    The website chat launcher (plan 28 C5b) renders unless the page passes chat=false (checkout).
 --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -49,6 +51,10 @@
 
     <x-site.footer />
     @stack('after-footer')
+
+    @if ($chat)
+        <x-site.chat.launcher />
+    @endif
 
     @livewireScripts
 </body>

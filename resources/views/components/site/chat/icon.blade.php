@@ -1,0 +1,2 @@
+{{-- Chat bubble icon of the website chat (inline, so the launcher needs no request). Decorative: the button has the name. --}}
+<svg {{ $attributes->class(['shrink-0 fill-none stroke-current']) }} viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg>

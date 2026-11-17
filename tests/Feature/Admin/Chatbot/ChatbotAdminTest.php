@@ -135,7 +135,7 @@ it('refuses the instructions page to a user with no chat bot permission', functi
 it('shows only the instruction sections the user can use', function () {
     $sales = $this->actingAs(staffUser(Role::SalesManager))->get(route('admin.chatbot.help'))->assertOk()->getContent();
 
-    expect(Help::visibleSections(staffUser(Role::SalesManager)))->toBe(['how', 'inbox'])
+    expect(Help::visibleSections(staffUser(Role::SalesManager)))->toBe(['how', 'inbox', 'web_chat'])
         ->and($sales)->toContain('data-help-section="how"')
         ->toContain('data-help-section="inbox"')
         ->not->toContain('data-help-section="teaching"')
