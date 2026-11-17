@@ -2,15 +2,18 @@
 
 use App\Actions\Chat\BuildAiKnowledge;
 use App\Actions\Chat\Knowledge\IndexKnowledgeSource;
+use App\Actions\Chat\Knowledge\KnowledgeOverview;
 use App\Actions\Chat\Knowledge\KnowledgeSources;
 use App\Actions\Chat\Knowledge\QueueKnowledgeRebuild;
 use App\Actions\Chat\Knowledge\RebuildAiKnowledge;
 use App\Enums\AiKnowledgeSource;
+use App\Enums\PageTemplate;
 use App\Jobs\IndexAiKnowledge;
 use App\Jobs\RebuildAiKnowledgeIndex;
 use App\Models\AiKnowledgeChunk;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\FaqItem;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
@@ -18,6 +21,7 @@ use App\Support\Chat\KnowledgeStats;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -647,5 +651,163 @@ describe('command', function () {
         $command = Artisan::all()['chat:index-knowledge'];
 
         expect($command->getDescription())->not->toBe('')->and((string) (new ReflectionProperty($command, 'help'))->getValue($command))->not->toBe('');
+    });
+});
+
+/*
+| Plan 33 A2-3: category and page FAQ as a knowledge source (A2-S10 – A2-S12)
+*/
+
+function kfFaq(?Model $owner, string $en = 'Use a wax ribbon for paper labels.', array $attributes = []): FaqItem
+{
+    $factory = FaqItem::factory();
+
+    return ($owner === null ? $factory : $factory->owner($owner))->create(array_merge([
+        'question' => ['uz' => 'Qaysi ribbon kerak?', 'ru' => 'Какой риббон нужен?', 'en' => 'Which ribbon do I need?'],
+        'answer' => ['uz' => 'Qogʻoz yorliq uchun wax ribbon.', 'ru' => 'Для бумажной этикетки нужен wax риббон.', 'en' => $en],
+    ], $attributes));
+}
+
+describe('FAQ source (A2-3)', function () {
+    it('indexes category and page FAQ per locale and never general or product FAQ', function () {
+        $category = Category::factory()->create();
+        $page = kiPage();
+        $onCategory = kfFaq($category);
+        $onPage = kfFaq($page);
+        $general = kfFaq(null);
+        $onProduct = kfFaq(Product::factory()->create());
+        $uzOnly = kfFaq($category, attributes: ['question' => ['uz' => 'Faqat oʻzbekcha?'], 'answer' => ['uz' => 'Ha, faqat oʻzbekcha javob.']]);
+
+        app(RebuildAiKnowledge::class)->handle();
+
+        $chunks = kiChunks(AiKnowledgeSource::Faq, $onCategory->id);
+        $en = $chunks->firstWhere('locale', 'en');
+
+        expect($chunks->pluck('locale')->all())->toBe(['en', 'ru', 'uz'])
+            ->and($en->title)->toBe('Which ribbon do I need?')
+            ->and($en->text)->toBe('Use a wax ribbon for paper labels.')
+            ->and($en->priority)->toBe(3)
+            ->and($en->url)->toContain('/en/catalog/'.$category->slug)
+            ->and(kiChunks(AiKnowledgeSource::Faq, $onPage->id)->firstWhere('locale', 'en')->url)->toContain('/en/page/'.$page->slug)
+            ->and(kiChunks(AiKnowledgeSource::Faq, $general->id))->toHaveCount(0)
+            ->and(kiChunks(AiKnowledgeSource::Faq, $onProduct->id))->toHaveCount(0)
+            ->and(kiChunks(AiKnowledgeSource::Faq, $uzOnly->id)->pluck('locale')->all())->toBe(['uz']);
+
+        // Idempotent: a second run writes and deletes nothing.
+        expect(app(RebuildAiKnowledge::class)->handle())->toMatchArray(['written' => 0, 'deleted' => 0]);
+    });
+
+    it('drops FAQ rows when the item or its owner is hidden', function (Closure $hide) {
+        $parent = Category::factory()->create();
+        $category = Category::factory()->create(['parent_id' => $parent->id]);
+        $item = kfFaq($category);
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+        expect(kiChunks(AiKnowledgeSource::Faq, $item->id))->toHaveCount(3);
+
+        $hide($item, $category, $parent);
+
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+        expect(kiChunks(AiKnowledgeSource::Faq, $item->id))->toHaveCount(0);
+    })->with([
+        'inactive item' => [fn (FaqItem $item) => $item->update(['is_active' => false])],
+        'hidden category' => [fn (FaqItem $item, Category $category) => $category->update(['is_active' => false])],
+        'hidden ancestor' => [fn (FaqItem $item, Category $category, Category $parent) => $parent->update(['is_active' => false])],
+        'moved to a product' => [fn (FaqItem $item) => $item->update(['faqable_type' => 'product', 'faqable_id' => Product::factory()->create()->id])],
+        'moved to the general FAQ' => [fn (FaqItem $item) => $item->update(['faqable_type' => null, 'faqable_id' => null])],
+        'legal page owner' => [fn (FaqItem $item) => $item->update(['faqable_type' => 'page', 'faqable_id' => kiPage(['template' => PageTemplate::Legal])->id])],
+        'offer page owner' => [fn (FaqItem $item) => $item->update(['faqable_type' => 'page', 'faqable_id' => kiPage(['slug' => 'offer'])->id])],
+        'privacy page owner' => [fn (FaqItem $item) => $item->update(['faqable_type' => 'page', 'faqable_id' => kiPage(['slug' => 'privacy'])->id])],
+        'inactive page owner' => [fn (FaqItem $item) => $item->update(['faqable_type' => 'page', 'faqable_id' => kiPage(['is_active' => false])->id])],
+        'owner mass-deleted' => [fn (FaqItem $item, Category $category) => Category::query()->whereKey($category->id)->delete()],
+    ]);
+
+    it('lets the hourly run delete the rows of a FAQ whose owner was hidden without a FAQ save', function () {
+        $category = Category::factory()->create();
+        $item = kfFaq($category);
+        app(RebuildAiKnowledge::class)->handle();
+
+        $category->update(['is_active' => false]);
+        app(RebuildAiKnowledge::class)->handle();
+
+        expect(kiChunks(AiKnowledgeSource::Faq, $item->id))->toHaveCount(0);
+    });
+
+    it('queues one job per FAQ text change and none for sort', function () {
+        config(['chatbot.ai.knowledge.hooks' => true]);
+        Queue::fake();
+
+        $item = kfFaq(Category::factory()->create());
+        expect(kiJobs('faq'))->toBe(['faq:'.$item->id]);
+
+        kiRelease();
+        $item->update(['sort' => 7]);
+        expect(kiJobs('faq'))->toBe([]);
+
+        $item->update(['answer' => ['uz' => 'Yangi javob.', 'ru' => 'Новый ответ.', 'en' => 'New answer.']]);
+        expect(kiJobs('faq'))->toBe(['faq:'.$item->id]);
+
+        kiRelease();
+        DB::transaction(function () use ($item) {
+            foreach (range(1, 100) as $n) {
+                $item->update(['question' => ['uz' => "Savol {$n}?", 'ru' => "Вопрос {$n}?", 'en' => "Question {$n}?"]]);
+            }
+        });
+        expect(kiJobs('faq'))->toBe(['faq:'.$item->id]);
+
+        kiRelease();
+        try {
+            DB::transaction(function () use ($item) {
+                $item->update(['is_active' => false]);
+                throw new RuntimeException('rollback');
+            });
+        } catch (RuntimeException) {
+        }
+        expect(kiJobs('faq'))->toBe([]);
+
+        // The general FAQ is in the static block: creating or editing it queues nothing.
+        $general = kfFaq(null);
+        $general->update(['answer' => ['uz' => 'Boshqa.', 'ru' => 'Другой.', 'en' => 'Other.']]);
+        expect(kiJobs('faq'))->toBe([]);
+
+        $item->delete();
+        expect(kiJobs('faq'))->toBe(['faq:'.$item->id]);
+    });
+
+    it('bumps the content version when FAQ chunks are written or deleted (A2-S12)', function () {
+        $item = kfFaq(Category::factory()->create());
+        $before = KnowledgeStats::version();
+
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+        $written = KnowledgeStats::version();
+
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+        expect($written)->not->toBe($before)
+            ->and(KnowledgeStats::version())->toBe($written);
+
+        $item->update(['is_active' => false]);
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+
+        expect(KnowledgeStats::version())->not->toBe($written);
+    });
+
+    it('lists a FAQ source with the owner edit link in the overview (A2-S11)', function () {
+        $category = Category::factory()->create();
+        $item = kfFaq($category);
+        kiIndex(AiKnowledgeSource::Faq, $item->id);
+
+        $recent = app(KnowledgeOverview::class)->handle()['recent'];
+
+        expect($recent)->toHaveCount(1)
+            ->and($recent[0]['type'])->toBe(AiKnowledgeSource::Faq->label())
+            ->and($recent[0]['url'])->toBe(route('admin.categories.edit', $category->id));
+    });
+
+    it('has a label in every locale and is the only source that is not linkable', function () {
+        foreach (['uz', 'ru', 'en'] as $locale) {
+            expect(__('enums.ai_knowledge_source.faq', [], $locale))->not->toBe('enums.ai_knowledge_source.faq');
+        }
+
+        expect(collect(AiKnowledgeSource::cases())->reject(fn (AiKnowledgeSource $type) => $type->linkable())->values()->all())->toBe([AiKnowledgeSource::Faq])
+            ->and(app(KnowledgeSources::class)->url(AiKnowledgeSource::Faq, '', 'en'))->toBe('');
     });
 });

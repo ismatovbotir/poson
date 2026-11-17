@@ -7,9 +7,12 @@ use App\Enums\NewsKind;
 use App\Enums\PageTemplate;
 use App\Enums\ProductType;
 use App\Models\Brand;
+use App\Models\Category;
+use App\Models\FaqItem;
 use App\Models\NewsPost;
 use App\Models\Page;
 use App\Models\Product;
+use App\Support\Chat\Skills\FaqSkill;
 use App\Support\Site\CanonicalHost;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +25,12 @@ use Illuminate\Database\Eloquent\Model;
  *    the locale; news also not older than chatbot.ai.knowledge.news_months;
  *  - brands: listed() (active with a visible product);
  *  - services and software: Product::visible() of that type; hardware and
- *    consumable descriptions are marketing text and never indexed.
+ *    consumable descriptions are marketing text and never indexed;
+ *  - FAQ (plan 33 A2-3, A2-S10): active items of a category or a page
+ *    whose owner is public (FaqSkill::isPublic, checked in PHP) and, for a
+ *    page, not the Legal template nor a blocked slug; the general FAQ (in
+ *    the static block) and product FAQ never. Question = title, answer =
+ *    body, exact locale only. No URL of its own (never a button or link).
  * Reads no price level, order, customer or lead data.
  */
 class KnowledgeSources
@@ -52,6 +60,34 @@ class KnowledgeSources
             AiKnowledgeSource::Brand => Brand::query()->listed(),
             AiKnowledgeSource::Service => Product::query()->visible()->where('type', ProductType::Service->value),
             AiKnowledgeSource::Software => Product::query()->visible()->where('type', ProductType::Software->value),
+            AiKnowledgeSource::Faq => FaqItem::query()->active()
+                ->whereNotNull('faqable_id')
+                ->whereIn('faqable_type', self::faqOwnerTypes()),
+        };
+    }
+
+    /**
+     * Morph types of the FAQ owners that are knowledge: categories and pages.
+     *
+     * @return list<string>
+     */
+    private static function faqOwnerTypes(): array
+    {
+        return [(new Category)->getMorphClass(), (new Page)->getMorphClass()];
+    }
+
+    /**
+     * A FAQ item whose owner is public now and may be knowledge (A2-S10): the
+     * bot's rule (FaqSkill::isPublic) plus the K-1 page limits. faqable must be loaded.
+     */
+    private function isKnowledgeFaq(FaqItem $item): bool
+    {
+        $owner = $item->faqable;
+
+        return FaqSkill::isPublic($item) && match (true) {
+            $owner instanceof Category => true,
+            $owner instanceof Page => $owner->template !== PageTemplate::Legal && ! in_array($owner->slug, self::BLOCKED_PAGE_SLUGS, true),
+            default => false,
         };
     }
 
@@ -63,9 +99,15 @@ class KnowledgeSources
      */
     public function documents(AiKnowledgeSource $type, int $id): array
     {
-        $model = $this->query($type)->whereKey($id)->first();
+        $query = $this->query($type)->whereKey($id);
 
-        if ($model === null) {
+        if ($type === AiKnowledgeSource::Faq) {
+            $query->with('faqable');
+        }
+
+        $model = $query->first();
+
+        if ($model === null || ($model instanceof FaqItem && ! $this->isKnowledgeFaq($model))) {
             return [];
         }
 
@@ -77,6 +119,7 @@ class KnowledgeSources
                 $model instanceof NewsPost => $this->news($model, $locale),
                 $model instanceof Brand => $this->brand($model, $locale),
                 $model instanceof Product => $this->product($model, $locale),
+                $model instanceof FaqItem => $this->faq($model, $locale),
                 default => null,
             };
 
@@ -105,6 +148,14 @@ class KnowledgeSources
 
         $query = $this->query($type)->whereIn('id', array_values(array_unique($ids)));
 
+        if ($type === AiKnowledgeSource::Faq) {
+            // One query with the owners eager-loaded, then the owner check in PHP (A2-S10); no slug.
+            return $query->with('faqable')->get()
+                ->filter(fn (FaqItem $item): bool => $this->isKnowledgeFaq($item))
+                ->mapWithKeys(fn (FaqItem $item): array => [$item->id => ''])
+                ->all();
+        }
+
         if ($type->newsKind() !== null) {
             $query->whereJsonContains('locales', $locale);
         }
@@ -114,7 +165,8 @@ class KnowledgeSources
 
     /**
      * The public URL of a source, built from its type, slug and locale (never
-     * a stored value, K-5), on the site's own host.
+     * a stored value, K-5), on the site's own host; '' for a FAQ item, which
+     * is never linked (A2-S11).
      */
     public function url(AiKnowledgeSource $type, string $slug, string $locale): string
     {
@@ -123,6 +175,7 @@ class KnowledgeSources
             AiKnowledgeSource::News, AiKnowledgeSource::Article => ($type->newsKind() ?? NewsKind::News)->url($slug, $locale),
             AiKnowledgeSource::Brand => route('site.brands.show', ['locale' => $locale, 'brand' => $slug]),
             AiKnowledgeSource::Service, AiKnowledgeSource::Software => route('site.product', ['locale' => $locale, 'product' => $slug]),
+            AiKnowledgeSource::Faq => '',
         });
     }
 
@@ -158,6 +211,26 @@ class KnowledgeSources
             $product->getTranslations('name'),
             [$product->getTranslations('short_description'), $product->getTranslations('description')],
             fn (): string => route('site.product', ['locale' => $locale, 'product' => $product->slug]),
+        );
+    }
+
+    /**
+     * A FAQ item in one locale: the question and the answer as stored, no
+     * fallback. The URL is the owner's page, for display only (never sent).
+     */
+    private function faq(FaqItem $item, string $locale): ?KnowledgeDocument
+    {
+        $owner = $item->faqable;
+
+        return $this->document(
+            $locale,
+            $item->getTranslations('question'),
+            [$item->getTranslations('answer')],
+            fn (): string => match (true) {
+                $owner instanceof Category => route('site.catalog.category', ['locale' => $locale, 'category' => $owner->slug]),
+                $owner instanceof Page => route('site.page', ['locale' => $locale, 'page' => $owner->slug]),
+                default => '',
+            },
         );
     }
 

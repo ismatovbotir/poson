@@ -32,22 +32,34 @@ use Normalizer;
  *    after a search verb, or the first Latin word in a Cyrillic line) that
  *    is not one of the company's own handles, a catalog brand or a
  *    candidate code / name word; a spelled-out domain ("posonuz dot shop",
- *    "точка ру"); a payment instruction (a money-moving verb: yubor…,
- *    oʻtkaz…, перевед…, отправ…, скин…, send, transfer, wire within 40
- *    characters of a target: karta…, карту, card, menejer, менеджер,
- *    manager, shaxsiy, личн…, personal, raqamiga, на номер, either order;
- *    "Toʻlov: naqd yoki karta" passes: L4);
- *  - card: a card-like run of 13-19 digits (an EAN/GTIN after "EAN",
- *    "barcode", "shtrix", "штрих" is not a card);
+ *    "точка ру"); a payment instruction (L4, plan 33 A2-S1/S2: a send verb
+ *    — yubor…, отправ…, send — within 40 characters of a card or number
+ *    target or within 20 of a money object — pul…, mablagʻ…, деньги,
+ *    средства, money, funds, soʻm…; a transfer verb — oʻtkaz…, перевед…,
+ *    скин…, transfer, wire, юбор…, ўтказ… — also within 40 of a person in
+ *    the dative — menejerga, менеджеру, to the manager, menga …; a pay
+ *    verb within 30 of a directional target — kartaga, на карту, to the …
+ *    card, hisobiga, на счёт; either order; "Toʻlov: naqd yoki karta",
+ *    "Мы отправим счёт на оплату" and "Send us an enquiry and a manager
+ *    will prepare the quote" pass); a payment service other than UzQR
+ *    (Payme, Paycom, Click in a payment context; A2-S9); a claim that a
+ *    request was sent or accepted, or a request for the customer's phone,
+ *    name or contact details (A2-S3). Payment and brand checks also run
+ *    on an obfuscation-folded copy (fold(), A2-S14);
+ *  - card: a card-like run of 13-19 digits, separators and emoji between
+ *    the digits included (an EAN/GTIN after "EAN", "barcode", "shtrix",
+ *    "штрих" is not a card);
  *  - phone: any other run of 9+ digits that is not a company phone;
  *  - brand: BrandSafeText wording, the AI-only list (best price, affordable,
  *    выгодн…, competitor price comparisons, foiz / процент / percent,
  *    skidk…, rasprodaj…, yarim narx, half price, вдвое дешев… (M1),
  *    price drops "narxi tushdi", "цена снижена", "price reduced", yarmiga,
- *    promo kod / промокод) and
- *    ANY "%": phase A blocks
- *    every percentage (AI-12), also technical ones ("99 % uptime"), because
- *    a discount and a spec cannot be told apart reliably;
+ *    promo kod / промокод, cheap / budget / special-price wording and
+ *    dealer or wholesale price levels, A2-4, A2-S15) and
+ *    ANY "%": every percentage is blocked (AI-12), also technical ones
+ *    ("99 % uptime"), because a discount and a spec cannot be told apart
+ *    reliably; the one exception is the configured VAT rate right next to
+ *    a VAT word ("12% QQS", vatRateSpans(), A2-S4/S5);
  *  - human: the model claims to be a person;
  *  - money (phase B, AI-B1 – AI-B3): every number is parsed to an integer
  *    amount in tiyin (thousands groups with a space, NBSP, NNBSP, "." or
@@ -56,13 +68,16 @@ use Normalizer;
  *    a currency or a bare m / м after a price word ("Narxi 2M");
  *    ×1,000,000,000: mlrd, млрд) and is money when it has a scale word or a
  *    currency, is in thousands groups not followed by a unit (mm, kg, dpi,
- *    labels, dona, шт …), is a run of 6+ digits, a run of 5+ digits not
- *    followed by a unit, a time word or a letter, or has 3+ digits within
+ *    labels, dona, шт, MHz, °C, dBm, ms …), is a run of 6+ digits, a run
+ *    of 5+ digits not followed by a unit, a time word or a letter and not
+ *    a standard number right after ISO / IEC / IEEE / ANSI / ASTM / ГОСТ /
+ *    Oʻz DSt (outside a price context, A2-S13), or has 3+ digits within
  *    30 characters after a price word (narx…, нарх…, цен…, стои…, price…,
  *    cost(s), turadi, toʻlov…, and fee, delivery, repair, setup, total and
  *    subscription words: yetkaz…, доставк…, haqi, jami, итого, ремонт…,
  *    sozla…, oyiga, в месяц …; not "всего"; H1) or right after "—", "=" or
- *    ":" ("R110 — 9000"), and is not followed by a unit, a time word (yil,
+ *    ":" ("R110 — 9000"; not the second number of a range such as
+ *    "860–960"), and is not followed by a unit, a time word (yil,
  *    год, kun, daqiqa …, also "-yil") or a letter ("1450g"), is not a plain
  *    year (1980-2049) and does not follow "port" / "порт". Number
  *    words (yuz, ming, million, тысяч…, hundred …) not attached to digits
@@ -74,7 +89,7 @@ use Normalizer;
  *    when that candidate is priced per label, and in the same line or
  *    sentence as that candidate's SKU, model or name. Always money, never
  *    allowed: a foreign currency ($, USD, €, руб, юань, тенге, ₹ …, with or
- *    without a number), a soʻm-family word that follows no numeric amount
+ *    without a number; "rub" only next to a number), a soʻm-family word that follows no numeric amount
  *    (amounts in words: "besh yuz ming soʻm", "yarim million soʻm"), and
  *    an amount that cannot be parsed ("1.500 mln" reads as 1,500 million,
  *    so it never equals a real price). Without candidates every amount is
@@ -135,25 +150,227 @@ final class AiOutputFilter
         '/\bprice\s+(?:drop|reduc|cut)|\breduced\s+price/u',
         '/(?<!\pL)yarmiga/u',
         '/(?<!\pL)(?:promo\s?kod|промокод)/u',
+        // Cheap and budget wording, special prices (plan 33 A2-4); "бюджетные организации", "energiya tejamkor" pass.
+        '/(?<!\pL)недорог/u',
+        '/(?<!\pL)бюджетн\pL*+(?!\s+(?:организац|учрежден|сектор|сфер))/u',
+        '/(?<!\pL)(?:ниже|дешевле)\s+рынк/u',
+        '/(?<!\pL)(?:лучш\pL*\s+)?предложени\pL*\s+(?:месяц|недел|дня)/u',
+        '/(?<!\pL)специальн\pL*\s+цен/u',
+        '/(?<!\pL)hamyonbop/u',
+        '/(?<!energiya\s)(?<!elektr\s)(?<!\pL)tejamkor/u',
+        '/(?<!\pL)maxsus\s+(?:narx|taklif)/u',
+        '/\bspecial\s+(?:prices?|deals?)\b/u',
+        '/\bsav(?:e|es|ing)\s+(?:money|costs?)\b/u',
+        '/\bcost[\s-]+effective/u',
+        '/\bbudget[\s-]+(?:friendly|printers?|scanners?|models?|options?|solutions?|devices?|equipment|choice)\b/u',
+        // Price levels are never discussed (CLAUDE.md, AI-10, A2-S15).
+        '/(?<!\pL)(?:dealer|diler|дилер|wholesale|ulgurji|оптов)\pL*\s+(?:uchun\s+|для\s+|по\s+)?(?:prices?|pricing|price\s+list|narx|цен|прайс)/u',
+        '/(?<!\pL)(?:цен\pL*|prices?|pricing|price\s+lists?|narx\pL*|прайс\pL*(?:[\s-]+лист\pL*)?)\s+(?:for|для)\s+(?:dealers?|дилер|wholesale|оптов)/u',
+        '/(?<!\pL)(?:optom|оптом|opt)\s+(?:\pL+\s+){0,2}?(?:narx|цен|прайс|price)/u',
+        '/(?<!\pL)дилерск\pL*/u',
     ];
 
     /**
-     * Money-moving verbs of a payment instruction (L4).
+     * "Send" verbs of a payment instruction: they need a card / number
+     * target or a money object (plan 33 A2-S1).
      */
-    private const PAYMENT_VERB = '(?:yubor\pL*|o[\'ʻʼ‘’`]?tkaz\pL*|перевед\pL*|переве[сд]\pL*|перечисл\pL*|отправ\pL*|скин\pL*|send\pL*|transfer\pL*|wire)';
+    private const PAYMENT_SEND = '(?:yubor\pL*+|отправ\pL*+|send\pL*+)';
 
     /**
-     * Targets of a payment instruction (a card, a manager, a personal number; L4).
+     * Money-moving verbs: a card / number target, a money object or a person
+     * in the dative is enough (A2-S1); Uzbek Cyrillic and Latin
+     * transliterations included.
      */
-    private const PAYMENT_TARGET = '(?:kart(?:a|asi|aga|asiga|amga|ochka)\pL*|карт[уеыа]\pL*|card\pL*|menejer\pL*|менеджер\pL*|manager\pL*|shaxsiy|личн\pL*|personal|raqam(?:iga|ga)|на\s+номер|to\s+(?:this|the|my)\s+number)';
+    private const PAYMENT_TRANSFER = '(?:o[\'ʻʼ‘’`]?tkaz\pL*+|перевед\pL*+|переве[сд]\pL*+|перевод\pL*+|перечисл\pL*+|скин\pL*+|transfer\pL*+|wire[sd]?(?!\pL)|юбор\pL*+|[ўу]тказ\pL*+|perev[eo]d\pL*+|perechisl\pL*+)';
 
     /**
-     * Payment instructions (L4): a money-moving verb and a card / manager /
-     * personal-number target within 40 characters of each other, either
-     * order ("menejer raqamiga yuboring", "переведите на карту"); plain
-     * payment methods ("Toʻlov: naqd yoki karta") are not instructions.
+     * Card and number targets of a payment instruction (a warranty card is not one; L4, A2-S1).
      */
-    private const PAYMENT_PATTERN = '/(?<!\pL)'.self::PAYMENT_VERB.'[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_TARGET.'|(?<!\pL)'.self::PAYMENT_TARGET.'[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_VERB.'/u';
+    private const PAYMENT_TARGET = '(?:(?<!kafolat\s)(?<!garantiya\s)(?<!garantiy\s)kart(?:a|asi|aga|asiga|amga|ochka)\pL*|(?<!гарантийн\pL\pL\s)(?<!гарантии\s)карт[уеыа]\pL*|(?<!warranty\s)(?<!guarantee\s)card\pL*|shaxsiy|личн\pL*|personal|raqam(?:iga|ga)|рақам(?:ига|га)|на\s+номер|to\s+(?:this|the|my)\s+number)';
+
+    /**
+     * Money objects: within 20 characters of a send or transfer verb they
+     * make a payment instruction ("Pulni menejerga yuboring", "wire the
+     * funds"); an invoice "на оплату" / "for payment" is not one (A2-S1).
+     */
+    private const PAYMENT_MONEY = '(?:pul(?![ts])\pL*+|пул(?!ьт|ьс|я)\pL*+|to[\'ʻʼ‘’`]?lov(?:ni|ingizni)|тўлов(?:ни|ингизни)|mablag[\'ʻʼ‘’`]?\pL*+|маблағ\pL*+|summa(?!r)\pL*+|сум(?!к)\pL*+|so[\'ʻʼ‘’`]m\pL*+|сўм\pL*+|uzs|cash|деньг\pL*+|(?<!на\s)оплат[уы]|средств[аы]|money|funds|(?<!for\s)(?<!of\s)payments?)';
+
+    /**
+     * A person in the dative after a transfer verb ("Menejerga oʻtkazing",
+     * "Переведите менеджеру", "Transfer it to the manager"; A2-S1).
+     */
+    private const PAYMENT_PERSON = '(?:menejer(?:ga|imizga|ingizga|larga)|menedzher(?:u|am)|менеджер(?:у|ам)|менежер(?:га|имизга|ингизга)|to\s+(?:the\s+|our\s+|a\s+|your\s+)?(?:manager|staff|employee|courier)s?|xodim\pL*ga|ходим\pL*га|сотрудник(?:у|ам)|kuryerga|курьеру|курьерга|menga|менга|мне|to\s+me)';
+
+    /**
+     * Pay verbs and the directional targets they must not point at (A2-S2).
+     */
+    private const PAY_VERB = '(?:pay(?:s|ing)?(?!\pL)|to[\'ʻʼ‘’`]?la\pL*+|оплат(?:и|ите)(?!\pL)|заплат\pL*+|тўла\pL*+)';
+
+    private const PAY_TARGET = '(?:kartaga|kartasiga|картага|на\s+карт\pL*|to\s+(?:[\pL\'’]+\s+){0,3}card\pL*|raqamiga|рақамига|на\s+номер|hisobiga|ҳисобига|на\s+сч[её]т)';
+
+    /**
+     * Hand-over verbs ("bering", "tashlang", "qiling", "передайте", "hand",
+     * "give"): an instruction only with a directional card target, or with a
+     * money object and a person in the dative on the same line (plan 33 §19 M-2).
+     */
+    private const PAYMENT_GIVE = '(?:ber(?:ing|ib|asiz|ingiz|sangiz)\pL*+|tashla\pL*+|qil(?:ing|ib|asiz|ingiz|sangiz)\pL*+|переда(?:й|йте|ть|дите)(?!\pL)|отда(?:й|йте|ть)(?!\pL)|hand(?:s|ed|ing)?(?!\pL)|giv(?:e|es|ing)(?!\pL))';
+
+    /**
+     * The company's own payment-method nouns ("bank oʻtkazmasi", "bank
+     * transfer", "банковский перевод", "перечисление по счёту"): blanked
+     * before the payment-instruction check, so the seed FAQ, rule answers,
+     * delivery page and prompt rule 11 are delivered (plan 33 §19 H-1).
+     *
+     * @var list<string>
+     */
+    private const PAYMENT_METHODS = [
+        '/(?<!\pL)bank\s+(?:orqali\s+)?o[\'ʻʼ‘’`]?tkazma\pL*/u',
+        '/(?<!\pL)bank\s+transfers?(?!\pL)/u',
+        '/(?<!\pL)by\s+transfer(?!\pL)/u',
+        '/(?<!\pL)(?:банковск|безналичн)\pL*\s+(?:перевод|перечислени)\pL*/u',
+        '/(?<!\pL)перечислени\pL*\s+по\s+сч[её]т\pL*/u',
+        '/(?<!\pL)pul\s+o[\'ʻʼ‘’`]?tkazish\s+yo[\'ʻʼ‘’`]?li(?!\pL)/u',
+    ];
+
+    /**
+     * A payment-method noun pointed at a card or a person ("bank transfer
+     * to the manager's card", "menejerga bank oʻtkazmasi"): checked on the
+     * text before PAYMENT_METHODS are blanked, so blanking hides nothing (H-1).
+     */
+    /**
+     * Card, number and personal-account targets of a payment-method noun
+     * (§20 M-5): the manager's / staff / courier card in uz, ru and en,
+     * Uzcard, Humo, shaxsiy / личн… / personal. No bare "kartasi"
+     * ("terminal orqali bank kartasi" is a payment method).
+     */
+    private const METHOD_CARD_TARGET = '(?:kart(?:aga|asiga)|(?:menejer|menedzher|xodim|kuryer)\pL*\s+kartas\pL*|картага|на\s+карт\pL*|карт[уеы]\s+(?:менеджер|сотрудник|курьер)\pL*|to\s+(?:[\pL\'’]+\s+){0,3}(?:uz)?card\pL*|(?:manager|staff|employee|courier)(?:[\'’]s)?\s+card\pL*|humo|shaxsiy|личн\pL*|personal|raqamiga|рақамига|на\s+номер)';
+
+    /**
+     * Cash on delivery to the courier (§20 M-7): blanked like a payment
+     * method, but only on a line with no card or number word, so "Pay the
+     * courier in cash to his card" still blocks. Never for a manager, staff
+     * or "me".
+     *
+     * @var list<string>
+     */
+    private const PAYMENT_COURIER_CASH = [
+        '/(?<!\pL)kuryerga\s+(?:naqd(?:\s+pul)?(?:\s+(?:bilan|orqali))?|naqd\s+pulda)\s+to[\'ʻʼ‘’`]?la(?:ysiz|nadi|sh\pL*|ng)(?!\pL)/u',
+        '/(?<!\pL)naqd(?:\s+pul)?(?:\s+bilan)?\s+kuryerga\s+to[\'ʻʼ‘’`]?la(?:ysiz|nadi|sh\pL*|ng)(?!\pL)/u',
+        '/(?<!\pL)pay(?:ing)?\s+(?:the\s+)?courier\s+(?:in|with)\s+cash(?!\pL)/u',
+        '/(?<!\pL)pay(?:ing)?\s+(?:in\s+)?cash\s+to\s+the\s+courier(?!\pL)/u',
+    ];
+
+    /**
+     * A card or number word on a line: cash to the courier is not blanked there (§20 M-7).
+     */
+    private const CARD_WORD = '/(?<!\pL)(?:'.self::PAYMENT_TARGET.'|'.self::PAY_TARGET.'|kartas\pL*|\pL*card\pL*|карт\pL*)/u';
+
+    private const PAYMENT_METHOD_DIRECTED = '/(?:'
+        .'(?<!\pL)bank\s+(?:orqali\s+)?o[\'ʻʼ‘’`]?tkazma\pL*|(?<!\pL)bank\s+transfers?|(?<!\pL)by\s+transfer|(?<!\pL)(?:банковск|безналичн)\pL*\s+(?:перевод|перечислени)\pL*|(?<!\pL)перечислени\pL*\s+по\s+сч[её]т\pL*|(?<!\pL)pul\s+o[\'ʻʼ‘’`]?tkazish\s+yo[\'ʻʼ‘’`]?li'
+        .')(?!\pL)(?:[^\n]{0,40}?(?:\n[^\n]{0,40}?)?(?<!\pL)'.self::METHOD_CARD_TARGET.'|[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_PERSON.')(?!\pL)'
+        .'|(?<!\pL)(?:kartaga|kartasiga|картага|на\s+карт\pL*|raqamiga|рақамига|на\s+номер|'.self::PAYMENT_PERSON.')(?!\pL)[^\n]{0,40}?(?<!\pL)(?:bank\s+(?:orqali\s+)?o[\'ʻʼ‘’`]?tkazma|bank\s+transfer|(?:банковск|безналичн)\pL*\s+(?:перевод|перечислени))/u';
+
+    /**
+     * Payment instructions (L4, A2-S1, A2-S2), each either order on one line:
+     * a send / transfer verb within 40 characters of a card or number
+     * target; a send / transfer verb within 20 characters of a money object;
+     * a transfer verb within 40 characters of a person in the dative; a pay
+     * verb within 30 characters of a directional card / number / account
+     * target. Plain payment methods ("Toʻlov: naqd yoki karta", "Pay by card
+     * or cash on delivery") and manager calls to action ("Send us an enquiry
+     * and a manager will prepare the quote") are not instructions.
+     *
+     * @var list<string>
+     */
+    private const PAYMENT_PATTERNS = [
+        '/(?<!\pL)(?:'.self::PAYMENT_SEND.'|'.self::PAYMENT_TRANSFER.')[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_TARGET.'|(?<!\pL)'.self::PAYMENT_TARGET.'[^\n]{0,40}?(?<!\pL)(?:'.self::PAYMENT_SEND.'|'.self::PAYMENT_TRANSFER.')/u',
+        '/(?<!\pL)(?:'.self::PAYMENT_SEND.'|'.self::PAYMENT_TRANSFER.')[^\n]{0,20}?(?<!\pL)'.self::PAYMENT_MONEY.'(?!\pL)|(?<!\pL)'.self::PAYMENT_MONEY.'(?!\pL)[^\n]{0,20}?(?<!\pL)(?:'.self::PAYMENT_SEND.'|'.self::PAYMENT_TRANSFER.')/u',
+        '/(?<!\pL)'.self::PAYMENT_TRANSFER.'[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)|(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_TRANSFER.'/u',
+        '/(?<!\pL)'.self::PAY_VERB.'[^\n]{0,30}?(?<!\pL)'.self::PAY_TARGET.'|(?<!\pL)'.self::PAY_TARGET.'[^\n]{0,30}?(?<!\pL)'.self::PAY_VERB.'/u',
+        // §19 M-2: a pay verb aimed at a person ("Menejerga toʻlang", "Заплатите менеджеру", "Pay the manager directly").
+        '/(?<!\pL)'.self::PAY_VERB.'[^\n]{0,30}?(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)|(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)[^\n]{0,30}?(?<!\pL)'.self::PAY_VERB.'/u',
+        '/(?<!\pL)pay(?:ing)?\s+(?:(?:the|our|a|your|my)\s+)?(?:manager|staff|employee|courier|driver|agent)s?(?!\pL)/u',
+        // §19 M-2: a hand-over verb with a card / account target ("…kartasiga tashlang", "…shaxsiy kartasiga qiling").
+        '/(?<!\pL)'.self::PAYMENT_GIVE.'[^\n]{0,40}?(?<!\pL)'.self::PAY_TARGET.'|(?<!\pL)'.self::PAY_TARGET.'[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_GIVE.'/u',
+        // §19 M-2: a hand-over verb, a person in the dative and a money object on one line ("Pulni menejerimizga bering", "Hand the cash to our manager").
+        '/(?m)^(?=[^\n]*?(?<!\pL)(?:'.self::PAYMENT_MONEY.'|наличн\pL*+|naqd)(?!\pL))[^\n]*?(?:(?<!\pL)'.self::PAYMENT_GIVE.'[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)|(?<!\pL)'.self::PAYMENT_PERSON.'(?!\pL)[^\n]{0,40}?(?<!\pL)'.self::PAYMENT_GIVE.')/u',
+    ];
+
+    /**
+     * Online payment is UzQR only (owner fact, A2-S9): other payment
+     * services are never named; "click" counts only in a payment context
+     * ("Click the button below" passes).
+     *
+     * @var list<string>
+     */
+    private const PAYMENT_SERVICES = [
+        '/(?<!\pL)(?:payme(?!nt|r)|пейми|пэйми|paycom|paynet|пейнет)/u',
+        '/(?<!\pL)(?:click|klik|клик)\s+(?:orqali|bilan|ilova\pL*|орқали|билан|илова\pL*)|(?<!\pL)через\s+(?:click|klik|клик)(?!\pL)/u',
+        // §19 M-3: Uzbek case suffixes, also after an apostrophe ("Clickda", "Click'da", "Klikdan", "Clickni").
+        '/(?<!\pL)(?:click|klik|клик)[\'ʻʼ‘’`-]?(?:da|dan|ga|ni|ning|orqali|ilova\pL*|да|дан|га|ни|нинг)(?!\pL)/u',
+        '/(?<!\pL)(?:pay\pL*|to[\'ʻʼ‘’`]?la\pL*|оплат\pL*|тўла\pL*)[^\n]{0,20}?(?<!\pL)(?:click|klik|клик)(?!\pL)|(?<!\pL)(?:click|klik|клик)(?!\pL)[^\n]{0,20}?(?<!\pL)(?:to[\'ʻʼ‘’`]?lov|оплат|payment|тўлов)/u',
+    ];
+
+    /**
+     * Claims that a request was sent or accepted (the model cannot create
+     * one) and requests for the customer's contact details (A2-S3). Only
+     * personal forms count, so "send the model name" or "seriya raqamini
+     * yuboring" stay possible.
+     *
+     * @var list<string>
+     */
+    private const SUBMISSION_PATTERNS = [
+        '/(?<!\pL)(?:so[\'ʻʼ‘’`]?rov|ariza|buyurtma|сўров|ариза|буюртма)\pL*[^\n]{0,40}?(?<!\pL)(?:yuborildi|yetkazildi|topshirildi|uzatildi|qabul\s+qilindi|qayd\s+etildi|ro[\'ʻʼ‘’`]?yxatga\s+olindi|rasmiylashtirildi|юборилди|етказилди|қабул\s+қилинди)(?!\pL)/u',
+        '/(?<!\pL)(?:заявк|запрос)\pL*[^\n]{0,40}?(?<!\pL)(?:принят|отправлен|оформлен|зарегистрир|передан|направлен)\pL*|(?<!\pL)(?:принял\pL*|отправил\pL*|оформил\pL*|зарегистрировал\pL*|передал\pL*)[^\n]{0,20}?(?<!\pL)(?:заявк|запрос)\pL*/u',
+        '/(?<!\pL)zayavk\pL*[^\n]{0,40}?(?<!\pL)(?:prinyat|otpravlen|oformlen|peredan)\pL*/u',
+        // "is placed" is left out: "Order is placed on the website via the cart" describes the flow (§19 M-1).
+        '/(?<!\pL)(?:request|enquiry|inquiry|order|quote)s?\s+(?:(?:has|have)\s+been|was|were)\s+(?:sent|submitted|received|registered|forwarded|accepted|placed|created|passed)(?!\pL)|(?<!\pL)(?:request|enquiry|inquiry|order|quote)s?\s+is\s+(?:sent|submitted|received|registered|forwarded|accepted|created)(?!\pL)|(?<!\pL)(?:request|enquiry|inquiry|order|quote)s?\s+is\s+now\s+with(?!\pL)/u',
+        '/(?<!\pL)i(?:\'ve|’ve|\s+have)?\s+(?:passed|forwarded|sent|submitted|notified|informed|alerted)\s+(?:it|your|this|the|a|our)(?!\pL)/u',
+        '/(?<!\pL)(?:telefon\pL*|ism(?:ingiz\pL*|ni)?|ism-sharif\pL*|raqamingiz\pL*|kontakt\pL*|телефон\pL*|рақамингиз\pL*)(?!\pL)[^\n]{0,20}?(?<!\pL)(?:yozing|qoldiring|yuboring|kiriting|ёзинг|қолдиринг|юборинг)(?!\pL)/u',
+        // §19 M-1: a bare number after a leave / write verb ("Raqamni qoldiring", "Оставьте номер"); "Model raqamini yozing", "номер модели" pass.
+        '/(?<!model\s)(?<!seriya\s)(?<!\pL)(?:raqam|рақам)(?:ni|ни)?(?!\pL)[^\n]{0,20}?(?<!\pL)(?:yozing|qoldiring|yuboring|ёзинг|қолдиринг|юборинг)(?!\pL)/u',
+        '/(?<!\pL)(?:оставьте|напишите|пришлите|отправьте|укажите|сообщите)\s+(?:(?:свой|ваш)\s+)?номер(?!\pL)(?!\s+(?:модел|сер|заказ|сч|издел|артикул|парти|договор|накладн|счет|счёт))/u',
+        '/(?<!\pL)(?:what\s+is|what\'s|what’s|may\s+i\s+(?:have|get)|can\s+i\s+(?:have|get)|could\s+i\s+(?:have|get))\s+your\s+(?:phone|number|name|contact|mobile)/u',
+        '/(?<!\pL)ваш\pL*\s+(?:номер|телефон|контакт|имя)\pL*(?:\s+телефона)?\s*(?:,\s*)?(?:пожалуйста|\?)/u',
+        '/(?<!\pL)(?:raqamingiz|telefoningiz|ismingiz|рақамингиз|телефонингиз|исмингиз)\pL*\s+(?:qanday|nima|қандай|нима)(?!\pL)/u',
+        '/(?<!\pL)(?:оставьте|напишите|пришлите|отправьте|укажите|сообщите)(?!\pL)[^\n]{0,20}?(?<!\pL)(?:телефон\pL*|имя|ваш\pL*\s+(?:номер|имя|контакт)\pL*|контакт\pL*|номер\s+телефон\pL*)|(?<!\pL)(?:телефон\pL*|имя|ваш\pL*\s+(?:номер|имя|контакт)\pL*|номер\s+телефон\pL*)[^\n]{0,20}?(?<!\pL)(?:оставьте|напишите|пришлите)(?!\pL)/u',
+        '/(?<!\pL)(?:send|share|leave|give|provide|tell|type|write)(?!\pL)[^\n]{0,20}?(?<!\pL)(?:(?:your|a)\s+(?:phone|number|name|contact|details)|phone\s+number|contact\s+(?:details|number|info)\pL*)|(?<!\pL)your\s+(?:phone|number|name|contact)\pL*[^\n]{0,20}?(?<!\pL)(?:send|share|leave)(?!\pL)/u',
+    ];
+
+    /**
+     * Look-alike letters inside a word written in two scripts (A2-S14):
+     * folded to the script most of the word is in.
+     *
+     * @var array<string, string>
+     */
+    private const TO_LATIN = ['а' => 'a', 'в' => 'b', 'е' => 'e', 'ё' => 'e', 'к' => 'k', 'м' => 'm', 'н' => 'h', 'о' => 'o', 'р' => 'p', 'с' => 'c', 'т' => 't', 'у' => 'y', 'х' => 'x', 'і' => 'i', 'ј' => 'j', 'ѕ' => 's', 'ԁ' => 'd', 'һ' => 'h', 'ӏ' => 'l', 'α' => 'a', 'ε' => 'e', 'ο' => 'o', 'ρ' => 'p', 'κ' => 'k', 'ι' => 'i', 'ν' => 'v', 'τ' => 't', 'υ' => 'u', 'χ' => 'x'];
+
+    /**
+     * @var array<string, string>
+     */
+    private const TO_CYRILLIC = ['a' => 'а', 'b' => 'в', 'c' => 'с', 'e' => 'е', 'h' => 'н', 'k' => 'к', 'm' => 'м', 'o' => 'о', 'p' => 'р', 't' => 'т', 'x' => 'х', 'y' => 'у'];
+
+    /**
+     * VAT words: only the configured rate right next to one is not a
+     * percentage (A2-S4).
+     */
+    public const VAT_WORD = '(?:qqs|ққс|ндс|nds|vat)';
+
+    /**
+     * Saving framing: a sentence with one of these words gets no VAT exemption (A2-S5).
+     */
+    private const VAT_SAVING = '/(?<!\pL)(?:sav(?:e|es|ed|ing)|off|less|lower\pL*|refund\pL*|qaytar\pL*|teja\pL*|kamroq|эконом\pL*|меньш\pL*|верн\pL*|возврат\pL*|вычет\pL*|'.self::VAT_PROMO.'|to[\'ʻʼ‘’`]?laymiz|we\s+(?:pay|cover)|оплатим|за\s+нас)(?!\pL)/iu';
+
+    /**
+     * Promo words next to a VAT rate or in its sentence: no VAT exemption (plan 33 §19 M-4).
+     */
+    public const VAT_PROMO = '(?:bonus\pL*|cashback\pL*|кэшб\pL*|ke[sš]h?bek\pL*|sovg[\'ʻʼ‘’`]?a\pL*|подар\pL*|aksiya\pL*|акци\pL*)';
+
+    /**
+     * Standard prefixes: the number right after one is a standard, not an
+     * amount ("ISO/IEC 18000-63", "ГОСТ 7.32"; A2-S13).
+     */
+    private const STANDARD_BEFORE = '/(?<!\pL)(?:iso|iec|ieee|ansi|astm|gost|гост|uz\s?dst|o[\'ʻʼ‘’`]?z\s?dst|din\s+en)(?:\s?\/\s?(?:iec|ieee|en|astm))?\s*[:-]?\s*$/u';
 
     /**
      * Messenger names: a handle-like token after one is a contact (M2).
@@ -206,6 +423,13 @@ final class AiOutputFilter
     private const FOREIGN = '(?:usd|\$|долл\pL*|dollar\pL*|у\.\s?е\.|y\.\s?e\.|€|eur(?:os?)?|руб(?:л\pL*)?\.?|rub(?:les?)?|₽|£|¥|gbp|rur|юан\pL*|yuan|cny|тенге|tenge|kzt|₸|kgs|₩|₹|лир\pL*|aed|bucks?)';
 
     /**
+     * FOREIGN without a number: a bare "rub" ("a rub test") is not a
+     * currency, "rubl…" / "rubles" still are (plan 33 A2-4). Next to a
+     * number FOREIGN applies, so "500 rub" and "rub 500" stay money.
+     */
+    private const FOREIGN_STANDALONE = '(?:usd|\$|долл\pL*|dollar\pL*|у\.\s?е\.|y\.\s?e\.|€|eur(?:os?)?|руб(?:л\pL*)?\.?|rubl\pL*|rubles?|₽|£|¥|gbp|rur|юан\pL*|yuan|cny|тенге|tenge|kzt|₸|kgs|₩|₹|лир\pL*|aed|bucks?)';
+
+    /**
      * Scale words that make any number an amount, also without a currency
      * (group 1: thousand, 2: million, 3: billion). Public for the AI product
      * text guard (plan 32, ProductTextGuard::hasAmount, match/no match only).
@@ -233,7 +457,13 @@ final class AiOutputFilter
     /**
      * Units after a number in thousands groups: a quantity or a spec, not money.
      */
-    private const UNITS = '(?:mm|cm|km|m|kg|g|dpi|pcs|шт\pL*\.?|dona\pL*|ta(?:dan|gacha)?|etiket\pL*|yorliq\pL*|labels?|cycles?|rolls?|мм|см|км|м|кг|г|метр\pL*|этикет\pL*|рулон\pL*|mah|мач)';
+    private const UNITS = '(?:mm|cm|km|m|kg|g|dpi|pcs|шт\pL*\.?|dona\pL*|ta(?:dan|gacha)?|etiket\pL*|yorliq\pL*|labels?|cycles?|rolls?|мм|см|км|м|кг|г|метр\pL*|этикет\pL*|рулон\pL*|mah|мач|[kmg]?hz|кгц|мгц|ггц|гц|°c|°с|dbm|ms|мс|ips)';
+
+    /**
+     * A run of 9+ digits across up to 2 separators each: spaces, dashes,
+     * brackets, dots, slashes and symbols or emoji ("8600💳1234…", A2-S14).
+     */
+    private const LONG_NUMBER = '/\+?\d(?:[ \-().\/\p{So}\p{Sk}\x{FE0F}]{0,2}\d){8,}/u';
 
     public const EAN_LABEL = '(?:ean(?:-?(?:8|13))?|gtin|upc|barcode|bar\s+code|(?:shtrix|штрих)\pL*(?:[\s-]*(?:kod|код)\pL*)?)[\s:#№-]*';
 
@@ -372,18 +602,172 @@ final class AiOutputFilter
         $digits = $this->asciiDigits($lower);
         // Byte-length preserving: offsets in $scrubbed are offsets in $digits (same line / sentence check).
         $scrubbed = $this->withoutCodes($digits);
+        // A2-S4: only the configured VAT rate next to a VAT word is blanked, and only for the brand step.
+        $brand = self::withoutSpans($lower, self::vatRateSpans($lower));
 
         return match (true) {
             $this->hasForeignLink($lower) || $this->hasUnlistedOwnLink($lower) => 'link',
             $this->hasForeignContact($lower) => 'contact',
-            ($long = $this->longNumber($scrubbed)) !== null => $long,
-            preg_match(self::PAYMENT_PATTERN, $lower) === 1 => 'contact',
-
-            BrandSafeText::violates($lower) || $this->matchesAny($lower, self::BRAND_PATTERNS) => 'brand',
+            // §19 Low: symbols and emoji are no separators ("8600 💳 1234 💳 5678 💳 9012").
+            ($long = $this->longNumber((string) preg_replace('/[\p{So}\p{Sk}\x{FE0F}]/u', '', $scrubbed))) !== null => $long,
+            $this->isPaymentOrSubmission($lower) || $this->isPaymentOrSubmission(self::fold($lower)) => 'contact',
+            $this->isBrandUnsafe($brand) || $this->isBrandUnsafe(self::fold($brand)) => 'brand',
             $this->matchesAny($lower, self::HUMAN_PATTERNS) => 'human',
             $checkMoney && $this->hasForeignAmount($this->withoutAllowedContacts($scrubbed), $digits) => 'money',
             default => null,
         };
+    }
+
+    /**
+     * A payment instruction (L4, A2-S1, A2-S2), another payment service than
+     * UzQR (A2-S9), a claimed submission or a request for contact details (A2-S3).
+     */
+    private function isPaymentOrSubmission(string $text): bool
+    {
+        // §19 H-1: the company's own method nouns ("bank oʻtkazmasi", "bank transfer") are no instruction verb.
+        $withoutMethods = (string) preg_replace(self::PAYMENT_METHODS, ' ', $text);
+        $withoutMethods = implode("\n", array_map(
+            fn (string $line): string => preg_match(self::CARD_WORD, $line) === 1 ? $line : (string) preg_replace(self::PAYMENT_COURIER_CASH, ' ', $line),
+            explode("\n", $withoutMethods),
+        ));
+
+        return preg_match(self::PAYMENT_METHOD_DIRECTED, $text) === 1
+            || $this->matchesAny($withoutMethods, self::PAYMENT_PATTERNS)
+            || $this->matchesAny($text, self::PAYMENT_SERVICES)
+            || $this->matchesAny($text, self::SUBMISSION_PATTERNS);
+    }
+
+    /**
+     * The brand step of the output filter for a short text a person wrote
+     * (a soft rule button label, §19 Low): BrandSafeText plus the AI-only
+     * BRAND_PATTERNS, also on the obfuscation-folded copy. No VAT exemption.
+     */
+    public static function violatesBrand(string $text): bool
+    {
+        $lower = mb_strtolower(self::normalize($text));
+        $filter = new self;
+
+        return $filter->isBrandUnsafe($lower) || $filter->isBrandUnsafe(self::fold($lower));
+    }
+
+    private function isBrandUnsafe(string $text): bool
+    {
+        return BrandSafeText::violates($text) || $this->matchesAny($text, self::BRAND_PATTERNS);
+    }
+
+    /**
+     * A copy of lowercase text with obfuscation undone (A2-S14), for the
+     * payment and brand checks only: symbols and emoji removed, look-alike
+     * letters inside a two-script word folded to its main script, ".", "-",
+     * "_" between single letters dropped ("ch.e.g.i.r.m.a"), runs of 4+
+     * single letters joined ("m o n e y").
+     */
+    public static function fold(string $lower): string
+    {
+        $text = (string) preg_replace('/[\p{So}\p{Sk}]/u', '', $lower);
+
+        $text = (string) preg_replace_callback('/\pL+/u', function (array $match): string {
+            $word = $match[0];
+            $latin = preg_match_all('/\p{Latin}/u', $word);
+            $other = preg_match_all('/[\p{Cyrillic}\p{Greek}]/u', $word);
+
+            if ($latin === 0 || $other === 0) {
+                return $word;
+            }
+
+            return strtr($word, $latin >= $other ? self::TO_LATIN : self::TO_CYRILLIC);
+        }, $text);
+
+        $text = (string) preg_replace_callback(
+            '/(?<![\pL\pN])\pL{1,3}(?:[._-]\pL){2,}(?![\pL\pN])/u',
+            fn (array $match): string => str_replace(['.', '-', '_'], '', $match[0]),
+            $text,
+        );
+
+        return (string) preg_replace_callback(
+            '/(?<![\pL\pN])\pL(?:\h+\pL(?![\pL\pN])){3,}/u',
+            fn (array $match): string => (string) preg_replace('/\h+/u', '', $match[0]),
+            $text,
+        );
+    }
+
+    /**
+     * Where the configured VAT rate stands right next to a VAT word ("12%
+     * QQS", "НДС 12 %", "QQS (12%)"), as byte spans of the digits, the
+     * optional space and "%" only (never the word or the separators), on
+     * the string given (A2-S4, A2-S5). Shared by the brand step here and
+     * KnowledgeText::maskPercents, so masking and checking agree. Empty unless
+     * chatbot.ai.vat_percent is an int from 1 to 99. No span with a sign
+     * ("-12%", "−12%", "+12%"), a promo word after it ("12% VAT off",
+     * "12% chegirma"), or in a sentence with saving framing ("save",
+     * "вернём", "qaytariladi" …, also bonus / cashback / aksiya words, §19 M-4).
+     * Callers may pass mixed case: the patterns are case-insensitive and the
+     * spans are byte offsets into exactly the string given.
+     *
+     * @return list<array{start: int, length: int}>
+     */
+    public static function vatRateSpans(string $text): array
+    {
+        $rate = config('chatbot.ai.vat_percent');
+
+        if (! is_int($rate) || $rate < 1 || $rate > 99) {
+            return [];
+        }
+
+        $promo = '(?!\s*(?:off(?!\pL)|скидк|chegirma|'.self::VAT_PROMO.'))';
+        $pattern = '/(?<![\pN.,−–—+\-])('.$rate.'\s?%)\s?[(:]?\s?(?<!\pL)'.self::VAT_WORD.'(?!\pL)'.$promo
+            .'|(?<!\pL)'.self::VAT_WORD.'\s?[(:]?\s?('.$rate.'\s?%)'.$promo.'/iu';
+
+        if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) === 0) {
+            return [];
+        }
+
+        $spans = [];
+
+        foreach ($matches as $match) {
+            [$rateText, $start] = isset($match[2]) && $match[2][1] >= 0 ? $match[2] : $match[1];
+
+            if (preg_match(self::VAT_SAVING, self::sentenceAround($text, $start)) === 1) {
+                continue;
+            }
+
+            $spans[] = ['start' => $start, 'length' => strlen($rateText)];
+        }
+
+        return $spans;
+    }
+
+    /**
+     * The sentence (split at . ! ? … ; and line breaks) around a byte offset;
+     * a "." before a digit is a decimal point, not a sentence end ("3.5 mm. 12% QQS").
+     */
+    private static function sentenceAround(string $text, int $offset): string
+    {
+        $before = substr($text, 0, $offset);
+        $start = 0;
+
+        if (preg_match_all('/\.(?!\d)|[!?…;\n]/u', $before, $marks, PREG_OFFSET_CAPTURE) > 0) {
+            $last = end($marks[0]);
+            $start = $last[1] + strlen($last[0]);
+        }
+
+        $end = preg_match('/\.(?!\d)|[!?…;\n]/u', $text, $next, PREG_OFFSET_CAPTURE, $offset) === 1 ? $next[0][1] : strlen($text);
+
+        return substr($text, $start, $end - $start);
+    }
+
+    /**
+     * The text with the byte spans replaced by spaces of the same byte length.
+     *
+     * @param  list<array{start: int, length: int}>  $spans
+     */
+    private static function withoutSpans(string $text, array $spans): string
+    {
+        foreach ($spans as $span) {
+            $text = substr_replace($text, str_repeat(' ', $span['length']), $span['start'], $span['length']);
+        }
+
+        return $text;
     }
 
     /**
@@ -710,7 +1094,7 @@ final class AiOutputFilter
      */
     private function longNumber(string $text): ?string
     {
-        preg_match_all('/\+?\d(?:[ \-().\/]{0,2}\d){8,}/u', $text, $matches, PREG_OFFSET_CAPTURE);
+        preg_match_all(self::LONG_NUMBER, $text, $matches, PREG_OFFSET_CAPTURE);
 
         $company = $this->companyPhones();
 
@@ -811,7 +1195,7 @@ final class AiOutputFilter
         // Runs of 9+ digits got here only as company phones or labelled barcodes (longNumber blocks the rest).
         $text = (string) preg_replace_callback('/'.self::EAN_LABEL.'\d{8,14}(?!\d)/u', $blank, $text);
 
-        return (string) preg_replace_callback('/\+?\d(?:[ \-().\/]{0,2}\d){8,}/u', $blank, $text);
+        return (string) preg_replace_callback(self::LONG_NUMBER, $blank, $text);
     }
 
     /**
@@ -822,8 +1206,8 @@ final class AiOutputFilter
      */
     private function hasForeignAmount(string $text, string $original): bool
     {
-        // Foreign currencies are never allowed, with or without a number.
-        if (preg_match('/(?<!\pL)'.self::FOREIGN.'(?!\pL)/u', $text) === 1) {
+        // Foreign currencies are never allowed, with or without a number (a bare "rub" is not one: "a rub test").
+        if (preg_match('/(?<!\pL)'.self::FOREIGN_STANDALONE.'(?!\pL)/u', $text) === 1) {
             return true;
         }
 
@@ -941,9 +1325,13 @@ final class AiOutputFilter
                 && preg_match('/^\s*\pL/u', $rest) === 1;
             $port = ! $grouped && strlen($integer) <= 4
                 && preg_match('/(?<!\pL)(?:port|порт)\pL*\s*[:—–-]?\s*$/u', $before) === 1;
+            // The second number of a range ("860–960 MHz", "125-134"): the dash is not a price dash (A2-4).
+            $range = preg_match('/(?<![\pL\d])\d{1,6}[–-]$/u', $before) === 1;
             // "R110 — 9000.": 3+ digits right after a dash, "=" or ":".
-            $dash = preg_match('/[—–=:]\s*$/u', mb_scrub(substr($text, max(0, $offset - 4), min(4, $offset)), 'UTF-8')) === 1;
-            $plain = ! $unit && ! $time && ! $glued && ! $port;
+            $dash = ! $range && preg_match('/[—–=:]\s*$/u', mb_scrub(substr($text, max(0, $offset - 4), min(4, $offset)), 'UTF-8')) === 1;
+            // A standard number right after its prefix ("ISO/IEC 18000-63"), never in a price context (A2-S13).
+            $standard = ! $context && ! $grouped && preg_match(self::STANDARD_BEFORE, $before) === 1;
+            $plain = ! $unit && ! $time && ! $glued && ! $port && ! $standard;
             $priced = strlen(ltrim($integer, '0')) >= 3 && $plain && ! $year && ($context || $dash);
             $money = $scale > 1 || $som || $foreign || $priced
                 || ($grouped && ! $unit && strlen($integer) >= 4)

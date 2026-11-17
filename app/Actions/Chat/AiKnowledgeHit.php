@@ -23,12 +23,14 @@ final readonly class AiKnowledgeHit
     ) {}
 
     /**
-     * The `<site>` entry: "[S1] Page | Title | URL" and the text below.
+     * The `<site>` entry: "[S1] Page | Title | URL" and the text below; a
+     * FAQ item has no URL (plan 33 A2-3): "[S2] FAQ | Question".
      */
     public function entry(int $number, string $text): string
     {
         $label = (string) __('enums.ai_knowledge_source.'.$this->type->value, [], $this->locale);
+        $url = $this->url === '' ? '' : " | {$this->url}";
 
-        return "[S{$number}] {$label} | {$this->title} | {$this->url}\n{$text}";
+        return "[S{$number}] {$label} | {$this->title}{$url}\n{$text}";
     }
 }

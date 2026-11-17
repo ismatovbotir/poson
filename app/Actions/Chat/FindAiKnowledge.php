@@ -20,7 +20,8 @@ use App\Support\Search as SearchText;
  *    hit must match at least 2.
  *  - The first chunk of the key-policy pages is already in the static
  *    knowledge block and is left out.
- *  - At most 2 chunks per source, then each source is checked again with
+ *  - At most 2 chunks per source and chatbot.ai.knowledge.faq_entries (2)
+ *    FAQ items (plan 33 A2-3), then each source is checked again with
  *    the public scopes of KnowledgeSources (a brand or product depends on
  *    categories that fire no hook, K-1): a source that is not public right
  *    now never gets in.
@@ -99,14 +100,23 @@ class FindAiKnowledge
     {
         $count = [];
         $kept = [];
+        $faq = 0;
+        $faqMax = max(0, (int) config('chatbot.ai.knowledge.faq_entries', 2));
 
         foreach ($rows as $row) {
             $key = $row->source_type->value.':'.$row->source_id;
             $count[$key] = ($count[$key] ?? 0) + 1;
 
-            if ($count[$key] <= 2) {
-                $kept[] = $row;
+            if ($count[$key] > 2) {
+                continue;
             }
+
+            // FAQ items are short and many: they never fill all the entries (A2-3).
+            if ($row->source_type === AiKnowledgeSource::Faq && ++$faq > $faqMax) {
+                continue;
+            }
+
+            $kept[] = $row;
         }
 
         return $kept;

@@ -61,7 +61,8 @@ use App\Support\Telegram\Bot\UpdateParser;
  * (chat_ai_turns), its id is kept in bot_dialog["ai"] and AnswerChatWithAi
  * is queued after commit (no API call here); over a per-customer limit →
  * once per window a short "ask a manager" reply with the hand-off button
- * (never an automatic hand-off); otherwise the marker's original reply is
+ * (never an automatic hand-off; a soft product-search or quote hit gets its
+ * rule reply instead, plan 33 A2-S6); otherwise the marker's original reply is
  * replayed exactly as without AI (a search still searches, an unmatched
  * phrase is still recorded). Any later answer drops bot_dialog["ai"], so a
  * queued AI answer for an older message is never sent (superseded). The job
@@ -202,6 +203,11 @@ class HandleChatInput
         $guard = $this->guard->handle(ChatChannel::Telegram, $user);
 
         if ($guard['decision'] === GuardAiRequest::LIMITED && $guard['notify']) {
+            // A2-S6: the limit never hides a lead: a soft search / quote hit gets its rule reply.
+            if ($original->ruleId !== null && in_array($original->outcome, [ChatReply::SEARCH, ChatReply::LEAD], true)) {
+                return $original;
+            }
+
             return new ChatReply(
                 __('chatbot.ai.limited', [], $context->locale),
                 [['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $context->locale)]],

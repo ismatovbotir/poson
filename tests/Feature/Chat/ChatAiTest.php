@@ -2,6 +2,8 @@
 
 require_once __DIR__.'/ChatBotHelpers.php';
 
+use App\Actions\Chat\AiAnswer;
+use App\Actions\Chat\AnswerWithAi;
 use App\Actions\Chat\GuardAiRequest;
 use App\Actions\Chat\RecordAiUsage;
 use App\Enums\AiUsageChannel;
@@ -20,10 +22,12 @@ use App\Models\ChatRule;
 use App\Models\ChatRuleKeyword;
 use App\Models\ChatStatDaily;
 use App\Models\ChatUnmatched;
+use App\Models\Lead;
 use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Services\Ai\AiFailed;
 use App\Services\Ai\AiResult;
+use App\Support\Chat\AiPrompt;
 use App\Support\Chat\AiSwitch;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatContext;
@@ -499,4 +503,224 @@ it('starts a new AI context on the menu button and deletes AI turns with the con
     $user->delete();
 
     expect(ChatAiTurn::query()->count())->toBe(0);
+});
+
+/*
+| Plan 33 A2-2: soft match of product-search and quote hits (§17.3, A2-S3, A2-S6 – A2-S8, A2-S16)
+*/
+
+function aiRuleId(string $key): int
+{
+    return (int) ChatRule::query()->where('key', $key)->value('id');
+}
+
+/**
+ * The callback data of the inline buttons of the last message sent, in order.
+ *
+ * @return list<string>
+ */
+function aiLastCallbacks(): array
+{
+    $sent = array_values(array_filter(telegramApiCalls(), fn (array $call) => $call['method'] === 'sendMessage'));
+    $markup = end($sent)['data']['reply_markup'] ?? [];
+    $markup = is_string($markup) ? json_decode($markup, true) : $markup;
+
+    return collect($markup['inline_keyboard'] ?? [])->flatten(1)->pluck('callback_data')->filter()->values()->all();
+}
+
+it('sends a 3+ word product search or quote hit to AI and keeps short ones direct (B2)', function (string $text, string $key, string $outcome) {
+    $reply = aiAsk($text);
+
+    expect($reply->outcome)->toBe(ChatReply::AI)
+        ->and($reply->ruleId)->toBe(aiRuleId($key))
+        ->and($reply->original->outcome)->toBe($outcome)
+        ->and(app(Engine::class)->aiReason(new ChatContext(ChatChannel::Telegram, 'en', $text)))->toBe('weak_match');
+})->with([
+    'product search en' => ['which label printer for a pharmacy', 'product_search', ChatReply::SEARCH],
+    'quote en' => ['ZD421 price for our shop', 'quote', ChatReply::LEAD],
+]);
+
+it('keeps 1–2 word search and quote hits direct', function (string $text, string $outcome) {
+    expect(aiAsk($text)->outcome)->toBe($outcome);
+})->with([
+    'label printer' => ['label printer', ChatReply::SEARCH],
+    'price ZD421' => ['price ZD421', ChatReply::LEAD],
+]);
+
+it('never softens the callback flow, an exact keyword or a strong score', function (string $text, string $outcome) {
+    aiRule('zorbexactsearch', [['zorb qwe rty uio', KeywordMatch::Exact, 10]], ['action' => ChatAction::ProductSearch]);
+
+    expect(aiAsk($text)->outcome)->toBe($outcome);
+})->with([
+    'callback flow' => ['please call me back tomorrow', ChatReply::LEAD],
+    'exact keyword' => ['zorb qwe rty uio', ChatReply::SEARCH],
+    'strong score' => ['scanner printer label for a shop', ChatReply::SEARCH],
+]);
+
+it('never softens a pressed rule or menu key (A2-S8)', function () {
+    $context = new ChatContext(ChatChannel::Telegram, 'en', 'which label printer for a pharmacy');
+
+    expect(app(Engine::class)->respondToRule($context, aiRuleId('quote'))->outcome)->toBe(ChatReply::LEAD)
+        ->and(app(Engine::class)->respondToRule($context, aiRuleId('product_search'))->outcome)->toBe(ChatReply::SEARCH);
+});
+
+it('answers the old direct reply with AI on when the soft match is switched off (A2-S16)', function () {
+    config(['chatbot.ai.soft_match' => false]);
+
+    expect(aiAsk('which label printer for a pharmacy')->outcome)->toBe(ChatReply::SEARCH)
+        ->and(aiAsk('ZD421 price for our shop')->outcome)->toBe(ChatReply::LEAD);
+});
+
+it('sends a 1–2 hit warranty question to AI', function (string $text) {
+    $reply = aiAsk($text);
+
+    expect($reply->outcome)->toBe(ChatReply::AI)
+        ->and($reply->ruleId)->toBe(aiRuleId('warranty_service'))
+        ->and($reply->original->outcome)->toBe(ChatReply::HIT);
+})->with(['my printer ne rabotaet', 'warranty for a scanner repair']);
+
+it('answers soft-match texts exactly as before when AI is off (A2-S8)', function (string $text, string $locale, string $key, string $outcome) {
+    $reply = aiAsk($text, ai: false, locale: $locale);
+    $rule = ChatRule::query()->where('key', $key)->firstOrFail();
+    $handoff = ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $locale)];
+
+    expect($reply)->toEqual(new ChatReply($rule->getTranslation('answer', $locale), [$handoff], $rule->id, $outcome, $outcome === ChatReply::LEAD ? 'quote' : null));
+})->with('a2 soft texts');
+
+dataset('a2 soft texts', [
+    'uz search' => ['qaysi printer dorixona uchun mos', 'uz', 'product_search', ChatReply::SEARCH],
+    'ru search' => ['какой сканер подойдёт для склада', 'ru', 'product_search', ChatReply::SEARCH],
+    'en search' => ['which label printer for a pharmacy', 'en', 'product_search', ChatReply::SEARCH],
+    'uz quote' => ['ZD421 narxi qancha boʻladi', 'uz', 'quote', ChatReply::LEAD],
+    'ru quote' => ['сколько стоит цена на ZD421', 'ru', 'quote', ChatReply::LEAD],
+    'en quote' => ['ZD421 price for our shop', 'en', 'quote', ChatReply::LEAD],
+]);
+
+it('never calls the model for a soft text while AI is off, the key is missing or consent is missing (A2-S8)', function (Closure $off) {
+    aiOn();
+    $fake = FakeChatModel::bind('Never sent.');
+    $user = cbUser();
+    $off($user);
+
+    cbText('ZD421 price for our shop');
+
+    expect($fake->calls())->toBe(0)
+        ->and(ChatAiTurn::query()->count())->toBe(0)
+        ->and($user->fresh()->bot_dialog[LeadDialog::KEY] ?? null)->not->toBeNull();
+})->with([
+    'switch off' => [fn (TelegramUser $user) => aiOn(false)],
+    'key missing' => [fn (TelegramUser $user) => config(['services.anthropic.key' => ''])],
+    'consent missing' => [fn (TelegramUser $user) => $user->forceFill(['consent_at' => null])->save()],
+]);
+
+it('keeps lead dialog text away from the engine and AI (A2-S8)', function () {
+    aiOn();
+    $fake = FakeChatModel::bind('Never sent.');
+    $user = cbUser();
+    cbPress('chat:r:'.aiRuleId('quote'));
+
+    cbText('which label printer for a pharmacy with 1C');
+
+    expect($fake->calls())->toBe(0)
+        ->and(ChatAiTurn::query()->count())->toBe(0)
+        ->and($user->fresh()->bot_dialog[LeadDialog::KEY]['answers']['details'] ?? null)->toBe('which label printer for a pharmacy with 1C');
+});
+
+it('adds the rule button before the hand-off on a soft-match AI answer', function (string $text, string $key) {
+    aiOn();
+    $fake = FakeChatModel::bind('Poson helps choose and set up the right equipment.');
+    $user = cbUser();
+
+    cbText($text);
+
+    $id = aiRuleId($key);
+    $callbacks = aiLastCallbacks();
+
+    expect($fake->calls())->toBe(1)
+        ->and(cbLast())->toContain(e(__('chatbot.ai.marker', [], 'en')))
+        ->and(end($callbacks))->toBe('chat:handoff')
+        ->and($callbacks[count($callbacks) - 2] ?? null)->toBe('chat:r:'.$id)
+        ->and(count($callbacks))->toBeLessThanOrEqual(8)
+        ->and($user->fresh()->bot_dialog['rules'] ?? [])->toContain($id)
+        ->and($fake->last()->system[2]['text'])->toContain("A button '".e(ChatRule::query()->find($id)->params['label']['en'])."'");
+
+    // A2-S7: the tap is the deterministic rule reply, no second model call.
+    cbPress('chat:r:'.$id);
+
+    expect($fake->calls())->toBe(1);
+
+    if ($key === 'quote') {
+        expect($user->fresh()->bot_dialog[LeadDialog::KEY] ?? null)->not->toBeNull();
+    }
+})->with([
+    'product search' => ['which label printer for a pharmacy', 'product_search'],
+    'quote' => ['ZD421 price for our shop', 'quote'],
+]);
+
+it('gives no rule button when the rule was deactivated before the reply, or for a plain answer (A2-S7)', function () {
+    $ai = app(AnswerWithAi::class);
+    $answer = new AiAnswer(ChatAiStatus::Answered, 'Poson helps choose equipment.', null, null, '');
+    $quote = ChatRule::query()->where('key', 'quote')->firstOrFail();
+    $lead = new ChatReply('x', [], $quote->id, ChatReply::LEAD, 'quote');
+
+    expect(collect($ai->reply($answer, 'en', [], [], $lead)->buttons)->pluck('type')->all())->toBe(['rule', 'handoff']);
+
+    $quote->update(['is_active' => false]);
+    RuleIndex::bump();
+
+    expect(collect($ai->reply($answer, 'en', [], [], $lead)->buttons)->pluck('type')->all())->toBe(['handoff'])
+        ->and(collect($ai->reply($answer, 'en', [], [], new ChatReply('x', [], aiRuleId('warranty_service')))->buttons)->pluck('type')->all())->toBe(['handoff'])
+        ->and(collect($ai->reply($answer, 'en', [], [], new ChatReply('x', [], aiRuleId('callback'), ChatReply::LEAD, 'callback'))->buttons)->pluck('type')->all())->toBe(['handoff']);
+});
+
+it('replays the search or lead reply when the soft-match AI turn is denied or blocked', function (AiResult|Throwable $response) {
+    aiOn();
+    FakeChatModel::bind($response);
+    $user = cbUser();
+
+    cbText('ZD421 price for our shop');
+
+    expect(ChatAiTurn::query()->where('role', 'assistant')->value('status'))->toBeIn([ChatAiStatus::Blocked, ChatAiStatus::Failed])
+        ->and($user->fresh()->bot_dialog[LeadDialog::KEY] ?? null)->not->toBeNull()
+        ->and(Lead::query()->count())->toBe(0);
+
+    cbText('Need 3 scanners for a warehouse');
+    cbPress(cbButton($user, 'send'));
+
+    expect(Lead::query()->count())->toBe(1);
+})->with([
+    'claims a sent request' => [FakeChatModel::answer('Your request has been sent to a manager.')],
+    'asks for a phone' => [FakeChatModel::answer('Please leave your phone number here.')],
+    'payment to a card' => [FakeChatModel::answer('Send the money to the manager\'s card.')],
+    'model fails' => [new AiFailed('APITimeoutException')],
+]);
+
+it('starts the dialog instead of the limit notice for a soft quote hit over the limit (A2-S6)', function () {
+    Queue::fake([AnswerChatWithAi::class]);
+    aiOn();
+    config(['chatbot.ai.limits.per_day_user' => 0]);
+    $user = cbUser();
+
+    cbText('ZD421 price for our shop');
+
+    Queue::assertNotPushed(AnswerChatWithAi::class);
+    expect($user->fresh()->bot_dialog[LeadDialog::KEY] ?? null)->not->toBeNull()
+        ->and(cbLast())->not->toContain(e(__('chatbot.ai.limited', [], 'en')));
+
+    // A plain question over the limit still gets the notice once.
+    LeadDialog::clear($fresh = $user->fresh());
+    $fresh->save();
+    cbText(AI_PHRASE);
+
+    expect(ChatAiTurn::query()->count())->toBe(0);
+});
+
+it('tells the model it creates no requests, asks for no contact details and names UzQR only (A2-S3, A2-S9)', function () {
+    $prompt = AiPrompt::brand();
+
+    expect(AiPrompt::VERSION)->toBe('2026-11-17.1')
+        ->and($prompt)->toContain('10. You cannot create requests, quotes or orders and cannot pass messages to staff.')
+        ->and($prompt)->toContain('Never ask for a name, phone number or company.')
+        ->and($prompt)->toContain('Online payment is only via UzQR (also cash and bank transfer). Never name other payment services.')
+        ->and($prompt)->not->toMatch('/\bpayme\b|\bclick\b/i');
 });

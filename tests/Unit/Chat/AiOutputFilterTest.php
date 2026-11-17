@@ -278,7 +278,8 @@ it('keeps specs, quantities, dates, order numbers and warranty (H1 false positiv
     '2 000 mm' => ['Rulon uzunligi 2 000 mm.'],
     '4 000 yorliq' => ['Bir rulonda 4 000 yorliq.'],
     'date' => ['Yetkazish 15.11.2026 kuni.'],
-    'order number' => ['Buyurtma O-2026-0001 qabul qilindi.'],
+    // A2-S3: "… qabul qilindi" is a submission claim now; the row keeps checking the order number.
+    'order number' => ['Buyurtma raqami O-2026-0001.'],
     'warranty' => ['2 yil kafolat.'],
 ]);
 
@@ -440,7 +441,7 @@ it('keeps a lettered code before a grouped amount (CR-1)', function (string $tex
 it('blocks money-moving instructions to a card, a manager or a personal number (L4)', function (string $text) {
     expect(aiFilter()->apply($text)['blocked'])->toBe('contact');
 })->with([
-    'menejer raqamiga' => ['Click orqali menejer raqamiga yuboring'],
+    'menejer raqamiga' => ['UzQR orqali menejer raqamiga yuboring'],
     'на карту менеджера' => ['Деньги переведите на карту менеджера'],
     'kartasiga oʻtkazing' => ['Pulni menejerning kartasiga oʻtkazing'],
     'manager card' => ['Send the money to the manager\'s card'],
@@ -454,7 +455,7 @@ it('keeps plain payment methods (L4 false positives)', function (string $text) {
     'картой при получении' => ['Заказ отправим курьером, оплата картой при получении.'],
     'real port number' => ['Настройка порта 9100 по сети.'],
     'year with word' => ['Narxlar 2026-yil uchun amal qiladi.'],
-    'by card' => ['Payment by card, Payme or Click'],
+    'by card' => ['Payment by card, UzQR or naqd'],
     'kartasi bilan' => ['Toʻlov kartasi bilan saytda toʻlang'],
     'перевод по счёту' => ['Перевод по счёту для юрлиц'],
     'bank oʻtkazma' => ['Bank orqali oʻtkazma uchun hisob-faktura'],
@@ -522,3 +523,78 @@ it('compares the normalized path with the list', function () {
         ->and($listed->apply('See https://poson.uz//ru/./page/about/ now')['blocked'])->toBeNull()
         ->and($listed->apply('See https://poson.uz/ru/page/other now')['blocked'])->toBe('link');
 });
+
+/*
+| Plan 33 A2 (§17, §18): payment instructions, UzQR only, submissions, obfuscation, VAT, amounts, cheap wording
+*/
+
+it('keeps manager call-to-action sentences (B1)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBeNull();
+})->with('a2 manager calls to action');
+
+it('blocks money sent to a card, number or person (B1 boundary)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe('contact');
+})->with('a2 payment instructions');
+
+it('keeps invoice-for-payment and warranty-card sentences (B1 false positives)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBeNull();
+})->with('a2 invoice and warranty card');
+
+it('blocks claimed submissions and requests for contact details (A2-S3)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe('contact');
+})->with('a2 submission claims');
+
+it('names no payment service but UzQR (A2-S9)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe('contact');
+})->with('a2 other payment services');
+
+it('blocks obfuscated payment, card and brand wording (A2-S14)', function (string $text, string $reason) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe($reason);
+})->with('a2 obfuscations');
+
+it('keeps frequency ranges and standard numbers (B4)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBeNull()
+        ->and(AiOutputFilter::moneySpans(AiOutputFilter::normalizeForAmounts($text)))->toBe([]);
+})->with('a2 frequencies and standards');
+
+it('still blocks priced ranges and dash prices (B4 boundary)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->not->toBeNull();
+})->with('a2 amounts');
+
+it('keeps a rub test but blocks rub amounts (B4)', function () {
+    expect(aiFilter()->apply('A test print on your actual labels, followed by a rub test, is the most reliable way to confirm a choice.')['blocked'])->toBeNull()
+        ->and(aiFilter()->apply('Ribbon rub test passed.')['blocked'])->toBeNull()
+        ->and(aiFilter(aiCandidates())->apply('ZD421 — 500 rub')['blocked'])->toBe('money')
+        ->and(aiFilter(aiCandidates())->apply('ZD421 rub 500')['blocked'])->toBe('money')
+        ->and(aiFilter(aiCandidates())->apply('ZD421 ₽500')['blocked'])->toBe('money')
+        ->and(aiFilter()->apply('Цена в рублях не указана')['blocked'])->toBe('money');
+});
+
+it('allows only the configured VAT rate next to a VAT word (B4)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBeNull();
+})->with('a2 vat allowed');
+
+it('blocks every other percentage, a signed rate, promo and saving framing next to VAT (A2-S4, A2-S5)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe('brand');
+})->with('a2 vat blocked');
+
+it('turns the VAT exemption off unless vat_percent is an int from 1 to 99 (A2-S4)', function (mixed $rate) {
+    config(['chatbot.ai.vat_percent' => $rate]);
+
+    expect(aiFilter()->apply('Narxlar 12% QQS bilan')['blocked'])->toBe('brand')
+        ->and(aiFilter()->apply('QQS %')['blocked'])->toBe('brand')
+        ->and(AiOutputFilter::vatRateSpans('12% qqs'))->toBe([]);
+})->with(['null' => [null], 'empty' => [''], 'zero' => [0], 'float' => [12.0], 'string' => ['12'], 'hundred' => [100]]);
+
+it('blanks only the rate digits and percent sign, never the VAT word (A2-S4)', function () {
+    expect(AiOutputFilter::vatRateSpans('narxlar 12% qqs bilan'))->toBe([['start' => 8, 'length' => 3]])
+        ->and(AiOutputFilter::vatRateSpans('qqs (12 %)'))->toBe([['start' => 5, 'length' => 4]]);
+});
+
+it('blocks cheap, budget, special-price and dealer-price wording (B4)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBe('brand');
+})->with('a2 cheap wording');
+
+it('keeps budget organisations, energy-saving and save-on-device (B4 false positives)', function (string $text) {
+    expect(aiFilter()->apply($text)['blocked'])->toBeNull();
+})->with('a2 brand false positives');

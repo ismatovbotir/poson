@@ -19,6 +19,7 @@ use App\Support\Chat\ChatContext;
 use App\Support\Chat\ChatReply;
 use App\Support\Chat\ChatSettings;
 use App\Support\Chat\Citations;
+use App\Support\Chat\Engine;
 use App\Support\Chat\RuleIndex;
 use App\Support\Chat\WorkingHours;
 
@@ -32,7 +33,8 @@ use App\Support\Chat\WorkingHours;
  *   2. BuildAiKnowledge, the public <knowledge> of the locale and channel
  *      (cache breakpoint 2);
  *   3. volatile: date and time (Asia/Tashkent), the reply language, whether
- *      managers are available, the weak rule's answer as a hint, and
+ *      managers are available, the weak rule's answer as a hint, the
+ *      soft rule's button the answer will carry (plan 33 A2-2), and
  *      <products>: the candidates of FindAiProducts (products(), phase B).
  * messages = the history window (history(): AiHistory) + the redacted
  * customer message inside <customer_message>. Only ChatRedactor output is
@@ -61,14 +63,16 @@ class AnswerWithAi
         private readonly AiHistory $conversation,
         private readonly FindAiKnowledge $site,
         private readonly KnowledgeSources $sources,
+        private readonly Engine $engine,
     ) {}
 
     /**
      * @param  list<array{role: 'user'|'assistant', content: string}>  $history  Earlier turns (history())
      * @param  list<AiProductCandidate>  $products  Candidates (products())
      * @param  list<AiKnowledgeHit>  $sites  Website passages (sites()), tagged [S1]... in the <site> block
+     * @param  ?ChatReply  $original  The engine's reply without AI: a soft search / quote hit names its button in <context>
      */
-    public function prepare(ChatContext $context, string $redactedText, ?int $hintRuleId = null, array $history = [], array $products = [], array $sites = []): AiRequest
+    public function prepare(ChatContext $context, string $redactedText, ?int $hintRuleId = null, array $history = [], array $products = [], array $sites = [], ?ChatReply $original = null): AiRequest
     {
         $knowledge = $this->knowledge->handle($context->locale, $context->channel);
         $message = AiPrompt::field($redactedText, (int) config('chatbot.ai.message_max', 1000));
@@ -77,7 +81,7 @@ class AnswerWithAi
             system: [
                 ['text' => AiPrompt::brand(ChatSettings::all()['ai']['instructions'], $context->channel), 'cache' => true],
                 ['text' => $knowledge, 'cache' => true],
-                ['text' => $this->volatile($context, $hintRuleId, $products, $sites), 'cache' => false],
+                ['text' => $this->volatile($context, $hintRuleId, $products, $sites, $this->ruleButton($original, $context)), 'cache' => false],
             ],
             messages: [
                 ...$history,
@@ -141,13 +145,17 @@ class AnswerWithAi
      * "AI assistant" marker added by the server (AI-13), the text, a product
      * button for each candidate the answer names (at most
      * chatbot.ai.products.buttons; stored server-side by the adapter, the
-     * product and its price are read again at the tap, AI-B9) and the
-     * hand-off button. The model never produces buttons.
+     * product and its price are read again at the tap, AI-B9), the page
+     * buttons of the cited website entries, the button of the soft rule the
+     * question hit (a product search or a quote request, re-checked now;
+     * plan 33 A2-S7) right before the hand-off button, which is always last.
+     * At most 8 buttons. The model never produces buttons.
      *
      * @param  list<AiProductCandidate>  $products
      * @param  list<AiKnowledgeHit>  $sites
+     * @param  ?ChatReply  $original  The engine's reply without AI from the job's own run (its rule id only)
      */
-    public function reply(AiAnswer $answer, string $locale, array $products = [], array $sites = []): ChatReply
+    public function reply(AiAnswer $answer, string $locale, array $products = [], array $sites = [], ?ChatReply $original = null, ChatChannel $channel = ChatChannel::Telegram): ChatReply
     {
         $buttons = [];
 
@@ -162,10 +170,12 @@ class AnswerWithAi
         }
 
         $buttons = [...$buttons, ...$this->pageButtons($answer, $locale, $sites)];
+        $rule = $this->ruleButton($original, new ChatContext($channel, $locale, ''));
+        $tail = $rule === null ? [] : [$rule];
 
         return new ChatReply(
             __('chatbot.ai.marker', [], $locale)."\n\n".$answer->text,
-            [...array_slice($buttons, 0, self::MAX_BUTTONS - 1), ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $locale)]],
+            [...array_slice($buttons, 0, self::MAX_BUTTONS - 1 - count($tail)), ...$tail, ['type' => 'handoff', 'label' => __('chatbot.buttons.handoff', [], $locale)]],
             null,
             ChatReply::DONE,
         );
@@ -204,9 +214,26 @@ class AnswerWithAi
     }
 
     /**
-     * @param  list<AiProductCandidate>  $products
+     * The soft rule's button (A2-S7): only for a product-search or lead
+     * reply of a rule (the engine re-checks the rule), never on the web
+     * where a lead rule only asks for a manager.
+     *
+     * @return array{type: string, label: string, id: int}|null
      */
-    private function volatile(ChatContext $context, ?int $hintRuleId, array $products, array $sites): string
+    private function ruleButton(?ChatReply $original, ChatContext $context): ?array
+    {
+        if ($original === null || $original->ruleId === null || ! in_array($original->outcome, [ChatReply::SEARCH, ChatReply::LEAD], true)) {
+            return null;
+        }
+
+        return $this->engine->softRuleButton($context, $original->ruleId);
+    }
+
+    /**
+     * @param  list<AiProductCandidate>  $products
+     * @param  array{type: string, label: string, id: int}|null  $ruleButton
+     */
+    private function volatile(ChatContext $context, ?int $hintRuleId, array $products, array $sites, ?array $ruleButton = null): string
     {
         $now = now(WorkingHours::TIMEZONE);
         $language = ['uz' => 'Uzbek (Latin script)', 'ru' => 'Russian', 'en' => 'English'][$context->locale] ?? 'Uzbek (Latin script)';
@@ -215,6 +242,7 @@ class AnswerWithAi
             'Now: '.$now->format('Y-m-d H:i').' (Asia/Tashkent)',
             'Reply language: '.$language,
             'Managers available now: '.(WorkingHours::isOpen() ? 'yes' : 'no (they reply during working hours)'),
+            ...($ruleButton === null ? [] : ["A button '{$ruleButton['label']}' is shown under your answer; point to it for a quote or a selection."]),
             '</context>',
         ];
 
@@ -273,7 +301,8 @@ class AnswerWithAi
 
             $hit = $sites[$number - 1] ?? null;
 
-            if ($hit === null || isset($seen[$hit->type->value.':'.$hit->sourceId])) {
+            // A FAQ item is never a button (A2-S11): its tag is already stripped from the text.
+            if ($hit === null || ! $hit->type->linkable() || isset($seen[$hit->type->value.':'.$hit->sourceId])) {
                 continue;
             }
 
@@ -325,7 +354,7 @@ class AnswerWithAi
     private function urlsOf(array $products, array $sites, ?string $locale): array
     {
         $urls = array_merge(
-            array_map(fn (AiKnowledgeHit $hit): string => $hit->url, $sites),
+            array_map(fn (AiKnowledgeHit $hit): string => $hit->type->linkable() ? $hit->url : '', $sites),
             array_map(fn (AiProductCandidate $product): string => $product->url, $products),
             $locale === null ? [] : $this->knowledge->urls($locale),
         );

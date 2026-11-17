@@ -82,7 +82,9 @@
                             <li wire:key="site-{{ $hit['n'] }}">
                                 <span class="font-semibold tabular-nums">[S{{ $hit['n'] }}]</span> {{ $hit['title'] }}
                                 <span class="text-xs text-slate-500">· {{ $hit['label'] }}</span>
-                                <code class="mt-0.5 block break-all rounded bg-slate-100 px-1.5 py-0.5 text-xs">{{ $hit['url'] }}</code>
+                                @if ($hit['url'] !== '')
+                                    <code class="mt-0.5 block break-all rounded bg-slate-100 px-1.5 py-0.5 text-xs">{{ $hit['url'] }}</code>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

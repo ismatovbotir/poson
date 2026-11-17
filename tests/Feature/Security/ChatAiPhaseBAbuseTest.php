@@ -251,7 +251,8 @@ it('delivers answers that only look like prices (false-positive regression throu
     '2 000 mm' => ['Rulon uzunligi 2 000 mm.'],
     '4 000 yorliq' => ['Bir rulonda 4 000 yorliq.'],
     'date' => ['Yetkazish 15.11.2026 kuni.'],
-    'order number' => ['Buyurtma O-2026-0001 qabul qilindi.'],
+    // A2-S3: "… qabul qilindi" is a submission claim now; the row keeps checking the order number.
+    'order number' => ['Buyurtma raqami O-2026-0001.'],
     'warranty' => ['2 yil kafolat beriladi.'],
     'price with candidate' => ['Zebra ZD421 narxi 1 250 000 soʻm.'],
     'price in mln' => ['Zebra ZD421 narxi 1,25 mln soʻm.'],
