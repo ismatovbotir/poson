@@ -8,6 +8,7 @@ use App\Data\Leads\LeadData;
 use App\Data\Leads\LeadItemData;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\PreferredContact;
 use App\Models\Lead;
 use App\Models\User;
 use App\Rules\PhoneNumber;
@@ -42,6 +43,17 @@ class LeadForm extends Form
     public string $message = '';
 
     /**
+     * Service request device (plan 36); used only for the service type.
+     */
+    public string $device_brand = '';
+
+    public string $device_model = '';
+
+    public string $serial_number = '';
+
+    public string $preferred_contact = '';
+
+    /**
      * Whole soʻm ('' = no estimate).
      */
     public string $estimated_amount = '';
@@ -69,6 +81,10 @@ class LeadForm extends Form
         $this->inn = (string) $lead->inn;
         $this->message = (string) $lead->message;
         $this->estimated_amount = Money::tiyinToSums($lead->estimated_amount);
+        $this->device_brand = (string) $lead->device_brand;
+        $this->device_model = (string) $lead->device_model;
+        $this->serial_number = (string) $lead->serial_number;
+        $this->preferred_contact = (string) $lead->preferred_contact?->value;
         $this->manager_id = (string) $lead->manager_id;
         $this->items = $lead->items->map(fn ($item): array => [
             'id' => $item->id,
@@ -108,6 +124,10 @@ class LeadForm extends Form
                     $fail(__('crm.leads.errors.amount_invalid'));
                 }
             }],
+            'device_brand' => ['nullable', 'string', 'max:80'],
+            'device_model' => ['nullable', 'string', 'max:120'],
+            'serial_number' => ['nullable', 'string', 'regex:/^[A-Za-z0-9\/. -]{1,64}$/'],
+            'preferred_contact' => ['nullable', Rule::enum(PreferredContact::class)],
             'manager_id' => ['nullable', 'integer'],
             'items' => ['array', 'max:'.SyncLeadItems::MAX_ITEMS],
             'items.*' => ['array:id,product_id,sku,name,qty,note'],
@@ -125,7 +145,7 @@ class LeadForm extends Form
     {
         $attributes = [];
 
-        foreach (['source', 'type', 'name', 'phone', 'email', 'company', 'inn', 'message', 'estimated_amount', 'manager_id'] as $field) {
+        foreach (['source', 'type', 'name', 'phone', 'email', 'company', 'inn', 'message', 'estimated_amount', 'manager_id', 'device_brand', 'device_model', 'serial_number', 'preferred_contact'] as $field) {
             $attributes[$field] = __('crm.leads.fields.'.$field);
         }
 
@@ -142,6 +162,8 @@ class LeadForm extends Form
      */
     public function leadData(User $actor): LeadData
     {
+        $service = LeadType::from($this->type)->isService();
+
         return new LeadData(
             source: LeadSource::from($this->source),
             type: LeadType::from($this->type),
@@ -161,6 +183,10 @@ class LeadForm extends Form
             managerId: filled($this->manager_id) ? (int) $this->manager_id : null,
             createdById: $actor->id,
             estimatedAmount: filled($this->estimated_amount) ? Money::sumsToTiyin($this->estimated_amount) : null,
+            deviceBrand: $service ? $this->device_brand : null,
+            deviceModel: $service ? $this->device_model : null,
+            serialNumber: $service ? $this->serial_number : null,
+            preferredContact: $service ? PreferredContact::tryFrom($this->preferred_contact) : null,
         );
     }
 }

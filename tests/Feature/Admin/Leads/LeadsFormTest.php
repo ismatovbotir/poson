@@ -2,6 +2,7 @@
 
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\PreferredContact;
 use App\Enums\Role;
 use App\Livewire\Admin\Leads\Form;
 use App\Models\Customer;
@@ -218,4 +219,26 @@ it('updates a lead and keeps the manager', function () {
         ->assertRedirect(route('admin.leads.show', $lead));
 
     expect($lead->fresh())->name->toBe('New name')->manager_id->toBe($sales->id);
+});
+
+it('keeps the service device fields when a lead is edited in the admin form', function () {
+    $lead = Lead::factory()->serviceRequest()->create([
+        'device_brand' => 'Zebra',
+        'device_model' => 'ZD421',
+        'serial_number' => 'SN-1',
+        'preferred_contact' => PreferredContact::Telegram,
+    ]);
+
+    Livewire::actingAs(staffUser())->test(Form::class, ['lead' => $lead])
+        ->set('form.name', 'Renamed')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $lead->refresh();
+
+    expect($lead->name)->toBe('Renamed')
+        ->and($lead->device_brand)->toBe('Zebra')
+        ->and($lead->device_model)->toBe('ZD421')
+        ->and($lead->serial_number)->toBe('SN-1')
+        ->and($lead->preferred_contact)->toBe(PreferredContact::Telegram);
 });

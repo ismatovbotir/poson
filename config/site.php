@@ -40,6 +40,32 @@ return [
     'per_page' => 24,
 
     /*
+    | Plan 36: hardware that gets "Service for this device" and a prefilled
+    | service request. Category slug → RepairDeviceType value; the nearest
+    | category up the tree wins (rfid-printers is under rfid). Unknown
+    | values are dropped. service_device_excluded: slugs that never qualify,
+    | checked in the same nearest-first order.
+    */
+    'service_device_categories' => [
+        'scanners' => 'scanner',
+        'label-printers' => 'label_printer',
+        'rfid-printers' => 'label_printer',
+        'receipt-printers' => 'receipt_printer',
+        'mobile-computers' => 'mobile_computer',
+        'rfid' => 'rfid',
+        'pos' => 'pos',
+    ],
+
+    'service_device_excluded' => [
+        'cash-drawers',
+        'rfid-antennas',
+        'rfid-tags',
+        'accessories-parts',
+        'accessories',
+        'spare-parts',
+    ],
+
+    /*
     | News posts per page on the news list (plan 07 7b).
     */
     'news_per_page' => 12,

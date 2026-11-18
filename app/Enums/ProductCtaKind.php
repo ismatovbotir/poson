@@ -5,7 +5,8 @@ namespace App\Enums;
 /**
  * Call-to-action of a product (App\Support\Catalog\ProductCtas): the partner
  * "Try" link, "Contact us" (lead form with the product), "Add to cart" and
- * "Request a quote".
+ * "Request a quote", "Request service" (service products) and
+ * "Service for this device" (serviceable hardware, plan 36).
  */
 enum ProductCtaKind: string
 {
@@ -13,6 +14,8 @@ enum ProductCtaKind: string
     case Contact = 'contact';
     case Cart = 'cart';
     case Quote = 'quote';
+    case ServiceRequest = 'service_request';
+    case DeviceService = 'device_service';
 
     /**
      * Translation key of the button label (site locale).
@@ -24,6 +27,8 @@ enum ProductCtaKind: string
             self::Contact => 'site.cta.contact',
             self::Cart => 'site.card.add_to_cart',
             self::Quote => 'site.card.request_quote',
+            self::ServiceRequest => 'site.cta.request_service',
+            self::DeviceService => 'site.cta.device_service',
         };
     }
 

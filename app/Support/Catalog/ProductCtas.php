@@ -30,6 +30,9 @@ use App\Models\RollType;
  *     for software). Out of stock → the quote CTA (rule 4). Label products
  *     (pricing_unit label) are added through the roll picker on the product
  *     page, so their card CTA links there (plan 11a).
+ *     Service products: "Request service" instead of the quote; serviceable
+ *     hardware (full call only) gets a secondary "Service for this device" link
+ *     (plan 36) after the main buttons.
  *  3. Software → "Contact us" (primary).
  *  4. Everything else → "Request a quote" (primary).
  *
@@ -62,7 +65,11 @@ class ProductCtas
             ];
         }
 
-        $inquiry = $isSoftware ? ProductCtaKind::Contact : ProductCtaKind::Quote;
+        $inquiry = match (true) {
+            $isSoftware => ProductCtaKind::Contact,
+            $product->type === ProductType::Service => ProductCtaKind::ServiceRequest,
+            default => ProductCtaKind::Quote,
+        };
 
         if ($cartEnabled && self::canAddToCart($product)) {
             return array_values(array_filter([
@@ -70,10 +77,30 @@ class ProductCtas
                 // the buy box add other products directly (Site\Cart\AddButton).
                 self::make($product, ProductCtaKind::Cart, ProductCta::ACTION_CART, $productUrl, true),
                 $compact ? null : self::make($product, $inquiry, ProductCta::ACTION_LEAD_FORM, $leadFormUrl, false),
+                ...self::deviceService($product, $compact, $locale),
             ]));
         }
 
-        return [self::make($product, $inquiry, ProductCta::ACTION_LEAD_FORM, $leadFormUrl, true)];
+        return [
+            self::make($product, $inquiry, ProductCta::ACTION_LEAD_FORM, $leadFormUrl, true),
+            ...self::deviceService($product, $compact, $locale),
+        ];
+    }
+
+    /**
+     * "Service for this device" (plan 36, P36-9): a secondary link to the
+     * service request page with the product, on the full page call only and
+     * only for serviceable hardware.
+     *
+     * @return list<ProductCta>
+     */
+    private static function deviceService(Product $product, bool $compact, string $locale): array
+    {
+        if ($compact || ServiceableDevice::for($product) === null) {
+            return [];
+        }
+
+        return [self::make($product, ProductCtaKind::DeviceService, ProductCta::ACTION_LINK, route('site.services.request', ['locale' => $locale, 'product' => $product->slug]), false)];
     }
 
     /**

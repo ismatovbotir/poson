@@ -87,7 +87,7 @@ trait PreparesRepairInput
 
     /**
      * The lead a new repair comes from (create only): a service request the
-     * actor may view, or null.
+     * actor may take in (LeadPolicy::createRepair), or null.
      *
      * @throws ValidationException
      */
@@ -99,7 +99,7 @@ trait PreparesRepairInput
 
         $lead = Lead::query()->find($data->leadId);
 
-        if (! $lead instanceof Lead || ! $lead->type->isService() || ! $actor->can('view', $lead)) {
+        if (! $lead instanceof Lead || ! $lead->acceptsRepair() || ! $actor->can('createRepair', $lead)) {
             throw ValidationException::withMessages(['lead_id' => __('repairs.errors.lead_invalid')]);
         }
 

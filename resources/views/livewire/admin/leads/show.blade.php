@@ -105,6 +105,26 @@
                 @endif
             </x-admin.card>
 
+            @if ($lead->type->isService())
+                <x-admin.card :title="__('crm.leads.sections.device')" data-lead-device>
+                    <dl class="space-y-2 text-sm">
+                        @foreach ([
+                            __('crm.leads.fields.device_brand') => $lead->device_brand,
+                            __('crm.leads.fields.device_model') => $lead->device_model,
+                            __('crm.leads.fields.serial_number') => $lead->serial_number,
+                            __('crm.leads.fields.preferred_contact') => $lead->preferred_contact?->label(),
+                        ] as $label => $value)
+                            @if (filled($value))
+                                <div class="flex gap-3"><dt class="w-32 shrink-0 text-slate-500">{{ $label }}</dt><dd class="min-w-0 break-words">{{ $value }}</dd></div>
+                            @endif
+                        @endforeach
+                    </dl>
+                    @if (blank($lead->device_brand) && blank($lead->device_model) && blank($lead->serial_number) && $lead->preferred_contact === null)
+                        <p class="text-sm text-slate-400">—</p>
+                    @endif
+                </x-admin.card>
+            @endif
+
             {{-- Activity --}}
             <x-admin.card :title="__('crm.leads.sections.activity')">
                 @if ($canEdit)
@@ -207,6 +227,25 @@
                         @else
                             <p class="text-sm text-slate-500" data-convert-first>{{ __('crm.quotes.convert_first') }}</p>
                         @endif
+                    @endif
+                </x-admin.card>
+            @endif
+
+            {{-- Repairs (plan 36) --}}
+            @if ($canCreateRepair || $leadRepairs->isNotEmpty())
+                <x-admin.card :title="__('crm.leads.sections.repairs')" data-lead-repairs>
+                    @if ($leadRepairs->isNotEmpty())
+                        <ul class="mb-3 space-y-1.5 text-sm">
+                            @foreach ($leadRepairs as $leadRepair)
+                                <li wire:key="lead-repair-{{ $leadRepair->id }}" class="flex items-center justify-between gap-2">
+                                    <a href="{{ route('admin.repairs.show', $leadRepair) }}" wire:navigate class="font-mono font-semibold text-brand-700 hover:underline">{{ $leadRepair->number }}</a>
+                                    <x-admin.badge :color="$leadRepair->status->color()">{{ $leadRepair->status->label() }}</x-admin.badge>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if ($canCreateRepair)
+                        <x-admin.button size="sm" icon="tool" :href="route('admin.repairs.create', ['lead' => $lead->id])" wire:navigate data-action="create-repair">{{ __('crm.leads.actions.create_repair') }}</x-admin.button>
                     @endif
                 </x-admin.card>
             @endif

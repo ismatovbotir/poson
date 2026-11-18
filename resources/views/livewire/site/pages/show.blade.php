@@ -43,6 +43,15 @@
         @endif
     </article>
 
+    {{-- Plan 36: code-driven CTA to the service request page; the page body stays as the editor wrote it. --}}
+    @if ($page->slug === 'warranty-service')
+        <section class="mt-8 max-w-[900px] rounded-box-lg bg-bg-tint p-6 sm:p-8" aria-labelledby="warranty-request-title" data-warranty-service-block>
+            <h2 id="warranty-request-title" class="mb-2 text-xl font-bold">{{ __('site.services.warranty_block.title') }}</h2>
+            <p class="mb-5 text-ink-2">{{ __('site.services.warranty_block.text') }}</p>
+            <a href="{{ route('site.services.request', ['locale' => app()->getLocale()]) }}" class="inline-flex h-[54px] items-center justify-center rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700" data-cta="service_request">{{ __('site.services.warranty_block.button') }}</a>
+        </section>
+    @endif
+
     @if ($isContacts)
         <div class="mt-8 grid gap-6 md:grid-cols-2 md:gap-8" data-contacts>
             <section class="rounded-box-lg border border-line bg-white p-5 sm:p-7" aria-labelledby="contacts-title">

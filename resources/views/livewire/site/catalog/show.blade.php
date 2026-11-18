@@ -352,8 +352,8 @@
     <section id="quote" class="mt-12 scroll-mt-28 md:mt-[72px]" aria-labelledby="quote-title">
         <div class="grid items-center gap-8 rounded-[28px] bg-bg-tint px-6 py-8 md:grid-cols-2 md:gap-12 md:p-14">
             <div>
-                <h2 id="quote-title" class="mb-3 text-[28px] leading-[1.15] font-bold tracking-[-0.02em] md:text-[32px]">{{ __('site.product.quote.title') }}</h2>
-                <p class="text-ink-2">{{ __('site.product.quote.text') }}</p>
+                <h2 id="quote-title" class="mb-3 text-[28px] leading-[1.15] font-bold tracking-[-0.02em] md:text-[32px]">{{ $product->type === \App\Enums\ProductType::Service ? __('site.product.service_request.heading') : __('site.product.quote.title') }}</h2>
+                <p class="text-ink-2">{{ $product->type === \App\Enums\ProductType::Service ? __('site.product.service_request.hint') : __('site.product.quote.text') }}</p>
             </div>
             <livewire:site.lead-form :product-id="$product->id" />
         </div>

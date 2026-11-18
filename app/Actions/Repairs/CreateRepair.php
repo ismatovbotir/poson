@@ -2,6 +2,7 @@
 
 namespace App\Actions\Repairs;
 
+use App\Actions\Leads\ChangeLeadStatus;
 use App\Actions\Repairs\Concerns\PreparesRepairInput;
 use App\Data\Repairs\RepairData;
 use App\Enums\ActivityType;
@@ -21,6 +22,9 @@ use Illuminate\Validation\ValidationException;
  * themselves unless they have repairs.assign), a "created" activity and, for
  * a warranty repair, the coverage activity with its reference.
  *
+ * With a lead (plan 36): the lead is locked and re-checked (LeadPolicy::createRepair),
+ * an open one becomes Converted, and it gets a "repair_created" activity.
+ *
  * Amounts are stored only when the actor has repairs.costs and the data says
  * costsIncluded. No personal data is logged.
  */
@@ -28,7 +32,7 @@ class CreateRepair
 {
     use PreparesRepairInput;
 
-    public function __construct(protected EnsureRepairStatusToken $ensureToken) {}
+    public function __construct(protected EnsureRepairStatusToken $ensureToken, protected ChangeLeadStatus $changeLeadStatus) {}
 
     /**
      * @throws ValidationException
@@ -36,11 +40,23 @@ class CreateRepair
     public function handle(RepairData $data, User $actor): Repair
     {
         $attributes = $this->attributesFrom($data, $actor);
-        $attributes['lead_id'] = $this->resolveLead($data, $actor);
+        $leadId = $this->resolveLead($data, $actor);
+        $attributes['lead_id'] = $leadId;
         $assignee = $this->assignee($data, $actor);
 
         // Up to 3 attempts: a deadlock on the sequence row is retried.
-        return DB::transaction(function () use ($attributes, $data, $actor, $assignee): Repair {
+        return DB::transaction(function () use ($attributes, $data, $actor, $assignee, $leadId): Repair {
+            $lead = null;
+
+            if ($leadId !== null) {
+                // Repeats resolveLead under a row lock: a change since that read must refuse the repair.
+                $lead = Lead::query()->whereKey($leadId)->lockForUpdate()->first();
+
+                if (! $lead instanceof Lead || ! $lead->acceptsRepair() || ! $actor->can('createRepair', $lead)) {
+                    throw ValidationException::withMessages(['lead_id' => __('repairs.errors.lead_invalid')]);
+                }
+            }
+
             $year = now(Lead::TIMEZONE)->year;
 
             $repair = new Repair;
@@ -75,6 +91,19 @@ class CreateRepair
                     'type' => ActivityType::Repair,
                     'body' => $repair->warranty_reference,
                     'meta' => ['event' => 'coverage_changed', 'from' => null, 'to' => RepairCoverage::Warranty->value],
+                    'created_at' => now(),
+                ]);
+            }
+
+            if ($lead instanceof Lead) {
+                if ($lead->status->isOpen()) {
+                    $this->changeLeadStatus->markConverted($lead, $actor);
+                }
+
+                $lead->activities()->create([
+                    'user_id' => $actor->id,
+                    'type' => ActivityType::Repair,
+                    'meta' => ['event' => 'repair_created', 'repair_id' => $repair->id, 'number' => $repair->number],
                     'created_at' => now(),
                 ]);
             }

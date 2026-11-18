@@ -23,7 +23,7 @@ class RuleForm extends Form
     public string $action = 'answer';
 
     /**
-     * faq_id, topic, flow, target, slug, url, label{locale}, link_label{locale}.
+     * faq_id, topic, flow, handoff_target, target, slug, url, label{locale}, link_label{locale}.
      *
      * @var array<string, mixed>
      */
@@ -75,6 +75,7 @@ class RuleForm extends Form
             'faq_id' => isset($params['faq_id']) ? (string) $params['faq_id'] : '',
             'topic' => $params['topic'] ?? '',
             'flow' => $params['flow'] ?? '',
+            'handoff_target' => $params['handoff_target'] ?? '',
         ];
         $this->answer = $this->locales($rule->getTranslations('answer'));
         $this->buttons = array_values(array_map(fn (array $button): array => [
@@ -106,7 +107,7 @@ class RuleForm extends Form
     {
         $this->params = [
             'label' => $this->locales([]), 'link_label' => $this->locales([]),
-            'target' => '', 'slug' => '', 'url' => '', 'faq_id' => '', 'topic' => '', 'flow' => '',
+            'target' => '', 'slug' => '', 'url' => '', 'faq_id' => '', 'topic' => '', 'flow' => '', 'handoff_target' => '',
         ];
     }
 

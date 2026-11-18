@@ -18,6 +18,7 @@ use App\Models\ChatUnmatched;
 use App\Models\FaqItem;
 use App\Models\Page;
 use App\Support\Chat\ChatText;
+use App\Support\Chat\HandoffTarget;
 use App\Support\Chat\LinkTargets;
 use App\Support\Chat\Skills\CompanyInfoSkill;
 use Illuminate\Contracts\View\View;
@@ -381,6 +382,7 @@ class Form extends Component
             'matchTypes' => collect(KeywordMatch::cases())->mapWithKeys(fn (KeywordMatch $type): array => [$type->value => $type->label()])->all(),
             'targets' => collect(LinkTargets::targets())->mapWithKeys(fn (string $target): array => [$target => __('chatbot_admin.targets.'.$target)])->all(),
             'topics' => collect(CompanyInfoSkill::TOPICS)->mapWithKeys(fn (string $topic): array => [$topic => __('chatbot_admin.topics.'.$topic)])->all(),
+            'handoffTargets' => collect(HandoffTarget::RULE_TARGETS)->mapWithKeys(fn (string $target): array => [$target => __('chatbot_admin.handoff_targets.'.$target)])->all(),
             'flows' => collect(['callback', 'quote', 'service'])->mapWithKeys(fn (string $flow): array => [$flow => __('chatbot_admin.flows.'.$flow)])->all(),
         ])->title($title);
     }

@@ -64,6 +64,11 @@ return [
         'manual' => 'Manual',
     ],
 
+    'preferred_contact' => [
+        'call' => 'Phone call',
+        'telegram' => 'Telegram',
+    ],
+
     'lead_type' => [
         'callback' => 'Callback',
         'quote' => 'Quote request',

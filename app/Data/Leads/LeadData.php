@@ -4,6 +4,7 @@ namespace App\Data\Leads;
 
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\PreferredContact;
 use App\Enums\TrafficChannel;
 
 /**
@@ -16,6 +17,10 @@ use App\Enums\TrafficChannel;
  *
  * matchCustomer: false skips the phone match and uses customerId as it is (a
  * Telegram lead takes its customer from the thread's link only).
+ *
+ * deviceBrand / deviceModel / serialNumber / preferredContact: service
+ * request fields (plan 36). Raw text here; CreateLead / UpdateLead clean and
+ * cap it. Never logged.
  */
 final readonly class LeadData
 {
@@ -44,5 +49,9 @@ final readonly class LeadData
         public ?string $landingPath = null,
         public bool $matchCustomer = true,
         public ?int $customerId = null,
+        public ?string $deviceBrand = null,
+        public ?string $deviceModel = null,
+        public ?string $serialNumber = null,
+        public ?PreferredContact $preferredContact = null,
     ) {}
 }

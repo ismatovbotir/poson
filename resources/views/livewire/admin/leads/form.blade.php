@@ -57,6 +57,17 @@
                 @endif
             </x-admin.card>
 
+            @if ($form->type === \App\Enums\LeadType::ServiceRequest->value)
+                <x-admin.card :title="__('crm.leads.sections.device')" data-device-fields>
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <x-admin.input wire:model="form.device_brand" :label="__('crm.leads.fields.device_brand')" maxlength="80" autocomplete="off" />
+                        <x-admin.input wire:model="form.device_model" :label="__('crm.leads.fields.device_model')" maxlength="120" autocomplete="off" />
+                        <x-admin.input wire:model="form.serial_number" :label="__('crm.leads.fields.serial_number')" maxlength="64" autocomplete="off" class="font-mono" />
+                        <x-admin.select wire:model="form.preferred_contact" :label="__('crm.leads.fields.preferred_contact')" placeholder="—" :options="collect(\App\Enums\PreferredContact::cases())->mapWithKeys(fn ($case) => [$case->value => $case->label()])->all()" />
+                    </div>
+                </x-admin.card>
+            @endif
+
             <x-admin.card :title="__('crm.leads.sections.request')">
                 <div class="space-y-5">
                     <x-admin.textarea wire:model="form.message" :label="__('crm.leads.fields.message')" rows="4" maxlength="5000" />

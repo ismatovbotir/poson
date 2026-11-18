@@ -75,7 +75,7 @@
             {{-- Device --}}
             <x-admin.card :title="__('repairs.sections.device')">
                 <div class="grid gap-5 sm:grid-cols-2">
-                    <x-admin.select wire:model="form.device_type" :label="__('repairs.fields.device_type')" required :options="$deviceTypes" />
+                    <x-admin.select wire:model="form.device_type" :label="__('repairs.fields.device_type')" required placeholder="—" :options="$deviceTypes" />
                     <x-admin.input wire:model="form.serial_number" :label="__('repairs.fields.serial_number')" maxlength="64" autocomplete="off" class="font-mono" />
                     <x-admin.input wire:model="form.device_brand" :label="__('repairs.fields.device_brand')" maxlength="80" autocomplete="off" />
                     <x-admin.input wire:model="form.device_model" :label="__('repairs.fields.device_model')" maxlength="120" autocomplete="off" />

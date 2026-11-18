@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LeadType;
 use App\Enums\PriceLevel;
 use App\Enums\ProductBadge;
 use App\Enums\ProductPricingUnit;
@@ -237,6 +238,16 @@ class Product extends Model implements HasMedia
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Lead type of an enquiry about this product (plan 36): a service
+     * product is a service request, everything else a quote. The single rule
+     * for the site form and both chat channels.
+     */
+    public function enquiryLeadType(): LeadType
+    {
+        return $this->type === ProductType::Service ? LeadType::ServiceRequest : LeadType::Quote;
     }
 
     /**

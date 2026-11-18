@@ -113,7 +113,6 @@ return [
         ],
         'keywords' => [
             'kafolat*', 'garantiy*', 'гаранти*', 'warranty', 'guarantee', 'servis*', 'сервис*', 'service', 'remont*', 'ремонт*', 'tamir*', 'repair',
-            'sozlash*', 'sozlab*', 'настройк*', 'настроить', 'ornatish*', 'установк*', 'setup', 'integratsiya*', 'интеграц*',
         ],
     ],
 
@@ -221,6 +220,7 @@ return [
             'mahsulot*', 'tovar*', 'товар*', 'product*', 'qidir*', 'поиск*', 'подобр*', 'tanlash*', 'uskuna*', 'оборудован*', 'equipment', 'katalog*', 'каталог*', 'catalog',
             'skaner*', 'сканер*', 'scanner*', 'printer*', 'принтер*', 'terminal*', 'терминал*', 'tsd', 'тсд', 'rfid', 'ribbon*', 'риббон*', 'shtrix*', 'штрих*', 'barcode',
             'etiketka*', 'этикетк*', 'label*', 'kassa*', 'касс*', 'pos',
+            'yorliq*', 'лент*', 'lenta*', ['driver*', 30], ['драйвер*', 30],
         ],
     ],
 
@@ -297,10 +297,29 @@ return [
     ],
 
     [
+        'key' => 'setup_integration',
+        'name' => 'Setup and integration request',
+        'action' => 'lead_dialog',
+        'params' => ['flow' => 'service'],
+        'priority' => 11,
+        'menu' => null,
+        'label' => [],
+        'answer' => [
+            'uz' => 'Sozlash va integratsiya boʻyicha servis soʻrovini qoldiring: qurilma yoki dastur va vazifani yozing, servis muhandisi siz bilan bogʻlanadi.',
+            'ru' => 'Оставьте заявку на настройку или интеграцию: опишите устройство или программу и задачу, инженер сервиса свяжется с вами.',
+            'en' => 'Leave a service request for setup or integration: describe the device or software and your task, and a service engineer will contact you.',
+        ],
+        'keywords' => [
+            'sozlash*', 'sozlab*', 'oʻrnatish*', 'настройк*', 'настроить', 'установк*', 'внедрен*', 'интеграц*', 'integratsiya*',
+            'setup', 'install', 'installation', 'installing', 'integration', 'deploy*',
+        ],
+    ],
+
+    [
         'key' => 'availability',
         'name' => 'Availability',
         'action' => 'handoff',
-        'params' => [],
+        'params' => ['handoff_target' => 'sales'],
         'priority' => 5,
         'menu' => null,
         'label' => [],
@@ -318,7 +337,7 @@ return [
         'key' => 'dealer',
         'name' => 'Dealers and partners',
         'action' => 'handoff',
-        'params' => [],
+        'params' => ['handoff_target' => 'sales'],
         'priority' => 5,
         'menu' => null,
         'label' => [],
@@ -336,7 +355,7 @@ return [
         'key' => 'complaint',
         'name' => 'Complaint or return',
         'action' => 'handoff',
-        'params' => [],
+        'params' => ['handoff_target' => 'sales'],
         'priority' => 10,
         'menu' => null,
         'label' => [],
@@ -365,6 +384,7 @@ return [
         ],
         'keywords' => [
             'mos keladi', 'moslik', 'совместим*', 'compatible', 'compatibility', 'fit my printer',
+            ['установка этикеток', 30], ['установка ленты', 30], ['установить ленту', 30], ['как вставить ленту', 30], ['как вставить этикетки', 30], ['etiketka oʻrnatish', 30], ['lenta oʻrnatish', 30], ['ribbon oʻrnatish', 30], ['yorliq oʻrnatish', 30], ['install labels', 30], ['install ribbon', 30], ['installation of labels', 30], ['installation of ribbon', 30], ['load labels', 30], ['load ribbon', 30],
         ],
     ],
 
@@ -372,7 +392,7 @@ return [
         'key' => 'repair_intake',
         'name' => 'Repair request',
         'action' => 'handoff',
-        'params' => [],
+        'params' => ['handoff_target' => 'service'],
         'priority' => 5,
         'menu' => null,
         'label' => [],
@@ -383,6 +403,7 @@ return [
         ],
         'keywords' => [
             'buzildi', 'ishlamayapti', 'не работает', 'сломал*', 'not working',
+            ['не печата*', 20], ['не включа*', 20], ['не сканиру*', 20], ['не загруж*', 20], ['chop etmayapti', 20], ['ishlamayd*', 20], ['yoqilmayapti', 20], ['not printing', 20], ["doesn't work", 20], ["won't turn on", 20],
         ],
     ],
 

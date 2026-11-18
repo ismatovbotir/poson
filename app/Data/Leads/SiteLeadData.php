@@ -4,6 +4,7 @@ namespace App\Data\Leads;
 
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
+use App\Enums\PreferredContact;
 use App\Enums\TrafficChannel;
 
 /**
@@ -17,6 +18,10 @@ use App\Enums\TrafficChannel;
  * instead of one product (ConvertCartToLead).
  * matchCustomer: false for a website chat lead (plan 28 C5, WC-9): the
  * visitor's phone is never verified, so it never picks a CRM customer.
+ * type: set by the server only (never from the browser). An explicit
+ * ServiceRequest always wins in SubmitSiteLead (plan 36, P36-1).
+ * deviceBrand / deviceModel / serialNumber / preferredContact: service
+ * request fields (plan 36), cleaned and capped by CreateLead.
  */
 final readonly class SiteLeadData
 {
@@ -43,5 +48,9 @@ final readonly class SiteLeadData
         public ?int $rolls = null,
         public array $items = [],
         public bool $matchCustomer = true,
+        public ?string $deviceBrand = null,
+        public ?string $deviceModel = null,
+        public ?string $serialNumber = null,
+        public ?PreferredContact $preferredContact = null,
     ) {}
 }

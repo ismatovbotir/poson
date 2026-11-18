@@ -38,7 +38,7 @@ class HomeCache
      * Shape of the cached payload: raise it whenever a DTO or enum used by the
      * home page changes, so old entries are never read with the new code.
      */
-    public const SCHEMA = 1;
+    public const SCHEMA = 2;
 
     private const FILES_MEMO = 'home.cache.deploy-files';
 

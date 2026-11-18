@@ -64,6 +64,11 @@ return [
         'manual' => 'Вручную',
     ],
 
+    'preferred_contact' => [
+        'call' => 'Звонок',
+        'telegram' => 'Telegram',
+    ],
+
     'lead_type' => [
         'callback' => 'Обратный звонок',
         'quote' => 'Запрос КП',

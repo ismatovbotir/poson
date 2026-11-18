@@ -254,6 +254,9 @@ class Sitemap
             );
         }
 
+        // Service request page (plan 36); the "?product=" variants are never listed.
+        $this->write($xml, fn (string $locale): string => route('site.services.request', ['locale' => $locale]));
+
         foreach (NewsKind::cases() as $kind) {
             $this->news($xml, $kind);
         }

@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\User;
 use App\Support\Phone;
+use App\Support\Telegram\Bot\BotText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -84,6 +85,10 @@ class CreateLead
                 'company' => static::clean($data->company, 160),
                 'inn' => static::clean($data->inn, 9),
                 'message' => static::clean($data->message, self::MESSAGE_LIMIT),
+                'device_brand' => static::cleanLine($data->deviceBrand, 80),
+                'device_model' => static::cleanLine($data->deviceModel, 120),
+                'serial_number' => static::cleanLine($data->serialNumber, 64),
+                'preferred_contact' => $data->preferredContact,
                 'customer_id' => $customer?->id,
                 'manager_id' => $manager?->id,
                 'created_by_id' => $data->createdById,
@@ -150,6 +155,15 @@ class CreateLead
         $value = mb_substr($value, 0, $max);
 
         return $lower ? mb_strtolower($value) : $value;
+    }
+
+    /**
+     * One-line text (device fields): control and bidi characters removed,
+     * whitespace collapsed (BotText::clean), then trimmed and capped; empty → null.
+     */
+    public static function cleanLine(?string $value, int $max): ?string
+    {
+        return static::clean(BotText::clean($value), $max);
     }
 
     /**

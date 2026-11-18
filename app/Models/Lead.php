@@ -6,6 +6,7 @@ use App\Enums\LeadLostReason;
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
 use App\Enums\LeadType;
+use App\Enums\PreferredContact;
 use App\Enums\TrafficChannel;
 use App\Support\Phone;
 use App\Support\Search;
@@ -57,6 +58,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $landing_path
  * @property array<string, string>|null $utm
  * @property Carbon|null $status_changed_at
+ * @property string|null $device_brand
+ * @property string|null $device_model
+ * @property string|null $serial_number
+ * @property PreferredContact|null $preferred_contact
  * @property Carbon|null $closed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -67,6 +72,7 @@ use Illuminate\Support\Carbon;
     'customer_id', 'manager_id', 'created_by_id', 'duplicate_of_id', 'estimated_amount',
     'locale', 'page_url', 'traffic_channel', 'traffic_source', 'landing_path', 'utm',
     'status_changed_at', 'closed_at',
+    'device_brand', 'device_model', 'serial_number', 'preferred_contact',
 ])]
 class Lead extends Model
 {
@@ -98,6 +104,7 @@ class Lead extends Model
             'status' => LeadStatus::class,
             'lost_reason' => LeadLostReason::class,
             'traffic_channel' => TrafficChannel::class,
+            'preferred_contact' => PreferredContact::class,
             'manager_id' => 'integer',
             'estimated_amount' => 'integer',
             'utm' => 'array',
@@ -117,6 +124,15 @@ class Lead extends Model
     public function isOpen(): bool
     {
         return $this->status->isOpen();
+    }
+
+    /**
+     * Whether a repair may be taken in from this lead (plan 36): a service
+     * request that is not lost. Enforced by the actions for everyone, Admin included.
+     */
+    public function acceptsRepair(): bool
+    {
+        return $this->type->isService() && $this->status !== LeadStatus::Lost;
     }
 
     public function isAssignedTo(User $user): bool
@@ -164,6 +180,16 @@ class Lead extends Model
     public function duplicates(): HasMany
     {
         return $this->hasMany(Lead::class, 'duplicate_of_id');
+    }
+
+    /**
+     * Repairs opened from this lead (plan 36).
+     *
+     * @return HasMany<Repair, $this>
+     */
+    public function repairs(): HasMany
+    {
+        return $this->hasMany(Repair::class);
     }
 
     /**

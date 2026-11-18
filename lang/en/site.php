@@ -201,6 +201,8 @@ return [
     'cta' => [
         'try' => 'Try',
         'contact' => 'Contact us',
+        'request_service' => 'Request service',
+        'device_service' => 'Service for this device',
     ],
 
     'card' => [
@@ -325,6 +327,82 @@ return [
         'quote' => [
             'title' => 'Request a quote',
             'text' => 'Leave your contacts: a specialist will confirm availability and delivery time, and suggest setup and integration for your task.',
+        ],
+        'service_request' => [
+            'heading' => 'Request this service',
+            'button' => 'Request this service',
+            'hint' => 'Our specialist will contact you during working hours to clarify the details.',
+        ],
+    ],
+
+    'services' => [
+        'request' => [
+            'title' => 'Request repair or service',
+            'meta_title' => 'Request Auto-ID device repair and service – Poson',
+            'meta_description' => 'Request repair or service for your scanner, printer or mobile computer. Diagnostics first, then a written estimate. Poson service centre in Kokand.',
+            'intro' => 'Poson has its own service centre in Kokand. Our specialists inspect your scanner, printer, mobile computer or other equipment, find the cause of the fault and start work only after you approve a written estimate. Warranty cases are accepted and coordinated by Poson under the manufacturer\'s rules.',
+            'steps' => [
+                1 => 'Tell us about the device and the problem',
+                2 => 'We run the diagnostics',
+                3 => 'You approve the written estimate',
+            ],
+            'form_title' => 'Send your request',
+            'name' => [
+                'label' => 'Your name',
+                'placeholder' => 'First and last name',
+            ],
+            'phone' => [
+                'label' => 'Phone',
+                'placeholder' => '+998 90 123 45 67',
+            ],
+            'company' => [
+                'label' => 'Company (optional)',
+                'placeholder' => 'Company name',
+            ],
+            'device_brand' => [
+                'label' => 'Device brand',
+                'placeholder' => 'For example, Zebra, Honeywell',
+            ],
+            'device_model' => [
+                'label' => 'Device model',
+                'placeholder' => 'For example, DS2208',
+            ],
+            'serial_number' => [
+                'label' => 'Serial number (optional)',
+                'placeholder' => 'On the label under the device',
+            ],
+            'message' => [
+                'label' => 'Problem description',
+                'placeholder' => 'What happened? When did it start? Any error messages?',
+            ],
+            'preferred_contact' => [
+                'label' => 'Preferred contact method',
+                'options' => [
+                    'call' => 'Phone call',
+                    'telegram' => 'Telegram',
+                ],
+            ],
+            'submit' => 'Send request',
+            'sending' => 'Sending…',
+            'success_title' => 'Request received',
+            'success_text' => 'Thank you! We will contact you within working hours, Mon–Sat 9:00–18:00.',
+            'consent' => 'By submitting, you agree to the :privacy.',
+            'consent_privacy' => 'privacy policy',
+            'attributes' => [
+                'name' => 'name',
+                'phone' => 'phone',
+                'company' => 'company',
+                'device_brand' => 'device brand',
+                'device_model' => 'device model',
+                'serial_number' => 'serial number',
+                'message' => 'problem description',
+                'preferred_contact' => 'contact method',
+            ],
+        ],
+        'warranty_block' => [
+            'title' => 'Warranty and service',
+            'text' => 'Warranty repairs follow the manufacturer\'s rules and go through the distributor\'s service, while Poson accepts the device and coordinates the process. Out-of-warranty repairs start after diagnostics and your approval of a written estimate.',
+            'button' => 'Request service',
         ],
     ],
 

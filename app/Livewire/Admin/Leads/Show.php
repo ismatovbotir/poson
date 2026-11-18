@@ -20,6 +20,7 @@ use App\Models\Activity;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\Quote;
+use App\Models\Repair;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
 use App\Models\User;
@@ -371,6 +372,9 @@ class Show extends Component
             'leadQuotes' => $user->can('viewAny', Quote::class)
                 ? Quote::query()->visibleTo($user)->where('lead_id', $this->lead->id)->latest('id')->limit(10)->get(['id', 'number', 'status', 'customer_id', 'manager_id'])
                 : collect(),
+            'canCreateRepair' => $this->lead->acceptsRepair() && $user->can('createRepair', $this->lead),
+            'leadRepairs' => Repair::query()->visibleTo($user)->where('lead_id', $this->lead->id)->latest('id')->limit(20)->get(['id', 'number', 'status', 'assigned_to_id', 'created_by_id', 'lead_id'])
+                ->filter(fn (Repair $repair): bool => $user->can('view', $repair))->values(),
             'canCreateCustomer' => $user->can('create', Customer::class),
             'canViewCustomer' => $this->lead->customer !== null && $user->can('view', $this->lead->customer),
             'canViewProducts' => $user->can('products.view'),

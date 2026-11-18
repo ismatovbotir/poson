@@ -33,8 +33,9 @@ use Illuminate\Support\Facades\DB;
  * The server decides everything else, under the web_chats row lock: the
  * flow, type and product come from dialog.form (never from the client); a
  * quote's product is re-checked with Product::visible() and dropped when
- * hidden; the service flow never carries a product (SubmitSiteLead would
- * make it a quote and the service chat would never be alerted); a callback
+ * hidden; the service flow never carries a product; a quote flow on a
+ * service product becomes a service request (Product::enquiryLeadType(),
+ * plan 36); a callback
  * never does. One lead per chat: created only while lead_id is null. The
  * visitor's phone never matches a CRM customer (matchCustomer false, WC-9).
  * LeadCreated fires once, after commit (CreateLead). The form closes, the
@@ -72,8 +73,9 @@ class SubmitWebChatLead
                 return null;
             }
 
+            // type is needed by enquiryLeadType()
             $product = $form['flow'] === LeadFlow::Quote && $form['product_id'] !== null
-                ? Product::query()->visible()->whereKey($form['product_id'])->first(['products.id', 'products.sku'])
+                ? Product::query()->visible()->whereKey($form['product_id'])->first(['products.id', 'products.sku', 'products.type'])
                 : null;
             $name = mb_substr(trim($name), 0, self::NAME_MAX);
 
@@ -84,7 +86,7 @@ class SubmitWebChatLead
                 message: $details,
                 locale: $locked->locale,
                 source: LeadSource::Site,
-                type: $form['flow']->leadType(),
+                type: $product?->enquiryLeadType() ?? $form['flow']->leadType(),
                 productId: $product?->id,
                 productSku: $product?->sku,
                 matchCustomer: false,

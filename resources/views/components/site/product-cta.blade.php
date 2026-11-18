@@ -43,7 +43,7 @@
 @else
 <a
     href="{{ $href }}"
-    @if ($external) target="_blank" rel="nofollow sponsored noopener" @endif
+    @if ($external) target="_blank" rel="nofollow sponsored noopener" @elseif ($cta->kind === \App\Enums\ProductCtaKind::DeviceService) rel="nofollow" @endif
     {{ $attributes->class($classes) }}
     data-cta="{{ $cta->kind->value }}"
 >

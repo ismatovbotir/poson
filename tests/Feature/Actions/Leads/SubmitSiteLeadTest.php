@@ -69,7 +69,7 @@ it('logs the lead id, type and source only', function () {
         ]);
 });
 
-it('turns a product enquiry into a quote with the product as an item, service products too', function (ProductType $type) {
+it('turns a product enquiry into a lead typed by the product, with the product as an item', function (ProductType $type) {
     Log::spy();
     $product = Product::factory()->create(['type' => $type, 'sku' => 'ZEB-DS2208', 'name' => ['uz' => 'Skaner', 'ru' => 'Сканер', 'en' => 'Scanner']]);
 
@@ -79,14 +79,13 @@ it('turns a product enquiry into a quote with the product as an item, service pr
         company: null,
         message: null,
         locale: 'ru',
-        type: LeadType::ServiceRequest,
         productId: $product->id,
         productSku: $product->sku,
     ));
 
     $lead = Lead::query()->with('items')->sole();
 
-    expect($lead->type)->toBe(LeadType::Quote)
+    expect($lead->type)->toBe($type === ProductType::Service ? LeadType::ServiceRequest : LeadType::Quote)
         ->and($lead->items)->toHaveCount(1)
         ->and($lead->items[0]->product_id)->toBe($product->id)
         ->and($lead->items[0]->sku)->toBe('ZEB-DS2208')
@@ -99,7 +98,7 @@ it('turns a product enquiry into a quote with the product as an item, service pr
             'lead_id' => $lead->id,
             'locale' => 'ru',
             'source' => 'site',
-            'type' => 'quote',
+            'type' => $type === ProductType::Service ? 'service_request' : 'quote',
             'product_sku' => 'ZEB-DS2208',
         ]);
 })->with([ProductType::Hardware, ProductType::Service]);

@@ -15,8 +15,9 @@ use Illuminate\Validation\ValidationException;
  *
  * - handle(): the statuses staff set by hand (LeadStatus::isManual()).
  *   Converted is refused there: markConverted() sets it and is called only
- *   by ConvertLeadToCustomer (plan 05b), so a lead is converted only with
- *   a customer.
+ *   by ConvertLeadToCustomer (plan 05b, with a customer) and by CreateRepair
+ *   (plan 36, a service request taken in as a repair; the repair carries
+ *   the customer).
  * - Lost needs a reason (LeadLostReason) and, for "other", a note.
  * - Sets status_changed_at; closed_at when it closes (converted / lost),
  *   cleared on reopen; the lost reason / note are cleared when not lost.
@@ -56,7 +57,7 @@ class ChangeLeadStatus
     }
 
     /**
-     * Set "converted". Only ConvertLeadToCustomer calls this, inside its transaction.
+     * Set "converted". Only ConvertLeadToCustomer and CreateRepair call this, inside their transactions.
      *
      * @throws ValidationException
      */

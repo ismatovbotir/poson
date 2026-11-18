@@ -102,6 +102,12 @@ class LeadForm extends Component
     #[Locked]
     public ?string $productLabel = null;
 
+    /**
+     * The product is a service product: the form reads "Request this service" (plan 36).
+     */
+    #[Locked]
+    public bool $isServiceRequest = false;
+
     #[Locked]
     public ?string $pageUrl = null;
 
@@ -149,6 +155,7 @@ class LeadForm extends Component
 
         $this->productId = $product?->id;
         $this->productLabel = $product !== null ? $product->name.' ('.$product->sku.')' : null;
+        $this->isServiceRequest = $product?->enquiryLeadType() === LeadType::ServiceRequest;
 
         if ($product?->isPricedPerLabel()) {
             $this->sellsRolls = true;
@@ -240,7 +247,7 @@ class LeadForm extends Component
                 company: filled($validated['company']) ? trim($validated['company']) : null,
                 message: filled($validated['message']) ? trim($validated['message']) : null,
                 locale: $this->locale,
-                type: $product !== null ? LeadType::Quote : LeadType::Callback,
+                type: $product?->enquiryLeadType() ?? LeadType::Callback,
                 utm: $this->utm,
                 pageUrl: $this->pageUrl,
                 productId: $product?->id,
@@ -300,7 +307,8 @@ class LeadForm extends Component
      */
     protected function publishedProduct(int $productId): ?Product
     {
-        $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'name', 'category_id', 'is_active', 'pricing_unit', 'min_qty']);
+        // type is needed by enquiryLeadType()
+        $product = Product::query()->visible()->whereKey($productId)->first(['id', 'sku', 'type', 'name', 'category_id', 'is_active', 'pricing_unit', 'min_qty']);
 
         return $product instanceof Product ? $product : null;
     }

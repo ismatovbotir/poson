@@ -60,6 +60,10 @@ return [
             'inn' => 'TIN',
             'message' => 'Message',
             'estimated_amount' => 'Estimated amount',
+            'device_brand' => 'Device brand',
+            'device_model' => 'Device model',
+            'serial_number' => 'Serial number',
+            'preferred_contact' => 'Preferred contact',
             'manager' => 'Manager',
             'manager_id' => 'Manager',
             'lost_reason' => 'Reason',
@@ -82,6 +86,8 @@ return [
         'sections' => [
             'contact' => 'Contact',
             'request' => 'Request',
+            'device' => 'Device',
+            'repairs' => 'Repairs',
             'lead' => 'Lead',
             'status' => 'Status',
             'activity' => 'History',
@@ -125,6 +131,7 @@ return [
         ],
 
         'actions' => [
+            'create_repair' => 'Create repair',
             'take' => 'Take',
             'release' => 'Release',
             'assign' => 'Assign',
@@ -152,6 +159,7 @@ return [
             ],
             'created' => 'Lead received · :source',
             'auto_assigned' => 'assigned to the customer’s manager',
+            'repair_created' => 'Repair :number created from this request',
             'duplicate_of' => 'possible duplicate of :reference',
             'status' => 'Status: :from → :to',
             'reopened' => 'Reopened the lead',

@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
 const ALERT_BOT_TOKEN = '123456789:AAAlertTokenAlertTokenAlertTokenAl42';
@@ -418,4 +419,41 @@ describe('dashboard warning card', function () {
         Livewire::actingAs(User::factory()->withRole(Role::SalesManager)->create())->test(Dashboard::class)
             ->assertDontSeeHtml('data-telegram-failures');
     });
+});
+
+it('caps lead alerts per chat per hour, records the skip and sends the notice once', function () {
+    telegramConfigured();
+    config(['services.telegram.lead_alerts_per_hour' => 1]);
+    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => []])]);
+
+    $first = Lead::factory()->quote()->create();
+    $second = Lead::factory()->quote()->create();
+    $third = Lead::factory()->quote()->create();
+
+    runAlert($first);
+    runAlert($second);
+    Http::assertSentCount(2); // first alert + one notice
+
+    runAlert($third);
+    Http::assertSentCount(2); // no second notice, no alert
+
+    expect($first->activities()->sole()->meta)->toBe(['result' => 'sent', 'chat' => 'sales'])
+        ->and($second->activities()->sole()->meta)->toBe(['result' => 'skipped', 'reason' => 'capped', 'chat' => 'sales'])
+        ->and($third->activities()->sole()->meta['reason'])->toBe('capped');
+});
+
+it('counts a lead once against the cap when its job is retried', function () {
+    telegramConfigured();
+    config(['services.telegram.lead_alerts_per_hour' => 5]);
+    $lead = Lead::factory()->quote()->create();
+
+    Http::fake(['api.telegram.org/*' => Http::sequence()
+        ->push(['ok' => false], 502)
+        ->push(['ok' => true, 'result' => []])]);
+
+    expect(fn () => runAlert($lead))->toThrow(TelegramException::class);
+    runAlert($lead);
+
+    expect(RateLimiter::attempts('telegram-lead-alerts:sales'))->toBe(1)
+        ->and($lead->activities()->sole()->meta['result'])->toBe('sent');
 });

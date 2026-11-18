@@ -31,8 +31,9 @@ enum LeadType: string
     }
 
     /**
-     * Service requests go to the service team; every other type is a sales lead
-     * (enquiries about service products included: they are quotes, decision 2026-10-22).
+     * Service requests go to the service team; every other type is a sales lead.
+     * Enquiries about service products are service requests (plan 36, decision
+     * 2026-11-18, Product::enquiryLeadType()); hardware enquiries stay quotes.
      */
     public function isService(): bool
     {

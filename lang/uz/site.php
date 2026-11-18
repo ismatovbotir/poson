@@ -201,6 +201,8 @@ return [
     'cta' => [
         'try' => 'Sinab koʻrish',
         'contact' => 'Bogʻlanish',
+        'request_service' => 'Servisga soʻrov',
+        'device_service' => 'Shu qurilma servisi',
     ],
 
     'card' => [
@@ -325,6 +327,82 @@ return [
         'quote' => [
             'title' => 'Tijorat taklifini soʻrash',
             'text' => 'Kontaktlaringizni qoldiring: mutaxassis mavjudlik va yetkazib berish muddatini aniqlab, vazifangizga mos sozlash va integratsiyani taklif qiladi.',
+        ],
+        'service_request' => [
+            'heading' => 'Ushbu xizmatga soʻrov qoldiring',
+            'button' => 'Xizmatga soʻrov yuborish',
+            'hint' => 'Mutaxassisimiz tafsilotlarni aniqlashtirish uchun ish vaqtida bogʻlanadi.',
+        ],
+    ],
+
+    'services' => [
+        'request' => [
+            'title' => 'Taʼmirlash va servisga soʻrov',
+            'meta_title' => 'Qurilmani taʼmirlash va servisga soʻrov – Poson',
+            'meta_description' => 'Skaner, printer yoki TSD taʼmirlash uchun soʻrov qoldiring. Avval diagnostika, soʻng yozma smeta. Poson servis markazi Qoʻqonda.',
+            'intro' => 'Poson servis markazi Qoʻqonda joylashgan. Skaner, printer, TSD va boshqa uskunalaringizni mutaxassislarimiz tekshiradi, nosozlik sababini aniqlaydi va ishni sizga maʼqul boʻlgan yozma smeta asosida bajaradi. Kafolatli taʼmirlashni ishlab chiqaruvchi qoidalariga muvofiq qabul qilamiz va muvofiqlashtiramiz.',
+            'steps' => [
+                1 => 'Qurilma va muammo haqida bizga yozing',
+                2 => 'Mutaxassislar diagnostika oʻtkazadi',
+                3 => 'Yozma smetani koʻrib chiqib, tasdiqlaysiz',
+            ],
+            'form_title' => 'Soʻrov qoldiring',
+            'name' => [
+                'label' => 'Ismingiz',
+                'placeholder' => 'Ism va familiya',
+            ],
+            'phone' => [
+                'label' => 'Telefon',
+                'placeholder' => '+998 90 123 45 67',
+            ],
+            'company' => [
+                'label' => 'Kompaniya (ixtiyoriy)',
+                'placeholder' => 'Kompaniya nomi',
+            ],
+            'device_brand' => [
+                'label' => 'Qurilma brendi',
+                'placeholder' => 'Masalan, Zebra, Honeywell',
+            ],
+            'device_model' => [
+                'label' => 'Qurilma modeli',
+                'placeholder' => 'Masalan, DS2208',
+            ],
+            'serial_number' => [
+                'label' => 'Seriya raqami (ixtiyoriy)',
+                'placeholder' => 'Qurilma ostidagi yorliqda',
+            ],
+            'message' => [
+                'label' => 'Muammo tavsifi',
+                'placeholder' => 'Nima boʻldi? Qachon boshlandi? Xato xabarlari bormi?',
+            ],
+            'preferred_contact' => [
+                'label' => 'Qulay aloqa usuli',
+                'options' => [
+                    'call' => 'Telefon qoʻngʻirogʻi',
+                    'telegram' => 'Telegram',
+                ],
+            ],
+            'submit' => 'Soʻrov yuborish',
+            'sending' => 'Yuborilmoqda…',
+            'success_title' => 'Soʻrovingiz qabul qilindi',
+            'success_text' => 'Rahmat! Biz siz bilan ish vaqtida, dushanbadan shanbagacha 9:00–18:00 oraligʻida bogʻlanamiz.',
+            'consent' => 'Yuborish orqali :privacy ga rozilik bildirasiz.',
+            'consent_privacy' => 'maxfiylik siyosati',
+            'attributes' => [
+                'name' => 'ism',
+                'phone' => 'telefon',
+                'company' => 'kompaniya',
+                'device_brand' => 'qurilma brendi',
+                'device_model' => 'qurilma modeli',
+                'serial_number' => 'seriya raqami',
+                'message' => 'muammo tavsifi',
+                'preferred_contact' => 'aloqa usuli',
+            ],
+        ],
+        'warranty_block' => [
+            'title' => 'Kafolat va servis',
+            'text' => 'Kafolatli taʼmirlash ishlab chiqaruvchi qoidalariga koʻra distribyutor servisi orqali amalga oshiriladi, Poson esa qurilmani qabul qilib, jarayonni muvofiqlashtiradi. Kafolatsiz taʼmirlash diagnostikadan keyin yozma smeta asosida bajariladi.',
+            'button' => 'Servisga soʻrov qoldirish',
         ],
     ],
 

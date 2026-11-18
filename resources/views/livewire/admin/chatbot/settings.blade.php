@@ -263,7 +263,7 @@
         {{-- Hand-off --}}
         <x-admin.card :title="__($t.'.handoff')" :description="__($t.'.handoff_help')">
             <div class="grid gap-4 sm:grid-cols-2">
-                <x-admin.select wire:model="form.handoff_target" :label="__($t.'.handoff_target')" :options="['sales' => __($t.'.target_sales'), 'service' => __($t.'.target_service'), 'any' => __($t.'.target_any')]" />
+                <x-admin.select wire:model="form.handoff_target" :label="__($t.'.handoff_target')" :options="['sales' => __($t.'.target_sales'), 'service' => __($t.'.target_service'), 'any' => __($t.'.target_any')]" :hint="__($t.'.handoff_target_hint')" />
                 <x-admin.input wire:model="form.handoff_ttl_hours" type="number" min="1" max="72" :label="__($t.'.handoff_ttl')" :hint="__($t.'.handoff_ttl_hint')" />
             </div>
         </x-admin.card>

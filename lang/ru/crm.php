@@ -60,6 +60,10 @@ return [
             'inn' => 'ИНН',
             'message' => 'Сообщение',
             'estimated_amount' => 'Ориентировочная сумма',
+            'device_brand' => 'Бренд устройства',
+            'device_model' => 'Модель устройства',
+            'serial_number' => 'Серийный номер',
+            'preferred_contact' => 'Удобный способ связи',
             'manager' => 'Менеджер',
             'manager_id' => 'Менеджер',
             'lost_reason' => 'Причина',
@@ -82,6 +86,8 @@ return [
         'sections' => [
             'contact' => 'Контакт',
             'request' => 'Запрос',
+            'device' => 'Устройство',
+            'repairs' => 'Ремонты',
             'lead' => 'Заявка',
             'status' => 'Статус',
             'activity' => 'История',
@@ -125,6 +131,7 @@ return [
         ],
 
         'actions' => [
+            'create_repair' => 'Создать ремонт',
             'take' => 'Взять в работу',
             'release' => 'Снять с себя',
             'assign' => 'Назначить',
@@ -152,6 +159,7 @@ return [
             ],
             'created' => 'Заявка получена · :source',
             'auto_assigned' => 'назначена менеджеру клиента',
+            'repair_created' => 'Создан ремонт :number по этой заявке',
             'duplicate_of' => 'возможный дубль :reference',
             'status' => 'Статус: :from → :to',
             'reopened' => 'Открыл заявку снова',

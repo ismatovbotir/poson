@@ -10,6 +10,7 @@ use App\Models\FaqItem;
 use App\Models\User;
 use App\Rules\BrandSafeText;
 use App\Support\Chat\ChatText;
+use App\Support\Chat\HandoffTarget;
 use App\Support\Chat\LinkTargets;
 use App\Support\Chat\RuleIndex;
 use App\Support\Chat\Skills\CompanyInfoSkill;
@@ -349,6 +350,17 @@ class SaveChatRule
                 }
 
                 $params['flow'] = $flow;
+                break;
+            case ChatAction::Handoff:
+                if (array_key_exists('handoff_target', $input) && $input['handoff_target'] !== null && $input['handoff_target'] !== '') {
+                    $target = $input['handoff_target'];
+
+                    if (! is_string($target) || ! in_array($target, HandoffTarget::RULE_TARGETS, true)) {
+                        throw ValidationException::withMessages(['params.handoff_target' => __('chatbot.errors.handoff_target_invalid')]);
+                    }
+
+                    $params['handoff_target'] = $target;
+                }
                 break;
             default:
                 break;

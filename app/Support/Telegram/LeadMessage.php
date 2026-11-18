@@ -15,8 +15,9 @@ use Illuminate\Support\Str;
  * Content: reference + type, source and traffic channel (enum labels only:
  * traffic_source can hold a utm_source value), products (name,
  * SKU, qty), name + phone, company, a COMMENT_EXCERPT-character comment
- * excerpt, the duplicate note and the matched customer. Every value is
- * escaped with e(). Never included: email, INN, UTM tags, traffic source,
+ * excerpt, for a service request the device (brand model · S/N) and the
+ * preferred contact (cleaned to one line, plan 36), the duplicate note and
+ * the matched customer. Every value is escaped with e(). Never included: email, INN, UTM tags, traffic source,
  * page / landing URLs, IP. The "Open in admin" button only when APP_URL is
  * https; its URL is APP_URL + the relative admin path (never the request host).
  *
@@ -77,6 +78,23 @@ final readonly class LeadMessage
 
         if (filled($lead->company)) {
             $lines[] = self::line('company', (string) $lead->company);
+        }
+
+        if ($lead->type->isService()) {
+            $serial = BotText::clean($lead->serial_number);
+            $parts = [
+                trim(BotText::clean($lead->device_brand).' '.BotText::clean($lead->device_model)),
+                $serial !== '' ? 'S/N '.$serial : '',
+            ];
+            $device = implode(' · ', array_filter($parts));
+
+            if ($device !== '') {
+                $lines[] = self::line('device', $device);
+            }
+
+            if ($lead->preferred_contact !== null) {
+                $lines[] = self::line('preferred_contact', $lead->preferred_contact->label());
+            }
         }
 
         // One line, as in InboxMessage: a customer can't write lines that look like alert fields.

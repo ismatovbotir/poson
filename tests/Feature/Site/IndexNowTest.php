@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Support\Secrets;
 use App\Support\Site\IndexNow;
+use App\Support\Site\Sitemap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -204,7 +205,7 @@ describe('flush command (IN-S3, IN-S11, IN-S13)', function () {
         Artisan::call('indexnow:flush');
 
         Queue::assertPushed(SubmitIndexNow::class, fn (SubmitIndexNow $job): bool => count($job->urls) === IndexNow::MAX_URLS);
-        expect(IndexNow::backlog())->toHaveCount(15006);
+        expect(IndexNow::backlog())->toHaveCount(25000 - IndexNow::MAX_URLS + count(app(Sitemap::class)->generate()['urls']));
     });
 
     it('forgets all state while the gate is off', function () {

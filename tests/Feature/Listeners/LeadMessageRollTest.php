@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PreferredContact;
 use App\Models\Lead;
 use App\Models\LeadItem;
 use App\Models\Product;
@@ -48,4 +49,24 @@ it('names the roll in the message locale, not the current request locale', funct
         ->not->toContain('рулон')
         ->not->toContain('этикет')
         ->and(app()->getLocale())->toBe('ru');
+});
+
+it('adds an escaped device line and preferred contact to a service request alert only', function () {
+    $lead = Lead::factory()->serviceRequest()->create([
+        'device_brand' => "Ze<b>bra\u{202E}",
+        'device_model' => "ZD421\nFake: line",
+        'serial_number' => 'SN&1',
+        'preferred_contact' => PreferredContact::Telegram,
+    ]);
+
+    $html = LeadMessage::for($lead->load(['items', 'customer']), 'en')->html;
+
+    expect($html)->toContain('<b>Device:</b> Ze&lt;b&gt;bra ZD421 Fake: line · S/N SN&amp;1')
+        ->toContain('<b>Contact:</b> Telegram')
+        ->not->toContain("\u{202E}")
+        ->not->toContain('<b>bra');
+
+    $quote = Lead::factory()->quote()->create(['device_brand' => 'Zebra']);
+
+    expect(LeadMessage::for($quote->load(['items', 'customer']), 'en')->html)->not->toContain('Device:');
 });

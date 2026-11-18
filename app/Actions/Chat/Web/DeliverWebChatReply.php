@@ -2,16 +2,21 @@
 
 namespace App\Actions\Chat\Web;
 
+use App\Actions\Chat\RecordChatStat;
 use App\Enums\ChatAction;
 use App\Enums\ChatAuthor;
+use App\Enums\ChatChannel;
+use App\Enums\ChatMetric;
 use App\Enums\LeadFlow;
 use App\Models\ChatRule;
 use App\Models\WebChat;
 use App\Support\Chat\Adapters\WebAdapter;
 use App\Support\Chat\ChatReply;
+use App\Support\Chat\HandoffTarget;
 use App\Support\Chat\RuleIndex;
 use App\Support\Chat\WebChatDialog;
 use App\Support\Chat\WebChatVersion;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Writes one bot answer of the website chat (plan 28 C5 §19.3), shared by
@@ -37,6 +42,7 @@ class DeliverWebChatReply
         private readonly RuleIndex $rules,
         private readonly WebAdapter $adapter,
         private readonly HandOffWebChat $handoff,
+        private readonly RecordChatStat $stats,
     ) {}
 
     /**
@@ -51,6 +57,14 @@ class DeliverWebChatReply
         }
 
         $locked->forceFill(['locale' => $locale, 'last_message_at' => $now]);
+
+        if ($dialog === null && HandoffTarget::opensServiceDialog($reply, $this->rules->load())) {
+            // Plan 36 (MED-4): a service-target hand-off opens the service form: no Manager mode, no unread, no alert.
+            $reply = new ChatReply(__('chatbot.widget.form_intro', [], $locale), [], $reply->ruleId, ChatReply::DONE);
+            $dialog = WebChatDialog::withForm(LeadFlow::Service);
+            $hitRuleId = $reply->ruleId ?? 0;
+            DB::afterCommit(fn () => $this->stats->handle(ChatChannel::Web, ChatMetric::Hit, $hitRuleId));
+        }
 
         if ($reply->isHandoff()) {
             // The visitor's request is what staff read first: it counts as unread.

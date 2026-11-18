@@ -26,6 +26,9 @@
         @case(\App\Enums\ActivityType::Quote)
             @include('livewire.admin.quotes.partials.activity', ['activity' => $activity])
             @break
+        @case(\App\Enums\ActivityType::Repair)
+            {{ __('crm.leads.timeline.repair_created', ['number' => $meta['number'] ?? '']) }}
+            @break
         @case(\App\Enums\ActivityType::Conversion)
             {{ __(! empty($meta['created']) ? 'crm.customers.timeline.lead_converted_new' : 'crm.customers.timeline.lead_converted', ['name' => $meta['customer_name'] ?? '']) }}
             @break

@@ -66,7 +66,8 @@ class SubmitChatLead
 
         $flow = $state['flow'];
         $productId = $flow === LeadFlow::Quote ? $state['answers']['product_id'] : null;
-        $product = $productId !== null ? Product::query()->visible()->whereKey($productId)->first(['products.id']) : null;
+        // type is needed by enquiryLeadType()
+        $product = $productId !== null ? Product::query()->visible()->whereKey($productId)->first(['products.id', 'products.type']) : null;
 
         // The product became hidden and nothing else was written: no empty lead, ask for the details.
         if ($productId !== null && ! $product instanceof Product && LeadDialog::answer($state['answers']['details']) === '' && ! $flow->detailsOptional()) {
@@ -85,7 +86,7 @@ class SubmitChatLead
 
         $lead = $this->createLead->handle(new LeadData(
             source: LeadSource::Telegram,
-            type: $flow->leadType(),
+            type: $product instanceof Product ? $product->enquiryLeadType() : $flow->leadType(),
             name: $name !== '' ? $name : __('telegram_inbox.unnamed', [], 'uz'),
             phone: $phone,
             locale: $user->locale ?? (string) config('app.locale'),

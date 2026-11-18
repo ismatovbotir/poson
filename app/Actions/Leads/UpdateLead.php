@@ -57,6 +57,10 @@ class UpdateLead
                 'inn' => CreateLead::clean($data->inn, 9),
                 'message' => CreateLead::clean($data->message, 5000),
                 'estimated_amount' => $data->estimatedAmount,
+                'device_brand' => CreateLead::cleanLine($data->deviceBrand, 80),
+                'device_model' => CreateLead::cleanLine($data->deviceModel, 120),
+                'serial_number' => CreateLead::cleanLine($data->serialNumber, 64),
+                'preferred_contact' => $data->preferredContact,
             ]);
 
             if (in_array($lead->getOriginal('source'), self::MANUAL_SOURCES, true) && in_array($data->source, self::MANUAL_SOURCES, true)) {

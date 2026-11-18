@@ -7,14 +7,16 @@ use App\Data\Leads\LeadItemData;
 use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadType;
 use App\Models\Lead;
+use App\Models\Product;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Adapter from the public site form (Site\LeadForm) to CreateLead (plan 05 C2).
  *
- * A quote request from a product page carries the product as the lead's
- * item and is always a quote, for service products too (decision
- * 2026-10-22: service-product enquiries go to sales as quotes). A label
+ * A request from a product page carries the product as the lead's item;
+ * its type is Product::enquiryLeadType() (service product → service
+ * request, else quote; plan 36), unless the caller set ServiceRequest
+ * explicitly (the public service request page), which always wins. A label
  * product (plan 08) is asked for in the chosen roll type and rolls. A
  * cart quote request (plan 11a, ConvertCartToLead) keeps its type
  * (checkout) and carries the cart's lines as items.
@@ -42,7 +44,7 @@ class SubmitSiteLead
 
     public function lead(SiteLeadData $data): Lead
     {
-        $type = $data->productId !== null ? LeadType::Quote : $data->type;
+        $type = $this->leadType($data);
 
         $lead = $this->createLead->handle(new LeadData(
             source: $data->source,
@@ -59,6 +61,10 @@ class SubmitSiteLead
             trafficSource: $data->trafficSource,
             landingPath: $data->landingPath,
             matchCustomer: $data->matchCustomer,
+            deviceBrand: $data->deviceBrand,
+            deviceModel: $data->deviceModel,
+            serialNumber: $data->serialNumber,
+            preferredContact: $data->preferredContact,
         ));
 
         Log::info('Site lead received', array_filter([
@@ -72,5 +78,25 @@ class SubmitSiteLead
         ], fn (int|string|null $value): bool => $value !== null));
 
         return $lead;
+    }
+
+    /**
+     * Type precedence (plan 36, P36-1): an explicit server-set ServiceRequest
+     * always wins; else a product decides (Product::enquiryLeadType(), re-read
+     * from the database), but it overrides Callback / Quote only (Checkout keeps its type); else the given type (callback, checkout).
+     */
+    protected function leadType(SiteLeadData $data): LeadType
+    {
+        if ($data->type === LeadType::ServiceRequest) {
+            return LeadType::ServiceRequest;
+        }
+
+        if ($data->productId === null || ! in_array($data->type, [LeadType::Callback, LeadType::Quote], true)) {
+            return $data->type;
+        }
+
+        $product = Product::query()->find($data->productId, ['id', 'type']);
+
+        return $product instanceof Product ? $product->enquiryLeadType() : LeadType::Quote;
     }
 }

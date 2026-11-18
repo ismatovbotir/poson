@@ -10,7 +10,9 @@ use App\Enums\ProductCtaKind;
  * - kind / labelKey: what the button is and its translation key.
  * - action: what the button does, for any client (website, Telegram Mini App):
  *     external  → open url in a new tab (the tracked /{locale}/go/{slug} redirect);
- *     lead_form → open the lead form with productId ("Contact us" / "Request a quote");
+ *     lead_form → open the lead form with productId ("Contact us" / "Request a quote" /
+ *                 "Request service");
+ *     link      → a plain link to url ("Service for this device", rel="nofollow");
  *     cart      → add productId to the cart (a label product: pick a roll on
  *                 the product page first).
  * - url: absolute URL on the website: the external link; the product page
@@ -19,8 +21,10 @@ use App\Enums\ProductCtaKind;
  *   with Site\Cart\AddButton).
  * - primary: the main button (filled); others are secondary (outlined).
  *
- * Cached by HomeCache (plan 34): when toArray()/fromArray() change shape, raise
- * HomeCache::SCHEMA.
+ * kind: try, contact, cart, quote, service_request (plan 36), device_service (plan 36).
+ *
+ * Cached by HomeCache (plan 34): when toArray()/fromArray() change shape or the
+ * set of kinds / actions grows, raise HomeCache::SCHEMA (2 since plan 36).
  */
 final readonly class ProductCta
 {
@@ -29,6 +33,8 @@ final readonly class ProductCta
     public const ACTION_LEAD_FORM = 'lead_form';
 
     public const ACTION_CART = 'cart';
+
+    public const ACTION_LINK = 'link';
 
     /**
      * Anchor of the lead form on the product page.
@@ -67,7 +73,7 @@ final readonly class ProductCta
     public function pageHref(): string
     {
         return match ($this->action) {
-            self::ACTION_EXTERNAL => $this->url,
+            self::ACTION_EXTERNAL, self::ACTION_LINK => $this->url,
             self::ACTION_CART => '#'.self::BUY_BOX_ANCHOR,
             default => '#'.self::LEAD_FORM_ANCHOR,
         };

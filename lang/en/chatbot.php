@@ -63,6 +63,7 @@ return [
         'topic_invalid' => 'Choose what company information to show.',
         'faq_invalid' => 'Choose an active FAQ item.',
         'flow_invalid' => 'Choose a valid request type.',
+        'handoff_target_invalid' => 'Choose a valid hand-off target: sales or service.',
         'button_invalid' => 'A button needs a label and one valid target.',
         'keyword_invalid' => 'A keyword is empty, too long or has an invalid type or weight.',
         'too_many_rules' => 'The limit of :max rules is reached.',

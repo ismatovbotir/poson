@@ -60,6 +60,10 @@ return [
             'inn' => 'STIR',
             'message' => 'Xabar',
             'estimated_amount' => 'Taxminiy summa',
+            'device_brand' => 'Qurilma brendi',
+            'device_model' => 'Qurilma modeli',
+            'serial_number' => 'Seriya raqami',
+            'preferred_contact' => 'Qulay aloqa usuli',
             'manager' => 'Menejer',
             'manager_id' => 'Menejer',
             'lost_reason' => 'Sabab',
@@ -82,6 +86,8 @@ return [
         'sections' => [
             'contact' => 'Kontakt',
             'request' => 'Soʻrov',
+            'device' => 'Qurilma',
+            'repairs' => 'Taʼmirlar',
             'lead' => 'Murojaat',
             'status' => 'Holat',
             'activity' => 'Tarix',
@@ -125,6 +131,7 @@ return [
         ],
 
         'actions' => [
+            'create_repair' => 'Taʼmir yaratish',
             'take' => 'Oʻzimga olish',
             'release' => 'Voz kechish',
             'assign' => 'Biriktirish',
@@ -152,6 +159,7 @@ return [
             ],
             'created' => 'Murojaat keldi · :source',
             'auto_assigned' => 'mijoz menejeriga biriktirildi',
+            'repair_created' => 'Ushbu soʻrov asosida :number taʼmiri yaratildi',
             'duplicate_of' => 'takroriy boʻlishi mumkin: :reference',
             'status' => 'Holat: :from → :to',
             'reopened' => 'Murojaatni qayta ochdi',

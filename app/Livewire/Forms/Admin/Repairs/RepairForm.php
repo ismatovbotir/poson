@@ -34,6 +34,12 @@ class RepairForm extends Form
 
     public string $company = '';
 
+    /**
+     * The service request this repair comes from (create only). Never trusted:
+     * the component and CreateRepair re-check LeadPolicy::createRepair.
+     */
+    public string $lead_id = '';
+
     public string $customer_id = '';
 
     public string $contact_id = '';
@@ -120,6 +126,7 @@ class RepairForm extends Form
             'contact_name' => ['required', 'string', 'max:120'],
             'contact_phone' => ['required', 'string', 'max:32', new PhoneNumber],
             'company' => ['nullable', 'string', 'max:160'],
+            'lead_id' => ['nullable', 'regex:/^[1-9]\d{0,18}$/'],
             'customer_id' => ['nullable', 'integer'],
             'contact_id' => ['nullable', 'integer'],
             'device_type' => ['required', Rule::enum(RepairDeviceType::class)],
@@ -167,6 +174,7 @@ class RepairForm extends Form
             problem: $this->problem,
             coverage: RepairCoverage::from($this->coverage),
             company: $this->company,
+            leadId: ctype_digit($this->lead_id) ? (int) $this->lead_id : null,
             customerId: ctype_digit($this->customer_id) ? (int) $this->customer_id : null,
             contactId: ctype_digit($this->contact_id) ? (int) $this->contact_id : null,
             deviceBrand: $this->device_brand,

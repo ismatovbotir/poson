@@ -12,7 +12,9 @@ use App\Support\Telegram\LeadMessage;
 use App\Support\Telegram\TelegramLocale;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Throwable;
 
 /**
@@ -68,6 +70,10 @@ class SendLeadToTelegram implements ShouldQueue
             return;
         }
 
+        if ($this->capReached($lead, $chat, $chatId)) {
+            return;
+        }
+
         $message = LeadMessage::for($lead, TelegramLocale::current());
 
         try {
@@ -100,6 +106,46 @@ class SendLeadToTelegram implements ShouldQueue
         } catch (Throwable $exception) {
             report($exception);
         }
+    }
+
+    /**
+     * MED-6: at most services.telegram.lead_alerts_per_hour alerts per chat per hour.
+     * Over the cap the lead stays saved, the alert is skipped and one notice
+     * line is sent per hour.
+     */
+    protected function capReached(Lead $lead, string $chat, string $chatId): bool
+    {
+        $key = 'telegram-lead-alerts:'.$chat;
+        $cap = (int) config('services.telegram.lead_alerts_per_hour', 60);
+
+        // Counted once per lead: a retried job only reads the counter.
+        $hits = Cache::add('telegram-lead-alert-counted:'.$lead->id, true, 3600)
+            ? RateLimiter::hit($key, 3600)
+            : RateLimiter::attempts($key);
+
+        if ($hits <= $cap) {
+            return false;
+        }
+
+        if ($hits === $cap + 1 && Cache::add('telegram-lead-alert-notice:'.$chat, true, 3600)) {
+            try {
+                $this->client->sendMessage($chatId, '<b>'.e(__('telegram.lead.alerts_capped', [], TelegramLocale::current())).'</b>');
+            } catch (TelegramException) {
+                // the notice is best effort
+            }
+        }
+
+        try {
+            $lead->activities()->create([
+                'type' => ActivityType::Notification,
+                'meta' => ['result' => 'skipped', 'reason' => 'capped', 'chat' => $chat],
+                'created_at' => now(),
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return true;
     }
 
     /**

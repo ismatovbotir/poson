@@ -20,7 +20,9 @@ use App\Support\Chat\ChatRedactor;
 use App\Support\Chat\ChatReply;
 use App\Support\Chat\ChatSettings;
 use App\Support\Chat\Engine;
+use App\Support\Chat\HandoffTarget;
 use App\Support\Chat\LeadDialog;
+use App\Support\Chat\RuleIndex;
 use App\Support\Chat\Skills\FaqSkill;
 use App\Support\Chat\WorkingHours;
 use App\Support\Telegram\Bot\BotText;
@@ -93,6 +95,7 @@ class HandleChatInput
         private readonly LookupRepairStatus $repairs,
         private readonly HandleLeadDialog $dialog,
         private readonly GuardAiRequest $guard,
+        private readonly RuleIndex $rules,
     ) {}
 
     public function text(TelegramUser $user, UpdateParser $update): void
@@ -423,6 +426,12 @@ class HandleChatInput
     private function run(TelegramUser $user, ChatContext $context, ChatReply $reply): array
     {
         $locale = $context->locale;
+
+        // Plan 36 (MED-3/4): a hand-off rule aimed at service opens the service dialog, once, before any
+        // isHandoff() check. Anonymous / unregistered customers cannot start it: normal sales hand-off.
+        if (HandoffTarget::opensServiceDialog($reply, $this->rules->load()) && SubmitChatLead::usablePhone($user) !== null) {
+            return [$this->dialog->start($user, LeadFlow::Service, $locale, $reply->ruleId), true];
+        }
 
         return match ($reply->outcome) {
             ChatReply::SEARCH => [$this->search->handle($user, $context, $reply), false],

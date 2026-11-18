@@ -101,7 +101,7 @@
                 wire:loading.attr="disabled"
                 wire:target="submit"
             >
-                <span wire:loading.remove wire:target="submit">{{ __('site.lead_form.submit') }}</span>
+                <span wire:loading.remove wire:target="submit">{{ $isServiceRequest ? __('site.product.service_request.button') : __('site.lead_form.submit') }}</span>
                 <span wire:loading wire:target="submit">{{ __('site.lead_form.sending') }}</span>
             </button>
 

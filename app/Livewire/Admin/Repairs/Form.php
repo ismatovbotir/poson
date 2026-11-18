@@ -11,8 +11,11 @@ use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Forms\Admin\Repairs\RepairForm;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Repair;
 use App\Models\User;
+use App\Support\Catalog\ServiceableDevice;
+use App\Support\Phone;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
@@ -74,6 +77,44 @@ class Form extends Component
 
         if (array_key_exists($user->id, $this->assigneeOptions) && ! $user->can('repairs.assign')) {
             $this->form->assigned_to_id = (string) $user->id;
+        }
+
+        $this->prefillFromLead($user);
+    }
+
+    /**
+     * "Create repair" from a service request (?lead=): only when the user may
+     * take it in (LeadPolicy::createRepair); otherwise ignored silently and
+     * nothing of the lead reaches the component state (P36-10). The customer
+     * is taken only when the user may view it (P36-13).
+     */
+    private function prefillFromLead(User $user): void
+    {
+        $leadId = request()->integer('lead');
+        $lead = $leadId > 0 ? Lead::query()->with('items.product')->find($leadId) : null;
+
+        if (! $lead instanceof Lead || ! $lead->acceptsRepair() || ! $user->can('createRepair', $lead)) {
+            return;
+        }
+
+        $form = $this->form;
+        $form->lead_id = (string) $lead->id;
+        $form->contact_name = $lead->name;
+        $form->contact_phone = Phone::display($lead->phone);
+        $form->company = (string) $lead->company;
+        $form->device_brand = (string) $lead->device_brand;
+        $form->device_model = (string) $lead->device_model;
+        $form->serial_number = (string) $lead->serial_number;
+        $form->problem = (string) $lead->message;
+        $form->locale = in_array($lead->locale, config('app.supported_locales'), true) ? $lead->locale : $form->locale;
+
+        $product = $lead->items->first()?->product;
+        $form->device_type = $product !== null ? (ServiceableDevice::for($product)?->value ?? '') : '';
+
+        $customer = $lead->customer_id !== null ? Customer::query()->find($lead->customer_id) : null;
+
+        if ($customer instanceof Customer && $user->can('view', $customer)) {
+            $form->customer_id = (string) $customer->id;
         }
     }
 
@@ -229,6 +270,11 @@ class Form extends Component
         }
 
         $this->form->validate();
+
+        if ($this->repair === null && ctype_digit($this->form->lead_id)) {
+            $lead = Lead::query()->find((int) $this->form->lead_id);
+            abort_unless($lead instanceof Lead && $lead->acceptsRepair() && $user->can('createRepair', $lead), 403);
+        }
 
         if ($this->repair === null && filled($this->form->assigned_to_id) && ! array_key_exists((int) $this->form->assigned_to_id, $this->assigneeOptions)) {
             $this->addError('form.assigned_to_id', __('repairs.errors.assignee_invalid'));

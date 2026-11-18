@@ -63,6 +63,13 @@
                         <x-admin.select wire:model="form.params.topic" :label="__($t.'.fields.topic')" :options="$topics" :placeholder="__($t.'.choose')" required />
                     @elseif ($action === 'lead_dialog')
                         <x-admin.select wire:model="form.params.flow" :label="__($t.'.fields.flow')" :options="$flows" :placeholder="__($t.'.choose')" required />
+                    @elseif ($action === 'handoff' && $form->key === 'manager')
+                        <div>
+                            <span class="text-sm font-semibold">{{ __($t.'.fields.handoff_target') }}</span>
+                            <p class="mt-1.5 flex h-11 items-center rounded-lg bg-slate-50 px-3 text-sm text-slate-600">{{ __($t.'.handoff_always_sales') }}</p>
+                        </div>
+                    @elseif ($action === 'handoff')
+                        <x-admin.select wire:model="form.params.handoff_target" :label="__($t.'.fields.handoff_target')" :options="$handoffTargets" :placeholder="__($t.'.handoff_follow_global')" :hint="__($t.'.handoff_target_hint')" />
                     @endif
                 </div>
 

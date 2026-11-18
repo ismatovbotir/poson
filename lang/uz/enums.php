@@ -64,6 +64,11 @@ return [
         'manual' => 'Qoʻlda',
     ],
 
+    'preferred_contact' => [
+        'call' => 'Telefon qoʻngʻirogʻi',
+        'telegram' => 'Telegram',
+    ],
+
     'lead_type' => [
         'callback' => 'Qayta qoʻngʻiroq',
         'quote' => 'Tijorat taklifi soʻrovi',

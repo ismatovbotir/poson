@@ -23,6 +23,7 @@ use App\Livewire\Site\Home;
 use App\Livewire\Site\News;
 use App\Livewire\Site\Pages;
 use App\Livewire\Site\Search;
+use App\Livewire\Site\Services;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -87,6 +88,9 @@ Route::prefix('{locale}')
         Route::livewire('/search', Search::class)->name('search');
 
         // Cart (plan 11a): 404 while config site.cart_enabled is off; noindex, robots.txt disallows /*/cart.
+        // Service request (plan 36): no /services index or show route; a future /services/{service} must come after this one.
+        Route::livewire('/services/request', Services\RequestPage::class)->name('services.request');
+
         Route::livewire('/cart', Cart\Page::class)->name('cart');
         // Checkout (plan 11b): 404 while the cart is off; noindex, robots.txt disallows /*/checkout$.
         Route::livewire('/checkout', Checkout\Page::class)->name('checkout');

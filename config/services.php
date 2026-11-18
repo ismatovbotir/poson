@@ -61,6 +61,8 @@ return [
             'inbox' => env('TELEGRAM_INBOX_CHAT_ID'),
         ],
         'notify_new_leads' => env('TELEGRAM_NOTIFY_NEW_LEADS'),
+        // Plan 36 MED-6: lead alerts per chat per hour; over it the lead is saved, the alert skipped.
+        'lead_alerts_per_hour' => 60,
         'notify_inbox' => env('TELEGRAM_NOTIFY_INBOX'),
         'notify_price_sync' => env('TELEGRAM_NOTIFY_PRICE_SYNC'),
         'locale' => env('TELEGRAM_LOCALE'),

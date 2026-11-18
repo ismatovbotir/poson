@@ -63,6 +63,7 @@ return [
         'topic_invalid' => 'Kompaniya haqida qaysi maʼlumot koʻrsatilishini tanlang.',
         'faq_invalid' => 'Faol savol-javobni tanlang.',
         'flow_invalid' => 'Yaroqli soʻrov turini tanlang.',
+        'handoff_target_invalid' => 'Yaroqli yoʻnaltirishni tanlang: savdo yoki servis.',
         'button_invalid' => 'Tugma uchun yozuv va bitta yaroqli manzil kerak.',
         'keyword_invalid' => 'Kalit soʻz boʻsh, juda uzun yoki turi yoki ogʻirligi notoʻgʻri.',
         'too_many_rules' => ':max ta qoida chegarasiga yetildi.',

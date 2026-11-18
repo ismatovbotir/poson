@@ -83,10 +83,27 @@ class LeadPolicy
     /**
      * Convert an open lead to a customer (link an existing one). Creating a
      * new customer also needs CustomerPolicy::create.
+     *
+     * A lead converted by a repair (plan 36) is no longer open, so a customer
+     * can no longer be linked to it: the repair carries the customer (owner
+     * decision Q4, MED-8).
      */
     public function convert(User $user, Lead $lead): bool
     {
         return $lead->isOpen() && $this->update($user, $lead) && $user->can('customers.viewAny');
+    }
+
+    /**
+     * Take a device in from a service request (plan 36): a service-type lead
+     * that is not lost, edited by the user (engineer: own or unassigned;
+     * Admin through Gate::before). A converted lead still qualifies (several
+     * repairs per lead).
+     */
+    public function createRepair(User $user, Lead $lead): bool
+    {
+        return $lead->acceptsRepair()
+            && $user->can('repairs.create')
+            && $this->update($user, $lead);
     }
 
     /**

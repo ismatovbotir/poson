@@ -185,6 +185,8 @@ class LlmsTxt
             $lines[] = '- '.$this->link($title, route('site.page', ['locale' => 'en', 'page' => $page['slug']]));
         }
 
+        $lines[] = '- '.$this->link(__('site.services.request.title', [], 'en'), route('site.services.request', ['locale' => 'en']));
+
         return $lines;
     }
 
