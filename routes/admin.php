@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
+use App\Http\Controllers\Admin\RepairReceiptController;
 use App\Http\Controllers\Admin\ServiceRequestsController;
 use App\Http\Controllers\Admin\ShowMediaOriginalController;
 use App\Http\Controllers\Admin\UpdateLocaleController;
@@ -92,6 +93,7 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     Route::livewire('/repairs/create', Repairs\Form::class)->name('repairs.create');
     Route::livewire('/repairs/{repair}', Repairs\Show::class)->whereNumber('repair')->name('repairs.show');
     Route::livewire('/repairs/{repair}/edit', Repairs\Form::class)->whereNumber('repair')->name('repairs.edit');
+    Route::get('/repairs/{repair}/receipt', RepairReceiptController::class)->whereNumber('repair')->middleware('throttle:20,1')->name('repairs.receipt');
 
     // Quotes (plan 06). QuotePolicy in the components; lists use Quote::visibleTo().
     Route::livewire('/quotes', Quotes\Index::class)->name('quotes.index');

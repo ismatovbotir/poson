@@ -91,4 +91,22 @@ class RepairPolicy
     {
         return $user->can('repairs.costs') && $this->update($user, $repair);
     }
+
+    /**
+     * The A4 receipt: whoever may view the repair.
+     */
+    public function printReceipt(User $user, Repair $repair): bool
+    {
+        return $this->view($user, $repair);
+    }
+
+    /**
+     * Renew the public status link: same rule as a note (see note()). Sales and
+     * Content managers never (they cannot edit repairs). A closed repair whose
+     * link has already expired cannot be renewed: the component denies that.
+     */
+    public function rotateStatusLink(User $user, Repair $repair): bool
+    {
+        return $this->note($user, $repair);
+    }
 }

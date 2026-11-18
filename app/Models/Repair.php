@@ -8,6 +8,7 @@ use App\Enums\RepairStatus;
 use App\Support\Phone;
 use App\Support\Repairs\RepairAccess;
 use App\Support\Search;
+use App\Support\Site\CanonicalHost;
 use Database\Factories\RepairFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,6 +57,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $received_at
  * @property Carbon|null $status_changed_at
  * @property Carbon|null $closed_at
+ * @property string|null $public_token
+ * @property Carbon|null $public_token_rotated_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
@@ -75,6 +78,18 @@ class Repair extends Model
      * Longest text field (staff forms).
      */
     public const TEXT_MAX = 5000;
+
+    /**
+     * Days the public status link keeps working after the repair is closed.
+     */
+    public const STATUS_LINK_DAYS_AFTER_CLOSE = 30;
+
+    /**
+     * Never serialized (toArray, JSON, Livewire payloads, MCP).
+     *
+     * @var list<string>
+     */
+    protected $hidden = ['public_token', 'public_token_rotated_at'];
 
     /**
      * Upper cap for an amount in whole soʻm (10 billion).
@@ -100,12 +115,39 @@ class Repair extends Model
             'received_at' => 'datetime',
             'status_changed_at' => 'datetime',
             'closed_at' => 'datetime',
+            'public_token_rotated_at' => 'datetime',
         ];
     }
 
     public function isOpen(): bool
     {
         return $this->status->isOpen();
+    }
+
+    /**
+     * Whether the public /r/{token} page may answer for this repair: a token
+     * exists and the repair is open or was closed within the last 30 days.
+     */
+    public function isStatusLinkLive(): bool
+    {
+        if ($this->public_token === null) {
+            return false;
+        }
+
+        return $this->isOpen()
+            || ($this->closed_at !== null && $this->closed_at->gte(now()->subDays(self::STATUS_LINK_DAYS_AFTER_CLOSE)));
+    }
+
+    /**
+     * The public status URL on the canonical host (never the request host).
+     */
+    public function statusUrl(): ?string
+    {
+        if ($this->public_token === null) {
+            return null;
+        }
+
+        return CanonicalHost::using(fn (): string => route('repairs.status', ['token' => $this->public_token]));
     }
 
     public function isAssignedTo(User $user): bool

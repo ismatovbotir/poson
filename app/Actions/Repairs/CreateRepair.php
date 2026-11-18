@@ -28,6 +28,8 @@ class CreateRepair
 {
     use PreparesRepairInput;
 
+    public function __construct(protected EnsureRepairStatusToken $ensureToken) {}
+
     /**
      * @throws ValidationException
      */
@@ -51,6 +53,8 @@ class CreateRepair
                 'received_at' => now(),
                 'status_changed_at' => now(),
             ])->save();
+
+            $this->ensureToken->handle($repair);
 
             $repair->activities()->create([
                 'user_id' => $actor->id,

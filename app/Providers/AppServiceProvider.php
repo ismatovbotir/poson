@@ -166,6 +166,11 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('order-page', fn (Request $request) => Limit::perMinute(60)->by('order-page:'.$request->ip()));
         RateLimiter::for('order-invoice', fn (Request $request) => Limit::perMinute(10)->by('order-invoice:'.$request->ip()));
         RateLimiter::for('order-pay', fn (Request $request) => Limit::perMinute(10)->by('order-pay:'.$request->ip()));
+        // Plan 35 (P35-13): the repair status page behind the receipt QR, per IP.
+        RateLimiter::for('repair-status', fn (Request $request) => [
+            Limit::perMinute(20)->by('repair-status:'.$request->ip()),
+            Limit::perDay(300)->by('repair-status:d:'.$request->ip()),
+        ]);
         // Plan 31 (CR-1): the careers application POST, per IP, after CSRF, before every other check.
         RateLimiter::for('careers-apply', fn (Request $request) => Limit::perMinutes(10, 5)->by('careers-apply:'.$request->ip()));
 

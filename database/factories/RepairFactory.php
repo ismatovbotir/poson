@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Repair;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * A received, unassigned, paid repair with a unique number and phone. Rows
@@ -62,6 +63,11 @@ class RepairFactory extends Factory
             'status' => RepairStatus::Delivered,
             'closed_at' => now()->subDays($days)->subHour(),
         ]);
+    }
+
+    public function withStatusToken(): static
+    {
+        return $this->state(fn (array $attributes) => ['public_token' => Str::random(40)]);
     }
 
     public function assignedTo(User $user): static

@@ -40,6 +40,8 @@ class RobotsTxt
         // Checkout (plan 11b) and customers' order links.
         '/*/checkout$',
         '/o/',
+        // Plan 35: the repair status link printed on the receipt QR.
+        '/r/',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

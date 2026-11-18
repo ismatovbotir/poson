@@ -4,9 +4,10 @@
     $text = fn (?string $value) => filled($value) ? $value : null;
 @endphp
 
-<div x-data="{ cancel: false }" x-on:repair-cancelled.window="cancel = false">
+<div x-data="{ cancel: false, rotate: false }" x-on:repair-cancelled.window="cancel = false" x-on:status-link-rotated.window="rotate = false">
     <x-admin.page-header :title="$repair->company ?: $repair->contact_name" :back-href="route('admin.repairs.index')" :back-label="__('repairs.title')">
         <x-slot:actions>
+            @include('livewire.admin.repairs.partials.print-receipt', ['repair' => $repair])
             @if ($canEdit && $repair->isOpen())
                 <x-admin.button variant="secondary" :href="route('admin.repairs.edit', $repair)" wire:navigate icon="edit">{{ __('admin.common.edit') }}</x-admin.button>
             @endif
@@ -174,6 +175,25 @@
                 @endif
             </x-admin.card>
 
+            <x-admin.card :title="__('repairs.status_link.title')">
+                <p class="text-sm font-semibold" data-status-link-state="{{ $linkState }}">
+                    @if ($linkState === 'expires')
+                        {{ __('repairs.status_link.expires', ['date' => $when($linkExpiresAt, 'D MMM YYYY')]) }}
+                    @else
+                        {{ __('repairs.status_link.'.$linkState) }}
+                    @endif
+                </p>
+                @if ($linkRenewedAt)
+                    <p class="mt-1 text-xs text-slate-500">{{ __('repairs.status_link.renewed', ['date' => $when($linkRenewedAt)]) }}</p>
+                @endif
+                <p class="mt-2 text-xs text-slate-500">{{ __('repairs.status_link.hint') }}</p>
+                @if ($canRotateLink)
+                    <div class="mt-3">
+                        <x-admin.button type="button" variant="secondary" x-on:click="rotate = true" data-rotate-link>{{ __('repairs.status_link.renew') }}</x-admin.button>
+                    </div>
+                @endif
+            </x-admin.card>
+
             <x-admin.card :title="__('repairs.sections.details')">
                 <dl class="space-y-2 text-sm">
                     @foreach (array_filter([
@@ -188,6 +208,21 @@
             </x-admin.card>
         </aside>
     </div>
+
+    {{-- Renew the status link --}}
+    @if ($canRotateLink)
+        <div x-cloak x-show="rotate" class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="repair-rotate-title" x-on:keydown.escape.window="rotate = false">
+            <div x-show="rotate" x-transition.opacity class="absolute inset-0 bg-slate-900/50" x-on:click="rotate = false"></div>
+            <div x-show="rotate" x-transition x-trap.noscroll="rotate" class="relative w-full rounded-t-2xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-2xl sm:pb-5" data-rotate-modal>
+                <h2 id="repair-rotate-title" class="text-base font-semibold">{{ __('repairs.status_link.confirm_title') }}</h2>
+                <p class="mt-1 text-sm text-slate-500">{{ __('repairs.status_link.confirm_body') }}</p>
+                <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button type="button" x-on:click="rotate = false" class="h-11 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:h-10">{{ __('admin.common.cancel') }}</button>
+                    <x-admin.button type="button" wire:click="rotateStatusLink" loading="rotateStatusLink">{{ __('repairs.status_link.confirm') }}</x-admin.button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Cancel: a note is required --}}
     @if ($canCancel)

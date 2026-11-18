@@ -6,6 +6,9 @@
 <form wire:submit="save" novalidate>
     <x-admin.page-header :title="$title" :back-href="$backHref" :back-label="$repair ? $repair->number : __('repairs.title')">
         <x-slot:actions>
+            @if ($repair)
+                @include('livewire.admin.repairs.partials.print-receipt', ['repair' => $repair])
+            @endif
             <div class="hidden gap-2 lg:flex">
                 <x-admin.button variant="secondary" :href="$backHref" wire:navigate>{{ __('admin.common.cancel') }}</x-admin.button>
                 <x-admin.button type="submit" icon="check" loading="save">{{ __('admin.common.save') }}</x-admin.button>

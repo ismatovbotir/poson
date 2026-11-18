@@ -8,6 +8,7 @@ use App\Http\Controllers\Site\NewsFeedController;
 use App\Http\Controllers\Site\PartnerRedirectController;
 use App\Http\Controllers\Site\PublicOrderController;
 use App\Http\Controllers\Site\PublicQuoteController;
+use App\Http\Controllers\Site\RepairStatusController;
 use App\Http\Controllers\Site\RobotsController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Controllers\Site\SubmitJobApplicationController;
@@ -50,6 +51,13 @@ Route::get('/q/{ulid}/pdf', [PublicQuoteController::class, 'pdf'])->whereUlid('u
 
 // Plan 11b: the customer's order link (no login, random ULID, noindex, no-store, throttled; ?lang=).
 Route::get('/o/{ulid}', [PublicOrderController::class, 'show'])->whereUlid('ulid')->middleware('throttle:order-page')->name('orders.public');
+// Plan 35: the repair status page behind the receipt QR (no session, noindex, no-store, throttled).
+Route::get('/r/{token}', [RepairStatusController::class, 'show'])
+    ->where('token', '[^/]{1,200}')
+    ->middleware('throttle:repair-status')
+    ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, PreventRequestForgery::class, CaptureAttribution::class])
+    ->name('repairs.status');
+
 Route::get('/o/{ulid}/invoice.pdf', [PublicOrderController::class, 'invoice'])->whereUlid('ulid')->middleware('throttle:order-invoice')->name('orders.public.invoice');
 Route::post('/o/{ulid}/pay', [PublicOrderController::class, 'pay'])->whereUlid('ulid')->middleware('throttle:order-pay')->name('orders.public.pay');
 

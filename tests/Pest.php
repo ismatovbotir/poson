@@ -86,11 +86,11 @@ function expectNoBannedWording(string $html): void
 /**
  * A staff user with the real role permissions (seeds RolesAndPermissionsSeeder).
  */
-function staffUser(Role $role = Role::Admin): User
+function staffUser(Role $role = Role::Admin, ?string $locale = null): User
 {
     test()->seed(RolesAndPermissionsSeeder::class);
 
-    return User::factory()->withRole($role)->create();
+    return User::factory()->withRole($role)->create($locale === null ? [] : ['locale' => $locale]);
 }
 
 /**

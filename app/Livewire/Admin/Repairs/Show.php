@@ -6,6 +6,7 @@ use App\Actions\Repairs\AddRepairActivity;
 use App\Actions\Repairs\ApproveRepairEstimate;
 use App\Actions\Repairs\AssignRepair;
 use App\Actions\Repairs\ChangeRepairStatus;
+use App\Actions\Repairs\RotateRepairStatusToken;
 use App\Enums\RepairStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Models\Activity;
@@ -163,6 +164,26 @@ class Show extends Component
         }
     }
 
+    public function rotateStatusLink(RotateRepairStatusToken $rotate): void
+    {
+        $this->authorize('rotateStatusLink', $this->repair);
+        abort_if($this->isLinkDeadEnd($this->repair), 403);
+
+        try {
+            $rotate->handle($this->repair, $this->user());
+        } catch (ValidationException $exception) {
+            $this->dispatch('toast', title: __('admin.toast.error'), body: collect($exception->errors())->flatten()->first(), type: 'error');
+            $this->dispatch('status-link-rotated');
+
+            return;
+        }
+
+        $this->refreshRepair();
+        unset($this->activities);
+        $this->dispatch('status-link-rotated');
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('repairs.status_link.done'));
+    }
+
     public function addActivity(AddRepairActivity $addActivity): void
     {
         $this->authorize('note', $this->repair);
@@ -215,6 +236,14 @@ class Show extends Component
         $repair = $this->repair;
         $canEdit = $user->can('update', $repair);
 
+        // Dates and booleans only: the token and the status URL never reach the view.
+        $linkState = match (true) {
+            $repair->public_token === null => 'none',
+            ! $repair->isStatusLinkLive() => 'expired',
+            $repair->closed_at !== null => 'expires',
+            default => 'live',
+        };
+
         return view('livewire.admin.repairs.show', [
             'canEdit' => $canEdit,
             'canNote' => $user->can('note', $repair),
@@ -227,8 +256,20 @@ class Show extends Component
             'canViewCustomer' => $repair->customer !== null && $user->can('view', $repair->customer),
             'canViewLead' => $repair->lead !== null && $user->can('view', $repair->lead),
             'statuses' => array_values(array_filter($repair->status->next(), fn (RepairStatus $status): bool => $status !== RepairStatus::Cancelled && $repair->status->canTransitionTo($status, $repair->coverage))),
+            'linkState' => $linkState,
+            'linkExpiresAt' => $linkState === 'expires' ? $repair->closed_at->copy()->addDays(Repair::STATUS_LINK_DAYS_AFTER_CLOSE) : null,
+            'linkRenewedAt' => $repair->public_token_rotated_at,
+            'canRotateLink' => $user->can('rotateStatusLink', $repair) && ! $this->isLinkDeadEnd($repair),
             'canCancel' => $canEdit && $repair->status->canTransitionTo(RepairStatus::Cancelled, $repair->coverage),
         ])->title($repair->number.' · '.($repair->company ?: $repair->contact_name));
+    }
+
+    /**
+     * A closed repair whose link has expired: renewing would revive a link for a finished job.
+     */
+    private function isLinkDeadEnd(Repair $repair): bool
+    {
+        return ! $repair->isStatusLinkLive() && $repair->status->isClosed();
     }
 
     private function refreshRepair(): void
