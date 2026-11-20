@@ -623,7 +623,7 @@ return [
         'images' => [
             'main' => 'Asosiy',
             'upload' => 'Yuklash',
-            'hint' => 'JPG, PNG yoki WebP, har biri 5 MB gacha, :px×:px px dan oshmasin, bir martada :count tagacha, kamida 1000×1000 px tavsiya etiladi. Tartibni oʻzgartirish uchun suring: birinchi rasm asosiy hisoblanadi.',
+            'hint' => 'Eng koʻpi bilan :count ta fayl, har biri 200 KB gacha. Kvadrat 1200×1200 px tavsiya etiladi; WebP yoki JPEG (PNG faqat shaffoflik uchun). Tartibni oʻzgartirish uchun suring: birinchi rasm asosiy hisoblanadi.',
             'none' => 'Hozircha rasmlar yoʻq.',
             'added' => '[1,*] :count ta rasm qoʻshildi',
             'alt_hint' => 'Rasmda nima borligini yozing, masalan “Taglikdagi Zebra DS2208 skaneri”. Ekran oʻquvchilari va rasm qidiruvi uchun ishlatiladi.',
@@ -955,6 +955,7 @@ return [
 
         'conversion_failed' => 'Rasmni qayta ishlab boʻlmadi (fayl shikastlangan boʻlishi mumkin). Boshqa rasm yuklang.',
         'rejected' => 'Bu faylni rasm sifatida ishlatib boʻlmaydi. JPG, PNG yoki WebP yuklang.',
+        'too_large_product' => 'Rasm juda katta: mahsulotning har bir rasmi 200 KB gacha boʻlishi kerak. Kvadrat 1200 px WebP yoki JPEG ishlating (PNG faqat shaffoflik uchun).',
 
         'processing' => 'Ishlanmoqda…',
         'still_processing' => 'Hali ishlanmoqda. Oʻzgarishlarni saqlang, soʻng rasmni koʻrish uchun sahifani qayta yuklang.',
@@ -1779,7 +1780,7 @@ return [
         ],
         'image_errors' => [
             'type' => 'Faqat JPG, PNG yoki WebP rasmlar.',
-            'size' => 'Rasm 5 MB dan katta.',
+            'size' => 'Rasm juda katta: 5 MB gacha fayllar qabul qilinadi, saqlanadigan rasm esa 200 KB ga sigʻishi kerak. 1200 px JPEG yoki WebP ishlating.',
             'dimensions' => 'Rasm 4000 px dan katta.',
             'memory' => 'Rasm qayta ishlash uchun juda katta.',
             'animated' => 'Animatsiyali rasmlar qoʻllab-quvvatlanmaydi.',

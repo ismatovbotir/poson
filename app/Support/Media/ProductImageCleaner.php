@@ -34,8 +34,12 @@ use Throwable;
  * corners agree and are light, L ≥ 200; skipped when more than 60 % would go)
  * → resize so the content fits the square minus the margin (≤ edge, never
  * upscaled) → pad to a white square → JPEG. plain(): orient → flatten →
- * resize ≤ edge → JPEG. vision(): like plain() with the AI edge and
- * megapixel caps. Each intermediate image is destroyed right away.
+ * resize ≤ edge → JPEG. Both stored outputs (clean, plain) are capped at
+ * ImageLimits::MAX_PRODUCT_BYTES (200 KB): the JPEG quality steps down (85, 75,
+ * 65), then the edge drops to 1200 and 1000 at q65 (5 encodes at most). Output goes
+ * to a temp file renamed into place only when it fits, so nothing over the cap is
+ * ever left at the target (ImageRejected "size" if none fits). vision(): like
+ * plain() with the AI edge and megapixel caps. Each intermediate image is destroyed right away.
  */
 class ProductImageCleaner
 {
@@ -141,7 +145,7 @@ class ProductImageCleaner
         imagecopy($canvas, $image, intdiv($side - $width, 2), intdiv($side - $height, 2), 0, 0, $width, $height);
         imagedestroy($image);
 
-        $this->write($canvas, $target, (int) config('chatbot.ai.product.clean.quality', 88));
+        $this->writeCapped($canvas, $target);
     }
 
     /**
@@ -154,7 +158,7 @@ class ProductImageCleaner
         $edge ??= (int) config('chatbot.ai.product.clean.edge', 1600);
         $image = $this->fit($this->load($source, $edge), $edge, null);
 
-        $this->write($image, $target, (int) config('chatbot.ai.product.clean.quality', 88));
+        $this->writeCapped($image, $target);
     }
 
     /**
@@ -448,6 +452,97 @@ class ProductImageCleaner
         imagefill($canvas, 0, 0, (int) imagecolorallocate($canvas, 255, 255, 255));
 
         return $canvas;
+    }
+
+    /**
+     * Encode under ImageLimits::MAX_PRODUCT_BYTES with a fixed list of at most
+     * 5 attempts: q85, q75, q65 at the current edge, then q65 at 1200 and 1000
+     * (only edges below the current one). Smaller edges are resampled from the
+     * one decoded copy; the memory budget is checked before each new edge. The
+     * target is written only by a rename of a passing temp file.
+     *
+     * @throws ImageRejected
+     */
+    private function writeCapped(GdImage $image, string $target): void
+    {
+        $current = max(imagesx($image), imagesy($image));
+        $attempts = [[$current, 85], [$current, 75], [$current, 65]];
+
+        foreach ([1200, 1000] as $edge) {
+            if ($edge < $current) {
+                $attempts[] = [$edge, 65];
+            }
+        }
+
+        $temp = $target.'.tmp';
+        $scaled = null;
+        $scaledEdge = null;
+
+        try {
+            foreach ($attempts as [$edge, $step]) {
+                $source = $image;
+
+                if ($edge < $current) {
+                    if ($scaledEdge !== $edge) {
+                        $scaled = null;
+
+                        if ($edge * $edge * self::BYTES_PER_PIXEL > $this->freeMemory()) {
+                            throw new ImageRejected('memory');
+                        }
+
+                        $scaled = $this->resampled($image, $edge);
+                        $scaledEdge = $edge;
+                    }
+
+                    $source = $scaled;
+                }
+
+                $this->encode($source, $temp, $step);
+
+                if ((int) filesize($temp) <= ImageLimits::MAX_PRODUCT_BYTES) {
+                    if (! rename($temp, $target)) {
+                        throw new ImageRejected('corrupt');
+                    }
+
+                    return;
+                }
+            }
+
+            throw new ImageRejected('size');
+        } catch (Throwable $failed) {
+            // The target is only ever written by a successful rename, so only the temp file needs removing.
+            @unlink($temp);
+
+            throw $failed;
+        } finally {
+            imagedestroy($image);
+        }
+    }
+
+    private function resampled(GdImage $image, int $edge): GdImage
+    {
+        [$width, $height] = $this->fitted(imagesx($image), imagesy($image), $edge, null);
+        $copy = $this->canvas($width, $height);
+        imagecopyresampled($copy, $image, 0, 0, 0, 0, $width, $height, imagesx($image), imagesy($image));
+
+        return $copy;
+    }
+
+    private function encode(GdImage $image, string $target, int $quality): void
+    {
+        $directory = dirname($target);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0750, true);
+        }
+
+        imageinterlace($image, true);
+
+        if (! imagejpeg($image, $target, max(1, min(100, $quality)))) {
+            throw new ImageRejected('corrupt');
+        }
+
+        clearstatcache(true, $target);
     }
 
     private function write(GdImage $image, string $target, int $quality): void

@@ -35,6 +35,65 @@ function rejectionReason(callable $run): ?string
     return null;
 }
 
+function noisyJpeg(string $path, int $side, bool $perPixel): string
+{
+    mt_srand(1);
+    $gd = imagecreatetruecolor($side, $side);
+
+    for ($y = 0; $y < $side; $y++) {
+        for ($x = 0; $x < $side; $x++) {
+            imagesetpixel($gd, $x, $y, mt_rand(0, 0xFFFFFF));
+        }
+    }
+
+    return ImageFixtures::jpeg($gd, $path);
+}
+
+describe('product image byte cap', function () {
+    it('keeps clean() and plain() output of a blocky 2500 px photo under 200 KB and within the edge', function (string $method) {
+        mt_srand(1);
+        $gd = imagecreatetruecolor(2500, 2500);
+
+        for ($y = 0; $y < 2500; $y += 25) {
+            for ($x = 0; $x < 2500; $x += 25) {
+                imagefilledrectangle($gd, $x, $y, $x + 24, $y + 24, mt_rand(0, 0xFFFFFF));
+            }
+        }
+
+        $source = ImageFixtures::jpeg($gd, $this->dir.'/noise.jpg');
+
+        $this->cleaner->{$method}($source, $this->dir.'/out.jpg');
+        [$width, $height] = getimagesize($this->dir.'/out.jpg');
+
+        expect(filesize($this->dir.'/out.jpg'))->toBeLessThanOrEqual(204_800)
+            ->and(max($width, $height))->toBeLessThanOrEqual(1600);
+    })->with(['clean', 'plain']);
+
+    it('shrinks per-pixel noise under 200 KB or rejects it, never leaving an oversize file', function () {
+        $source = noisyJpeg($this->dir.'/big.jpg', 1600, true);
+
+        try {
+            $this->cleaner->plain($source, $this->dir.'/out.jpg');
+            [$width, $height] = getimagesize($this->dir.'/out.jpg');
+
+            expect(filesize($this->dir.'/out.jpg'))->toBeLessThanOrEqual(204_800)
+                ->and(max($width, $height))->toBeLessThan(1600);
+        } catch (ImageRejected $rejected) {
+            expect($rejected->reason)->toBe('size')->and(is_file($this->dir.'/out.jpg'))->toBeFalse();
+        }
+    });
+
+    it('leaves no file at the target when the memory budget stops a smaller edge', function () {
+        $source = noisyJpeg($this->dir.'/big.jpg', 1600, true);
+        // Enough for the first decode, not for the extra 1200 px copy.
+        $cleaner = new ProductImageCleaner(memoryLimit: memory_get_usage(true) + (1600 * 1600 + 1600 * 1600) * ProductImageCleaner::BYTES_PER_PIXEL + 1);
+
+        expect(rejectionReason(fn () => $cleaner->plain($source, $this->dir.'/out.jpg')))->toBeIn(['memory', 'size'])
+            ->and(is_file($this->dir.'/out.jpg'))->toBeFalse()
+            ->and(is_file($this->dir.'/out.jpg.tmp'))->toBeFalse();
+    });
+});
+
 describe('clean()', function () {
     it('trims a uniform white border and pads to a white square', function () {
         $source = ImageFixtures::bordered($this->dir.'/in.jpg', 800, 600, 480);

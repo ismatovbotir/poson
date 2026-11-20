@@ -54,6 +54,7 @@ class AddProductImages
             $extensions[$index] = self::EXTENSIONS[(string) $file->getMimeType()]
                 ?? throw ValidationException::withMessages(["{$field}.{$index}" => __('validation.mimes', ['attribute' => __('admin.image_upload.image'), 'values' => 'jpg, png, webp'])]);
 
+            ImageLimits::assertWithinProductBytes($file, "{$field}.{$index}");
             ImageLimits::assertWithinCap($file, "{$field}.{$index}");
         }
 

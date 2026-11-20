@@ -157,6 +157,31 @@ describe('what is written', function () {
 });
 
 describe('images (PW-22)', function () {
+    it('stores a product image of at most 200 KB from a 2500 px noisy photo, end to end', function () {
+        $gd = imagecreatetruecolor(2500, 2500);
+
+        for ($y = 0; $y < 2500; $y += 25) {
+            for ($x = 0; $x < 2500; $x += 25) {
+                imagefilledrectangle($gd, $x, $y, $x + 24, $y + 24, mt_rand(0, 0xFFFFFF));
+            }
+        }
+
+        ob_start();
+        imagejpeg($gd, null, 95);
+        $content = (string) ob_get_clean();
+
+        $draft = wizReadyImprove($this->user, $this->product);
+        app(PrepareAiDraftImages::class)->addUpload($draft->refresh(), UploadedFile::fake()->createWithContent('big.jpg', $content));
+
+        $this->apply->handle($this->user, $draft->refresh(), wizData($draft, ['accepted' => ['images'], 'main' => null]));
+
+        $media = $this->product->refresh()->getMedia(Product::IMAGES);
+
+        expect($media)->toHaveCount(1)
+            ->and($media[0]->size)->toBeLessThanOrEqual(204_800)
+            ->and(filesize($media[0]->getPath()))->toBeLessThanOrEqual(204_800);
+    });
+
     it('replaces an existing image only when the replace was confirmed, keeping its place and a copy of the original', function (bool $confirmed) {
         wizAddImages($this->product, 2);
         $old = $this->product->getMedia(Product::IMAGES)->first();

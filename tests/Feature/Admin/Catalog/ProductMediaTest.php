@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Tests\Support\ImageFixtures;
 
 beforeEach(function () {
     Storage::fake('public');
@@ -56,6 +57,70 @@ it('rejects non-images and files over 5 MB', function () {
         ->test(Images::class, ['product' => $product])
         ->set('uploads', [UploadedFile::fake()->image('big.jpg')->size(6000)])
         ->assertHasErrors('uploads.0');
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(0);
+});
+
+it('rejects a product image over 200 KB with the specific message and accepts 150 KB JPEG and 190 KB PNG', function () {
+    $product = Product::factory()->create();
+
+    Livewire::actingAs(staffUser())
+        ->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('big.jpg', 256000)])
+        ->assertHasErrors('uploads.0')
+        ->assertSee(__('admin.image_upload.too_large_product'));
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(0);
+
+    Livewire::actingAs(staffUser())
+        ->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('ok.jpg', 153600), ImageFixtures::noisyUpload('ok.png', 194560, true)])
+        ->assertHasNoErrors();
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(2);
+});
+
+it('keeps an oversize temporary upload off the media disk and removes the temporary file', function () {
+    $product = Product::factory()->create();
+
+    Livewire::actingAs(staffUser())
+        ->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('big.jpg', 256000)])
+        ->assertHasErrors('uploads.0');
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(0)
+        ->and(Storage::disk('local')->allFiles('products'))->toBe([])
+        ->and(collect(Storage::disk('local')->allFiles())->reject(fn (string $file): bool => str_starts_with($file, 'livewire-tmp/'))->all())->toBe([])
+        ->and(Storage::disk('public')->allFiles())->toBe([])
+        ->and(Storage::disk('local')->allFiles('livewire-tmp'))->toBe([]);
+});
+
+it('rejects 204801 bytes, 201 KB and accepts exactly 200 KB', function () {
+    $product = Product::factory()->create();
+
+    Livewire::actingAs(staffUser())->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('a.jpg', 205824)])->assertHasErrors('uploads.0');
+    Livewire::actingAs(staffUser())->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('c.jpg', 204801)])->assertHasErrors('uploads.0');
+    Livewire::actingAs(staffUser())->test(Images::class, ['product' => $product])
+        ->set('uploads', [ImageFixtures::noisyUpload('b.jpg', 204800)])->assertHasNoErrors();
+
+    expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(1);
+});
+
+it('rejects a tiny PNG declaring 20000x20000 in the action without decoding it', function () {
+    $product = Product::factory()->create();
+    $path = ImageFixtures::forgedPng(sys_get_temp_dir().'/'.uniqid('forged-').'.png', 20000, 20000);
+
+    expect(fn () => app(AddProductImages::class)->handle($product, [new UploadedFile($path, 'f.png', 'image/png', null, true)]))
+        ->toThrow(ValidationException::class);
+});
+
+it('enforces the 200 KB cap in the action even when validation is bypassed', function () {
+    $product = Product::factory()->create();
+
+    expect(fn () => app(AddProductImages::class)->handle($product, [ImageFixtures::noisyUpload('big.jpg', 256000)]))
+        ->toThrow(ValidationException::class, __('admin.image_upload.too_large_product'));
 
     expect($product->fresh()->getMedia(Product::IMAGES))->toHaveCount(0);
 });

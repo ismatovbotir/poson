@@ -623,7 +623,7 @@ return [
         'images' => [
             'main' => 'Main',
             'upload' => 'Upload',
-            'hint' => 'JPG, PNG or WebP, up to 5 MB each, at most :px×:px px, up to :count at a time, at least 1000×1000 px recommended. Drag to reorder: the first image is the main one.',
+            'hint' => 'Up to :count files, each up to 200 KB. Square 1200×1200 px recommended; WebP or JPEG (PNG only for transparency). Drag to reorder: the first image is the main one.',
             'none' => 'No images yet.',
             'added' => '{1} 1 image added|[2,*] :count images added',
             'alt_hint' => 'Describe what the photo shows, e.g. “Zebra DS2208 scanner on a stand”. Used by screen readers and image search.',
@@ -955,6 +955,7 @@ return [
 
         'conversion_failed' => 'The image could not be processed (the file may be damaged). Upload a different one.',
         'rejected' => 'This file can’t be used as an image. Upload a JPG, PNG or WebP file.',
+        'too_large_product' => 'The image is too large: each product image must be up to 200 KB. Use a square 1200 px WebP or JPEG (PNG only for transparency).',
 
         'processing' => 'Processing…',
         'still_processing' => 'Still processing. Save your changes, then reload the page to see the image.',
@@ -1779,7 +1780,7 @@ return [
         ],
         'image_errors' => [
             'type' => 'Only JPG, PNG or WebP images.',
-            'size' => 'The image is larger than 5 MB.',
+            'size' => 'The image is too large: files up to 5 MB are accepted and the stored image must fit under 200 KB. Use a 1200 px JPEG or WebP.',
             'dimensions' => 'The image is larger than 4000 px.',
             'memory' => 'The image is too large to process.',
             'animated' => 'Animated images are not supported.',

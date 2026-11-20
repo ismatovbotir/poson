@@ -74,8 +74,8 @@ class Images extends Component
 
         $this->validate([
             'uploads' => ['array', 'max:'.ImageLimits::MAX_BATCH],
-            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', ImageLimits::dimensionsRule()],
-        ], [], ['uploads.*' => __('admin.image_upload.image')]);
+            'uploads.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:'.ImageLimits::maxProductKilobytes(), ImageLimits::dimensionsRule()],
+        ], ['uploads.*.max' => __('admin.image_upload.too_large_product')], ['uploads.*' => __('admin.image_upload.image')]);
 
         $count = count($this->uploads);
         $this->runFormAction(fn () => $addImages->handle($this->product, $this->uploads), '');

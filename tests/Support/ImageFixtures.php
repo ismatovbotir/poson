@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use GdImage;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Small GD-built images for the AI product wizard tests (plan 32 §9): bordered
@@ -185,5 +186,26 @@ final class ImageFixtures
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0777, true);
         }
+    }
+
+    /**
+     * A decodable noisy image padded with trailing bytes to exactly $bytes (a real file of that size).
+     */
+    public static function noisyUpload(string $name, int $bytes, bool $png = false): UploadedFile
+    {
+        mt_srand(1);
+        $gd = imagecreatetruecolor(100, 100);
+
+        for ($y = 0; $y < 100; $y++) {
+            for ($x = 0; $x < 100; $x++) {
+                imagesetpixel($gd, $x, $y, mt_rand(0, 0xFFFFFF));
+            }
+        }
+
+        ob_start();
+        $png ? imagepng($gd, null, 9) : imagejpeg($gd, null, 100);
+        $content = (string) ob_get_clean();
+
+        return UploadedFile::fake()->createWithContent($name, $content.str_repeat("\0", max(0, $bytes - strlen($content))));
     }
 }

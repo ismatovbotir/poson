@@ -278,7 +278,7 @@ return [
             'ai_megapixels' => 1.15,
             'ai_quality' => 85,
             // Tier 1 cleaning: longest edge, margin and trim threshold (fractions), JPEG quality.
-            'clean' => ['edge' => 1600, 'margin' => 0.06, 'trim' => 0.08, 'quality' => 88],
+            'clean' => ['edge' => 1600, 'margin' => 0.06, 'trim' => 0.08],
             'notes_max' => 2000,
             'attributes_max' => 60,
             'options_max' => 50,

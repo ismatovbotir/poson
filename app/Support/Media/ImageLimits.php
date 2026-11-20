@@ -23,6 +23,20 @@ class ImageLimits
     public const MAX_BATCH = 5;
 
     /**
+     * Largest stored product image, in bytes (owner decision 2026-11-18: 200 KB each).
+     * Recommended: square 1200 px, WebP q80 or JPEG, PNG only for transparency.
+     */
+    public const MAX_PRODUCT_BYTES = 204_800;
+
+    /**
+     * The product image cap in kilobytes, for the Laravel "max" rule.
+     */
+    public static function maxProductKilobytes(): int
+    {
+        return intdiv(self::MAX_PRODUCT_BYTES, 1024);
+    }
+
+    /**
      * Laravel "dimensions" rule with the pixel cap, plus optional minimums ("min_width=1,min_height=1").
      */
     public static function dimensionsRule(string $minimums = ''): string
@@ -38,6 +52,21 @@ class ImageLimits
     public static function replacements(): array
     {
         return ['px' => self::MAX_DIMENSION, 'count' => self::MAX_BATCH];
+    }
+
+    /**
+     * Refuse a product image above the byte cap (also for callers that skipped form validation).
+     *
+     * @throws ValidationException
+     */
+    public static function assertWithinProductBytes(UploadedFile $file, string $field): void
+    {
+        $path = $file->getRealPath();
+        $bytes = $path === false ? false : filesize($path);
+
+        if ($bytes === false || $bytes > self::MAX_PRODUCT_BYTES) {
+            throw ValidationException::withMessages([$field => __('admin.image_upload.too_large_product')]);
+        }
     }
 
     /**
