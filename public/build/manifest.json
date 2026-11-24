@@ -88,7 +88,7 @@
     "name": "livewire-throttle"
   },
   "resources/css/admin.css": {
-    "file": "assets/admin-M3W9txB7.css",
+    "file": "assets/admin-rRfj2FBZ.css",
     "name": "admin",
     "names": [
       "admin.css"
@@ -97,7 +97,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-DqWmHown.css",
+    "file": "assets/app-Ckee2MZz.css",
     "name": "app",
     "names": [
       "app.css"
@@ -115,7 +115,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-DY4kGiMj.js",
+    "file": "assets/app-DP9xcxma.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
