@@ -7,6 +7,7 @@ use App\Models\MonitoringState;
 use App\Models\ScheduledTaskRun;
 use App\Support\Chat\WebChatBacklog;
 use App\Support\Chat\WorkingHours;
+use Illuminate\Support\Number;
 use Throwable;
 
 /**
@@ -175,6 +176,76 @@ final class ProblemMonitor
      */
     public function track(string $key, bool $problem, string $event, array $values, array $recoveredValues = []): void
     {
+        $this->process($key, $problem, $event, $values, $recoveredValues, null);
+    }
+
+    /**
+     * Level-aware tracking of one problem (plan 37, DM-13, DM-14): like
+     * track(), but the problem has a level (rank by position in $events,
+     * lowest first) that survives deliver() in meta.level. $level null means
+     * "no problem". Escalating to a higher level alerts at once as a new
+     * first alert; dropping to a lower level updates the stored level
+     * silently (reminders go on hourly at the current level); clearing sends
+     * one "recovered" ($recovered is its event key).
+     *
+     * @param  list<string>  $events  alert event per level, lowest first
+     * @param  array<string, scalar|null>  $values
+     * @param  array<string, scalar|null>  $recoveredValues
+     */
+    public function trackLevel(string $key, ?int $level, array $events, string $recovered, array $values, array $recoveredValues = []): void
+    {
+        $level = $level === null ? null : max(0, min($level, count($events) - 1));
+
+        $this->process($key, $level !== null, $level === null ? $recovered : $events[$level], $values, $recoveredValues, $level);
+    }
+
+    /**
+     * Project size (plan 37, DM-23): evaluated only by MeasureProjectSize
+     * after a finished measurement, never by the minute check. Level 0 = warn,
+     * 1 = critical. Integer math; a level is held until the size drops 5 %
+     * below its limit (DM-14); a partial measurement (a lower bound) may
+     * raise a level but never lower or clear one. Telegram values are
+     * formatted sizes, never raw bytes (DM-7).
+     */
+    public function evaluateProjectSize(int $bytes, bool $partial = false): void
+    {
+        $thresholds = app(DiskThresholds::class);
+        $warn = $thresholds->warnBytes();
+        $critical = $thresholds->criticalBytes();
+        $current = $this->storedLevel('problem:project_size');
+
+        $level = match (true) {
+            $bytes >= $critical => 1,
+            $current === 1 && $bytes * 100 >= $critical * 95 => 1,
+            $bytes >= $warn => 0,
+            $current !== null && $bytes * 100 >= $warn * 95 => 0,
+            default => null,
+        };
+
+        if ($partial && $current !== null && ($level === null || $level < $current)) {
+            $level = $current;
+        }
+
+        $this->trackLevel('problem:project_size', $level, ['project_size_warn', 'project_size_critical'], 'project_size', [
+            'project_size' => Number::fileSize($bytes, 1),
+            'size_limit' => Number::fileSize($level === 1 ? $critical : $warn, 0),
+        ], ['project_size' => Number::fileSize($bytes, 1)]);
+    }
+
+    private function storedLevel(string $key): ?int
+    {
+        $state = MonitoringState::query()->find($key);
+        $level = $state?->problem_since === null ? null : ($state->meta['level'] ?? null);
+
+        return is_int($level) ? $level : null;
+    }
+
+    /**
+     * @param  array<string, scalar|null>  $values
+     * @param  array<string, scalar|null>  $recoveredValues
+     */
+    private function process(string $key, bool $problem, string $event, array $values, array $recoveredValues, ?int $level): void
+    {
         $state = MonitoringState::query()->find($key);
 
         if (! $problem) {
@@ -191,11 +262,16 @@ final class ProblemMonitor
             $state->problem_since = now();
             $state->alerted_at = null;
             $state->meta = null;
+        } elseif ($level !== null && is_int($state->meta['level'] ?? null) && $level > $state->meta['level']) {
+            // Escalation: a new first alert at once.
+            $state->alerted_at = null;
+            $state->meta = null;
         }
 
         $reminder = $state->alerted_at !== null;
 
         if ($reminder && $state->alerted_at->gt(now()->subSeconds(self::REMIND_AFTER))) {
+            $this->withLevel($state, $level);
             $state->save();
 
             return;
@@ -205,7 +281,18 @@ final class ProblemMonitor
             $this->deliver($state, MonitoringAlerts::problem($event, $values, $reminder, $this->timeout));
         }
 
+        $this->withLevel($state, $level);
         $state->save();
+    }
+
+    /**
+     * Keep meta.level through every outcome of deliver() (SENT clears meta, FAILED / SKIPPED replace it).
+     */
+    private function withLevel(MonitoringState $state, ?int $level): void
+    {
+        if ($level !== null) {
+            $state->meta = [...($state->meta ?? []), 'level' => $level];
+        }
     }
 
     /**

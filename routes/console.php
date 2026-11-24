@@ -2,6 +2,7 @@
 
 use App\Jobs\RecordWorkerHeartbeat;
 use App\Models\ChatUnmatched;
+use App\Models\DiskSnapshot;
 use App\Models\McpCall;
 use App\Models\MonitoringAction;
 use App\Models\PriceSyncLog;
@@ -146,6 +147,15 @@ Schedule::command('model:prune', ['--model' => [McpCall::class]])->dailyAt('02:3
 Schedule::command('monitoring:check')->everyMinute()->withoutOverlapping(5)->onOneServer();
 Schedule::job(new RecordWorkerHeartbeat)->everyMinute();
 Schedule::command('model:prune', ['--model' => [ScheduledTaskRun::class, MonitoringAction::class]])->dailyAt('02:50')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+| Plan 37: project size snapshots older than 400 days are pruned (own line, DM-18).
+| The measurement itself has NO schedule: an Admin starts it on Admin → Monitoring
+| ("Measure now"). To run it weekly later, add
+| Schedule::job(new MeasureProjectSize)->weeklyOn(0, '04:30')->timezone('Asia/Tashkent');
+| (the job claims the run slot itself; it is not in monitoring.manual_tasks).
+*/
+Schedule::command('model:prune', ['--model' => [DiskSnapshot::class]])->dailyAt('02:55')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
 |--------------------------------------------------------------------------

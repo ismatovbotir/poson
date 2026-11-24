@@ -144,6 +144,8 @@ return [
 
     'monitoring' => [
         'events' => [
+            'project_size_warn' => 'Loyiha hajmi ogohlantirish chegarasiga yetdi',
+            'project_size_critical' => 'Loyiha hajmi jiddiy chegaraga yetdi',
             'cron_dead' => 'Rejalashtiruvchi ishlamayapti',
             'task_failed' => 'Rejali vazifa xatolik bilan tugadi',
             'queue_stuck' => 'Navbat qotib qoldi',
@@ -160,6 +162,7 @@ return [
             'careers_cv' => 'Vakansiyalar: rezyumelarni Telegramga yuborishda muammo',
         ],
         'recovered' => [
+            'project_size' => 'Loyiha hajmi yana chegaradan past',
             'chat_web_unanswered' => 'Sayt chatida kutayotgan tashrifchi yoʻq',
             'cron_dead' => 'Rejalashtiruvchi yana ishlayapti',
             'task_failed' => 'Rejali vazifa yana ishlayapti',
@@ -169,6 +172,8 @@ return [
             'telegram_token' => 'Telegram bot tokenini yana qabul qilmoqda',
         ],
         'labels' => [
+            'project_size' => 'Loyiha hajmi',
+            'size_limit' => 'Chegara',
             'task' => 'Vazifa',
             'at' => 'Vaqt',
             'exit_code' => 'Chiqish kodi',

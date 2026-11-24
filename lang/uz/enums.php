@@ -214,6 +214,7 @@ return [
     ],
 
     'settings_area' => [
+        'monitoring' => 'Monitoring',
         'careers' => 'Vakansiyalar',
         'contacts' => 'Kontaktlar',
         'legal' => 'Rekvizitlar',
@@ -659,4 +660,43 @@ return [
         'expired' => 'Muddati tugagan',
     ],
 
+    'disk_target' => [
+        'project_total' => 'Butun loyiha',
+        'storage' => 'Storage',
+        'public' => 'Public',
+        'other' => 'Boshqa (app, resources, config, database…)',
+        'vendor' => 'Vendor',
+        'node_modules' => 'Node modules',
+        'git' => 'Git tarixi',
+        'storage_logs' => 'Jurnallar',
+        'storage_app_public' => 'Ommaviy fayllar',
+        'storage_app_private' => 'Yopiq fayllar',
+        'storage_media_library' => 'Media kutubxonasi vaqtinchalik fayllari',
+        'storage_framework_cache' => 'Freymvork keshi',
+        'storage_framework_views' => 'Kompilyatsiya qilingan shablonlar',
+        'storage_framework_sessions' => 'Seanslar',
+    ],
+
+    'disk_measure_status' => [
+        'ok' => 'Oʻlchandi',
+        'partial' => 'Toʻliq emas',
+        'missing' => 'Topilmadi',
+        'unreadable' => 'Ruxsat yoʻq',
+    ],
+
+    'disk_run_status' => [
+        'idle' => 'Ishga tushirilmagan',
+        'queued' => 'Navbat ishlovchisi kutilmoqda',
+        'running' => 'Oʻlchanmoqda',
+        'done' => 'Tayyor',
+        'failed' => 'Xatolik',
+    ],
+
+    'disk_run_error' => [
+        'budget' => 'Vaqt yoki fayllar chegarasida toʻxtatildi: hajmlar haqiqiydan kam boʻlishi mumkin.',
+        'unreadable_root' => 'Loyiha papkasini oʻqib boʻlmaydi.',
+        'worker_lost' => 'Oʻlchash amalga oshmadi: navbat ishlovchisi toʻxtadi.',
+        'worker_missing' => 'Navbat ishlovchisi ishlamayapti: oʻlchash boshlanmadi.',
+        'exception' => 'Oʻlchash amalga oshmadi. Server jurnaliga qarang.',
+    ],
 ];

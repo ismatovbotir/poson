@@ -214,6 +214,7 @@ return [
     ],
 
     'settings_area' => [
+        'monitoring' => 'Monitoring',
         'careers' => 'Careers',
         'contacts' => 'Contacts',
         'legal' => 'Legal details',
@@ -659,4 +660,43 @@ return [
         'expired' => 'Expired',
     ],
 
+    'disk_target' => [
+        'project_total' => 'Project total',
+        'storage' => 'Storage',
+        'public' => 'Public',
+        'other' => 'Other (app, resources, config, database…)',
+        'vendor' => 'Vendor',
+        'node_modules' => 'Node modules',
+        'git' => 'Git history',
+        'storage_logs' => 'Logs',
+        'storage_app_public' => 'Public files',
+        'storage_app_private' => 'Private files',
+        'storage_media_library' => 'Media library temp',
+        'storage_framework_cache' => 'Framework cache',
+        'storage_framework_views' => 'Compiled views',
+        'storage_framework_sessions' => 'Sessions',
+    ],
+
+    'disk_measure_status' => [
+        'ok' => 'Measured',
+        'partial' => 'Incomplete',
+        'missing' => 'Not found',
+        'unreadable' => 'Unreadable',
+    ],
+
+    'disk_run_status' => [
+        'idle' => 'Idle',
+        'queued' => 'Waiting for the worker',
+        'running' => 'Measuring',
+        'done' => 'Done',
+        'failed' => 'Failed',
+    ],
+
+    'disk_run_error' => [
+        'budget' => 'Stopped at the time or file limit: the sizes are a lower bound.',
+        'unreadable_root' => 'The project folder cannot be read.',
+        'worker_lost' => 'Measurement failed: the worker stopped.',
+        'worker_missing' => 'The worker is not running: the measurement did not start.',
+        'exception' => 'The measurement failed. See the server log.',
+    ],
 ];

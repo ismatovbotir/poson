@@ -144,6 +144,8 @@ return [
 
     'monitoring' => [
         'events' => [
+            'project_size_warn' => 'Project size reached the warning limit',
+            'project_size_critical' => 'Project size reached the critical limit',
             'cron_dead' => 'Scheduler is not running',
             'task_failed' => 'Scheduled task failed',
             'queue_stuck' => 'Queue is stuck',
@@ -160,6 +162,7 @@ return [
             'careers_cv' => 'Careers: problem sending CVs to Telegram',
         ],
         'recovered' => [
+            'project_size' => 'Project size is below the limit again',
             'chat_web_unanswered' => 'Website chat has no waiting visitors',
             'cron_dead' => 'Scheduler is running again',
             'task_failed' => 'Scheduled task works again',
@@ -169,6 +172,8 @@ return [
             'telegram_token' => 'Telegram accepts the bot token again',
         ],
         'labels' => [
+            'project_size' => 'Project size',
+            'size_limit' => 'Limit',
             'task' => 'Task',
             'at' => 'Time',
             'exit_code' => 'Exit code',

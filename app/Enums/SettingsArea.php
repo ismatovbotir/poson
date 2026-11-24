@@ -42,6 +42,7 @@ enum SettingsArea: string
     case Chatbot = 'chatbot';
     case Users = 'users';
     case Careers = 'careers';
+    case Monitoring = 'monitoring';
 
     public function label(): string
     {
@@ -62,6 +63,7 @@ enum SettingsArea: string
             self::Chatbot => 'chatbot',
             self::Checkout => 'checkout',
             self::Careers => 'careers',
+            self::Monitoring => 'monitoring',
         };
     }
 
@@ -70,6 +72,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers, self::Monitoring], true);
     }
 }

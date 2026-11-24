@@ -214,6 +214,7 @@ return [
     ],
 
     'settings_area' => [
+        'monitoring' => 'Мониторинг',
         'careers' => 'Вакансии',
         'contacts' => 'Контакты',
         'legal' => 'Реквизиты',
@@ -659,4 +660,43 @@ return [
         'expired' => 'Истёк',
     ],
 
+    'disk_target' => [
+        'project_total' => 'Весь проект',
+        'storage' => 'Storage',
+        'public' => 'Public',
+        'other' => 'Прочее (app, resources, config, database…)',
+        'vendor' => 'Vendor',
+        'node_modules' => 'Node modules',
+        'git' => 'История Git',
+        'storage_logs' => 'Логи',
+        'storage_app_public' => 'Публичные файлы',
+        'storage_app_private' => 'Приватные файлы',
+        'storage_media_library' => 'Временные файлы медиатеки',
+        'storage_framework_cache' => 'Кэш фреймворка',
+        'storage_framework_views' => 'Скомпилированные шаблоны',
+        'storage_framework_sessions' => 'Сессии',
+    ],
+
+    'disk_measure_status' => [
+        'ok' => 'Измерено',
+        'partial' => 'Неполно',
+        'missing' => 'Не найдено',
+        'unreadable' => 'Нет доступа',
+    ],
+
+    'disk_run_status' => [
+        'idle' => 'Не запущено',
+        'queued' => 'Ожидание обработчика очереди',
+        'running' => 'Измерение',
+        'done' => 'Готово',
+        'failed' => 'Ошибка',
+    ],
+
+    'disk_run_error' => [
+        'budget' => 'Остановлено по лимиту времени или файлов: размеры указаны не менее реальных.',
+        'unreadable_root' => 'Папка проекта недоступна для чтения.',
+        'worker_lost' => 'Измерение не удалось: обработчик очереди остановился.',
+        'worker_missing' => 'Обработчик очереди не запущен: измерение не началось.',
+        'exception' => 'Измерение не удалось. См. лог сервера.',
+    ],
 ];

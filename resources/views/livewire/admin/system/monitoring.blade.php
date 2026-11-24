@@ -73,6 +73,9 @@
         </div>
     </dl>
 
+    {{-- Project size (plan 37): its own lazy component, so this page's queries and poll stay as they are. --}}
+    <livewire:admin.system.disk-usage lazy key="disk-usage" />
+
     {{-- Scheduled tasks --}}
     <x-admin.card class="mt-5" :title="__($t.'.tasks.title')" :description="__($t.'.tasks.hint')" :padding="false">
         @if ($snapshotStale)

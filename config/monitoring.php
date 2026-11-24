@@ -77,4 +77,18 @@ return [
 
     'queue' => 'monitoring',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Project size limits in GB (plan 37)
+    |--------------------------------------------------------------------------
+    | Defaults of Admin → Monitoring → Project size. An Admin edits them there
+    | (company setting "monitoring_disk"); a bad stored value falls back to
+    | these. Telegram alert when a finished measurement is at or above them.
+    */
+
+    'disk' => [
+        'warn_gb' => 5,
+        'critical_gb' => 8,
+    ],
+
 ];
