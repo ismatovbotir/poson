@@ -41,7 +41,7 @@ return new class extends Migration
             $table->timestamp('applied_at')->nullable();
             $table->timestamp('created_at')->useCurrent()->index();
             $table->timestamp('updated_at')->nullable();
-            $table->timestamp('expires_at')->index();
+            $table->timestamp('expires_at')->useCurrent()->index();
 
             $table->index(['user_id', 'status']);
         });
