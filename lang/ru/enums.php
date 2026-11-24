@@ -214,6 +214,7 @@ return [
     ],
 
     'settings_area' => [
+        'analytics' => 'Аналитика (реклама)',
         'careers' => 'Вакансии',
         'contacts' => 'Контакты',
         'legal' => 'Реквизиты',
@@ -263,6 +264,7 @@ return [
         'deleted' => 'Удалено навсегда',
         'password_changed' => 'Пароль изменён',
         'password_reset' => 'Пароль сброшен',
+        'exported' => 'Выгружено',
     ],
 
     'price_sync_status' => [
@@ -657,6 +659,24 @@ return [
         'applying' => 'Сохраняется',
         'applied' => 'Сохранено',
         'expired' => 'Истёк',
+    ],
+
+    'analytics_goal' => [
+        'lead_callback' => 'Заявка: обратный звонок',
+        'lead_product_quote' => 'Заявка: запрос по товару',
+        'lead_product_service' => 'Заявка: запрос услуги (страница товара)',
+        'lead_cart_quote' => 'Заявка: КП по корзине',
+        'lead_service_request' => 'Заявка: сервисная заявка',
+        'lead_chat' => 'Заявка: из чата на сайте',
+        'order_placed' => 'Заказ оформлен',
+        'click_phone' => 'Клик по телефону',
+        'click_telegram' => 'Клик по ссылке Telegram',
+        'chat_started' => 'Чат начат',
+        'chat_handoff' => 'В чате позвали менеджера',
+        'careers_application' => 'Отклик на вакансию',
+        'add_to_cart' => 'Добавление в корзину',
+        'order_paid' => 'Заказ оплачен (офлайн)',
+        'quote_accepted' => 'КП принято (офлайн)',
     ],
 
 ];

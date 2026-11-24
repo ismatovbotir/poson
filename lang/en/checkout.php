@@ -57,6 +57,12 @@ return [
         ],
     ],
 
+    'placed' => [
+        'title' => 'Your order is placed',
+        'text' => 'We are opening your order page. If it does not open, use the button below.',
+        'link' => 'Open your order',
+    ],
+
     'title' => 'Checkout',
     'seo_description' => 'Place your order with Poson.',
     'back_to_cart' => 'Back to the cart',

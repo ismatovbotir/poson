@@ -43,6 +43,12 @@ enum SettingsArea: string
     case Users = 'users';
     case Careers = 'careers';
 
+    /**
+     * Plan 40 (Admin only, analytics.export): the ad click id switch
+     * (analytics.ad_click_ids_enabled) and the offline-conversion export audit rows.
+     */
+    case Analytics = 'analytics';
+
     public function label(): string
     {
         return __("enums.settings_area.{$this->value}");
@@ -55,7 +61,7 @@ enum SettingsArea: string
     {
         return match ($this) {
             self::Contacts, self::Legal, self::Social, self::Hero, self::Faq => 'company',
-            self::Seo, self::Tracking, self::AiBots, self::Indexing => 'seo',
+            self::Seo, self::Tracking, self::AiBots, self::Indexing, self::Analytics => 'seo',
             self::Integrations, self::ApiTokens, self::PriceSync, self::Mcp, self::Users => 'integrations',
             self::Catalog => 'system',
             self::TelegramBot, self::TelegramInbox => 'telegram',
@@ -70,6 +76,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers, self::Analytics], true);
     }
 }

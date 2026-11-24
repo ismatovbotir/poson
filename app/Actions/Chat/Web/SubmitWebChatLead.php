@@ -40,6 +40,9 @@ use Illuminate\Support\Facades\DB;
  * visitor's phone never matches a CRM customer (matchCustomer false, WC-9).
  * LeadCreated fires once, after commit (CreateLead). The form closes, the
  * Lead stat is counted for the web, the version is bumped.
+ *
+ * Plan 40: the widget passes the session's Yandex click ids
+ * (AdClickIds::capture(); nulls while the switch is off).
  */
 class SubmitWebChatLead
 {
@@ -52,15 +55,16 @@ class SubmitWebChatLead
 
     /**
      * @param  string  $phone  Already normalized by the caller (Phone::normalizeAny)
+     * @param  array{yclid?: string|null, ym_client_id?: string|null}  $clickIds
      * @return Lead|null null when refused: switched off, banned, closed, no open form or already a lead
      */
-    public function handle(WebChat $chat, string $name, string $phone, ?string $details): ?Lead
+    public function handle(WebChat $chat, string $name, string $phone, ?string $details, array $clickIds = []): ?Lead
     {
         if (! WebChatSwitch::isOpen()) {
             return null;
         }
 
-        return DB::transaction(function () use ($chat, $name, $phone, $details): ?Lead {
+        return DB::transaction(function () use ($chat, $name, $phone, $details, $clickIds): ?Lead {
             $locked = WebChat::query()->whereKey($chat->id)->lockForUpdate()->first();
 
             if ($locked === null || $locked->isBanned() || $locked->isClosed() || $locked->isExpired() || $locked->lead_id !== null) {
@@ -90,6 +94,8 @@ class SubmitWebChatLead
                 productId: $product?->id,
                 productSku: $product?->sku,
                 matchCustomer: false,
+                yclid: $clickIds['yclid'] ?? null,
+                ymClientId: $clickIds['ym_client_id'] ?? null,
             ));
 
             $locked->forceFill([

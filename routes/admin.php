@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DownloadJobApplicationCvController;
 use App\Http\Controllers\Admin\DownloadProductDocumentController;
 use App\Http\Controllers\Admin\LogoutController;
+use App\Http\Controllers\Admin\OfflineConversionsCsvController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\QuotePdfController;
 use App\Http\Controllers\Admin\RepairReceiptController;
@@ -113,6 +114,10 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     // Analytics (plan 04c): analytics.view (Admin only), authorized in the components.
     Route::livewire('/analytics', Analytics\Traffic::class)->name('analytics.index');
     Route::livewire('/analytics/ai', Analytics\AiVisibility::class)->name('analytics.ai');
+    // Plan 40: Campaigns (analytics.view, in the component) and the offline-conversion CSV (POST + CSRF, YD-10).
+    Route::livewire('/analytics/campaigns', Analytics\Campaigns::class)->name('analytics.campaigns');
+    Route::post('/analytics/offline-conversions.csv', OfflineConversionsCsvController::class)
+        ->middleware(['can:analytics.export', 'throttle:10,1'])->name('analytics.offline-conversions');
 
     // Catalog (plan 03 3b). Each component authorizes in mount() and before writes.
     Route::livewire('/categories', Categories\Index::class)->name('categories.index');

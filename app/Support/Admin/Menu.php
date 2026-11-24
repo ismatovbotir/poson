@@ -43,6 +43,8 @@ final class Menu
                 // Plan 04c (labels in lang/*/analytics.php). Explicit active patterns: the two routes share a prefix.
                 new MenuItem('analytics', 'analytics.menu.traffic', 'chart', 'admin.analytics.index', permission: 'analytics.view', active: 'admin.analytics.index'),
                 new MenuItem('ai-visibility', 'analytics.menu.ai', 'radar', 'admin.analytics.ai', permission: 'analytics.view', active: 'admin.analytics.ai'),
+                // Plan 40: Campaigns (UTM / Yandex Direct report, offline conversions).
+                new MenuItem('campaigns', 'analytics.menu.campaigns', 'link', 'admin.analytics.campaigns', permission: 'analytics.view', active: 'admin.analytics.campaigns'),
             ], collapsible: false),
 
             new MenuGroup('sales', 'menu.groups.sales', [

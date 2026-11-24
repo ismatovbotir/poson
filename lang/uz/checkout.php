@@ -57,6 +57,12 @@ return [
         ],
     ],
 
+    'placed' => [
+        'title' => 'Buyurtmangiz rasmiylashtirildi',
+        'text' => 'Buyurtma sahifasi ochilmoqda. Agar u ochilmasa, quyidagi tugmani bosing.',
+        'link' => 'Buyurtmani ochish',
+    ],
+
     'title' => 'Buyurtmani rasmiylashtirish',
     'seo_description' => 'Posonda buyurtmani rasmiylashtirish.',
     'back_to_cart' => 'Savatga qaytish',

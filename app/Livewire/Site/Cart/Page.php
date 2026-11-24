@@ -7,8 +7,10 @@ use App\Actions\Cart\ConvertCartToLead;
 use App\Actions\Cart\RemoveCartLine;
 use App\Actions\Cart\UpdateCartLine;
 use App\Data\Leads\SiteLeadData;
+use App\Enums\AnalyticsGoal;
 use App\Enums\LeadType;
 use App\Livewire\Site\Cart\Concerns\AddsToCart;
+use App\Livewire\Site\Concerns\DispatchesAnalyticsGoals;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Cart;
 use App\Rules\PhoneNumber;
@@ -44,6 +46,7 @@ use Livewire\Component;
 class Page extends Component
 {
     use AddsToCart;
+    use DispatchesAnalyticsGoals;
     use GuardsLeadSubmissions;
 
     public string $name = '';
@@ -199,6 +202,8 @@ class Page extends Component
 
         // Bots get the same success screen, but nothing is submitted.
         if (! $this->looksLikeBot()) {
+            $clickIds = $this->captureAdClickIds();
+
             try {
                 $convertCart->handle($cart, new SiteLeadData(
                     name: trim($validated['name']),
@@ -212,6 +217,8 @@ class Page extends Component
                     trafficChannel: Attribution::channel($this->attribution),
                     trafficSource: $this->attribution['source'] ?? null,
                     landingPath: $this->attribution['landing'] ?? null,
+                    yclid: $clickIds['yclid'],
+                    ymClientId: $clickIds['ym_client_id'],
                 ));
             } catch (ValidationException $exception) {
                 $this->addError('form', (string) collect($exception->errors())->flatten()->first());
@@ -220,6 +227,8 @@ class Page extends Component
             }
 
             $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale);
+
+            $this->reachGoal(AnalyticsGoal::LeadCartQuote);
         }
 
         $this->reset('name', 'phone', 'company', 'message', 'fax_ext');

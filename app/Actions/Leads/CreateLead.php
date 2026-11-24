@@ -10,6 +10,7 @@ use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\Lead;
 use App\Models\User;
+use App\Support\Analytics\AdClickIds;
 use App\Support\Phone;
 use App\Support\Telegram\Bot\BotText;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,8 @@ class CreateLead
                 'traffic_source' => static::clean($data->trafficSource, 255),
                 'landing_path' => static::clean($data->landingPath, 2048),
                 'utm' => $data->utm !== [] ? $data->utm : null,
+                'yclid' => AdClickIds::cleanYclid($data->yclid),
+                'ym_client_id' => AdClickIds::cleanClientId($data->ymClientId),
                 'status_changed_at' => now(),
             ]);
 

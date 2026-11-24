@@ -58,6 +58,7 @@ return [
         'source' => 'Источник',
         'customer' => 'Клиент CRM',
         'price_level' => 'Уровень цен',
+        'yandex_direct_click' => 'Клик Яндекс Директ',
         'buyer_type' => 'Покупатель',
         'name' => 'Контактное лицо',
         'phone' => 'Телефон',

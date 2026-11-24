@@ -214,6 +214,7 @@ return [
     ],
 
     'settings_area' => [
+        'analytics' => 'Analitika (reklama)',
         'careers' => 'Vakansiyalar',
         'contacts' => 'Kontaktlar',
         'legal' => 'Rekvizitlar',
@@ -263,6 +264,7 @@ return [
         'deleted' => 'Butunlay oʻchirildi',
         'password_changed' => 'Parol oʻzgartirildi',
         'password_reset' => 'Parol tiklandi',
+        'exported' => 'Eksport qilindi',
     ],
 
     'price_sync_status' => [
@@ -657,6 +659,24 @@ return [
         'applying' => 'Saqlanmoqda',
         'applied' => 'Saqlandi',
         'expired' => 'Muddati tugagan',
+    ],
+
+    'analytics_goal' => [
+        'lead_callback' => 'Murojaat: qayta qoʻngʻiroq',
+        'lead_product_quote' => 'Murojaat: mahsulot boʻyicha soʻrov',
+        'lead_product_service' => 'Murojaat: xizmat soʻrovi (mahsulot sahifasi)',
+        'lead_cart_quote' => 'Murojaat: savat boʻyicha tijorat taklifi',
+        'lead_service_request' => 'Murojaat: servis arizasi',
+        'lead_chat' => 'Murojaat: sayt chatidan',
+        'order_placed' => 'Buyurtma rasmiylashtirildi',
+        'click_phone' => 'Telefon raqamiga bosish',
+        'click_telegram' => 'Telegram havolasiga bosish',
+        'chat_started' => 'Chat boshlandi',
+        'chat_handoff' => 'Chatda menejer soʻraldi',
+        'careers_application' => 'Vakansiyaga ariza',
+        'add_to_cart' => 'Savatga qoʻshildi',
+        'order_paid' => 'Buyurtma toʻlandi (oflayn)',
+        'quote_accepted' => 'Tijorat taklifi qabul qilindi (oflayn)',
     ],
 
 ];

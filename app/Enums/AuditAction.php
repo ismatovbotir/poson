@@ -65,6 +65,12 @@ enum AuditAction: string
     case PasswordChanged = 'password_changed';
     case PasswordReset = 'password_reset';
 
+    /**
+     * Plan 40 (YD-12): an offline-conversion CSV was downloaded (key holds the
+     * identifier type, date range and row count; never an id or amount).
+     */
+    case Exported = 'exported';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

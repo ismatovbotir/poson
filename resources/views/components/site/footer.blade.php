@@ -51,7 +51,7 @@
                         </span>
                     @endforeach
                     @if ($telegram !== '')
-                        <a href="{{ $telegram }}" target="_blank" rel="noopener noreferrer" class="{{ $linkClass }}">{{ $telegramLabel }}</a>
+                        <a href="{{ $telegram }}" data-poson-goal="click_telegram" target="_blank" rel="noopener noreferrer" class="{{ $linkClass }}">{{ $telegramLabel }}</a>
                     @endif
                     @if ($company->email() !== '')
                         <a href="mailto:{{ $company->email() }}" class="{{ $linkClass }}">{{ $company->email() }}</a>

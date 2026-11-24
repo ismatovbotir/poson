@@ -14,6 +14,9 @@ use Illuminate\Support\Str;
  *     (and its subdomains), search engines → search, social networks →
  *     social, else referral.
  *
+ * Plan 40: a valid Yandex Direct click id (yclid) without utm_source is a
+ * campaign visit from "yandex" (Direct with auto-tagging only).
+ *
  * Host lists are in config('analytics.hosts'). Pure: no request access.
  */
 class TrafficClassifier
@@ -40,8 +43,9 @@ class TrafficClassifier
      * @param  string|null  $utmSource  Sanitized utm_source, if any
      * @param  string|null  $referrerHost  Host of the Referer header, if any
      * @param  list<string>  $ownHosts  The site's own hosts (internal navigation)
+     * @param  string|null  $yclid  Sanitized Yandex click id of the request, if any
      */
-    public function classify(?string $utmSource, ?string $referrerHost, array $ownHosts = []): TrafficSource
+    public function classify(?string $utmSource, ?string $referrerHost, array $ownHosts = [], ?string $yclid = null): TrafficSource
     {
         $utmSource = Str::lower(trim((string) $utmSource));
 
@@ -51,6 +55,10 @@ class TrafficClassifier
             return $aiSource !== null
                 ? new TrafficSource(TrafficChannel::Ai, $aiSource)
                 : new TrafficSource(TrafficChannel::Campaign, mb_substr($utmSource, 0, self::SOURCE_MAX_LENGTH));
+        }
+
+        if (AdClickIds::cleanYclid($yclid) !== null) {
+            return new TrafficSource(TrafficChannel::Campaign, 'yandex');
         }
 
         $host = self::normalizeHost($referrerHost);

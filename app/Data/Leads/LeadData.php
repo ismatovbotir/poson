@@ -21,6 +21,9 @@ use App\Enums\TrafficChannel;
  * deviceBrand / deviceModel / serialNumber / preferredContact: service
  * request fields (plan 36). Raw text here; CreateLead / UpdateLead clean and
  * cap it. Never logged.
+ *
+ * yclid / ymClientId: Yandex click ids of a site lead (plan 40), stored only
+ * when valid (AdClickIds). Never logged.
  */
 final readonly class LeadData
 {
@@ -53,5 +56,7 @@ final readonly class LeadData
         public ?string $deviceModel = null,
         public ?string $serialNumber = null,
         public ?PreferredContact $preferredContact = null,
+        public ?string $yclid = null,
+        public ?string $ymClientId = null,
     ) {}
 }

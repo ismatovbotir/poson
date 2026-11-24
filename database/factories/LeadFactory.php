@@ -101,4 +101,12 @@ class LeadFactory extends Factory
     {
         return $this->state(fn (array $attributes) => ['customer_id' => $customer->id]);
     }
+
+    /**
+     * Plan 40: a visit from a Yandex Direct click (fake ids, digits only).
+     */
+    public function fromDirect(string $yclid = '1234567890123456789', ?string $clientId = '1700000000123456789'): static
+    {
+        return $this->state(fn (): array => ['yclid' => $yclid, 'ym_client_id' => $clientId]);
+    }
 }

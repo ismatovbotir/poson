@@ -58,6 +58,7 @@ return [
         'source' => 'Source',
         'customer' => 'CRM customer',
         'price_level' => 'Price level',
+        'yandex_direct_click' => 'Yandex Direct click',
         'buyer_type' => 'Buyer',
         'name' => 'Contact name',
         'phone' => 'Phone',

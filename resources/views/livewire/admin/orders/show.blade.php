@@ -155,6 +155,8 @@
                         </dd></div>
                     @endif
                     <div class="flex justify-between gap-3"><dt class="text-slate-500">{{ __('orders.fields.price_level') }}</dt><dd>{{ $order->price_level->label() }}</dd></div>
+                    {{-- Plan 40 (YD-14): yes / no only, never the id. --}}
+                    <div class="flex justify-between gap-3" data-yandex-direct-click><dt class="text-slate-500">{{ __('orders.fields.yandex_direct_click') }}</dt><dd>{{ $order->hasYandexDirectClick() ? __('admin.common.yes') : __('admin.common.no') }}</dd></div>
                 </dl>
                 @if ($order->comment)
                     <p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm"><span class="block text-xs font-semibold text-slate-500">{{ __('orders.fields.comment') }}</span><span class="whitespace-pre-line break-words">{{ $order->comment }}</span></p>

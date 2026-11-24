@@ -32,6 +32,8 @@ $analyticsTimezone = config('analytics.timezone', 'Asia/Tashkent');
 Schedule::command('analytics:aggregate')->everyFifteenMinutes()->withoutOverlapping(10)->onOneServer();
 Schedule::command('analytics:verify-bots')->dailyAt('00:20')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
 Schedule::command('analytics:prune')->dailyAt('01:10')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
+// Plan 40 (YD-8): Yandex click ids on leads / orders are cleared after 12 months.
+Schedule::command('analytics:prune-click-ids')->dailyAt('01:15')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
 Schedule::command('analytics:refresh-bot-ranges')->weeklyOn(1, '03:30')->timezone($analyticsTimezone)->withoutOverlapping(10)->onOneServer();
 
 /*

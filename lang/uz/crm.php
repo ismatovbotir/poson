@@ -72,6 +72,7 @@ return [
             'traffic_channel' => 'Kanal',
             'traffic_source' => 'Trafik manbasi',
             'landing_path' => 'Kirish sahifasi',
+            'yandex_direct_click' => 'Yandex Direct orqali',
             'page_url' => 'Forma sahifasi',
             'created_by' => 'Qoʻshgan xodim',
             'created_at' => 'Kelgan vaqti',

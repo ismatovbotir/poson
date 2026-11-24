@@ -266,6 +266,8 @@
                     ], fn ($value) => filled($value)) as $label => $value)
                         <div class="flex gap-3"><dt class="w-32 shrink-0 text-slate-500">{{ $label }}</dt><dd class="min-w-0 break-words">{{ $value }}</dd></div>
                     @endforeach
+                    {{-- Plan 40 (YD-14): yes / no only, never the id. --}}
+                    <div class="flex gap-3" data-yandex-direct-click><dt class="w-32 shrink-0 text-slate-500">{{ __('crm.leads.fields.yandex_direct_click') }}</dt><dd>{{ $lead->hasYandexDirectClick() ? __('admin.common.yes') : __('admin.common.no') }}</dd></div>
                     @foreach ($lead->utm ?? [] as $key => $value)
                         <div class="flex gap-3"><dt class="w-32 shrink-0 font-mono text-xs text-slate-500">{{ $key }}</dt><dd class="min-w-0 break-words">{{ $value }}</dd></div>
                     @endforeach

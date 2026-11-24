@@ -37,6 +37,15 @@ function baseRobotsGroup(): string
     ]);
 }
 
+/**
+ * Plan 40 (YD-15): Yandex gets the same rules plus Clean-param, right after "*".
+ */
+function yandexRobotsGroup(): string
+{
+    return str_replace('User-agent: *', 'User-agent: Yandex', baseRobotsGroup())
+        ."\nClean-param: yclid&ysclid&gclid&utm_source&utm_medium&utm_campaign&utm_term&utm_content";
+}
+
 function saveAiBots(array $map): void
 {
     app(UpdateCompanySettings::class)->handle(SettingsArea::AiBots, [AiBotRules::SETTING_KEY => $map], null, null);
@@ -79,7 +88,7 @@ it('renders robots.txt for the "allow all" preset without any bot group', functi
     saveAiBots(AiBotRules::preset(AiBotRules::PRESET_ALLOW_ALL));
 
     expect($this->get('/robots.txt')->assertOk()->getContent())->toBe(
-        baseRobotsGroup()."\n\nSitemap: ".url('/sitemap.xml')."\n",
+        baseRobotsGroup()."\n\n".yandexRobotsGroup()."\n\nSitemap: ".url('/sitemap.xml')."\n",
     );
 });
 
@@ -88,6 +97,7 @@ it('renders robots.txt for the "search only, no training" preset', function () {
 
     expect($this->get('/robots.txt')->assertOk()->getContent())->toBe(implode("\n\n", [
         baseRobotsGroup(),
+        yandexRobotsGroup(),
         "User-agent: GPTBot\nDisallow: /",
         "User-agent: ClaudeBot\nDisallow: /",
         "User-agent: Bytespider\nDisallow: /",
@@ -109,7 +119,8 @@ it('denies only the chosen bots and never a search engine', function () {
     $robots = $this->get('/robots.txt')->assertOk()->getContent();
 
     expect($robots)->toContain("User-agent: PerplexityBot\nDisallow: /")
-        ->and(substr_count($robots, 'User-agent:'))->toBe(2)
+        // "*", Yandex (plan 40) and PerplexityBot.
+        ->and(substr_count($robots, 'User-agent:'))->toBe(3)
         ->and($robots)->not->toContain('Googlebot')
         ->not->toContain('Bingbot')
         ->not->toContain('GPTBot')

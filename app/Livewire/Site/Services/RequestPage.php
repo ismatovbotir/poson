@@ -5,8 +5,10 @@ namespace App\Livewire\Site\Services;
 use App\Actions\Analytics\RecordConversion;
 use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
+use App\Enums\AnalyticsGoal;
 use App\Enums\LeadType;
 use App\Enums\PreferredContact;
+use App\Livewire\Site\Concerns\DispatchesAnalyticsGoals;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Product;
 use App\Rules\PhoneNumber;
@@ -37,6 +39,7 @@ use Livewire\Component;
  */
 class RequestPage extends Component
 {
+    use DispatchesAnalyticsGoals;
     use GuardsLeadSubmissions;
 
     public string $name = '';
@@ -142,6 +145,8 @@ class RequestPage extends Component
             // Checked again: a product hidden since mount goes without an item (P36-7).
             $product = $this->productId !== null ? $this->serviceableProduct(id: $this->productId) : null;
 
+            $clickIds = $this->captureAdClickIds();
+
             $submitSiteLead->handle(new SiteLeadData(
                 name: trim($validated['name']),
                 phone: $phone,
@@ -160,9 +165,13 @@ class RequestPage extends Component
                 deviceModel: trim($validated['device_model']),
                 serialNumber: filled($validated['serial_number']) ? trim($validated['serial_number']) : null,
                 preferredContact: PreferredContact::from($validated['preferred_contact']),
+                yclid: $clickIds['yclid'],
+                ymClientId: $clickIds['ym_client_id'],
             ));
 
             $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale, $product?->id);
+
+            $this->reachGoal(AnalyticsGoal::LeadServiceRequest);
         }
 
         $this->reset('name', 'phone', 'company', 'device_brand', 'device_model', 'serial_number', 'message', 'fax_ext');

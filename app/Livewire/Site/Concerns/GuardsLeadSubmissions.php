@@ -3,6 +3,7 @@
 namespace App\Livewire\Site\Concerns;
 
 use App\Livewire\Site\LeadForm;
+use App\Support\Analytics\AdClickIds;
 use App\Support\Analytics\Attribution;
 use App\Support\ForeignPhoneLimit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -69,17 +70,30 @@ trait GuardsLeadSubmissions
 
     /**
      * The session's first-touch attribution; empty if analytics fails (the form must always work).
+     * Without click ids: they never become Livewire state (plan 40, YD-6 / YD-7).
      *
      * @return array<string, string>
      */
     protected function captureAttribution(): array
     {
         try {
-            return app(Attribution::class)->current(request());
+            return Attribution::withoutClickIds(app(Attribution::class)->current(request()));
         } catch (\Throwable $exception) {
             report($exception);
 
             return [];
         }
+    }
+
+    /**
+     * Plan 40: the session's Yandex click ids for the lead / order being
+     * created now (nulls while the Admin switch is off). Read at submit
+     * time, never kept in a property.
+     *
+     * @return array{yclid: string|null, ym_client_id: string|null}
+     */
+    protected function captureAdClickIds(): array
+    {
+        return AdClickIds::capture(request());
     }
 }

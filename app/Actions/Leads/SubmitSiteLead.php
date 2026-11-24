@@ -65,6 +65,8 @@ class SubmitSiteLead
             deviceModel: $data->deviceModel,
             serialNumber: $data->serialNumber,
             preferredContact: $data->preferredContact,
+            yclid: $data->yclid,
+            ymClientId: $data->ymClientId,
         ));
 
         Log::info('Site lead received', array_filter([

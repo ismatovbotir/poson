@@ -186,6 +186,8 @@ it('schedules aggregation, verification, pruning and the range refresh without o
         'analytics:aggregate' => ['*/15 * * * *', config('app.timezone'), true, 10],
         'analytics:verify-bots' => ['20 0 * * *', $tz, true, 10],
         'analytics:prune' => ['10 1 * * *', $tz, true, 10],
+        // Plan 40 (YD-8): Yandex click ids cleared after 12 months.
+        'analytics:prune-click-ids' => ['15 1 * * *', $tz, true, 10],
         'analytics:refresh-bot-ranges' => ['30 3 * * 1', $tz, true, 10],
     ]);
 });

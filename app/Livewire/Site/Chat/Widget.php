@@ -12,10 +12,12 @@ use App\Actions\Chat\Web\SaveWebChatContact;
 use App\Actions\Chat\Web\SubmitWebChatLead;
 use App\Actions\Leads\CreateLead;
 use App\Data\Site\ProductCard;
+use App\Enums\AnalyticsGoal;
 use App\Enums\ChatAuthor;
 use App\Enums\ChatChannel;
 use App\Enums\ChatMode;
 use App\Enums\LeadFlow;
+use App\Livewire\Site\Concerns\DispatchesAnalyticsGoals;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Product;
 use App\Models\WebChat;
@@ -71,10 +73,14 @@ use Livewire\Component;
  *
  * Output (CB-5): every text is escaped by Blade; staff are shown as
  * "Manager", never by name (WC-12).
+ *
+ * Plan 40 goals (only while the visitor is tracked): chat_started when a
+ * stored message created the chat, chat_handoff when a stored message or
+ * button switched it to manager mode, lead_chat when a real lead was stored.
  */
 class Widget extends Component
 {
-    use GuardsLeadSubmissions;
+    use DispatchesAnalyticsGoals, GuardsLeadSubmissions;
 
     /**
      * Messages rendered (the latest ones).
@@ -166,17 +172,23 @@ class Widget extends Component
 
     public function send(mixed $text = null): bool
     {
-        return $this->settle(app(PostVisitorMessage::class)->handle($text, $this->locale, $this->page));
+        $before = $this->chat();
+
+        return $this->settle(app(PostVisitorMessage::class)->handle($text, $this->locale, $this->page), $before);
     }
 
     public function press(mixed $index = null): void
     {
-        $this->settle(app(PressWebChatButton::class)->press($index, $this->locale));
+        $before = $this->chat();
+
+        $this->settle(app(PressWebChatButton::class)->press($index, $this->locale), $before);
     }
 
     public function topic(mixed $ruleId = null): void
     {
-        $this->settle(app(PressWebChatButton::class)->topic($ruleId, $this->locale, $this->page));
+        $before = $this->chat();
+
+        $this->settle(app(PressWebChatButton::class)->topic($ruleId, $this->locale, $this->page), $before);
     }
 
     /**
@@ -190,7 +202,9 @@ class Widget extends Component
 
     public function handoff(): void
     {
-        $this->settle(app(PressWebChatButton::class)->handoff($this->locale, $this->page));
+        $before = $this->chat();
+
+        $this->settle(app(PressWebChatButton::class)->handoff($this->locale, $this->page), $before);
     }
 
     public function submitLead(): void
@@ -237,13 +251,15 @@ class Widget extends Component
         // Bots get the same success screen, but nothing is submitted.
         if (! $this->looksLikeBot()) {
             $details = trim($validated['details'] ?? '');
-            $lead = app(SubmitWebChatLead::class)->handle($chat, trim($validated['name']), $phone, $details === '' ? null : $details);
+            $lead = app(SubmitWebChatLead::class)->handle($chat, trim($validated['name']), $phone, $details === '' ? null : $details, $this->captureAdClickIds());
 
             if ($lead === null) {
                 $this->notice = 'unavailable';
 
                 return;
             }
+
+            $this->reachGoal(AnalyticsGoal::LeadChat);
         }
 
         $this->resetForm();
@@ -396,7 +412,10 @@ class Widget extends Component
         return $changed;
     }
 
-    private function settle(PostedMessage $posted): bool
+    /**
+     * @param  WebChat|null  $before  The chat before the call (null: none yet), for the plan 40 goals
+     */
+    private function settle(PostedMessage $posted, ?WebChat $before = null): bool
     {
         $this->notice = match ($posted->status) {
             PostedMessage::LIMITED => 'too_many',
@@ -409,9 +428,30 @@ class Widget extends Component
         if ($posted->stored()) {
             $this->leadSent = false;
             $this->dispatch('chat-activity');
+            $this->reachChatGoals($before);
         }
 
         return $posted->stored();
+    }
+
+    /**
+     * chat_started: the stored message created the chat; chat_handoff: the chat is now in manager mode and was not before.
+     */
+    private function reachChatGoals(?WebChat $before): void
+    {
+        $after = $this->chat();
+
+        if ($after === null) {
+            return;
+        }
+
+        if ($before === null) {
+            $this->reachGoal(AnalyticsGoal::ChatStarted);
+        }
+
+        if ($after->mode === ChatMode::Manager && $before?->mode !== ChatMode::Manager) {
+            $this->reachGoal(AnalyticsGoal::ChatHandoff);
+        }
     }
 
     private function resetForm(): void

@@ -12,6 +12,7 @@ use App\Support\Phone;
 use App\Support\Search;
 use Database\Factories\LeadFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -66,11 +67,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
+#[Hidden(['yclid', 'ym_client_id'])]
 #[Fillable([
     'source', 'type', 'status', 'lost_reason', 'lost_note',
     'name', 'phone', 'email', 'company', 'inn', 'message',
     'customer_id', 'manager_id', 'created_by_id', 'duplicate_of_id', 'estimated_amount',
-    'locale', 'page_url', 'traffic_channel', 'traffic_source', 'landing_path', 'utm',
+    'locale', 'page_url', 'traffic_channel', 'traffic_source', 'landing_path', 'utm', 'yclid', 'ym_client_id',
     'status_changed_at', 'closed_at',
     'device_brand', 'device_model', 'serial_number', 'preferred_contact',
 ])]
@@ -391,5 +393,13 @@ class Lead extends Model
                 $scope->orWhere(fn (Builder $inner) => $inner->where('leads.type', LeadType::ServiceRequest->value)->where($ownOrUnassigned));
             }
         });
+    }
+
+    /**
+     * Plan 40 (YD-14): came from a Yandex Direct click (only this yes / no is shown, never the id).
+     */
+    public function hasYandexDirectClick(): bool
+    {
+        return $this->yclid !== null;
     }
 }

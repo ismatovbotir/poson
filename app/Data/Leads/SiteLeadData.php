@@ -22,6 +22,8 @@ use App\Enums\TrafficChannel;
  * ServiceRequest always wins in SubmitSiteLead (plan 36, P36-1).
  * deviceBrand / deviceModel / serialNumber / preferredContact: service
  * request fields (plan 36), cleaned and capped by CreateLead.
+ * yclid / ymClientId: Yandex click ids (plan 40, AdClickIds::capture(); null
+ * while the switch is off), re-validated by CreateLead. Never logged.
  */
 final readonly class SiteLeadData
 {
@@ -52,5 +54,7 @@ final readonly class SiteLeadData
         public ?string $deviceModel = null,
         public ?string $serialNumber = null,
         public ?PreferredContact $preferredContact = null,
+        public ?string $yclid = null,
+        public ?string $ymClientId = null,
     ) {}
 }
