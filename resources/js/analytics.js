@@ -7,6 +7,17 @@
 const GA4 = /^G-[A-Z0-9]{4,16}$/;
 const METRIKA = /^[1-9][0-9]{4,11}$/;
 
+/**
+ * Plan 40 (YD-3): goal IDs (App\Enums\AnalyticsGoal). Every name is checked
+ * against GOAL; delegated clicks use the exact CLICK_GOALS allow-list.
+ * Goals go out without any parameters (no PII, amounts or tokens).
+ */
+export const GOAL = /^[a-z][a-z0-9_]{2,39}$/;
+const CLICK_GOALS = ['click_telegram'];
+
+let activeConfig = null;
+let firedClickGoals = new Set();
+
 function readConfig() {
     const meta = document.querySelector('meta[name="poson-analytics"]');
 
@@ -88,6 +99,94 @@ function listenForCartEvents(config) {
     });
 }
 
+/**
+ * Send one goal to Metrika (and GA4). callback runs once Metrika confirmed
+ * the hit; returns false (callback not called) when nothing was sent.
+ */
+export function reachGoal(goal, callback) {
+    const config = activeConfig;
+
+    if (!config || typeof goal !== 'string' || !GOAL.test(goal)) {
+        return false;
+    }
+
+    if (typeof window.gtag === 'function') {
+        window.gtag('event', goal);
+    }
+
+    if (typeof config.metrika === 'string' && METRIKA.test(config.metrika) && typeof window.ym === 'function') {
+        if (typeof callback === 'function') {
+            window.ym(Number(config.metrika), 'reachGoal', goal, undefined, callback);
+        } else {
+            window.ym(Number(config.metrika), 'reachGoal', goal);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Livewire "poson-goal" events (detail.goal), sent by the server only after
+ * a stored lead / chat while the visitor is tracked.
+ */
+function listenForGoalEvents() {
+    window.addEventListener('poson-goal', (event) => {
+        const goal = event.detail && typeof event.detail.goal === 'string' ? event.detail.goal : '';
+
+        reachGoal(goal);
+    });
+}
+
+/**
+ * Delegated clicks, once per goal per page view: tel: links → click_phone,
+ * [data-poson-goal] → its value when it is on the CLICK_GOALS allow-list.
+ */
+function listenForClickGoals() {
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+
+        if (!target) {
+            return;
+        }
+
+        let goal = null;
+        const tagged = target.closest('[data-poson-goal]');
+
+        if (tagged) {
+            const value = tagged.getAttribute('data-poson-goal') || '';
+            goal = GOAL.test(value) && CLICK_GOALS.includes(value) ? value : null;
+        } else if (target.closest('a[href^="tel:"]')) {
+            goal = 'click_phone';
+        }
+
+        if (goal && !firedClickGoals.has(goal)) {
+            firedClickGoals.add(goal);
+            reachGoal(goal);
+        }
+    }, { capture: true });
+
+    // wire:navigate swaps the page without a reload: a new page view.
+    document.addEventListener('livewire:navigated', () => {
+        firedClickGoals = new Set();
+    });
+}
+
+/**
+ * A goal reached by a form redirect (careers): <meta name="poson-goal">, fired once.
+ */
+function fireMetaGoal() {
+    const meta = document.querySelector('meta[name="poson-goal"]');
+    const goal = meta ? meta.getAttribute('content') || '' : '';
+
+    if (meta) {
+        meta.remove();
+    }
+
+    reachGoal(goal);
+}
+
 export function initAnalytics() {
     const config = readConfig();
 
@@ -96,6 +195,7 @@ export function initAnalytics() {
     }
 
     window.__posonAnalytics = true;
+    activeConfig = config;
 
     // Further trackers (GTM, Meta Pixel) would be added here with their own ID check.
     if (typeof config.ga4 === 'string' && GA4.test(config.ga4)) {
@@ -107,6 +207,9 @@ export function initAnalytics() {
     }
 
     listenForCartEvents(config);
+    listenForGoalEvents();
+    listenForClickGoals();
+    fireMetaGoal();
 }
 
 initAnalytics();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Actions\Careers\SubmitJobApplication;
 use App\Data\Careers\JobApplicationData;
+use App\Enums\AnalyticsGoal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Site\SubmitJobApplicationRequest;
 use App\Support\Careers\CareersCv;
@@ -11,6 +12,7 @@ use App\Support\Careers\CvFile;
 use App\Support\ForeignPhoneLimit;
 use App\Support\Phone;
 use App\Support\PlainText;
+use App\Support\Site\Analytics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +28,10 @@ use Throwable;
  * ignored) → SubmitJobApplication. A bot gets the same success redirect and
  * nothing is stored, counted or inspected. Logs: application id or error
  * code only (CR-16).
+ *
+ * Plan 40 (YD-4): a stored application (never a bot's) flashes the
+ * careers_application goal; the page prints it as <meta name="poson-goal">
+ * only while the visitor is tracked. Never a Direct goal.
  */
 class SubmitJobApplicationController extends Controller
 {
@@ -85,12 +91,14 @@ class SubmitJobApplicationController extends Controller
 
         Log::info('Careers application received', ['job_application' => $application->id]);
 
-        return $this->sent($request);
+        return $this->sent($request, AnalyticsGoal::CareersApplication);
     }
 
-    private function sent(SubmitJobApplicationRequest $request): RedirectResponse
+    private function sent(SubmitJobApplicationRequest $request, ?AnalyticsGoal $goal = null): RedirectResponse
     {
-        return redirect()->to($request->pageUrl().'#careers-apply')->with(self::SENT_FLASH, true);
+        $redirect = redirect()->to($request->pageUrl().'#careers-apply')->with(self::SENT_FLASH, true);
+
+        return $goal !== null ? $redirect->with(Analytics::GOAL_FLASH, $goal->value) : $redirect;
     }
 
     /**

@@ -62,6 +62,8 @@ class ConvertCartToLead
             trafficSource: $contact->trafficSource,
             landingPath: $contact->landingPath,
             items: array_values($items),
+            yclid: $contact->yclid,
+            ymClientId: $contact->ymClientId,
         ));
     }
 }

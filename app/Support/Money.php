@@ -63,6 +63,22 @@ class Money
         return $tiyin === null ? '' : number_format(intdiv($tiyin, 100), 0, '', ' ');
     }
 
+    /**
+     * Tiyin → soʻm as a plain machine number for exports (plan 40 CSV):
+     * 125000000 → "1250000", 125000050 → "1250000.50". Integer math only;
+     * negative amounts are not exported (null).
+     */
+    public static function plainSums(int $tiyin): ?string
+    {
+        if ($tiyin < 0) {
+            return null;
+        }
+
+        $remainder = $tiyin % 100;
+
+        return intdiv($tiyin, 100).($remainder === 0 ? '' : '.'.str_pad((string) $remainder, 2, '0', STR_PAD_LEFT));
+    }
+
     public static function currency(): string
     {
         return trans()->has('site.currency') ? __('site.currency') : self::DEFAULT_CURRENCY;

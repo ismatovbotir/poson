@@ -5,8 +5,10 @@ namespace App\Livewire\Site;
 use App\Actions\Analytics\RecordConversion;
 use App\Actions\Leads\SubmitSiteLead;
 use App\Data\Leads\SiteLeadData;
+use App\Enums\AnalyticsGoal;
 use App\Enums\LeadType;
 use App\Livewire\Site\Catalog\RollPicker;
+use App\Livewire\Site\Concerns\DispatchesAnalyticsGoals;
 use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Product;
 use App\Models\RollType;
@@ -33,6 +35,9 @@ use Livewire\Component;
  * The session's first-touch attribution (channel, source, UTM tags, landing;
  * see App\Support\Analytics\Attribution) goes with the lead, and a valid
  * lead is recorded as a conversion (RecordConversion) for the analytics.
+ * Plan 40: the lead carries the session's Yandex click ids, and the
+ * Metrika goal lead_callback / lead_product_quote / lead_product_service is
+ * dispatched once a real (non-bot) lead is stored.
  *
  * Label products (plan 08): the request carries the roll type and rolls
  * chosen in the page's RollPicker ("roll-selected"; defaults: the first
@@ -44,7 +49,7 @@ use Livewire\Component;
  */
 class LeadForm extends Component
 {
-    use GuardsLeadSubmissions;
+    use DispatchesAnalyticsGoals, GuardsLeadSubmissions;
 
     /**
      * Valid submissions allowed per IP within RATE_LIMIT_SECONDS.
@@ -241,13 +246,16 @@ class LeadForm extends Component
 
         // Bots get the same success screen, but nothing is submitted.
         if (! $this->looksLikeBot()) {
+            $clickIds = $this->captureAdClickIds();
+            $leadType = $product?->enquiryLeadType() ?? LeadType::Callback;
+
             $submitSiteLead->handle(new SiteLeadData(
                 name: trim($validated['name']),
                 phone: $phone,
                 company: filled($validated['company']) ? trim($validated['company']) : null,
                 message: filled($validated['message']) ? trim($validated['message']) : null,
                 locale: $this->locale,
-                type: $product?->enquiryLeadType() ?? LeadType::Callback,
+                type: $leadType,
                 utm: $this->utm,
                 pageUrl: $this->pageUrl,
                 productId: $product?->id,
@@ -257,9 +265,17 @@ class LeadForm extends Component
                 landingPath: $this->attribution['landing'] ?? null,
                 rollTypeId: $sendsRoll ? self::intOrNull($this->rollTypeId) : null,
                 rolls: $sendsRoll ? self::intOrNull($this->rolls) : null,
+                yclid: $clickIds['yclid'],
+                ymClientId: $clickIds['ym_client_id'],
             ));
 
             $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale, $product?->id);
+
+            $this->reachGoal(match (true) {
+                $product === null => AnalyticsGoal::LeadCallback,
+                $leadType === LeadType::ServiceRequest => AnalyticsGoal::LeadProductService,
+                default => AnalyticsGoal::LeadProductQuote,
+            });
         }
 
         $this->reset('name', 'phone', 'company', 'message', 'fax_ext');

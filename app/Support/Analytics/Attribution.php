@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\URL;
  *
  * Replaces the old session "utm" array of the lead form. Values from the
  * session are re-sanitized on every read.
+ *
+ * Plan 40 (YD-7): the session also keeps "yclid", the LAST Yandex Direct
+ * click (rememberClickIds(), while the ad click id switch is on; written
+ * only when it changes). UTM tags and the channel stay first touch. Click
+ * ids never leave the session through a component's attribution property
+ * (withoutClickIds()); AdClickIds::capture() reads them at submit time.
  */
 class Attribution
 {
@@ -26,6 +32,13 @@ class Attribution
      * @var list<string>
      */
     public const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+    /**
+     * Ad click ids kept in the session (plan 40; gclid / ysclid are not stored).
+     *
+     * @var list<string>
+     */
+    public const CLICK_ID_KEYS = ['yclid'];
 
     public function __construct(protected TrafficClassifier $classifier) {}
 
@@ -60,6 +73,28 @@ class Attribution
         $this->session($request)?->put(self::SESSION_KEY, $attribution);
 
         return $attribution;
+    }
+
+    /**
+     * Last ad click wins (YD-7): a valid yclid in this request's query
+     * replaces the stored one; the session is written only on a change.
+     * The caller checks the ad click id switch (AdClickIds::enabled()).
+     */
+    public function rememberClickIds(Request $request): void
+    {
+        $clickIds = static::sanitizeClickIds($request->query());
+
+        if ($clickIds === []) {
+            return;
+        }
+
+        $stored = $this->current($request);
+
+        if (array_intersect_key($stored, $clickIds) === $clickIds) {
+            return;
+        }
+
+        $this->session($request)?->put(self::SESSION_KEY, [...$stored, ...$clickIds]);
     }
 
     /**
@@ -108,6 +143,7 @@ class Attribution
             $utm['utm_source'] ?? null,
             TrafficClassifier::hostFromUrl($request->headers->get('referer')),
             static::ownHosts($request),
+            static::sanitizeClickIds($request->query())['yclid'] ?? null,
         );
     }
 
@@ -162,7 +198,35 @@ class Attribution
             }
         }
 
-        return [...$clean, ...static::sanitizeUtm($input)];
+        return [...$clean, ...static::sanitizeUtm($input), ...static::sanitizeClickIds($input)];
+    }
+
+    /**
+     * Keep valid click ids only (yclid: 1–32 digits); an invalid value is
+     * dropped, never cut (YD-7).
+     *
+     * @return array<string, string>
+     */
+    public static function sanitizeClickIds(mixed $input): array
+    {
+        if (! is_array($input)) {
+            return [];
+        }
+
+        $yclid = AdClickIds::cleanYclid($input['yclid'] ?? null);
+
+        return $yclid !== null ? ['yclid' => $yclid] : [];
+    }
+
+    /**
+     * An attribution array without its click ids (for Livewire state and orders.attribution).
+     *
+     * @param  array<string, string>  $attribution
+     * @return array<string, string>
+     */
+    public static function withoutClickIds(array $attribution): array
+    {
+        return array_diff_key($attribution, array_flip(self::CLICK_ID_KEYS));
     }
 
     /**

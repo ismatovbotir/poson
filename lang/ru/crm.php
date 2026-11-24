@@ -72,6 +72,7 @@ return [
             'traffic_channel' => 'Канал',
             'traffic_source' => 'Источник трафика',
             'landing_path' => 'Страница входа',
+            'yandex_direct_click' => 'Клик Яндекс Директ',
             'page_url' => 'Страница формы',
             'created_by' => 'Добавил',
             'created_at' => 'Получена',

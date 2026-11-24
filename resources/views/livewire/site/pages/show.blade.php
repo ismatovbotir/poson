@@ -74,7 +74,7 @@
                         <p class="flex items-center gap-2"><x-site.icon name="mail" size="size-5" class="text-brand-600" /><a href="mailto:{{ $company->email() }}" class="hover:text-brand-600">{{ $company->email() }}</a></p>
                     @endif
                     @if ($company->telegramUrl() !== '')
-                        <p class="flex items-center gap-2"><x-site.icon name="telegram" size="size-5" class="text-brand-600" /><a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600">{{ preg_replace('#^https?://#', '', rtrim($company->telegramUrl(), '/')) }}</a></p>
+                        <p class="flex items-center gap-2"><x-site.icon name="telegram" size="size-5" class="text-brand-600" /><a href="{{ $company->telegramUrl() }}" data-poson-goal="click_telegram" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600">{{ preg_replace('#^https?://#', '', rtrim($company->telegramUrl(), '/')) }}</a></p>
                     @endif
                     @if ($company->address() !== '')
                         <p class="flex items-start gap-2" data-contacts-address><x-site.icon name="pin" size="size-5" class="mt-0.5 shrink-0 text-brand-600" /><span>{{ $company->address() }}@if ($company->city() !== '' && mb_stripos($company->address(), $company->city()) === false), {{ $company->city() }}@endif</span></p>

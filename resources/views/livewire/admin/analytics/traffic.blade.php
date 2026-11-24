@@ -21,6 +21,11 @@
         </x-slot:actions>
     </x-admin.page-header>
 
+    <p class="mt-4 text-sm text-slate-600" data-campaigns-link>
+        {{ __('analytics.traffic.campaigns_hint') }}
+        <a href="{{ route('admin.analytics.campaigns') }}" wire:navigate class="font-semibold text-brand-700 underline">{{ __('analytics.menu.campaigns') }}</a>
+    </p>
+
     @if ($ga4Url || $metrikaUrl)
         <div class="mt-4 flex flex-wrap items-center gap-2 text-sm" data-external-analytics>
             <span class="text-slate-500">{{ __('analytics.traffic.external') }}</span>

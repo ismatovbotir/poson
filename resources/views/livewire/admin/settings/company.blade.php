@@ -238,6 +238,11 @@
                     <x-admin.input wire:model="tracking.metrika" inputmode="numeric" :label="__($t.'.fields.metrika')" placeholder="98765432" maxlength="12" autocomplete="off" :hint="__($t.'.hints.metrika')" />
                 </div>
             </x-admin.card>
+
+            {{-- Plan 40 T6: setup help once a Metrika counter is saved. --}}
+            @if (app(\App\Support\CompanySettings::class)->tracking()['metrika'] !== '')
+                @include('livewire.admin.settings.partials.tracking-help')
+            @endif
         @endif
 
         @if ($tab === 'ai_bots')

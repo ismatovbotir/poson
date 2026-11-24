@@ -91,7 +91,7 @@
             @endforeach
             @if ($company->telegramUrl() !== '')
                 <li>
-                    <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:text-brand-600">
+                    <a href="{{ $company->telegramUrl() }}" data-poson-goal="click_telegram" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:text-brand-600">
                         <x-site.icon name="send" class="text-brand-600" />
                         {{ __('site.topbar.telegram') }}
                     </a>

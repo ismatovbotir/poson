@@ -215,6 +215,7 @@ return [
 
     'settings_area' => [
         'monitoring' => 'Monitoring',
+        'analytics' => 'Analytics (ads)',
         'careers' => 'Careers',
         'contacts' => 'Contacts',
         'legal' => 'Legal details',
@@ -264,6 +265,7 @@ return [
         'deleted' => 'Deleted for good',
         'password_changed' => 'Password changed',
         'password_reset' => 'Password reset',
+        'exported' => 'Exported',
     ],
 
     'price_sync_status' => [
@@ -699,4 +701,22 @@ return [
         'worker_missing' => 'The worker is not running: the measurement did not start.',
         'exception' => 'The measurement failed. See the server log.',
     ],
+    'analytics_goal' => [
+        'lead_callback' => 'Lead: callback',
+        'lead_product_quote' => 'Lead: product quote request',
+        'lead_product_service' => 'Lead: service request (product page)',
+        'lead_cart_quote' => 'Lead: cart quote request',
+        'lead_service_request' => 'Lead: service request',
+        'lead_chat' => 'Lead: website chat',
+        'order_placed' => 'Order placed',
+        'click_phone' => 'Phone number click',
+        'click_telegram' => 'Telegram link click',
+        'chat_started' => 'Chat started',
+        'chat_handoff' => 'Chat: asked for a manager',
+        'careers_application' => 'Job application',
+        'add_to_cart' => 'Added to cart',
+        'order_paid' => 'Order paid (offline)',
+        'quote_accepted' => 'Quote accepted (offline)',
+    ],
+
 ];

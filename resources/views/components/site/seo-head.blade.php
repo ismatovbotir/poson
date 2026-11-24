@@ -28,6 +28,8 @@
     $image = $image ?: ($company->ogImageUrl() ?: asset('og-image.png'));
     $verification = $company->verification();
     $analyticsJson = $analytics->json();
+    // Plan 40 (YD-4): a goal reached by a form redirect (careers), only a known AnalyticsGoal.
+    $flashedGoal = $analyticsJson !== null ? $analytics->flashedGoal() : null;
     $pageTitle = $plain($title);
     $pageTitle = $pageTitle !== '' ? $pageTitle : $siteName.' — '.__('site.meta.tagline');
     $pageDescription = $plain($description);
@@ -79,6 +81,9 @@
 @endif
 @if ($analyticsJson !== null)
     <meta name="poson-analytics" content='{{ $analyticsJson }}'>
+    @if ($flashedGoal !== null)
+        <meta name="poson-goal" content="{{ $flashedGoal->value }}">
+    @endif
 @endif
 
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">

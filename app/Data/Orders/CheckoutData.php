@@ -7,7 +7,8 @@ namespace App\Data\Orders;
  * the enums with tryFrom() and validates every field, security condition 7).
  * fingerprint is the CartPricer + delivery fingerprint the page was
  * rendered with (condition 6). attribution / trafficChannel: the session's
- * sanitized first-touch analytics (no PII).
+ * sanitized first-touch analytics (no PII). yclid / ymClientId: Yandex click
+ * ids (plan 40, AdClickIds::capture()), re-validated by PlaceOrder.
  */
 final readonly class CheckoutData
 {
@@ -30,5 +31,7 @@ final readonly class CheckoutData
         public string $fingerprint,
         public array $attribution = [],
         public ?string $trafficChannel = null,
+        public ?string $yclid = null,
+        public ?string $ymClientId = null,
     ) {}
 }

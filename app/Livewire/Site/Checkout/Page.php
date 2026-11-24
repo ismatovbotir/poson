@@ -5,6 +5,7 @@ namespace App\Livewire\Site\Checkout;
 use App\Actions\Analytics\RecordOrderPlaced;
 use App\Actions\Orders\PlaceOrder;
 use App\Data\Orders\CheckoutData;
+use App\Enums\AnalyticsGoal;
 use App\Enums\BuyerType;
 use App\Enums\DeliveryType;
 use App\Enums\PaymentMethod;
@@ -21,6 +22,7 @@ use App\Support\Orders\DeliveryQuote;
 use App\Support\Orders\PaymentContext;
 use App\Support\Orders\PaymentOptions;
 use App\Support\Phone;
+use App\Support\Site\Analytics;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Locked;
@@ -42,6 +44,12 @@ use Livewire\Component;
  * Spam: honeypot "fax_ext", minimum fill time, per-IP (5 / 10 min) and
  * per-phone (10 / day) limits. A double submit returns the same order
  * (PlaceOrder is idempotent per cart). After placing: the /o/{ulid} page.
+ *
+ * Plan 40 (YD-1, YD-2): while Metrika goals are on, the page does not
+ * redirect; it keeps the relative /o URL in placedUrl (shown as a fallback
+ * link) and dispatches "poson-order-placed" (goal + next). The listener in
+ * resources/js/app.js validates next, sends order_placed and navigates on
+ * the goal callback or after 1.5 s. Goals off: the redirect is unchanged.
  */
 class Page extends Component
 {
@@ -92,6 +100,12 @@ class Page extends Component
     #[Locked]
     public int $renderedAt = 0;
 
+    /**
+     * Relative /o/{ulid} URL of the order just placed (goals on only; the fallback link).
+     */
+    #[Locked]
+    public ?string $placedUrl = null;
+
     public function boot(): void
     {
         abort_unless(config('site.cart_enabled'), 404);
@@ -107,6 +121,13 @@ class Page extends Component
 
     public function placeOrder(PlaceOrder $placeOrder, RecordOrderPlaced $recordOrder): void
     {
+        // Already placed (goals on): send the buyer on again (navigation only, no second goal), never a second order.
+        if ($this->placedUrl !== null) {
+            $this->dispatch('poson-order-placed', next: $this->placedUrl);
+
+            return;
+        }
+
         $this->validate([
             'name' => ['required', 'string', 'min:2', 'max:120'],
             'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
@@ -145,6 +166,8 @@ class Page extends Component
             return;
         }
 
+        $clickIds = $this->captureAdClickIds();
+
         // ValidationExceptions (fields, "fingerprint" = prices changed) land in the error bag; the next render re-prices.
         $order = $placeOrder->handle($token, new CheckoutData(
             name: $this->name,
@@ -162,18 +185,30 @@ class Page extends Component
             fingerprint: $this->fingerprint,
             attribution: $this->attribution,
             trafficChannel: Attribution::channel($this->attribution)->value,
+            yclid: $clickIds['yclid'],
+            ymClientId: $clickIds['ym_client_id'],
         ));
 
         ForeignPhoneLimit::record($normalizedPhone);
 
         $recordOrder->handle(request(), $this->pageUrl, $this->locale);
 
-        $this->redirect(route('orders.public', array_filter([
+        $parameters = array_filter([
             'ulid' => $order->ulid,
             'lang' => $this->locale,
             // Dynamic UzQR: /o opens the "Pay with UzQR" dialog (the QR is created only on a click).
             'pay' => $order->payment_method === PaymentMethod::UzqrDynamic ? 'uzqr' : null,
-        ])));
+        ]);
+
+        if (app(Analytics::class)->goalsEnabled()) {
+            // YD-1: a relative path only (no scheme / host); app.js rebuilds and checks it.
+            $this->placedUrl = route('orders.public', $parameters, absolute: false);
+            $this->dispatch('poson-order-placed', goal: AnalyticsGoal::OrderPlaced->value, next: $this->placedUrl);
+
+            return;
+        }
+
+        $this->redirect(route('orders.public', $parameters));
     }
 
     public function render(CartPricer $pricer, CheckoutSettings $settings, PaymentOptions $paymentOptions): View

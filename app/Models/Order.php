@@ -20,6 +20,7 @@ use App\Support\Search;
 use Carbon\CarbonImmutable;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -90,6 +91,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
+#[Hidden(['yclid', 'ym_client_id'])]
 #[Fillable([
     'number', 'ulid', 'public_until', 'is_test', 'source', 'customer_id', 'manager_id', 'created_by_id',
     'status', 'payment_status', 'payment_method', 'payment_pending_at', 'price_level', 'locale',
@@ -97,7 +99,7 @@ use Illuminate\Support\Carbon;
     'delivery_type', 'region', 'address', 'kokand_address_confirmed', 'comment', 'staff_note',
     'delivery_pricing', 'delivery_amount', 'delivery_ikpu', 'delivery_package_code',
     'subtotal', 'vat_amount', 'total', 'invoice_valid_until', 'invoice_version', 'amount_updated_at',
-    'attribution', 'traffic_channel',
+    'attribution', 'traffic_channel', 'yclid', 'ym_client_id',
     'confirmed_at', 'shipped_at', 'completed_at', 'cancelled_at', 'paid_at', 'refunded_at', 'cancel_reason', 'status_changed_at',
 ])]
 class Order extends Model
@@ -391,5 +393,13 @@ class Order extends Model
                     ->orWhere('orders.tin', 'like', $digits.'%');
             }
         });
+    }
+
+    /**
+     * Plan 40 (YD-14): came from a Yandex Direct click (only this yes / no is shown, never the id).
+     */
+    public function hasYandexDirectClick(): bool
+    {
+        return $this->yclid !== null;
     }
 }

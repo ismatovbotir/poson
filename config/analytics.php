@@ -50,6 +50,20 @@ return [
         'site_visits_days' => 30,
         'bot_hits_days' => 14,
         'aggregates_months' => 25,
+        // Plan 40 (owner, YD-8): yclid / ym_client_id on leads and orders are nulled after this.
+        'ad_click_ids_months' => 12,
+    ],
+
+    /*
+    | Plan 40 offline conversions (Admin → Analytics → Campaigns): Metrika
+    | accepts conversions up to this many days back; the CSV range may not
+    | start earlier. Days are in the analytics timezone above.
+    */
+    'offline_conversions' => [
+        'max_days_back' => 21,
+        // Goals offered in the CSV. Owner (YD-16, 2026-11-24): accepted quotes go in
+        // with their totals, whatever the quote's price level; drop 'quote_accepted' here to stop that.
+        'goals' => ['order_paid', 'quote_accepted'],
     ],
 
     /*

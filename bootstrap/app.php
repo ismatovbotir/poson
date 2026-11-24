@@ -58,6 +58,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Telegram webhook (plan 14 v2, condition 2): body size → secret → throttle.
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: VerifyTelegramSecret::class);
 
+        // Plan 40 (YD-9): Metrika's ClientID cookie, read-only, Metrika JS sets it, never trusted
+        // (only AdClickIds::capture() reads it, digits only).
+        $middleware->encryptCookies(except: ['_ym_uid']);
+
         // Only the admin panel has authentication.
         $middleware->redirectGuestsTo(fn (Request $request): string => route('admin.login'));
         $middleware->redirectUsersTo(fn (Request $request): string => route('admin.dashboard'));

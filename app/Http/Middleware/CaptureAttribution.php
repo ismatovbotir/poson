@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\Analytics\AdClickIds;
 use App\Support\Analytics\Attribution;
 use App\Support\Analytics\TrafficRecorder;
 use Closure;
@@ -18,7 +19,9 @@ use Throwable;
  *  - the first page view of a session stores the first-touch attribution
  *    (channel, source, UTM tags, landing) in the session and is the entry,
  *    unless it came from the site itself;
- *  - every page view is recorded under the session's channel.
+ *  - every page view is recorded under the session's channel;
+ *  - plan 40: while the ad click id switch is on, a valid yclid replaces
+ *    the session's one (last ad click wins, Attribution::rememberClickIds()).
  */
 class CaptureAttribution
 {
@@ -60,6 +63,10 @@ class CaptureAttribution
         if ($stored === null) {
             $isEntry = ! $this->attribution->classify($request)->isInternal();
             $stored = $this->attribution->current($request);
+        }
+
+        if (AdClickIds::enabled()) {
+            $this->attribution->rememberClickIds($request);
         }
 
         $request->attributes->set(TrafficRecorder::ATTR_VISIT, [

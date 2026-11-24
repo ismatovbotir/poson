@@ -17,6 +17,10 @@ use App\Support\CompanySettings;
  * crawlers simply follow "*" (no empty groups). withGroup() adds further
  * groups without touching the base rules.
  *
+ * Plan 40 (YD-15): Yandex gets its own group right after "*" (the same
+ * rules, since Yandex then ignores "*") plus Clean-param for the ad and UTM
+ * tags, so tagged ad URLs are not indexed as duplicates.
+ *
  * Plan 15 C: while Settings → Indexing is closed (the default) the file is
  * only "User-agent: * / Disallow: /" (closed()).
  */
@@ -59,6 +63,13 @@ class RobotsTxt
     ];
 
     /**
+     * Query keys Yandex ignores (Clean-param, Yandex group only).
+     *
+     * @var list<string>
+     */
+    public const YANDEX_CLEAN_PARAMS = ['yclid', 'ysclid', 'gclid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+    /**
      * @var list<RobotsGroup>
      */
     private array $extraGroups = [];
@@ -84,6 +95,7 @@ class RobotsTxt
 
         return [
             new RobotsGroup(['*'], self::DISALLOW, self::ALLOW),
+            new RobotsGroup(['Yandex'], self::DISALLOW, self::ALLOW, self::YANDEX_CLEAN_PARAMS),
             ...AiBotRules::deniedGroups($settings->aiBots()),
             ...$this->extraGroups,
         ];

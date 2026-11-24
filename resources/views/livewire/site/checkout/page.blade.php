@@ -21,7 +21,14 @@
 
     <h1 class="mb-6 text-[26px] leading-[1.15] font-bold tracking-[-0.025em] sm:text-[34px]">{{ __('checkout.title') }}</h1>
 
-    @if ($cart === null || $cart->isEmpty())
+    @if ($placedUrl !== null)
+        {{-- Plan 40 (YD-2): app.js navigates after the order_placed goal; this link is the fallback. --}}
+        <div class="grid justify-items-center gap-4 rounded-box-lg border border-line bg-bg-soft px-6 py-14 text-center" role="status" data-order-placed>
+            <h2 class="text-xl font-bold">{{ __('checkout.placed.title') }}</h2>
+            <p class="max-w-md text-ink-2">{{ __('checkout.placed.text') }}</p>
+            <a href="{{ $placedUrl }}" class="ym-disable-tracklink inline-flex h-12 items-center justify-center rounded-btn bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700" data-order-placed-link>{{ __('checkout.placed.link') }}</a>
+        </div>
+    @elseif ($cart === null || $cart->isEmpty())
         <div class="grid justify-items-center gap-4 rounded-box-lg border border-line bg-bg-soft px-6 py-14 text-center" data-checkout-empty>
             <h2 class="text-xl font-bold">{{ __('checkout.cart.empty_title') }}</h2>
             <p class="max-w-md text-ink-2">{{ __('checkout.cart.empty_text') }}</p>

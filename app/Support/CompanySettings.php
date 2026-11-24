@@ -43,6 +43,13 @@ class CompanySettings
     public const INDEXING_KEY = 'search_indexing';
 
     /**
+     * Plan 40 (YD-8): Admin switch for storing Yandex click ids (group seo,
+     * boolean, default off). Off: no yclid / ClientID is stored and the
+     * offline-conversion CSV is disabled.
+     */
+    public const AD_CLICK_IDS_KEY = 'analytics.ad_click_ids_enabled';
+
+    /**
      * Lifetime of the cached overrides in seconds.
      */
     public const CACHE_TTL = 3600;
@@ -503,6 +510,20 @@ class CompanySettings
     {
         try {
             return $this->memo(self::INDEXING_KEY, fn (): bool => ($this->overrides()[self::INDEXING_KEY] ?? null) === true);
+        } catch (Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
+
+    /**
+     * Plan 40: the ad click id switch (off unless a settings row says true; off on a read failure).
+     */
+    public function adClickIdsEnabled(): bool
+    {
+        try {
+            return $this->memo(self::AD_CLICK_IDS_KEY, fn (): bool => ($this->overrides()[self::AD_CLICK_IDS_KEY] ?? null) === true);
         } catch (Throwable $e) {
             report($e);
 

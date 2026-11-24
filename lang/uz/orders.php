@@ -58,6 +58,7 @@ return [
         'source' => 'Manba',
         'customer' => 'CRM mijozi',
         'price_level' => 'Narx darajasi',
+        'yandex_direct_click' => 'Yandex Direct orqali',
         'buyer_type' => 'Xaridor',
         'name' => 'Aloqa uchun shaxs',
         'phone' => 'Telefon',

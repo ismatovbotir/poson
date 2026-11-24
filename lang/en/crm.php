@@ -72,6 +72,7 @@ return [
             'traffic_channel' => 'Channel',
             'traffic_source' => 'Traffic source',
             'landing_path' => 'Landing page',
+            'yandex_direct_click' => 'Yandex Direct click',
             'page_url' => 'Form page',
             'created_by' => 'Added by',
             'created_at' => 'Received',

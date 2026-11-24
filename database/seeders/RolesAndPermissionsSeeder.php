@@ -203,6 +203,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.company',
             'settings.integrations',
             'analytics.view',
+            // Plan 40: offline-conversion CSV + ad click id switch (also added by the add_analytics_export_permission migration). Admin only.
+            'analytics.export',
             // Plan 05 CRM.
             ...static::abilities(['leads', 'customers'], self::CRUD),
             'leads.sales',

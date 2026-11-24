@@ -18,6 +18,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Rules\PhoneNumber;
+use App\Support\Analytics\AdClickIds;
 use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartPricer;
 use App\Support\Cart\PricedCart;
@@ -164,7 +165,9 @@ class PlaceOrder
                 'vat_amount' => Vat::of($total),
                 'total' => $total,
                 'invoice_valid_until' => WorkingDays::add(now(), (int) config('checkout.invoice_valid_working_days', 5))->toDateString(),
-                'attribution' => Attribution::sanitize($data->attribution) ?: null,
+                'attribution' => Attribution::withoutClickIds(Attribution::sanitize($data->attribution)) ?: null,
+                'yclid' => AdClickIds::cleanYclid($data->yclid),
+                'ym_client_id' => AdClickIds::cleanClientId($data->ymClientId),
                 'traffic_channel' => $data->attribution !== [] ? Attribution::channel(Attribution::sanitize($data->attribution)) : TrafficChannel::tryFrom((string) $data->trafficChannel),
                 'status_changed_at' => now(),
             ]);

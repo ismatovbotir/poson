@@ -14,7 +14,7 @@
 
         <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-[22px]">
             @if ($company->telegramUrl() !== '')
-                <a href="{{ $company->telegramUrl() }}" target="_blank" rel="noopener noreferrer" class="hidden hover:text-white focus-visible:outline-white sm:inline">{{ __('site.topbar.telegram') }}</a>
+                <a href="{{ $company->telegramUrl() }}" data-poson-goal="click_telegram" target="_blank" rel="noopener noreferrer" class="hidden hover:text-white focus-visible:outline-white sm:inline">{{ __('site.topbar.telegram') }}</a>
             @endif
             @if ($company->phone() !== '')
                 <a href="tel:{{ $company->phone() }}" class="font-bold whitespace-nowrap text-white focus-visible:outline-white">
