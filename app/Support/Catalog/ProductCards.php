@@ -3,6 +3,7 @@
 namespace App\Support\Catalog;
 
 use App\Data\Site\ProductCard;
+use App\Enums\ProductType;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -18,8 +19,8 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 class ProductCards
 {
     /**
-     * Relations a card reads (strict models forbid lazy loading). The label
-     * size values of label products are added by loadLabelSizes() (fromProducts()).
+     * Relations a card reads (strict models forbid lazy loading). The diagram
+     * specs (label sizes, roll specs) are added by loadDiagramSpecs() (fromProducts()).
      * activeRollTypes: whether a label product can go to the cart (ProductCtas, plan 11a).
      *
      * @var list<string>
@@ -66,7 +67,7 @@ class ProductCards
             ctas: ProductCtas::for($product, compact: true),
             showStock: $product->showsStockStatus(),
             pricedPerLabel: $product->isPricedPerLabel(),
-            diagram: $media === null && $product->imageUrl('thumb') === null ? LabelDiagram::for($product) : null,
+            diagram: $media === null && $product->imageUrl('thumb') === null ? ProductDiagram::for($product) : null,
         );
     }
 
@@ -78,7 +79,7 @@ class ProductCards
     {
         $cards = [];
 
-        static::loadLabelSizes($products);
+        static::loadDiagramSpecs($products);
 
         foreach ($products as $product) {
             $cards[] = static::fromProduct($product);
@@ -88,24 +89,47 @@ class ProductCards
     }
 
     /**
-     * Eager-loads the label size values for the label-priced products without an
-     * image only (no query when there are none; a constant number otherwise).
+     * Eager-loads what the generated diagrams of products without an image need
+     * (no query when no product qualifies; a constant number otherwise):
+     * the label size values of label-priced products, the roll specs (with
+     * attribute and option) of the other consumables (ribbons, receipt paper).
      *
      * @param  iterable<Product>  $products
      */
-    public static function loadLabelSizes(iterable $products): void
+    public static function loadDiagramSpecs(iterable $products): void
     {
         $labels = [];
+        $rolls = [];
 
         foreach ($products as $product) {
-            if ($product->isPricedPerLabel() && $product->relationLoaded('media') && $product->media->isEmpty()) {
+            if (! $product->relationLoaded('media') || $product->media->isNotEmpty()) {
+                continue;
+            }
+
+            if ($product->isPricedPerLabel()) {
                 $labels[] = $product;
+            } elseif ($product->type === ProductType::Consumable) {
+                $rolls[] = $product;
             }
         }
 
         if ($labels !== []) {
             (new EloquentCollection($labels))->loadMissing('labelSizeValues.attribute');
         }
+
+        if ($rolls !== []) {
+            (new EloquentCollection($rolls))->loadMissing(['rollSpecValues.attribute', 'rollSpecValues.option']);
+        }
+    }
+
+    /**
+     * Older name of loadDiagramSpecs(), kept as an alias.
+     *
+     * @param  iterable<Product>  $products
+     */
+    public static function loadLabelSizes(iterable $products): void
+    {
+        static::loadDiagramSpecs($products);
     }
 
     /**

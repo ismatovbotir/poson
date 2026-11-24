@@ -37,8 +37,9 @@ class HomeCache
     /**
      * Shape of the cached payload: raise it whenever a DTO or enum used by the
      * home page changes, so old entries are never read with the new code.
+     * 3: plan 38, the card diagram carries its kind (label / roll).
      */
-    public const SCHEMA = 2;
+    public const SCHEMA = 3;
 
     private const FILES_MEMO = 'home.cache.deploy-files';
 

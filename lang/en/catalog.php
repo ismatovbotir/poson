@@ -37,6 +37,27 @@ return [
         'caption' => ':count pcs · core :core mm',
     ],
 
+    // Plan 38: generated roll diagram (ribbons, receipt paper), App\Support\Catalog\RollDiagram.
+    'roll_diagram' => [
+        'title_ribbon' => 'Ribbon :size',
+        'title_receipt' => 'Receipt roll :size',
+        'size' => ':width mm × :length m',
+        'mm' => 'mm',
+        'm' => 'm',
+        'core' => 'Ø:core mm',
+        'type' => [
+            'wax' => 'Wax',
+            'wax_resin' => 'Wax-resin',
+            'resin' => 'Resin',
+        ],
+        'ink' => [
+            'in' => 'ink side IN',
+            'out' => 'ink side OUT',
+        ],
+        'thermal' => 'Thermal paper',
+        'coreless' => 'coreless',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/roll, core :core mm',

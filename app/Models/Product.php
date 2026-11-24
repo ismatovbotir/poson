@@ -14,6 +14,7 @@ use App\Models\Concerns\HasVideos;
 use App\Models\Concerns\StoresTranslations;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\HttpsUrl;
+use App\Support\Catalog\RollDiagram;
 use App\Support\Catalog\RollPricing;
 use App\Support\Media\AdminMediaUrl;
 use App\Support\Site\IndexNow;
@@ -287,6 +288,18 @@ class Product extends Model implements HasMedia
     public function labelSizeValues(): HasMany
     {
         return $this->attributeValues()->whereHas('attribute', fn (Builder $attribute) => $attribute->whereIn('code', [RollPricing::WIDTH_CODE, RollPricing::HEIGHT_CODE]));
+    }
+
+    /**
+     * The spec values of the roll diagram (ribbons and receipt paper, plan 38,
+     * App\Support\Catalog\RollDiagram). Eager-load with "rollSpecValues.attribute"
+     * and "rollSpecValues.option".
+     *
+     * @return HasMany<ProductAttributeValue, $this>
+     */
+    public function rollSpecValues(): HasMany
+    {
+        return $this->attributeValues()->whereHas('attribute', fn (Builder $attribute) => $attribute->whereIn('code', RollDiagram::CODES));
     }
 
     /**

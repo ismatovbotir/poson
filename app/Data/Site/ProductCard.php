@@ -6,6 +6,8 @@ use App\Enums\ProductBadge;
 use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Support\Catalog\LabelDiagram;
+use App\Support\Catalog\ProductDiagram;
+use App\Support\Catalog\RollDiagram;
 use InvalidArgumentException;
 
 /**
@@ -14,7 +16,8 @@ use InvalidArgumentException;
  * price on request), stock status, sale mode and an optional "hit" / "new"
  * badge. image is a public conversion URL; without one the card draws the
  * sprite symbol "placeholder" (p-scanner, p-printer, ...), or the generated
- * label diagram for a label product (diagram, App\Support\Catalog\LabelDiagram).
+ * label diagram for a label product or the roll diagram for a ribbon / receipt
+ * roll (diagram, App\Support\Catalog\ProductDiagram).
  *
  * showStock is false for software (no stock badge).
  * pricedPerLabel (plan 08): price is per one label ("12 soʻm / label").
@@ -46,7 +49,7 @@ final readonly class ProductCard
         public array $ctas = [],
         public bool $showStock = true,
         public bool $pricedPerLabel = false,
-        public ?LabelDiagram $diagram = null,
+        public LabelDiagram|RollDiagram|null $diagram = null,
     ) {
         if ($price !== null && $price < 0) {
             throw new InvalidArgumentException('Product price must not be negative.');
@@ -78,7 +81,7 @@ final readonly class ProductCard
             'ctas' => array_map(fn (ProductCta $cta): array => $cta->toArray(), $this->ctas),
             'show_stock' => $this->showStock,
             'priced_per_label' => $this->pricedPerLabel,
-            'diagram' => $this->diagram?->toArray(),
+            'diagram' => $this->diagram === null ? null : ProductDiagram::toArray($this->diagram),
         ];
     }
 
@@ -105,7 +108,7 @@ final readonly class ProductCard
             ctas: array_map(ProductCta::fromArray(...), $data['ctas']),
             showStock: (bool) $data['show_stock'],
             pricedPerLabel: (bool) $data['priced_per_label'],
-            diagram: $data['diagram'] === null ? null : LabelDiagram::fromArray($data['diagram']),
+            diagram: $data['diagram'] === null ? null : ProductDiagram::fromArray($data['diagram']),
         );
     }
 }

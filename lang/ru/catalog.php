@@ -37,6 +37,27 @@ return [
         'caption' => ':count шт. · втулка :core мм',
     ],
 
+    // Plan 38: generated roll diagram (ribbons, receipt paper), App\Support\Catalog\RollDiagram.
+    'roll_diagram' => [
+        'title_ribbon' => 'Риббон :size',
+        'title_receipt' => 'Чековая лента :size',
+        'size' => ':width мм × :length м',
+        'mm' => 'мм',
+        'm' => 'м',
+        'core' => 'Ø:core мм',
+        'type' => [
+            'wax' => 'Wax',
+            'wax_resin' => 'Wax-resin',
+            'resin' => 'Resin',
+        ],
+        'ink' => [
+            'in' => 'красящий слой IN',
+            'out' => 'красящий слой OUT',
+        ],
+        'thermal' => 'Термобумага',
+        'coreless' => 'без втулки',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/рулон, втулка :core мм',

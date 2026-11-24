@@ -132,6 +132,11 @@
                                     @php($disabled = ($option['disabled'] ?? false) || (! $option['checked'] && $facet['selected'] >= \App\Support\Catalog\CatalogQuery::MAX_OPTIONS))
                                     <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $disabled ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-{{ $facet['code'] }}-{{ $option['id'] }}">
                                         <input type="checkbox" class="{{ $checkClass }}" @checked($option['checked']) @disabled($disabled) wire:click="toggleValue(@js($facet['code']), '{{ $option['id'] }}')">
+                                        {{-- Plan 38 (RD-13): colour dot only from the normalized hex, as a fill attribute; the label always follows. --}}
+                                        @php($dot = \App\Support\HexColor::normalize($option['hex'] ?? null))
+                                        @if ($dot !== null)
+                                            <svg viewBox="0 0 12 12" class="size-3 shrink-0" aria-hidden="true" focusable="false" data-swatch><circle cx="6" cy="6" r="5.25" fill="{{ $dot }}" @class(['stroke-ink-3' => \App\Support\HexColor::isLight($dot)]) stroke-width="{{ \App\Support\HexColor::isLight($dot) ? '1.2' : '0' }}"></circle></svg>
+                                        @endif
                                         <span>{{ $option['label'] }}</span>
                                         <em class="ml-auto text-xs text-ink-3 not-italic">{{ $option['count'] }}</em>
                                     </label>

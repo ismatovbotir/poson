@@ -1192,6 +1192,8 @@ return [
         ],
         'specs' => [
             'paper_width' => ['value' => '80', 'key' => true],
+            'paper_length' => ['value' => 80, 'key' => true],
+            'roll_core' => 'Gilzali',
         ],
         'related' => [],
     ],
@@ -1238,6 +1240,8 @@ return [
         ],
         'specs' => [
             'paper_width' => ['value' => '58', 'key' => true],
+            'paper_length' => ['value' => 40, 'key' => true],
+            'roll_core' => 'Gilzali',
         ],
         'related' => [],
     ],

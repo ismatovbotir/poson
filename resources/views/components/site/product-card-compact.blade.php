@@ -10,7 +10,7 @@
         @if ($product->image)
             <img src="{{ $product->image }}" alt="" width="72" height="72" loading="lazy" decoding="async" class="size-[84%] object-contain">
         @elseif ($product->diagram)
-            <x-catalog.label-diagram :diagram="$product->diagram" context="card" class="size-[84%]" />
+            <x-catalog.product-diagram :diagram="$product->diagram" context="card" class="size-[84%]" />
         @else
             <svg viewBox="0 0 120 120" class="size-[60%]" aria-hidden="true" focusable="false"><use href="#{{ $product->placeholder }}" /></svg>
         @endif

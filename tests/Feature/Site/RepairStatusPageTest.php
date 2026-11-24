@@ -8,7 +8,7 @@ use App\Support\Repairs\RepairPublicStatus;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Str;
 
-function statusPage(Repair $repair, string $lang = 'en')
+function repairStatusPage(Repair $repair, string $lang = 'en')
 {
     return test()->get('/r/'.$repair->public_token.'?lang='.$lang);
 }
@@ -20,7 +20,7 @@ it('shows the right label and message for every status in every locale', functio
         default => $status->value,
     };
 
-    $response = statusPage($repair, $locale)->assertOk();
+    $response = repairStatusPage($repair, $locale)->assertOk();
 
     $html = $response->getContent();
     expect($html)->toContain(e(__('enums.repair_status.'.$status->value, [], $locale)))
@@ -31,8 +31,8 @@ it('shows the right label and message for every status in every locale', functio
 )->all());
 
 it('shows the ready-for-pickup block only when ready', function () {
-    statusPage(Repair::factory()->withStatusToken()->status(RepairStatus::Ready)->create())->assertSee('data-ready', false);
-    statusPage(Repair::factory()->withStatusToken()->status(RepairStatus::InRepair)->create())->assertDontSee('data-ready', false);
+    repairStatusPage(Repair::factory()->withStatusToken()->status(RepairStatus::Ready)->create())->assertSee('data-ready', false);
+    repairStatusPage(Repair::factory()->withStatusToken()->status(RepairStatus::InRepair)->create())->assertDontSee('data-ready', false);
 });
 
 it('never shows private repair data for any status', function (RepairStatus $status) {
@@ -58,7 +58,7 @@ it('never shows private repair data for any status', function (RepairStatus $sta
     ]);
 
     foreach (['uz', 'ru', 'en'] as $locale) {
-        $html = statusPage($repair, $locale)->assertOk()->getContent();
+        $html = repairStatusPage($repair, $locale)->assertOk()->getContent();
 
         foreach (['ZZCONTACTNAMEZZ', '935550199', '93 555', 'ZZCOMPANYZZ', 'ZZSERIALZZ', 'ZZACCESSORIESZZ', 'ZZCONDITIONZZ', 'ZZPROBLEMZZ', 'ZZDIAGNOSISZZ', 'ZZWORKZZ', 'ZZPARTSZZ', 'ZZWARRANTYZZ', 'ZZENGINEERZZ', 'ZZCREATORZZ', Money::format(12_345_600), Money::format(23_456_700), Money::format(34_567_800)] as $forbidden) {
             expect($html)->not->toContain($forbidden);
@@ -69,14 +69,14 @@ it('never shows private repair data for any status', function (RepairStatus $sta
 it('strips long digit runs from the device line and escapes markup', function () {
     $repair = Repair::factory()->withStatusToken()->create(['device_model' => 'Call 998901234567 <script>alert(1)</script>']);
 
-    $html = statusPage($repair)->assertOk()->getContent();
+    $html = repairStatusPage($repair)->assertOk()->getContent();
 
     expect($html)->not->toMatch('/\d{7,}/')
         ->not->toContain('<script>alert')
         ->toContain('&lt;script&gt;');
 
     $phone = Repair::factory()->withStatusToken()->create(['device_model' => 'Call 99890 123 45 67']);
-    expect(statusPage($phone)->getContent())->not->toContain('123 45 67');
+    expect(repairStatusPage($phone)->getContent())->not->toContain('123 45 67');
 });
 
 it('caps the device line at 60 characters', function () {
@@ -132,17 +132,17 @@ it('serves open and recently closed repairs, with the private headers', function
     $open = Repair::factory()->withStatusToken()->create();
     $closed = Repair::factory()->withStatusToken()->closedDaysAgo(29)->create();
 
-    $response = statusPage($open)->assertOk();
+    $response = repairStatusPage($open)->assertOk();
     expect($response->headers->get('X-Robots-Tag'))->toBe('noindex, nofollow, noarchive')
         ->and($response->headers->get('Referrer-Policy'))->toBe('no-referrer')
         ->and($response->headers->get('Cache-Control'))->toContain('no-store')->toContain('private');
-    statusPage($closed)->assertOk();
+    repairStatusPage($closed)->assertOk();
 });
 
 it('sets no cookie and starts no session', function () {
     $repair = Repair::factory()->withStatusToken()->create();
 
-    $ok = statusPage($repair)->assertOk();
+    $ok = repairStatusPage($repair)->assertOk();
     $miss = $this->get('/r/'.Str::random(40))->assertNotFound();
 
     expect($ok->headers->getCookies())->toBeEmpty()
@@ -156,7 +156,7 @@ it('loads no foreign host', function () {
     $parts = parse_url(url('/'));
     $own = $parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
 
-    foreach ([statusPage($repair)->getContent(), $this->get('/r/short')->getContent()] as $html) {
+    foreach ([repairStatusPage($repair)->getContent(), $this->get('/r/short')->getContent()] as $html) {
         preg_match_all('#https?://([^/"\'\s]+)#i', $html, $matches);
         foreach ($matches[1] as $host) {
             // The company's own Telegram link (settings) is the only allowed external anchor.

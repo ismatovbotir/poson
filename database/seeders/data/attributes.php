@@ -9,6 +9,9 @@
  * at the highest sensible level and never twice on the same ancestor chain.
  * `is_filterable` is the library default for new category assignments.
  * Technical option values (USB, IP65, 203, Android 14, …) are identical in all locales.
+ * An option may carry a display colour 'hex' ("#RRGGBB", plan 38), validated by
+ * the CatalogSeeder; the ribbon_colour, paper_length and roll_core literals equal
+ * the 2026_11_24 add_roll_diagram_specs migration (RD-10).
  *
  * @return list<array{
  *     code: string,
@@ -17,7 +20,7 @@
  *     type: 'text'|'number'|'boolean'|'select'|'multiselect',
  *     is_filterable: bool,
  *     sort: int,
- *     options: list<array{uz: string, ru: string, en: string}>,
+ *     options: list<array{uz: string, ru: string, en: string, hex?: string}>,
  *     categories: array<string, array{is_required: bool, is_filterable: bool}>
  * }>
  */
@@ -240,6 +243,33 @@ return [
         'categories' => [
             'receipt-printers' => $assign(true, true),
             'receipt-paper' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'paper_length',
+        'name' => ['uz' => 'Lenta uzunligi', 'ru' => 'Длина ленты', 'en' => 'Paper length'],
+        'unit' => 'm',
+        'type' => 'number',
+        'is_filterable' => true,
+        'sort' => 165,
+        'options' => [],
+        'categories' => [
+            'receipt-paper' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'roll_core',
+        'name' => ['uz' => 'Rulon gilzasi', 'ru' => 'Втулка рулона', 'en' => 'Roll core'],
+        'unit' => null,
+        'type' => 'select',
+        'is_filterable' => false,
+        'sort' => 166,
+        'options' => [
+            ['uz' => 'Gilzali', 'ru' => 'С втулкой', 'en' => 'With core'],
+            ['uz' => 'Gilzasiz', 'ru' => 'Без втулки', 'en' => 'Coreless'],
+        ],
+        'categories' => [
+            'receipt-paper' => $assign(false, false),
         ],
     ],
     [
@@ -645,6 +675,27 @@ return [
         ],
         'categories' => [
             'ribbons' => $assign(true, true),
+        ],
+    ],
+    [
+        'code' => 'ribbon_colour',
+        'name' => ['uz' => 'Ribbon rangi', 'ru' => 'Цвет риббона', 'en' => 'Ribbon colour'],
+        'unit' => null,
+        'type' => 'select',
+        'is_filterable' => true,
+        'sort' => 535,
+        'options' => [
+            ['uz' => 'Qora', 'ru' => 'Чёрный', 'en' => 'Black', 'hex' => '#111111'],
+            ['uz' => 'Oq', 'ru' => 'Белый', 'en' => 'White', 'hex' => '#FFFFFF'],
+            ['uz' => 'Qizil', 'ru' => 'Красный', 'en' => 'Red', 'hex' => '#C8102E'],
+            ['uz' => 'Yashil', 'ru' => 'Зелёный', 'en' => 'Green', 'hex' => '#00843D'],
+            ['uz' => 'Koʻk', 'ru' => 'Синий', 'en' => 'Blue', 'hex' => '#0033A0'],
+            ['uz' => 'Sariq', 'ru' => 'Жёлтый', 'en' => 'Yellow', 'hex' => '#FFD100'],
+            ['uz' => 'Oltin rang', 'ru' => 'Золотой', 'en' => 'Gold', 'hex' => '#C9A227'],
+            ['uz' => 'Kumush rang', 'ru' => 'Серебристый', 'en' => 'Silver', 'hex' => '#A8A9AD'],
+        ],
+        'categories' => [
+            'ribbons' => $assign(false, true),
         ],
     ],
 

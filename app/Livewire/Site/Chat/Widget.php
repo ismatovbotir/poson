@@ -477,7 +477,7 @@ class Widget extends Component
         }
 
         $products = Product::query()->visible()->with(ProductCards::EAGER_LOADS)->whereIn('products.id', $ids)->get();
-        ProductCards::loadLabelSizes($products);
+        ProductCards::loadDiagramSpecs($products);
 
         $cards = [];
 
