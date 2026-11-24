@@ -76,7 +76,7 @@
                         class="size-[86%] object-contain"
                     >
                 @elseif ($diagram)
-                    <x-catalog.label-diagram :diagram="$diagram" context="gallery" class="size-[86%]" x-show="active !== videoIndex" />
+                    <x-catalog.product-diagram :diagram="$diagram" context="gallery" class="size-[86%]" x-show="active !== videoIndex" />
                 @else
                     <svg x-show="active !== videoIndex" viewBox="0 0 120 120" class="size-[62%]" aria-hidden="true" focusable="false"><use href="#{{ $placeholder }}" /></svg>
                 @endif

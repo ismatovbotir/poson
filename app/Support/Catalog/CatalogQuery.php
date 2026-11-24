@@ -648,7 +648,7 @@ class CatalogQuery
     }
 
     /**
-     * @return list<array{code: string, name: string, type: AttributeType, unit: ?string, options: list<array{id: int, label: string, count: int, checked: bool}>, min: ?string, max: ?string, count: int, checked: bool, from: ?string, to: ?string}>
+     * @return list<array{code: string, name: string, type: AttributeType, unit: ?string, options: list<array{id: int, label: string, hex: ?string, count: int, checked: bool}>, min: ?string, max: ?string, count: int, checked: bool, from: ?string, to: ?string}>
      */
     private function attributeFacets(): array
     {
@@ -724,6 +724,8 @@ class CatalogQuery
                     $facet['options'][] = [
                         'id' => $option->id,
                         'label' => (string) $option->value,
+                        // Plan 38: swatch dot colour (normalized again in the view, RD-13).
+                        'hex' => $option->hexColor(),
                         'count' => $count,
                         'checked' => $checked,
                         'disabled' => $count === 0 && ! $checked,

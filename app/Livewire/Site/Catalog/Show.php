@@ -9,10 +9,10 @@ use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductDocument;
 use App\Support\Catalog\CategoryTree;
-use App\Support\Catalog\LabelDiagram;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductCards;
 use App\Support\Catalog\ProductCtas;
+use App\Support\Catalog\ProductDiagram;
 use App\Support\Catalog\SoftwareSpecs;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\FaqContent;
@@ -109,7 +109,7 @@ class Show extends Component
             'articles' => NewsCards::articlesFor($product->category_id),
             'breadcrumbs' => $breadcrumbs,
             'categoryName' => CategoryTree::name($product->category_id),
-            'diagram' => $images === [] ? LabelDiagram::for($product) : null,
+            'diagram' => $images === [] ? ProductDiagram::for($product) : null,
             'placeholder' => ProductCards::placeholder($product->category_id),
             'brand' => $product->publicBrand(),
             // Sanitized on save already; again on output as defense in depth.
@@ -241,7 +241,7 @@ class Show extends Component
             ->with(ProductCards::EAGER_LOADS)
             ->get();
 
-        ProductCards::loadLabelSizes($products);
+        ProductCards::loadDiagramSpecs($products);
         $products = $products->keyBy('id');
 
         $sections = [];

@@ -37,13 +37,15 @@
                         <div class="min-w-0">
                             <h2 class="text-base font-semibold">{{ __('admin.attributes.options.title') }}</h2>
                             <p class="mt-0.5 text-xs text-slate-500">{{ __('admin.attributes.options.help') }}</p>
+                            <p class="mt-0.5 text-xs text-slate-500">{{ __('admin.attributes.options.hex_help') }}</p>
                         </div>
                         <x-admin.button variant="soft" size="sm" icon="plus" wire:click="addOption">{{ __('admin.attributes.options.add') }}</x-admin.button>
                     </div>
 
-                    <div class="hidden grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] gap-3 bg-slate-50 px-6 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:grid">
+                    <div class="hidden grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_8rem_2.5rem] gap-3 bg-slate-50 px-6 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:grid">
                         <span></span>
                         @foreach ($locales as $locale)<span>{{ __('admin.attributes.options.value') }} · {{ strtoupper($locale) }}</span>@endforeach
+                        <span>{{ __('admin.attributes.options.hex') }}</span>
                         <span></span>
                     </div>
 
@@ -52,7 +54,7 @@
                     @else
                         <ul class="divide-y divide-slate-100">
                             @foreach ($form->options as $index => $option)
-                                <li wire:key="option-{{ $option['id'] ?? 'new-'.$index }}" class="grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-start gap-3 px-4 py-3 sm:grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] sm:px-6">
+                                <li wire:key="option-{{ $option['id'] ?? 'new-'.$index }}" class="grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-start gap-3 px-4 py-3 sm:grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_8rem_2.5rem] sm:px-6">
                                     <span class="flex flex-col items-center pt-1">
                                         <button type="button" wire:click="moveOption({{ $index }}, -1)" @disabled($loop->first) class="grid size-6 place-items-center rounded text-slate-400 hover:text-slate-700 disabled:opacity-30" aria-label="{{ __('admin.common.move_up') }}"><x-admin.icon name="chevron-down" size="size-4" class="rotate-180" /></button>
                                         <button type="button" wire:click="moveOption({{ $index }}, 1)" @disabled($loop->last) class="grid size-6 place-items-center rounded text-slate-400 hover:text-slate-700 disabled:opacity-30" aria-label="{{ __('admin.common.move_down') }}"><x-admin.icon name="chevron-down" size="size-4" /></button>
@@ -71,6 +73,25 @@
                                                 />
                                             </div>
                                         @endforeach
+                                        {{-- Plan 38 (RD-3): the swatch is drawn only from the normalized value, never from the raw row. --}}
+                                        @php($swatch = \App\Support\HexColor::normalize($option['hex_color'] ?? null))
+                                        <div class="flex items-start gap-2">
+                                            <span class="mt-3 w-6 shrink-0 text-xs font-bold uppercase text-slate-400 sm:hidden" aria-hidden="true">#</span>
+                                            <x-admin.input
+                                                wire:model.blur="form.options.{{ $index }}.hex_color"
+                                                maxlength="7"
+                                                placeholder="#RRGGBB"
+                                                autocomplete="off"
+                                                spellcheck="false"
+                                                class="flex-1 font-mono"
+                                                aria-label="{{ __('admin.attributes.options.hex') }} {{ $loop->iteration }}"
+                                            />
+                                            @if ($swatch !== null)
+                                                <svg viewBox="0 0 20 20" class="mt-3 size-5 shrink-0" aria-hidden="true" focusable="false" data-hex-swatch><circle cx="10" cy="10" r="9" fill="{{ $swatch }}" stroke="#CBD5E1" stroke-width="1.5"></circle></svg>
+                                            @else
+                                                <span class="mt-3 size-5 shrink-0" aria-hidden="true"></span>
+                                            @endif
+                                        </div>
                                     </div>
                                     <span class="flex justify-end pt-1">
                                         <button type="button" wire:click="removeOption({{ $index }})" class="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger" aria-label="{{ __('admin.attributes.options.remove') }} {{ $loop->iteration }}"><x-admin.icon name="trash" size="size-4" /></button>

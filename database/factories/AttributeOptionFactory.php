@@ -27,4 +27,14 @@ class AttributeOptionFactory extends Factory
             'sort' => 0,
         ];
     }
+
+    /**
+     * With a display colour (plan 38).
+     */
+    public function withHex(string $hex = '#111111'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'hex_color' => $hex,
+        ]);
+    }
 }

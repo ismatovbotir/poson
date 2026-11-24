@@ -5,6 +5,7 @@ namespace App\Livewire\Forms\Admin\Attributes;
 use App\Enums\AttributeType;
 use App\Enums\FilterMatch;
 use App\Models\Attribute;
+use App\Support\HexColor;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -32,9 +33,10 @@ class AttributeForm extends Form
     public string $sort = '';
 
     /**
-     * Option rows in order; id null for new rows.
+     * Option rows in order; id null for new rows. hex_color is the optional
+     * display colour "#RRGGBB" (plan 38), validated here and again in the actions.
      *
-     * @var list<array{id: int|null, value: array<string, string>}>
+     * @var list<array{id: int|null, value: array<string, string>, hex_color: string}>
      */
     public array $options = [];
 
@@ -51,7 +53,7 @@ class AttributeForm extends Form
         $this->filter_match_switch = $attribute->filter_match_switch;
         $this->sort = (string) $attribute->sort;
         $this->options = $attribute->options
-            ->map(fn ($option): array => ['id' => $option->id, 'value' => $this->locales($option->getTranslations('value'))])
+            ->map(fn ($option): array => ['id' => $option->id, 'value' => $this->locales($option->getTranslations('value')), 'hex_color' => (string) $option->hexColor()])
             ->values()
             ->all();
     }
@@ -63,7 +65,7 @@ class AttributeForm extends Form
 
     public function addOption(): void
     {
-        $this->options[] = ['id' => null, 'value' => ['uz' => '', 'ru' => '', 'en' => '']];
+        $this->options[] = ['id' => null, 'value' => ['uz' => '', 'ru' => '', 'en' => ''], 'hex_color' => ''];
     }
 
     public function removeOption(int $index): void
@@ -107,6 +109,7 @@ class AttributeForm extends Form
             'options.*.value.uz' => $hasOptions ? ['required', 'string', 'max:255', 'distinct:ignore_case'] : ['nullable'],
             'options.*.value.ru' => ['nullable', 'string', 'max:255'],
             'options.*.value.en' => ['nullable', 'string', 'max:255'],
+            'options.*.hex_color' => ['nullable', 'string', 'size:7', HexColor::RULE],
         ];
     }
 
@@ -119,6 +122,9 @@ class AttributeForm extends Form
             'code.regex' => __('admin.attributes.errors.code_format'),
             'options.required' => __('admin.attributes.errors.options_required'),
             'options.*.value.uz.distinct' => __('admin.attributes.errors.option_duplicate'),
+            'options.*.hex_color.size' => __('admin.attributes.options.hex_invalid'),
+            'options.*.hex_color.regex' => __('admin.attributes.options.hex_invalid'),
+            'options.*.hex_color.string' => __('admin.attributes.options.hex_invalid'),
         ];
     }
 
@@ -134,6 +140,7 @@ class AttributeForm extends Form
             'filter_match' => __('admin.attributes.fields.filter_match'),
             'sort' => __('admin.catalog.sort'),
             'options' => __('admin.attributes.options.title'),
+            'options.*.hex_color' => __('admin.attributes.options.hex'),
         ];
 
         foreach (config('app.supported_locales') as $locale) {
@@ -167,13 +174,14 @@ class AttributeForm extends Form
     /**
      * Option rows for SaveAttribute.
      *
-     * @return list<array{id: int|null, value: array<string, string>}>
+     * @return list<array{id: int|null, value: array<string, string>, hex_color: string|null}>
      */
     public function optionRows(): array
     {
         return array_values(array_map(fn (array $row): array => [
             'id' => filled($row['id'] ?? null) ? (int) $row['id'] : null,
             'value' => $row['value'],
+            'hex_color' => filled($row['hex_color'] ?? null) ? (string) $row['hex_color'] : null,
         ], $this->options));
     }
 

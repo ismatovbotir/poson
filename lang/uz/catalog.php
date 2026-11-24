@@ -37,6 +37,27 @@ return [
         'caption' => ':count dona · gilza :core mm',
     ],
 
+    // Plan 38: generated roll diagram (ribbons, receipt paper), App\Support\Catalog\RollDiagram.
+    'roll_diagram' => [
+        'title_ribbon' => 'Ribbon :size',
+        'title_receipt' => 'Chek lentasi :size',
+        'size' => ':width mm × :length m',
+        'mm' => 'mm',
+        'm' => 'm',
+        'core' => 'Ø:core mm',
+        'type' => [
+            'wax' => 'Wax',
+            'wax_resin' => 'Wax-resin',
+            'resin' => 'Resin',
+        ],
+        'ink' => [
+            'in' => 'boʻyoq tomoni IN',
+            'out' => 'boʻyoq tomoni OUT',
+        ],
+        'thermal' => 'Termoqogʻoz',
+        'coreless' => 'gilzasiz',
+    ],
+
     // Plan 08: label rolls (RollType::describe(), RollPricing::describe()).
     'roll' => [
         'name' => ':labels/rulon, gilza :core mm',

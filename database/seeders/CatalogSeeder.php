@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
+use App\Support\HexColor;
 use App\Support\Slug;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -159,6 +160,9 @@ class CatalogSeeder extends Seeder
     }
 
     /**
+     * New options only; an optional 'hex' ("#RRGGBB", plan 38) is written on
+     * create when valid (normalized), an invalid one is dropped.
+     *
      * @param  list<array<string, string>>  $values
      */
     private function seedOptions(Attribute $attribute, array $values): void
@@ -173,7 +177,8 @@ class CatalogSeeder extends Seeder
             }
 
             $option = new AttributeOption(['attribute_id' => $attribute->id]);
-            $option->storeTranslations('value', $value);
+            $option->hex_color = HexColor::normalize($value['hex'] ?? null);
+            $option->storeTranslations('value', array_intersect_key($value, array_flip(['uz', 'ru', 'en'])));
             $option->sort = $index + 1;
             $option->save();
         }

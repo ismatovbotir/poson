@@ -637,6 +637,8 @@ $build = static function (array $r) use ($G, $U, $C, $num, $cut, $html, $coreles
     $isLabel = $g['label'];
     $tapeMaterial = ['nylon' => 'Neylon', 'silicone' => 'Silikon'];
     $tapeColor = ['satinb' => 'Qora', 'satinw' => 'Oq', 'satinc' => 'Rangli'];
+    // Plan 38: one colour per ribbon; the multi-colour families (waxc, resm, resk, resf) get none.
+    $ribbonColour = ['wrg' => 'Yashil', 'resg' => 'Oltin rang', 'waxc' => null, 'resm' => null, 'resk' => null, 'resf' => null];
     $key = static fn (mixed $value): array => ['value' => $value, 'key' => true];
     $specs = match ($g['spec']) {
         'paper' => ['label_width' => $key($w), 'label_height' => $key($h), 'label_material' => 'Qogʻoz'],
@@ -644,8 +646,10 @@ $build = static function (array $r) use ($G, $U, $C, $num, $cut, $html, $coreles
         'pp' => ['label_width' => $key($w), 'label_height' => $key($h), 'label_material' => $key('Polipropilen (PP)')]
             + (($g['removable'] ?? false) ? ['adhesive' => 'Oson olinadigan'] : []),
         'wh' => ['label_width' => $key($w), 'label_height' => $key($h)],
-        'receipt' => in_array($w, [56, 58, 80], true) ? ['paper_width' => $key((string) $w)] : [],
-        'ribbon' => ['ribbon_type' => $key($g['type']), 'ribbon_width' => $key($w), 'ribbon_length' => $key($h), 'ink_side' => 'OUT', 'core_diameter' => '25'],
+        'receipt' => (in_array($w, [56, 58, 80], true) ? ['paper_width' => $key((string) $w)] : [])
+            + ['paper_length' => $key($h), 'roll_core' => $flag === 'cl' ? 'Gilzasiz' : 'Gilzali'],
+        'ribbon' => ['ribbon_type' => $key($g['type']), 'ribbon_width' => $key($w), 'ribbon_length' => $key($h), 'ink_side' => 'OUT', 'core_diameter' => '25']
+            + (array_key_exists($fam, $ribbonColour) ? array_filter(['ribbon_colour' => $ribbonColour[$fam]]) : ['ribbon_colour' => 'Qora']),
         'tape' => ['tape_width' => $key($w), 'tape_length' => $key($h), 'tape_material' => $tapeMaterial[$fam] ?? 'Satin']
             + (isset($tapeColor[$fam]) ? ['tape_color' => $tapeColor[$fam]] : []),
     };

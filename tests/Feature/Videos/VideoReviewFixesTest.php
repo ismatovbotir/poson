@@ -50,8 +50,10 @@ it('tolerates a missing active image in the gallery script and hides the label d
 
 it('renders the x-show attribute on the label diagram svg', function () {
     expect(file_get_contents(resource_path('views/livewire/site/catalog/show.blade.php')))
-        ->toContain('<x-catalog.label-diagram')->toContain('x-show="active !== videoIndex"')
-        ->and(file_get_contents(resource_path('views/components/catalog/label-diagram.blade.php')))->toContain('<svg {{ $attributes }}');
+        ->toContain('<x-catalog.product-diagram')->toContain('x-show="active !== videoIndex"')
+        ->and(file_get_contents(resource_path('views/components/catalog/product-diagram.blade.php')))->toContain(':context="$context" {{ $attributes }}')
+        ->and(file_get_contents(resource_path('views/components/catalog/label-diagram.blade.php')))->toContain('<svg {{ $attributes }}')
+        ->and(file_get_contents(resource_path('views/components/catalog/roll-diagram.blade.php')))->toContain('<svg {{ $attributes }}');
 });
 
 it('uses a unique-until-processing job keyed by youtube id', function () {

@@ -7,6 +7,7 @@ use App\Enums\FilterMatch;
 use App\Models\Attribute;
 use App\Models\AttributeOption;
 use App\Models\CategoryAttribute;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -21,6 +22,10 @@ use Illuminate\Validation\ValidationException;
  *   id are updated, new rows go through CreateAttributeOption (dedupe on uz),
  *   options missing from the list go through DeleteAttributeOption. Other
  *   types have no options.
+ * - Plan 38: an option row may carry a display colour (hex_color "#RRGGBB" or
+ *   null). It is validated here even when the form is bypassed (RD-2) and
+ *   stored upper case; a row without the key leaves the stored colour alone.
+ *   The home cache is bumped after the commit when a colour changed (RD-6).
  */
 class SaveAttribute
 {
@@ -31,7 +36,7 @@ class SaveAttribute
 
     /**
      * @param  array{code: string, name: array<string, string|null>, unit: string|null, type: AttributeType, is_filterable: bool, sort: int|null, filter_match?: FilterMatch, filter_match_switch?: bool}  $data
-     * @param  list<array{id: int|null, value: array<string, string|null>}>  $options
+     * @param  list<array{id: int|null, value: array<string, string|null>, hex_color?: string|null}>  $options
      *
      * @throws ValidationException
      */
@@ -46,6 +51,10 @@ class SaveAttribute
 
         if ($attribute->exists && $attribute->type !== $type && $attribute->hasValues()) {
             throw ValidationException::withMessages(['type' => __('admin.attributes.errors.type_locked')]);
+        }
+
+        foreach (array_values($options) as $index => $row) {
+            CreateAttributeOption::color($row['hex_color'] ?? null, "options.{$index}.hex_color");
         }
 
         return DB::transaction(function () use ($attribute, $data, $type, $options): Attribute {
@@ -76,7 +85,7 @@ class SaveAttribute
      * in the submitted list (so a renamed option never swallows a new row,
      * and a re-added removed value keeps its id). The rest is deleted.
      *
-     * @param  list<array{id: int|null, value: array<string, string|null>}>  $rows
+     * @param  list<array{id: int|null, value: array<string, string|null>, hex_color?: string|null}>  $rows
      *
      * @throws ValidationException
      */
@@ -85,6 +94,7 @@ class SaveAttribute
         $existing = $attribute->options()->get()->keyBy('id');
         $rows = array_values($rows);
         $submittedIds = [];
+        $colorChanged = false;
 
         foreach ($rows as $index => $row) {
             $option = isset($row['id']) ? $existing->get((int) $row['id']) : null;
@@ -92,6 +102,12 @@ class SaveAttribute
             if ($option instanceof AttributeOption) {
                 $option->storeTranslations('value', $row['value']);
                 $option->sort = $index + 1;
+
+                if (array_key_exists('hex_color', $row)) {
+                    $option->hex_color = CreateAttributeOption::color($row['hex_color'], "options.{$index}.hex_color");
+                }
+
+                $colorChanged = $colorChanged || $option->isDirty('hex_color');
                 $option->save();
                 $submittedIds[] = $option->id;
             }
@@ -104,12 +120,20 @@ class SaveAttribute
                 continue;
             }
 
-            $option = $this->createOption->handle($attribute, $row['value'], $index + 1, "options.{$index}.value.uz", excludeIds: $kept);
+            $color = CreateAttributeOption::color($row['hex_color'] ?? null, "options.{$index}.hex_color");
+            $option = $this->createOption->handle($attribute, $row['value'], $index + 1, "options.{$index}.value.uz", excludeIds: $kept, hex: $color, hexField: "options.{$index}.hex_color");
 
             if ($option->wasRecentlyCreated === false) {
-                // An existing option not in the list (removed in the form, re-added as new): reuse it.
+                // An existing option not in the list (removed in the form, re-added as new): reuse it,
+                // with the colour of the row (RD-5; an empty row colour keeps the stored one).
                 $option->storeTranslations('value', $row['value']);
                 $option->sort = $index + 1;
+
+                if ($color !== null) {
+                    $option->hex_color = $color;
+                }
+
+                $colorChanged = $colorChanged || $option->isDirty('hex_color');
                 $option->save();
             }
 
@@ -119,7 +143,12 @@ class SaveAttribute
         foreach ($existing as $id => $option) {
             if (! in_array($id, $kept, true)) {
                 $this->deleteOption->handle($option);
+                $colorChanged = $colorChanged || $option->hexColor() !== null;
             }
+        }
+
+        if ($colorChanged) {
+            HomeCache::bump();
         }
     }
 }
