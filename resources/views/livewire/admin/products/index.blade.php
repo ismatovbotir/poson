@@ -97,6 +97,18 @@
         >
             <span class="text-sm font-semibold" x-text="@js(__('admin.products.bulk.selected')).replace(':count', $wire.selected.length)"></span>
             <div class="ml-auto flex items-center gap-1">
+                @if ($copyable !== [])
+                    <button
+                        type="button"
+                        x-cloak
+                        x-show="$wire.selected.length === 1 && @js(array_map('strval', $copyable)).includes(String($wire.selected[0]))"
+                        wire:click="openCopy"
+                        wire:loading.attr="disabled"
+                        wire:target="openCopy"
+                        class="h-9 rounded-lg px-3 text-sm font-semibold hover:bg-white/10 disabled:opacity-60"
+                        data-bulk-copy
+                    >{{ __('admin.products.copy.button') }}</button>
+                @endif
                 @if ($currentTab !== 'active')
                     <button type="button" wire:click="bulkActivate" class="h-9 rounded-lg px-3 text-sm font-semibold hover:bg-white/10">{{ __('admin.products.bulk.activate') }}</button>
                 @endif
@@ -284,6 +296,35 @@
             </div>
         </div>
     </div>
+
+    {{-- Copy dialog (plan 39) --}}
+    @if ($copySourceId !== null)
+        <div class="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby="product-copy-title" x-data x-on:keydown.escape.window="$wire.closeCopy()" data-copy-dialog>
+            <div class="absolute inset-0 bg-slate-900/50" wire:click="closeCopy"></div>
+            <form wire:submit="copy" x-trap.noscroll="true" class="relative flex max-h-[92vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl">
+                <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                    <h2 id="product-copy-title" class="text-base font-semibold">{{ __('admin.products.copy.title') }}</h2>
+                    <button type="button" wire:click="closeCopy" class="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" aria-label="{{ __('admin.a11y.close') }}"><x-admin.icon name="x" /></button>
+                </div>
+                <div class="space-y-4 overflow-y-auto px-5 py-5">
+                    <x-admin.input wire:model="copyForm.sku" :label="__('admin.products.fields.sku')" maxlength="64" required :hint="__('admin.products.copy.sku_hint')" />
+                    <x-admin.locale-tabs :error-keys="['copyForm.name']" :label="__('admin.catalog.name')">
+                        @foreach (config('app.supported_locales') as $locale)
+                            <x-admin.locale-panel :locale="$locale">
+                                <x-admin.input wire:model="copyForm.name.{{ $locale }}" :label="__('admin.catalog.name')" :required="$locale === 'uz'" maxlength="255" />
+                            </x-admin.locale-panel>
+                        @endforeach
+                    </x-admin.locale-tabs>
+                    <p class="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">{{ __('admin.products.copy.hint') }}</p>
+                    <x-admin.field-error name="copyGeneral" />
+                </div>
+                <div class="flex justify-end gap-2 border-t border-slate-100 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                    <x-admin.button type="button" variant="secondary" wire:click="closeCopy">{{ __('admin.common.cancel') }}</x-admin.button>
+                    <x-admin.button type="submit" loading="copy" data-copy-submit>{{ __('admin.products.copy.submit') }}</x-admin.button>
+                </div>
+            </form>
+        </div>
+    @endif
 
     @if ($canCreate)
         <livewire:admin.products.category-chooser />

@@ -191,6 +191,28 @@ it('lists products with a constant number of queries (no N+1)', function () {
     expect($many)->toBe($few);
 });
 
+it('adds no per-row queries for the copy list', function (Role $role) {
+    $user = staffUser($role);
+    $count = function () use ($user): int {
+        Livewire::actingAs($user)->test(Index::class); // warm the permission cache
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        Livewire::actingAs($user)->test(Index::class);
+        $queries = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $queries;
+    };
+
+    Product::factory()->count(5)->create();
+    $few = $count();
+
+    Product::factory()->count(20)->create();
+    $many = $count();
+
+    expect($many)->toBe($few);
+})->with([Role::Admin, Role::ServiceEngineer]);
+
 describe('category chooser triggers', function () {
     it('shows the triggers and the modal only to roles that can create (CP-1)', function (Role $role, bool $sees) {
         $component = Livewire::actingAs(staffUser($role))->test(Index::class);

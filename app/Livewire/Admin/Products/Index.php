@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Products;
 
 use App\Actions\Catalog\Ai\AiWizardGate;
 use App\Actions\Catalog\DeleteProduct;
+use App\Actions\Catalog\DuplicateProduct;
 use App\Actions\Catalog\ForceDeleteProduct;
 use App\Actions\Catalog\RestoreProduct;
 use App\Actions\Catalog\SetProductActive;
@@ -11,6 +12,7 @@ use App\Enums\ProductType;
 use App\Enums\StockStatus;
 use App\Livewire\Admin\Concerns\HandlesActionErrors;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
+use App\Livewire\Forms\Admin\Products\CopyProductForm;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
@@ -19,8 +21,11 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -90,6 +95,14 @@ class Index extends Component
      */
     public array $selected = [];
 
+    /**
+     * Product the copy dialog is open for (plan 39). Set only by openCopy().
+     */
+    #[Locked]
+    public ?int $copySourceId = null;
+
+    public CopyProductForm $copyForm;
+
     public function mount(): void
     {
         $this->authorize('viewAny', Product::class);
@@ -152,6 +165,80 @@ class Index extends Component
 
         $this->selected = [];
         $this->dispatch('toast', title: __('admin.toast.deleted'), body: trans_choice('admin.products.bulk.moved_to_trash', $products->count(), ['count' => $products->count()]));
+    }
+
+    /**
+     * Open the copy dialog for the one selected product (plan 39).
+     */
+    public function openCopy(): void
+    {
+        $this->copySourceId = null;
+        $this->resetErrorBag();
+        $ids = $this->selectedIds();
+
+        if ($this->tab === 'trash' || count($ids) !== 1) {
+            $this->addError('selected', __('admin.products.copy.exactly_one'));
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.products.copy.exactly_one'), type: 'error');
+
+            return;
+        }
+
+        $source = Product::query()->findOrFail($ids[0]);
+        $this->authorizeCopy($source);
+
+        $this->copyForm->setSource($source);
+        $this->copySourceId = $source->id;
+    }
+
+    public function closeCopy(): void
+    {
+        $this->copySourceId = null;
+        $this->copyForm->clear();
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Create the copy of the product the dialog was opened for, then open it.
+     */
+    public function copy(DuplicateProduct $duplicateProduct): void
+    {
+        $key = 'product-copy:'.auth()->id();
+
+        if (RateLimiter::tooManyAttempts($key, 10)) {
+            $this->addError('copyGeneral', __('admin.products.copy.too_many'));
+
+            return;
+        }
+
+        RateLimiter::hit($key, 60);
+
+        if ($this->copySourceId === null) {
+            $this->addError('copyGeneral', __('admin.products.copy.failed'));
+
+            return;
+        }
+
+        $source = Product::query()->findOrFail($this->copySourceId);
+        $this->authorizeCopy($source);
+        $this->copyForm->validate();
+
+        try {
+            $copy = $duplicateProduct->handle($source, [
+                'sku' => (string) $this->copyForm->sku,
+                'name' => $this->copyForm->name,
+            ]);
+        } catch (ValidationException $exception) {
+            $this->addCopyErrors($exception);
+
+            return;
+        }
+
+        $this->copySourceId = null;
+        $this->copyForm->clear();
+        $this->selected = [];
+
+        session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.products.copy.created'), 'type' => 'success']);
+        $this->redirectRoute('admin.products.edit', $copy, navigate: true);
     }
 
     public function delete(int $id, DeleteProduct $deleteProduct): void
@@ -280,6 +367,9 @@ class Index extends Component
             'currentTab' => $tab,
             'filtering' => trim($this->search) !== '' || $this->activeFilters !== [],
             'canCreate' => $user->can('create', Product::class),
+            'copyable' => $tab === 'trash' ? [] : $products->getCollection()
+                ->filter(fn (Product $product): bool => $user->can('view', $product) && $user->can('create', [Product::class, $product->type]) && $user->can('useType', [Product::class, $product->type]))
+                ->modelKeys(),
             'editable' => $products->getCollection()->filter(fn (Product $product): bool => $user->can('update', $product))->modelKeys(),
             'deletable' => $products->getCollection()->filter(fn (Product $product): bool => $user->can('delete', $product))->modelKeys(),
             'canForceDelete' => $user->can('forceDelete', Product::class),
@@ -316,11 +406,59 @@ class Index extends Component
     }
 
     /**
+     * The selection as unique positive ids. Only integers and digit strings
+     * count; arrays, null and strings like "1a" are dropped (never cast).
+     *
+     * @return list<int>
+     */
+    private function selectedIds(): array
+    {
+        $ids = [];
+
+        foreach ((array) $this->selected as $value) {
+            if (is_int($value) && $value > 0) {
+                $ids[] = $value;
+            } elseif (is_string($value) && ctype_digit($value) && strlen($value) <= 18 && (int) $value > 0) {
+                $ids[] = (int) $value;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    private function authorizeCopy(Product $source): void
+    {
+        $this->authorize('view', $source);
+        $this->authorize('create', [Product::class, $source->type]);
+        $this->authorize('useType', [Product::class, $source->type]);
+    }
+
+    /**
+     * Only the SKU and the names belong to the dialog; any other problem is one general message.
+     */
+    private function addCopyErrors(ValidationException $exception): void
+    {
+        $general = false;
+
+        foreach ($exception->errors() as $field => $messages) {
+            if ($field === 'sku' || preg_match('/^name\.(uz|ru|en)$/', $field) === 1) {
+                $this->addError('copyForm.'.$field, (string) $messages[0]);
+            } else {
+                $general = true;
+            }
+        }
+
+        if ($general) {
+            $this->addError('copyGeneral', __('admin.products.copy.failed'));
+        }
+    }
+
+    /**
      * @return Collection<int, Product>
      */
     private function selectedProducts(): Collection
     {
-        $ids = array_slice(array_values(array_unique(array_map('intval', $this->selected))), 0, self::MAX_BULK);
+        $ids = array_slice($this->selectedIds(), 0, self::MAX_BULK);
 
         return Product::query()->whereIn('id', $ids)->get();
     }
