@@ -3,12 +3,14 @@
 namespace Tests\Support;
 
 /**
- * Static guard for the MySQL "Invalid default value" trap: adding a NOT NULL
- * timestamp or datetime column to an existing table (Schema::table) without a
- * default fails on rows that already exist. Migrations are only read as text
+ * Static guard for the MySQL "Invalid default value" trap (error 1067). With
+ * explicit_defaults_for_timestamp=OFF and strict NO_ZERO_DATE, a NOT NULL
+ * timestamp or datetime column without a default is rejected, both when added
+ * to an existing table (Schema::table) and inside CREATE TABLE (Schema::create).
+ * Migrations are only read as text
  * (never required or executed); comments are dropped with the PHP tokenizer
  * and each `$table->...;` statement is checked whole, so multi-line chains
- * and `->change()` are covered. Schema::create is allowed (the table is empty). The down() body is skipped:
+ * and `->change()` are covered. Both Schema::table and Schema::create are checked. The down() body is skipped:
  * rollbacks re-add dropped columns and never run against production data.
  */
 final class MigrationTimestampScanner
@@ -16,6 +18,23 @@ final class MigrationTimestampScanner
     private const COLUMN_PATTERN = '/\$\w+->(?:timestamp|dateTime|timestampTz|dateTimeTz)\(/';
 
     private const SAFE_PATTERN = '/->(?:nullable\(\s*(?:true)?\s*\)|default\(\s*(?!null\b)|useCurrent\()/';
+
+    /**
+     * Already-deployed migrations that ran fine on production (created before
+     * the strict MySQL settings) and must never be edited (migrations are
+     * frozen). Do NOT add new migrations here: fix them with nullable(),
+     * useCurrent() or default().
+     *
+     * @var list<string>
+     */
+    public const ALLOWED_LEGACY = [
+        // Each is the FIRST timestamp column of its table: with
+        // explicit_defaults_for_timestamp=OFF MySQL gave it an implicit
+        // DEFAULT CURRENT_TIMESTAMP, so these ran on production.
+        '2026_10_21_164907_create_site_visits_table.php',
+        '2026_10_21_164908_create_bot_hits_table.php',
+        '2026_11_02_022447_create_scheduled_task_runs_table.php',
+    ];
 
     /**
      * @return list<string> the offending statements (whitespace collapsed)
@@ -37,7 +56,7 @@ final class MigrationTimestampScanner
                 }
             }
 
-            if ($mode !== 'table') {
+            if ($mode === null) {
                 continue;
             }
 
@@ -61,6 +80,10 @@ final class MigrationTimestampScanner
 
         foreach (glob(rtrim($directory, '/').'/*.php') ?: [] as $file) {
             $name = basename($file);
+
+            if (in_array($name, self::ALLOWED_LEGACY, true)) {
+                continue;
+            }
 
             $violations = self::violationsIn((string) file_get_contents($file));
 

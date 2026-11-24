@@ -20,7 +20,7 @@ it('flags multi-line chains and ->change() without a safe modifier', function ()
         ->and(MigrationTimestampScanner::violationsIn($commented))->toHaveCount(1);
 });
 
-it('passes nullable, default, useCurrent, timestamps(), softDeletes() and Schema::create', function () use ($migrationFixture) {
+it('passes nullable, default, useCurrent, timestamps() and softDeletes()', function () use ($migrationFixture) {
     $safe = $migrationFixture(<<<'PHP'
        $table->timestamp('a')->nullable();
        $table->timestamp('b')
@@ -32,9 +32,22 @@ it('passes nullable, default, useCurrent, timestamps(), softDeletes() and Schema
        $table->softDeletes();
     PHP);
 
-    expect(MigrationTimestampScanner::violationsIn($safe))->toBe([])
-        ->and(MigrationTimestampScanner::violationsIn($migrationFixture("   \$table->timestamp('seen_at');", 'create')))->toBe([]);
+    expect(MigrationTimestampScanner::violationsIn($safe))->toBe([]);
 });
+
+it('flags a bare NOT NULL timestamp inside Schema::create', function (string $column) use ($migrationFixture) {
+    expect(MigrationTimestampScanner::violationsIn($migrationFixture("   \$table->{$column}('expires_at')->index();", 'create')))->toHaveCount(1);
+})->with(['timestamp', 'dateTime', 'timestampTz', 'dateTimeTz']);
+
+it('passes nullable, useCurrent, default, timestamps() and softDeletes() inside Schema::create', function (string $body) use ($migrationFixture) {
+    expect(MigrationTimestampScanner::violationsIn($migrationFixture($body, 'create')))->toBe([]);
+})->with([
+    'nullable' => "   \$table->timestamp('expires_at')->nullable()->index();",
+    'useCurrent' => "   \$table->timestamp('expires_at')->useCurrent()->index();",
+    'default' => "   \$table->dateTime('expires_at')->default('2026-01-01 00:00:00');",
+    'timestamps' => '   $table->timestamps();',
+    'softDeletes' => '   $table->softDeletes();',
+]);
 
 it('flags nullable(false) and default(null) as unsafe', function () use ($migrationFixture) {
     expect(MigrationTimestampScanner::violationsIn($migrationFixture("   \$table->timestamp('a')->nullable(false);")))->toHaveCount(1)
@@ -48,6 +61,6 @@ it('does not scan the down() method', function () {
     expect(MigrationTimestampScanner::violationsIn($source))->toBe([]);
 });
 
-it('has no NOT NULL timestamp columns added to existing tables in database/migrations', function () {
+it('has no NOT NULL timestamp columns without a default in database/migrations', function () {
     expect(MigrationTimestampScanner::scanDirectory(database_path('migrations')))->toBe([]);
 });
