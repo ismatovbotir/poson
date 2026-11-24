@@ -14,7 +14,7 @@
                 @if ($canAiCreate)
                     <x-admin.button variant="soft" :href="route('admin.products.ai.create')" wire:navigate icon="sparkles" data-ai-create>{{ __('admin.ai_wizard.create_button') }}</x-admin.button>
                 @endif
-                <x-admin.button :href="route('admin.products.create')" wire:navigate icon="plus">{{ __('admin.products.create') }}</x-admin.button>
+                <x-admin.button type="button" wire:click="$dispatch('open-category-chooser')" icon="plus" data-new-product>{{ __('admin.products.create') }}</x-admin.button>
             </x-slot:actions>
         @endif
     </x-admin.page-header>
@@ -131,7 +131,7 @@
             @else
                 <x-admin.empty-state icon="box" :title="__('admin.products.empty_title')" :body="__('admin.products.empty_body')">
                     @if ($canCreate)
-                        <x-admin.button :href="route('admin.products.create')" wire:navigate icon="plus">{{ __('admin.products.create') }}</x-admin.button>
+                        <x-admin.button type="button" wire:click="$dispatch('open-category-chooser')" icon="plus" data-new-product>{{ __('admin.products.create') }}</x-admin.button>
                     @endif
                 </x-admin.empty-state>
             @endif
@@ -284,4 +284,8 @@
             </div>
         </div>
     </div>
+
+    @if ($canCreate)
+        <livewire:admin.products.category-chooser />
+    @endif
 </div>

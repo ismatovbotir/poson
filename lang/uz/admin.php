@@ -179,6 +179,7 @@ return [
     ],
 
     'categories' => [
+        'inactive' => 'Yashirin',
         'title' => 'Toifalar',
         'subtitle' => 'Katalogdagi toifalar: :count',
         'new' => 'Yangi toifa',
@@ -431,6 +432,12 @@ return [
     ],
 
     'products' => [
+        'chooser' => [
+            'title' => 'Toifani tanlang',
+            'cancel' => 'Bekor qilish',
+            'invalid' => 'Roʻyxatdan asosiy toifani tanlang',
+            'subtitle' => 'Asosiy toifani tanlang; quyi toifani shaklda tanlash mumkin',
+        ],
         'title' => 'Mahsulotlar',
         'new' => 'Yangi mahsulot',
         'create' => 'Yangi mahsulot',

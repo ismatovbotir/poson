@@ -179,6 +179,7 @@ return [
     ],
 
     'categories' => [
+        'inactive' => 'Hidden',
         'title' => 'Categories',
         'subtitle' => 'Categories in the catalog: :count',
         'new' => 'New category',
@@ -431,6 +432,12 @@ return [
     ],
 
     'products' => [
+        'chooser' => [
+            'title' => 'Choose a category',
+            'cancel' => 'Cancel',
+            'invalid' => 'Choose a main category from the list',
+            'subtitle' => 'Choose the main category; you can pick the subcategory in the form',
+        ],
         'title' => 'Products',
         'new' => 'New product',
         'create' => 'New product',

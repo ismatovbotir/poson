@@ -81,7 +81,8 @@ class Form extends Component
 
         $this->form->type = ($this->typeOptions()[0] ?? ProductType::Hardware)->value;
 
-        $categoryId = (int) request()->query('category');
+        $raw = request()->query('category');
+        $categoryId = is_string($raw) && ctype_digit($raw) ? (int) $raw : 0;
 
         if ($categoryId > 0 && CategoryTree::find($categoryId) !== null) {
             $this->form->category_id = (string) $categoryId;

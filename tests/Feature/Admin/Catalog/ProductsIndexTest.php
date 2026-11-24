@@ -2,12 +2,14 @@
 
 use App\Enums\Role;
 use App\Enums\StockStatus;
+use App\Livewire\Admin\Products\CategoryChooser;
 use App\Livewire\Admin\Products\Index;
 use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductDocument;
+use App\Support\Catalog\CategoryTree;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -187,4 +189,39 @@ it('lists products with a constant number of queries (no N+1)', function () {
     $many = $count();
 
     expect($many)->toBe($few);
+});
+
+describe('category chooser triggers', function () {
+    it('shows the triggers and the modal only to roles that can create (CP-1)', function (Role $role, bool $sees) {
+        $component = Livewire::actingAs(staffUser($role))->test(Index::class);
+
+        if ($sees) {
+            $component->assertSeeHtml('open-category-chooser')->assertSeeLivewire(CategoryChooser::class);
+        } else {
+            $component->assertDontSeeHtml('open-category-chooser')->assertDontSeeLivewire(CategoryChooser::class)->assertDontSeeHtml('category-chooser-title');
+        }
+    })->with([
+        'sales manager' => [Role::SalesManager, false],
+        'content manager' => [Role::ContentManager, true],
+        'service engineer' => [Role::ServiceEngineer, true],
+    ]);
+
+    it('also opens the chooser from the empty-state button', function () {
+        $html = Livewire::actingAs(staffUser(Role::ContentManager))->test(Index::class)->html();
+
+        expect(substr_count($html, "wire:click=\"\$dispatch('open-category-chooser')\""))->toBe(2);
+    });
+
+    it('does not load the category tree for the modal while closed (CP-8)', function () {
+        Category::factory()->create();
+        $component = Livewire::actingAs(staffUser(Role::ContentManager))->test(Index::class);
+        CategoryTree::flush();
+
+        DB::enableQueryLog();
+        $component->call('$refresh');
+        $queries = array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'from `categories`'));
+        DB::disableQueryLog();
+
+        expect($queries)->toBeEmpty();
+    });
 });

@@ -86,6 +86,16 @@ class CategoryTree
     }
 
     /**
+     * True for a top-level category (exists, no parent).
+     */
+    public static function isRoot(int $id): bool
+    {
+        $node = static::find($id);
+
+        return $node !== null && $node['parent_id'] === null;
+    }
+
+    /**
      * Ancestor ids, nearest first.
      *
      * @return list<int>

@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
+use App\Support\Catalog\CategoryTree;
 use Illuminate\Support\Facades\DB;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -427,4 +428,57 @@ it('opens the edit page with a constant number of queries', function () {
     $many = Product::factory()->inCategory($category)->create();
 
     expect($count($many))->toBe($fewQueries);
+});
+
+it('pre-fills the category and its specs from ?category (root or leaf)', function (bool $root) {
+    $parent = Category::factory()->create();
+    $leaf = Category::factory()->child($parent)->create();
+    $category = $root ? $parent : $leaf;
+    $attribute = Attribute::factory()->create(['code' => 'prefill_attr']);
+    $category->attributes()->attach($attribute, ['sort' => 1]);
+
+    $component = Livewire::actingAs(staffUser(Role::ContentManager))
+        ->withQueryParams(['category' => (string) $category->id])
+        ->test(Form::class)
+        ->assertSet('form.category_id', (string) $category->id);
+
+    expect(array_column($component->get('form.specs'), 'attribute_id'))->toBe([$attribute->id]);
+})->with(['root' => true, 'leaf' => false]);
+
+it('opens the create form with an empty category for a tampered ?category', function (mixed $value) {
+    $first = Category::factory()->create();
+    // The array case must be able to hit the category with id 1 (the old (int)['1'] cast).
+    Category::query()->whereKey($first->id)->update(['id' => 1]);
+    CategoryTree::flush();
+
+    $user = staffUser(Role::ContentManager);
+
+    Livewire::actingAs($user)->withQueryParams(['category' => $value])->test(Form::class)->assertSet('form.category_id', '');
+    $this->actingAs($user)->get(route('admin.products.create', ['category' => $value]))->assertOk();
+})->with([
+    'array' => [['1']],
+    'letters' => 'abc',
+    'zero' => '0',
+    'missing id' => '999999',
+    'exponent' => '1e3',
+]);
+
+it('forbids ?category prefill for a sales manager', function () {
+    $leaf = Category::factory()->create();
+
+    $this->actingAs(staffUser(Role::SalesManager))
+        ->get(route('admin.products.create', ['category' => $leaf->id]))
+        ->assertForbidden();
+});
+
+it('does not widen the type options when a category is picked (service engineer)', function () {
+    $leaf = Category::factory()->create();
+    $user = staffUser(Role::ServiceEngineer);
+
+    $component = Livewire::actingAs($user)->withQueryParams(['category' => (string) $leaf->id])->test(Form::class)
+        ->assertSet('form.category_id', (string) $leaf->id);
+
+    expect(array_map(fn ($type) => $type->value, $component->instance()->typeOptions()))->toBe(['software', 'service']);
+
+    $component->set('form.name.uz', 'Uskuna')->set('form.sku', 'HW-77')->set('form.type', 'hardware')->call('save')->assertForbidden();
 });
