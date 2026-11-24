@@ -13,6 +13,8 @@ return [
         'quick_menu' => 'Quick menu',
         'open_menu' => 'Open menu',
         'close_menu' => 'Close menu',
+        'collapse_menu' => 'Collapse menu',
+        'expand_menu' => 'Expand menu',
         'close' => 'Close',
         'home' => 'Dashboard',
         'breadcrumb' => 'Breadcrumb',

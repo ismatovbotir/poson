@@ -13,6 +13,8 @@ return [
         'quick_menu' => 'Tezkor menyu',
         'open_menu' => 'Menyuni ochish',
         'close_menu' => 'Menyuni yopish',
+        'collapse_menu' => 'Menyuni yigʻish',
+        'expand_menu' => 'Menyuni yoyish',
         'close' => 'Yopish',
         'home' => 'Boshqaruv paneli',
         'breadcrumb' => 'Navigatsiya zanjiri',

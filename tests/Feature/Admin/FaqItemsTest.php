@@ -205,7 +205,7 @@ describe('product FAQ', function () {
         $this->actingAs($admin)->get(route('admin.products.edit', $product))
             ->assertOk()
             ->assertSeeLivewire(FaqItems::class)
-            ->assertSee('href="#s-faq"', false);
+            ->assertSee('data-tab="faq"', false);
 
         $this->actingAs($admin)->get(route('admin.products.create'))
             ->assertOk()

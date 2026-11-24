@@ -55,7 +55,7 @@
         <button type="button" x-on:click="filters = true" class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:flex-none lg:h-10">
             <x-admin.icon name="filter" size="size-4" />{{ __('crm.leads.filters.open') }}
             @if (count($this->activeFilters) > 0)
-                <span class="rounded-full bg-brand-600 px-1.5 text-[11px] font-bold text-white">{{ count($this->activeFilters) }}</span>
+                <span class="rounded-full bg-brand-600 px-1.5 text-[0.6875rem] font-bold text-white">{{ count($this->activeFilters) }}</span>
             @endif
         </button>
         <label class="relative flex-1 sm:flex-none">

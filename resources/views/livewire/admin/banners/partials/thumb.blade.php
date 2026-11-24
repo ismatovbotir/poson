@@ -4,7 +4,7 @@
     @if ($thumb)
         <img src="{{ $thumb }}" alt="" width="128" height="40" loading="lazy" class="size-full object-cover" data-banner-thumb>
     @elseif ($banner->bannerImageProcessing())
-        <span class="text-[10px] text-slate-500">{{ __('admin.image_upload.processing') }}</span>
+        <span class="text-xs text-slate-500">{{ __('admin.image_upload.processing') }}</span>
     @else
         <x-admin.icon name="image" size="size-5" class="text-slate-300" />
     @endif

@@ -32,7 +32,7 @@
         @endforeach
     </svg>
 </div>
-<div class="mt-2 flex justify-between text-[11px] text-slate-400" aria-hidden="true">
+<div class="mt-2 flex justify-between text-xs text-slate-400" aria-hidden="true">
     @if ($series !== [])
         <span>{{ $label($series[0]['date']) }}</span>
         <span>{{ $label($series[intdiv(count($series) - 1, 2)]['date']) }}</span>

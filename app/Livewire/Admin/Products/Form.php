@@ -50,6 +50,23 @@ class Form extends Component
 {
     use HandlesActionErrors, WithAiFill;
 
+    /**
+     * Tab keys in display order (the tab itself lives in Alpine only) and the
+     * validation-key prefixes each tab owns. Used for the red error dots and
+     * to jump to the first tab with errors after a failed save.
+     *
+     * @var array<string, list<string>>
+     */
+    public const TAB_FIELDS = [
+        'main' => ['form.name', 'form.short_description', 'form.description', 'form.slug', 'form.sku', 'form.model', 'form.type', 'form.category_id', 'form.brand_id', 'form.is_active', 'form.is_featured', 'form.badge'],
+        'pricing' => ['form.sale_mode', 'form.pricing_unit', 'form.price', 'form.price_dealer', 'form.price_wholesale', 'form.unit', 'form.min_qty', 'form.warranty_months', 'form.stock_status', 'form.ikpu_code', 'form.package_code', 'form.roll_type_ids'],
+        'specs' => ['form.specs'],
+        'images' => [],
+        'documents' => [],
+        'faq' => [],
+        'seo' => ['form.meta_title', 'form.meta_description'],
+    ];
+
     #[Locked]
     public ?Product $product = null;
 
@@ -363,22 +380,28 @@ class Form extends Component
             $this->authorize('create', Product::class);
         }
 
-        $type = ProductType::tryFrom($this->form->type);
-
-        if ($type === null) {
-            throw ValidationException::withMessages(['form.type' => __('validation.required', ['attribute' => __('admin.products.fields.type')])]);
-        }
-
-        $this->authorize('useType', [Product::class, $type]);
-
         // The slug is never client input: SaveProduct keeps the stored one or generates it.
         $this->form->slug = (string) $this->product?->slug;
         $this->form->sku = mb_strtoupper(trim($this->form->sku));
-        $this->form->validate();
-
         $creating = $this->product === null;
 
-        $product = $this->runFormAction(fn (): Product => $saveProduct->handle($this->product, $this->form->productData(), $this->form->specInput()));
+        try {
+            $type = ProductType::tryFrom($this->form->type);
+
+            if ($type === null) {
+                throw ValidationException::withMessages(['form.type' => __('validation.required', ['attribute' => __('admin.products.fields.type')])]);
+            }
+
+            $this->authorize('useType', [Product::class, $type]);
+
+            $this->form->validate();
+
+            $product = $this->runFormAction(fn (): Product => $saveProduct->handle($this->product, $this->form->productData(), $this->form->specInput()));
+        } catch (ValidationException $exception) {
+            $this->dispatch('product-tab-errors', tab: self::firstTabWithErrors(array_keys($exception->errors())));
+
+            throw $exception;
+        }
 
         if ($creating) {
             session()->flash('toast', ['title' => __('admin.toast.saved'), 'body' => __('admin.products.created', ['name' => $product->name]), 'type' => 'success']);
@@ -393,6 +416,38 @@ class Form extends Component
         unset($this->specMeta, $this->extraResults);
 
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.products.saved', ['name' => $this->product->name]));
+    }
+
+    /**
+     * The first tab (in display order) that owns one of the given error keys.
+     *
+     * @param  list<string>  $keys
+     */
+    public static function firstTabWithErrors(array $keys): string
+    {
+        foreach (array_keys(self::TAB_FIELDS) as $tab) {
+            if (self::tabOwnsAny($tab, $keys)) {
+                return $tab;
+            }
+        }
+
+        return 'main';
+    }
+
+    /**
+     * @param  list<string>  $keys
+     */
+    public static function tabOwnsAny(string $tab, array $keys): bool
+    {
+        foreach (self::TAB_FIELDS[$tab] ?? [] as $prefix) {
+            foreach ($keys as $key) {
+                if ($key === $prefix || str_starts_with($key, $prefix.'.')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

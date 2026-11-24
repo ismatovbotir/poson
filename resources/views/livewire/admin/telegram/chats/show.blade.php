@@ -83,7 +83,7 @@
                                 @elseif ($message->kind === \App\Enums\TelegramMessageKind::Text)
                                     <p class="text-slate-400">{{ __('admin.common.empty_value') }}</p>
                                 @endif
-                                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
+                                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                                     <span>{{ $inbound ? __($t.'.show.from_customer') : ($message->user?->name ?? __($t.'.show.from_bot')) }}</span>
                                     <span>{{ \App\Support\DateFormat::iso(($message->sent_at ?? $message->created_at)->copy()->setTimezone($tz), 'D MMM, HH:mm') }}</span>
                                     @unless ($inbound)
@@ -110,7 +110,7 @@
                                     @endif
                                 </p>
                                 @if ($message->forward_status !== null)
-                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]" data-forward-line="{{ $message->forward_status->value }}">
+                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" data-forward-line="{{ $message->forward_status->value }}">
                                         <span @class(['font-semibold', 'text-danger' => $message->forward_status === \App\Enums\TelegramForwardStatus::Failed, 'text-slate-500' => $message->forward_status !== \App\Enums\TelegramForwardStatus::Failed])>{{ __($t.'.show.forward') }}: {{ __($t.'.forward_lines.'.$message->forward_status->value) }}@if ($message->forward_error_code) · {{ $message->forward_error_code }}@endif</span>
                                         @if (! in_array($replyRefusal, ['banned', 'bot_off'], true) && $message->isForwardRetryable())
                                             <button type="button" wire:click="retryForward({{ $message->id }})" wire:loading.attr="disabled" wire:target="retryForward({{ $message->id }})" class="font-semibold text-brand-700 hover:underline" data-retry-forward="{{ $message->id }}">{{ __($t.'.forward_retry') }}</button>

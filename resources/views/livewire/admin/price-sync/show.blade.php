@@ -80,7 +80,7 @@
                                 @if (! empty($row['errors']))
                                     <ul class="mt-1 space-y-0.5 text-xs text-danger" data-item-errors>
                                         @foreach ((array) $row['errors'] as $code)
-                                            <li>{{ $errorLabel((string) $code) }} <code class="font-mono text-[11px] text-red-400">{{ $code }}</code></li>
+                                            <li>{{ $errorLabel((string) $code) }} <code class="font-mono text-xs text-red-400">{{ $code }}</code></li>
                                         @endforeach
                                     </ul>
                                 @endif

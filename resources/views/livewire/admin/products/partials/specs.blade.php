@@ -19,7 +19,7 @@
                 @if ($categoryName)
                     {{ __('admin.products.specs.from', ['name' => $categoryName]) }} ·
                 @endif
-                <x-admin.icon name="star" size="size-3.5" class="inline align-[-2px] text-warn" style="fill: currentColor" />
+                <x-admin.icon name="star" size="size-3.5" class="inline align-[-0.125rem] text-warn" style="fill: currentColor" />
                 {{ __('admin.products.specs.key_count', ['count' => $keyCount, 'max' => $maxKeys]) }}
             </p>
             <p class="mt-1 text-xs text-slate-500" data-specs-hint>{{ __('admin.products.specs.hint') }}</p>
@@ -56,7 +56,7 @@
         @endphp
         @continue($rows->isEmpty())
 
-        <p class="bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 sm:px-6">{{ $groupTitle }}</p>
+        <p class="bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:px-6">{{ $groupTitle }}</p>
         <ul class="divide-y divide-slate-100" data-spec-group="{{ $group }}">
             @foreach ($rows as $index => $row)
                 @php
@@ -76,7 +76,7 @@
                             <p @class(['text-sm font-medium', 'text-slate-400 line-through' => $skipped, 'text-slate-800' => ! $skipped])>
                                 {{ $attribute->name }}@if ($meta->required)<span class="text-danger" title="{{ __('admin.categories.attributes.required') }}"> *</span>@endif
                             </p>
-                            <p class="mt-0.5 truncate text-[11px] text-slate-400">
+                            <p class="mt-0.5 truncate text-xs text-slate-400">
                                 {{ $type->label() }}@if ($unit) ({{ $unit }})@endif
                                 @if ($meta->isExtra())
                                     · <span class="font-semibold text-violet-600">{{ __('admin.products.specs.extra') }}</span>
@@ -100,7 +100,7 @@
                                     <div class="grid gap-2 sm:grid-cols-3">
                                         @foreach ($locales as $locale)
                                             <div @class(['flex h-10 overflow-hidden rounded-lg border focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/15', 'border-red-300 bg-red-50/40' => $flagged || $errors->has("form.specs.{$index}.text.{$locale}"), 'border-slate-200' => ! ($flagged || $errors->has("form.specs.{$index}.text.{$locale}"))])>
-                                                <span class="flex w-9 shrink-0 items-center justify-center bg-slate-50 text-[11px] font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
+                                                <span class="flex w-9 shrink-0 items-center justify-center bg-slate-50 text-xs font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
                                                 <input wire:model="form.specs.{{ $index }}.text.{{ $locale }}" lang="{{ $locale }}" maxlength="1000" aria-label="{{ $attribute->name }} ({{ strtoupper($locale) }})" class="min-w-0 flex-1 bg-transparent px-2.5 text-base outline-none sm:text-sm">
                                             </div>
                                         @endforeach

@@ -26,7 +26,7 @@
         @endif
     </x-admin.page-header>
 
-    <div class="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6">
+    <div class="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:gap-6">
         <div class="min-w-0 space-y-4 lg:space-y-6">
             <x-admin.card :title="__('careers.admin.applications.details')">
                 <dl class="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">

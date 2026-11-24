@@ -1,7 +1,7 @@
 {{-- Engineer avatar with name, or the dashed "unassigned" circle. --}}
 @if ($repair->assignedTo)
     <span class="flex min-w-0 items-center gap-2" title="{{ $repair->assignedTo->name }}">
-        <span class="grid size-7 shrink-0 place-items-center rounded-full bg-brand-600 text-[11px] font-bold text-white" aria-hidden="true">{{ $repair->assignedTo->initials() }}</span>
+        <span class="grid size-7 shrink-0 place-items-center rounded-full bg-brand-600 text-[0.6875rem] font-bold text-white" aria-hidden="true">{{ $repair->assignedTo->initials() }}</span>
         <span class="truncate text-slate-600">{{ $repair->assignedTo->name }}</span>
     </span>
 @else

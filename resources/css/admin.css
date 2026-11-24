@@ -6,6 +6,9 @@
  */
 @import 'tailwindcss' source(none);
 
+/* rail: only while the admin sidebar is collapsed to its icons rail (html[data-rail="true"]). */
+@custom-variant rail (html[data-rail='true'] &);
+
 @source '../views/layouts/admin.blade.php';
 @source '../views/layouts/admin-guest.blade.php';
 @source '../views/components/admin';
@@ -41,6 +44,35 @@
 
     html {
         -webkit-tap-highlight-color: transparent;
+    }
+
+    /*
+     * Sidebar width in one place: the aside width, the main column padding and the
+     * sticky save bar's left offset all read --admin-side. data-rail="true" is set
+     * by an inline <head> script before first paint (and toggled by Alpine).
+     */
+    html[data-admin] {
+        --admin-side: 18rem;
+    }
+
+    html[data-admin][data-rail='true'] {
+        --admin-side: 4.5rem;
+    }
+
+    /* Width/padding animate only after the first user toggle, never on load or navigation. */
+    @media (min-width: 64rem) {
+        html[data-rail-anim] [data-admin-side] {
+            transition: width 200ms ease-out;
+        }
+
+        html[data-rail-anim] [data-admin-main] {
+            transition: padding 200ms ease-out;
+        }
+    }
+
+    /* Admin renders at 80%: rem-based Tailwind sizes follow the root size. Set on the admin layouts' <html> only. */
+    html[data-admin] {
+        font-size: 80%;
     }
 
     body {

@@ -33,7 +33,7 @@
                         ])>
                             {{ $label }}
                             @if ($key === 'orders')
-                                <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">{{ __('crm.customers.later') }}</span>
+                                <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('crm.customers.later') }}</span>
                             @endif
                         </button>
                     @endforeach

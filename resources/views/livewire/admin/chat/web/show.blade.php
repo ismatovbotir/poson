@@ -38,7 +38,7 @@
                             <div wire:key="message-{{ $message->id }}" @class(['flex', 'justify-start' => $visitor, 'justify-end' => ! $visitor]) data-message="{{ $message->id }}">
                                 <div @class(['max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm', 'bg-slate-100 text-slate-900' => $visitor, 'bg-brand-50 text-slate-900' => ! $visitor])>
                                     <p class="break-words">{!! nl2br(e(preg_replace('/[\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $message->text) ?? '')) !!}</p>
-                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
+                                    <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                                         <span>
                                             @if ($visitor){{ __($t.'.web.from_visitor') }}
                                             @elseif ($message->author === \App\Enums\ChatAuthor::Staff){{ $message->user?->name ?? __($t.'.web.from_staff') }}

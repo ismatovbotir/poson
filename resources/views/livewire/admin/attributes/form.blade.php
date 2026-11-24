@@ -41,7 +41,7 @@
                         <x-admin.button variant="soft" size="sm" icon="plus" wire:click="addOption">{{ __('admin.attributes.options.add') }}</x-admin.button>
                     </div>
 
-                    <div class="hidden grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] gap-3 bg-slate-50 px-6 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 sm:grid">
+                    <div class="hidden grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] gap-3 bg-slate-50 px-6 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:grid">
                         <span></span>
                         @foreach ($locales as $locale)<span>{{ __('admin.attributes.options.value') }} · {{ strtoupper($locale) }}</span>@endforeach
                         <span></span>
@@ -60,7 +60,7 @@
                                     <div class="space-y-2 sm:contents">
                                         @foreach ($locales as $locale)
                                             <div class="flex items-start gap-2 sm:block">
-                                                <span class="mt-3 w-6 shrink-0 text-[11px] font-bold uppercase text-slate-400 sm:hidden" aria-hidden="true">{{ $locale }}</span>
+                                                <span class="mt-3 w-6 shrink-0 text-xs font-bold uppercase text-slate-400 sm:hidden" aria-hidden="true">{{ $locale }}</span>
                                                 <x-admin.input
                                                     wire:model="form.options.{{ $index }}.value.{{ $locale }}"
                                                     lang="{{ $locale }}"

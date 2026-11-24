@@ -41,7 +41,7 @@
                                 <span class="min-w-0 flex-1 truncate font-medium">{{ $log->token_name ?? __($t.'.no_token') }}</span>
                                 <x-admin.badge :color="$log->status->color()">{{ $log->status->label() }}</x-admin.badge>
                                 @if ($log->error)
-                                    <span class="text-xs text-danger">{{ \Illuminate\Support\Facades\Lang::has('api.errors.'.$log->error) ? __('api.errors.'.$log->error) : $log->error }} <code class="font-mono text-[11px] text-red-400">{{ $log->error }}</code></span>
+                                    <span class="text-xs text-danger">{{ \Illuminate\Support\Facades\Lang::has('api.errors.'.$log->error) ? __('api.errors.'.$log->error) : $log->error }} <code class="font-mono text-xs text-red-400">{{ $log->error }}</code></span>
                                 @else
                                     <span class="flex flex-wrap gap-x-3 text-xs tabular-nums text-slate-600">
                                         <span>{{ __($t.'.counts.received') }}: {{ $log->received }}</span>

@@ -51,7 +51,7 @@
                     <p class="mt-0.5 text-xs text-slate-500">{{ __('admin.categories.attributes.help') }}</p>
                 </div>
 
-                <div class="hidden grid-cols-[2rem_1fr_6.5rem_6.5rem_5.5rem] items-center gap-3 bg-slate-50 px-6 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 sm:grid">
+                <div class="hidden grid-cols-[2rem_1fr_6.5rem_6.5rem_5.5rem] items-center gap-3 bg-slate-50 px-6 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 sm:grid">
                     <span></span><span>{{ __('admin.categories.attributes.attribute') }}</span><span class="text-center">{{ __('admin.categories.attributes.required') }}</span><span class="text-center">{{ __('admin.categories.attributes.filter') }}</span><span></span>
                 </div>
 
@@ -68,11 +68,11 @@
                                 <span class="hidden text-slate-300 sm:block"><x-admin.icon name="lock" size="size-4" /></span>
                                 <span class="min-w-0">
                                     <span class="block truncate text-sm font-medium text-slate-600">{{ $attribute->name }}</span>
-                                    <span class="block text-[11px] text-slate-400"><span class="font-mono">{{ $attribute->code }}</span> · {{ $attribute->type->label() }}@if ($attribute->unitLabel()) ({{ $attribute->unitLabel() }})@endif</span>
+                                    <span class="block text-xs text-slate-400"><span class="font-mono">{{ $attribute->code }}</span> · {{ $attribute->type->label() }}@if ($attribute->unitLabel()) ({{ $attribute->unitLabel() }})@endif</span>
                                 </span>
                                 <span class="flex gap-1.5 sm:contents">
-                                    <span class="text-center"><span @class(['inline-flex rounded px-1.5 py-0.5 text-[11px] font-semibold', 'bg-slate-200 text-slate-700' => $attribute->pivot->is_required, 'text-slate-300' => ! $attribute->pivot->is_required])>{{ $attribute->pivot->is_required ? __('admin.categories.attributes.required') : '—' }}</span></span>
-                                    <span class="text-center"><span @class(['inline-flex rounded px-1.5 py-0.5 text-[11px] font-semibold', 'bg-slate-200 text-slate-700' => $attribute->pivot->is_filterable, 'text-slate-300' => ! $attribute->pivot->is_filterable])>{{ $attribute->pivot->is_filterable ? __('admin.categories.attributes.filter') : '—' }}</span></span>
+                                    <span class="text-center"><span @class(['inline-flex rounded px-1.5 py-0.5 text-xs font-semibold', 'bg-slate-200 text-slate-700' => $attribute->pivot->is_required, 'text-slate-300' => ! $attribute->pivot->is_required])>{{ $attribute->pivot->is_required ? __('admin.categories.attributes.required') : '—' }}</span></span>
+                                    <span class="text-center"><span @class(['inline-flex rounded px-1.5 py-0.5 text-xs font-semibold', 'bg-slate-200 text-slate-700' => $attribute->pivot->is_filterable, 'text-slate-300' => ! $attribute->pivot->is_filterable])>{{ $attribute->pivot->is_filterable ? __('admin.categories.attributes.filter') : '—' }}</span></span>
                                     <span class="hidden sm:block"></span>
                                 </span>
                             </li>
@@ -100,9 +100,9 @@
                                 </span>
                                 <span class="min-w-0">
                                     <span class="block truncate text-sm font-semibold">{{ $attribute->name }}</span>
-                                    <span class="block text-[11px] text-slate-500"><span class="font-mono">{{ $attribute->code }}</span> · {{ $attribute->type->label() }}@if ($attribute->unitLabel()) ({{ $attribute->unitLabel() }})@endif</span>
+                                    <span class="block text-xs text-slate-500"><span class="font-mono">{{ $attribute->code }}</span> · {{ $attribute->type->label() }}@if ($attribute->unitLabel()) ({{ $attribute->unitLabel() }})@endif</span>
                                     @if (in_array($attribute->id, $this->inheritedIds, true))
-                                        <span class="mt-1 block text-[11px] font-medium text-amber-700">{{ __('admin.categories.attributes.already_inherited') }}</span>
+                                        <span class="mt-1 block text-xs font-medium text-amber-700">{{ __('admin.categories.attributes.already_inherited') }}</span>
                                     @endif
                                     <span class="mt-2 flex gap-2 sm:hidden">
                                         <label class="inline-flex h-8 cursor-pointer items-center rounded-md border border-slate-200 px-2.5 text-xs font-semibold text-slate-500 has-checked:border-brand-600 has-checked:bg-brand-50 has-checked:text-brand-700">
@@ -228,7 +228,7 @@
                                 <span class="w-5 text-right text-xs tabular-nums text-slate-400">{{ $loop->iteration }}</span>
                                 <span class="truncate">{{ $row['name'] }}</span>
                                 @if ($row['required'])<span class="text-danger" title="{{ __('admin.categories.attributes.required') }}">*</span>@endif
-                                @if ($row['filter'])<span class="ml-auto shrink-0 rounded bg-brand-50 px-1.5 text-[10px] font-semibold text-brand-700">{{ __('admin.categories.attributes.filter') }}</span>@endif
+                                @if ($row['filter'])<span class="ml-auto shrink-0 rounded bg-brand-50 px-1.5 text-xs font-semibold text-brand-700">{{ __('admin.categories.attributes.filter') }}</span>@endif
                             </li>
                         @endforeach
                     </ol>

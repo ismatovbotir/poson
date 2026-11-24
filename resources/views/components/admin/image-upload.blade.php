@@ -91,7 +91,7 @@
             <div class="mt-1.5 space-y-2">
                 @foreach (config('app.supported_locales') as $locale)
                     <div class="flex items-center gap-2">
-                        <span class="w-7 shrink-0 text-center text-[11px] font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
+                        <span class="w-7 shrink-0 text-center text-xs font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
                         <x-admin.input
                             wire:model="{{ $altModel }}.{{ $locale }}"
                             lang="{{ $locale }}"

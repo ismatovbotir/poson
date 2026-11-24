@@ -5,7 +5,7 @@
 
     @php($groups = $this->relations->groupBy(fn ($relation) => $relation->type->value))
     @forelse ($groups as $typeValue => $relations)
-        <p class="mt-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{{ \App\Enums\RelationType::from($typeValue)->label() }}</p>
+        <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-500">{{ \App\Enums\RelationType::from($typeValue)->label() }}</p>
         <ul class="mt-2 space-y-2">
             @foreach ($relations as $relation)
                 @php($related = $relation->related)
@@ -18,7 +18,7 @@
                         @else
                             <a href="{{ route('admin.products.edit', $related) }}" wire:navigate class="block truncate text-sm hover:text-brand-700">{{ $related->name }}</a>
                         @endif
-                        <span class="block truncate text-[11px] text-slate-400">
+                        <span class="block truncate text-xs text-slate-400">
                             <span class="font-mono">{{ $related->sku }}</span>
                             @if ($related->trashed()) · {{ __('admin.products.status.trashed') }}@elseif (! $related->is_active) · {{ __('admin.products.status.draft') }}@endif
                         </span>
@@ -47,7 +47,7 @@
                             <button type="button" wire:click="add({{ $result->id }})" class="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50">
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm">{{ $result->name }}</span>
-                                    <span class="block truncate text-[11px] text-slate-400"><span class="font-mono">{{ $result->sku }}</span>@unless ($result->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
+                                    <span class="block truncate text-xs text-slate-400"><span class="font-mono">{{ $result->sku }}</span>@unless ($result->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
                                 </span>
                                 <x-admin.icon name="plus" size="size-4" class="text-slate-400" />
                             </button>

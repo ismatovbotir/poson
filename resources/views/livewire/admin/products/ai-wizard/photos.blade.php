@@ -36,11 +36,11 @@
                             @else
                                 <span class="px-2 text-center text-xs text-slate-500">{{ __('admin.image_upload.processing') }}</span>
                             @endif
-                            <span class="absolute left-2 top-2 rounded-md bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                            <span class="absolute left-2 top-2 rounded-md bg-white/90 px-1.5 py-0.5 text-xs font-semibold text-slate-700">
                                 {{ $flags['source'] === 'upload' ? __($t.'.photos.new') : __($t.'.photos.existing') }} {{ $tile['index'] + 1 }}
                             </span>
                             @if ($isMain)
-                                <span class="absolute bottom-2 left-2 rounded-md bg-brand-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{{ __('admin.products.images.main') }}</span>
+                                <span class="absolute bottom-2 left-2 rounded-md bg-brand-600 px-1.5 py-0.5 text-xs font-semibold text-white">{{ __('admin.products.images.main') }}</span>
                             @endif
                         </div>
                         <div class="space-y-2 border-t border-slate-100 p-2 text-xs">

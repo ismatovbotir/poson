@@ -10,18 +10,22 @@
     $categoryChosen = filled($form->category_id) && isset($this->categoryOptions[(int) $form->category_id]);
     $categoryName = $categoryChosen ? \App\Support\Catalog\CategoryTree::name((int) $form->category_id) : null;
     $siteHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'poson.uz';
-    $sections = [
+    $tabLabels = [
         'main' => __('admin.products.sections.main'),
-        'price' => __('admin.products.sections.price'),
+        'pricing' => __('admin.products.sections.price'),
         'specs' => __('admin.products.sections.specs'),
-        'media' => __('admin.products.sections.images'),
-        'docs' => __('admin.products.sections.documents'),
+        'images' => __('admin.products.sections.images'),
+        'documents' => __('admin.products.sections.documents'),
         'faq' => __('admin.faq.title'),
         'seo' => __('admin.catalog.seo'),
     ];
+    $errorKeys = $errors->keys();
+    $tabsWithErrors = collect(array_keys($tabLabels))
+        ->filter(fn (string $tab): bool => \App\Livewire\Admin\Products\Form::tabOwnsAny($tab, $errorKeys))
+        ->all();
 @endphp
 
-<form wire:submit="save" novalidate>
+<form wire:submit="save" novalidate x-data="productTabs(@js(array_keys($tabLabels)))" x-on:product-tab-errors.window="showErrors($event.detail?.tab ?? $event.detail?.[0]?.tab)">
     {{-- Header --}}
     <x-admin.page-header :title="$title" :back-href="route('admin.products.index')" :back-label="__('admin.products.title')">
         @if ($canSave)
@@ -66,18 +70,37 @@
         </div>
     @enderror
 
-    {{-- Section nav --}}
-    <nav class="scrollbar-none sticky top-16 z-20 -mx-4 mt-4 overflow-x-auto border-b border-slate-200 bg-canvas/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" aria-label="{{ __('admin.products.sections.label') }}">
+    {{-- Tabs (Alpine only: every panel stays mounted, hidden with x-show) --}}
+    <div class="scrollbar-none sticky top-16 z-20 -mx-4 mt-4 overflow-x-auto border-b border-slate-200 bg-canvas/95 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" role="tablist" aria-label="{{ __('admin.products.sections.label') }}" data-product-tabs>
         <div class="flex gap-5">
-            @foreach ($sections as $anchor => $label)
-                <a href="#s-{{ $anchor }}" class="-mb-px whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-700">{{ $label }}</a>
+            @foreach ($tabLabels as $key => $label)
+                <button
+                    type="button"
+                    role="tab"
+                    id="product-tab-{{ $key }}"
+                    aria-controls="product-panel-{{ $key }}"
+                    data-tab="{{ $key }}"
+                    @if (in_array($key, $tabsWithErrors, true)) data-tab-errors @endif
+                    x-on:click="show(@js($key))"
+                    x-on:keydown="key($event)"
+                    x-bind:aria-selected="(tab === @js($key)).toString()"
+                    x-bind:tabindex="tab === @js($key) ? 0 : -1"
+                    x-bind:class="tab === @js($key) ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'"
+                    class="-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 py-3 text-sm font-semibold"
+                >
+                    {{ $label }}
+                    @if (in_array($key, $tabsWithErrors, true))
+                        <span class="size-1.5 rounded-full bg-danger" aria-hidden="true"></span>
+                        <span class="sr-only">({{ __('admin.form.locale_has_errors') }})</span>
+                    @endif
+                </button>
             @endforeach
         </div>
-    </nav>
+    </div>
 
-    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
-        {{-- ===== Main column ===== --}}
-        <div class="min-w-0 space-y-4 lg:col-span-2 lg:space-y-6">
+    <div class="mt-5 space-y-4 lg:space-y-6">
+        {{-- ===== Main ===== --}}
+        <div id="product-panel-main" role="tabpanel" aria-labelledby="product-tab-main" x-show="tab === 'main'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             @if ($this->aiAvailable)
                 <x-admin.ai-fill :open="$aiPromptOpen" :prompt="$this->aiPrompt" :report="$aiReport" />
             @endif
@@ -107,6 +130,74 @@
                 </div>
             </x-admin.card>
 
+            <div class="grid gap-4 lg:grid-cols-2 lg:gap-6">
+                <x-admin.card :title="__('admin.products.sections.publish')">
+                    <div class="space-y-4">
+                        <x-admin.toggle wire:model="form.is_active" :label="__('admin.catalog.is_active')" :description="__('admin.products.is_active_hint')" />
+                        <x-admin.toggle wire:model="form.is_featured" :label="__('admin.products.fields.is_featured')" :description="__('admin.products.is_featured_hint')" />
+                        <fieldset>
+                            <legend class="text-sm font-semibold">{{ __('admin.products.fields.badge') }}</legend>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" wire:model="form.badge" value="" class="peer sr-only">
+                                    <span class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500">{{ __('admin.products.no_badge') }}</span>
+                                </label>
+                                @foreach (\App\Enums\ProductBadge::cases() as $badge)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model="form.badge" value="{{ $badge->value }}" class="peer sr-only">
+                                        <span class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500">{{ $badge->label() }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.hints.badge') }}</p>
+                            <x-admin.field-error name="form.badge" />
+                        </fieldset>
+                    </div>
+                </x-admin.card>
+
+                <x-admin.card :title="__('admin.products.sections.classification')">
+                    <div class="space-y-4">
+                        <x-admin.select wire:model="form.type" :label="__('admin.products.fields.type')" :options="$typeChoices->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" :hint="__('admin.products.hints.type')" required />
+                        <div>
+                            <x-admin.select wire:model.live="form.category_id" :label="__('admin.products.fields.category')" :placeholder="__('admin.common.choose')" :options="$this->categoryOptions" required />
+                            <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.category_hint') }}</p>
+                        </div>
+                        <x-admin.select wire:model="form.brand_id" :label="__('admin.products.fields.brand')" :placeholder="__('admin.products.no_brand')" :options="$this->brandOptions" :hint="__('admin.products.hints.brand')" />
+                    </div>
+                </x-admin.card>
+
+            </div>
+
+            <section class="rounded-2xl border border-slate-200 bg-white">
+                @if ($product)
+                    <livewire:admin.products.relations :product="$product" :key="'relations-'.$product->id" />
+                @else
+                    <div class="p-4 sm:p-5">
+                        <h2 class="text-sm font-semibold">{{ __('admin.products.relations.title') }}</h2>
+                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.save_first') }}</p>
+                    </div>
+                @endif
+            </section>
+
+            @if ($canDelete)
+                <section class="rounded-2xl border border-red-200 bg-white p-4 sm:p-5">
+                    <h2 class="text-sm font-semibold text-danger">{{ __('admin.catalog.danger_zone') }}</h2>
+                    <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.delete_help') }}</p>
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('confirm', {
+                            title: @js(__('admin.products.delete_title')),
+                            body: @js(__('admin.products.delete_body', ['name' => $product->name])),
+                            label: @js(__('admin.common.delete')),
+                            component: $wire.$id, method: 'delete',
+                        })"
+                        class="mt-3 h-10 w-full rounded-lg border border-red-200 text-sm font-semibold text-danger hover:bg-red-50"
+                    >{{ __('admin.common.delete') }}</button>
+                </section>
+            @endif
+        </div>
+
+        <div id="product-panel-pricing" role="tabpanel" aria-labelledby="product-tab-pricing" x-show="tab === 'pricing'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             {{-- Price & ordering --}}
             <x-admin.card id="s-price" class="scroll-mt-32" :title="__('admin.products.sections.price')">
                 <div class="space-y-6">
@@ -220,10 +311,14 @@
                     </div>
                 </div>
             </x-admin.card>
+        </div>
 
+        <div id="product-panel-specs" role="tabpanel" aria-labelledby="product-tab-specs" x-show="tab === 'specs'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             {{-- Specs --}}
             @include('livewire.admin.products.partials.specs')
+        </div>
 
+        <div id="product-panel-images" role="tabpanel" aria-labelledby="product-tab-images" x-show="tab === 'images'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             {{-- Images --}}
             <section id="s-media" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
                 <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.products.sections.images') }}</h2></div>
@@ -231,16 +326,6 @@
                     <livewire:admin.products.images :product="$product" :key="'images-'.$product->id" />
                 @else
                     <p class="p-4 text-sm text-slate-500 sm:p-6" data-save-first>{{ __('admin.products.save_first') }}</p>
-                @endif
-            </section>
-
-            {{-- Documents --}}
-            <section id="s-docs" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
-                @if ($product)
-                    <livewire:admin.products.documents :product="$product" :key="'documents-'.$product->id" />
-                @else
-                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.products.sections.documents') }}</h2></div>
-                    <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.products.save_first') }}</p>
                 @endif
             </section>
 
@@ -253,7 +338,21 @@
                     <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.videos.save_first') }}</p>
                 @endif
             </section>
+        </div>
 
+        <div id="product-panel-documents" role="tabpanel" aria-labelledby="product-tab-documents" x-show="tab === 'documents'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
+            {{-- Documents --}}
+            <section id="s-docs" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
+                @if ($product)
+                    <livewire:admin.products.documents :product="$product" :key="'documents-'.$product->id" />
+                @else
+                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.products.sections.documents') }}</h2></div>
+                    <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.products.save_first') }}</p>
+                @endif
+            </section>
+        </div>
+
+        <div id="product-panel-faq" role="tabpanel" aria-labelledby="product-tab-faq" x-show="tab === 'faq'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             {{-- FAQ --}}
             <section id="s-faq" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
                 @if ($product)
@@ -263,7 +362,9 @@
                     <p class="p-4 text-sm text-slate-500 sm:p-6">{{ __('admin.products.save_first') }}</p>
                 @endif
             </section>
+        </div>
 
+        <div id="product-panel-seo" role="tabpanel" aria-labelledby="product-tab-seo" x-show="tab === 'seo'" x-cloak class="min-w-0 space-y-4 lg:space-y-6">
             {{-- SEO --}}
             <x-admin.card id="s-seo" class="scroll-mt-32" :title="__('admin.catalog.seo')" :description="__('admin.catalog.seo_help')">
                 <x-admin.locale-tabs :error-keys="['form.meta_title', 'form.meta_description']" :label="__('admin.catalog.seo')">
@@ -295,71 +396,6 @@
             </x-admin.card>
         </div>
 
-        {{-- ===== Side column ===== --}}
-        <aside class="min-w-0 space-y-4 lg:sticky lg:top-32 lg:self-start lg:space-y-6">
-            <x-admin.card :title="__('admin.products.sections.publish')">
-                <div class="space-y-4">
-                    <x-admin.toggle wire:model="form.is_active" :label="__('admin.catalog.is_active')" :description="__('admin.products.is_active_hint')" />
-                    <x-admin.toggle wire:model="form.is_featured" :label="__('admin.products.fields.is_featured')" :description="__('admin.products.is_featured_hint')" />
-                    <fieldset>
-                        <legend class="text-sm font-semibold">{{ __('admin.products.fields.badge') }}</legend>
-                        <div class="mt-2 flex flex-wrap gap-2">
-                            <label class="cursor-pointer">
-                                <input type="radio" wire:model="form.badge" value="" class="peer sr-only">
-                                <span class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500">{{ __('admin.products.no_badge') }}</span>
-                            </label>
-                            @foreach (\App\Enums\ProductBadge::cases() as $badge)
-                                <label class="cursor-pointer">
-                                    <input type="radio" wire:model="form.badge" value="{{ $badge->value }}" class="peer sr-only">
-                                    <span class="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500">{{ $badge->label() }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.hints.badge') }}</p>
-                        <x-admin.field-error name="form.badge" />
-                    </fieldset>
-                </div>
-            </x-admin.card>
-
-            <x-admin.card :title="__('admin.products.sections.classification')">
-                <div class="space-y-4">
-                    <x-admin.select wire:model="form.type" :label="__('admin.products.fields.type')" :options="$typeChoices->mapWithKeys(fn ($type) => [$type->value => $type->label()])->all()" :hint="__('admin.products.hints.type')" required />
-                    <div>
-                        <x-admin.select wire:model.live="form.category_id" :label="__('admin.products.fields.category')" :placeholder="__('admin.common.choose')" :options="$this->categoryOptions" required />
-                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.category_hint') }}</p>
-                    </div>
-                    <x-admin.select wire:model="form.brand_id" :label="__('admin.products.fields.brand')" :placeholder="__('admin.products.no_brand')" :options="$this->brandOptions" :hint="__('admin.products.hints.brand')" />
-                </div>
-            </x-admin.card>
-
-            <section class="rounded-2xl border border-slate-200 bg-white">
-                @if ($product)
-                    <livewire:admin.products.relations :product="$product" :key="'relations-'.$product->id" />
-                @else
-                    <div class="p-4 sm:p-5">
-                        <h2 class="text-sm font-semibold">{{ __('admin.products.relations.title') }}</h2>
-                        <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.save_first') }}</p>
-                    </div>
-                @endif
-            </section>
-
-            @if ($canDelete)
-                <section class="rounded-2xl border border-red-200 bg-white p-4 sm:p-5">
-                    <h2 class="text-sm font-semibold text-danger">{{ __('admin.catalog.danger_zone') }}</h2>
-                    <p class="mt-1 text-xs text-slate-500">{{ __('admin.products.delete_help') }}</p>
-                    <button
-                        type="button"
-                        x-on:click="$dispatch('confirm', {
-                            title: @js(__('admin.products.delete_title')),
-                            body: @js(__('admin.products.delete_body', ['name' => $product->name])),
-                            label: @js(__('admin.common.delete')),
-                            component: $wire.$id, method: 'delete',
-                        })"
-                        class="mt-3 h-10 w-full rounded-lg border border-red-200 text-sm font-semibold text-danger hover:bg-red-50"
-                    >{{ __('admin.common.delete') }}</button>
-                </section>
-            @endif
-        </aside>
     </div>
 
     @if ($canSave)

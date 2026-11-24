@@ -49,7 +49,7 @@
                                 <li wire:key="news-product-{{ $product->id }}" class="flex items-center gap-2 rounded-lg border border-slate-200 p-2" data-news-product="{{ $product->sku }}">
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm">{{ $product->name }}</span>
-                                        <span class="block truncate text-[11px] text-slate-400"><span class="font-mono">{{ $product->sku }}</span>@unless ($product->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
+                                        <span class="block truncate text-xs text-slate-400"><span class="font-mono">{{ $product->sku }}</span>@unless ($product->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
                                     </span>
                                     @if ($canSave)
                                         <button type="button" wire:click="removeProduct({{ $product->id }})" class="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger" aria-label="{{ __('admin.news.remove') }}: {{ $product->name }}"><x-admin.icon name="x" size="size-4" /></button>
@@ -72,7 +72,7 @@
                                             <button type="button" wire:click="addProduct({{ $result->id }})" class="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50">
                                                 <span class="min-w-0 flex-1">
                                                     <span class="block truncate text-sm">{{ $result->name }}</span>
-                                                    <span class="block truncate text-[11px] text-slate-400"><span class="font-mono">{{ $result->sku }}</span>@unless ($result->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
+                                                    <span class="block truncate text-xs text-slate-400"><span class="font-mono">{{ $result->sku }}</span>@unless ($result->is_active) · {{ __('admin.products.status.draft') }}@endunless</span>
                                                 </span>
                                                 <x-admin.icon name="plus" size="size-4" class="text-slate-400" />
                                             </button>
@@ -90,7 +90,7 @@
                         <ul class="mt-2 space-y-2">
                             @forelse ($this->selectedCategories as $category)
                                 <li wire:key="news-category-{{ $category['id'] }}" class="flex items-center gap-2 rounded-lg border border-slate-200 p-2" data-news-category="{{ $category['id'] }}">
-                                    <span class="min-w-0 flex-1 truncate text-sm">{{ $category['path'] }}@unless ($category['active'])<span class="text-[11px] text-slate-400"> · {{ __('admin.news.hidden_category') }}</span>@endunless</span>
+                                    <span class="min-w-0 flex-1 truncate text-sm">{{ $category['path'] }}@unless ($category['active'])<span class="text-xs text-slate-400"> · {{ __('admin.news.hidden_category') }}</span>@endunless</span>
                                     @if ($canSave)
                                         <button type="button" wire:click="removeCategory({{ $category['id'] }})" class="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger" aria-label="{{ __('admin.news.remove') }}: {{ $category['path'] }}"><x-admin.icon name="x" size="size-4" /></button>
                                     @endif

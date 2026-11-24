@@ -62,7 +62,7 @@
     <ul class="divide-y divide-slate-100">
         @forelse ($this->documents as $document)
             <li wire:key="document-{{ $document->id }}" class="flex items-center gap-3 px-4 py-3 sm:px-6" data-document="{{ $document->id }}">
-                <span @class(['grid size-10 shrink-0 place-items-center rounded-lg text-[10px] font-bold', 'bg-red-50 text-danger' => $document->kind() === 'PDF', 'bg-sky-50 text-sky-700' => $document->kind() === 'URL', 'bg-slate-100 text-slate-600' => ! in_array($document->kind(), ['PDF', 'URL'], true)])>{{ $document->kind() }}</span>
+                <span @class(['grid size-10 shrink-0 place-items-center rounded-lg text-xs font-bold', 'bg-red-50 text-danger' => $document->kind() === 'PDF', 'bg-sky-50 text-sky-700' => $document->kind() === 'URL', 'bg-slate-100 text-slate-600' => ! in_array($document->kind(), ['PDF', 'URL'], true)])>{{ $document->kind() }}</span>
                 <div class="min-w-0 flex-1">
                     <a href="{{ $document->adminUrl() }}" @unless ($document->isFile()) target="_blank" rel="noopener nofollow" @endunless class="block truncate text-sm font-medium hover:text-brand-700">{{ $document->title }}</a>
                     <p class="truncate text-xs text-slate-500">

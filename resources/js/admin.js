@@ -143,3 +143,118 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+document.addEventListener('alpine:init', () => {
+    /**
+     * Product form tabs (livewire/admin/products/form.blade.php). Alpine only:
+     * the active tab is never sent to the server, and every panel stays mounted
+     * (x-show) so the child Livewire components keep their state. The optional
+     * URL hash (#seo) is checked against the constant key list.
+     */
+    window.Alpine.data('productTabs', (keys) => ({
+        tab: 'main',
+        keys,
+
+        init() {
+            this.fromHash();
+            this.onHashChange = () => this.fromHash();
+            window.addEventListener('hashchange', this.onHashChange);
+        },
+
+        destroy() {
+            window.removeEventListener('hashchange', this.onHashChange);
+        },
+
+        fromHash() {
+            this.show(window.location.hash.slice(1), false);
+        },
+
+        show(key, remember = true) {
+            if (!this.keys.includes(key)) {
+                return;
+            }
+
+            this.tab = key;
+
+            if (remember) {
+                window.history.replaceState(window.history.state, '', `#${key}`);
+            }
+        },
+
+        /** ARIA tabs keyboard pattern: arrows wrap, Home/End, focus moves and activates. */
+        key(event) {
+            const last = this.keys.length - 1;
+            const current = this.keys.indexOf(this.tab);
+            const target = {
+                ArrowRight: current === last ? 0 : current + 1,
+                ArrowLeft: current === 0 ? last : current - 1,
+                Home: 0,
+                End: last,
+            }[event.key];
+
+            if (target === undefined) {
+                return;
+            }
+
+            event.preventDefault();
+            this.show(this.keys[target]);
+            this.$nextTick(() => document.getElementById(`product-tab-${this.keys[target]}`)?.focus());
+        },
+
+        /** After a failed save: open the tab, focus its first invalid field, else the tab itself. */
+        showErrors(key) {
+            if (!this.keys.includes(key)) {
+                return;
+            }
+
+            this.show(key, false);
+            this.$nextTick(() => {
+                const panel = document.getElementById(`product-panel-${key}`);
+                const field = panel?.querySelector('[aria-invalid="true"]');
+
+                (field ?? document.getElementById(`product-tab-${key}`))?.focus();
+            });
+        },
+    }));
+
+    /**
+     * Admin sidebar rail (layouts/admin.blade.php). collapsed = icons only (>= lg).
+     * Stored in localStorage 'poson.admin.sidebar' ('1' collapsed, '0' expanded);
+     * read strictly and re-read on every wire:navigate, since the body is replaced.
+     */
+    window.Alpine.data('adminShell', () => ({
+        nav: false,
+        collapsed: false,
+
+        init() {
+            // The inline <head> script already set data-rail before first paint; re-apply
+            // after wire:navigate (the body is re-initialised, the stored value is the truth).
+            this.collapsed = this.readStored();
+            this.applyRail();
+        },
+
+        readStored() {
+            try {
+                return window.localStorage.getItem('poson.admin.sidebar') === '1';
+            } catch (error) {
+                return false;
+            }
+        },
+
+        applyRail() {
+            document.documentElement.setAttribute('data-rail', this.collapsed ? 'true' : 'false');
+        },
+
+        toggleRail() {
+            this.collapsed = !this.collapsed;
+            document.documentElement.setAttribute('data-rail-anim', '');
+            this.applyRail();
+
+            try {
+                window.localStorage.setItem('poson.admin.sidebar', this.collapsed ? '1' : '0');
+            } catch (error) {
+                // Storage unavailable: the rail still works for this page.
+            }
+        },
+    }));
+});

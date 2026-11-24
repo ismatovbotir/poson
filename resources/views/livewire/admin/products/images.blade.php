@@ -15,7 +15,7 @@
                         <span class="px-2 text-center text-xs text-slate-500">{{ __('admin.image_upload.processing') }}</span>
                     @endif
                     @if ($loop->first)
-                        <span class="absolute left-2 top-2 rounded-md bg-brand-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">{{ __('admin.products.images.main') }}</span>
+                        <span class="absolute left-2 top-2 rounded-md bg-brand-600 px-1.5 py-0.5 text-xs font-semibold text-white">{{ __('admin.products.images.main') }}</span>
                     @elseif ($canEdit)
                         <span wire:sort:handle class="absolute left-1.5 top-1.5 hidden cursor-grab rounded bg-white/80 text-slate-400 sm:block" title="{{ __('admin.categories.drag') }}" aria-hidden="true"><x-admin.icon name="grip" size="size-4" /></span>
                     @endif
@@ -49,7 +49,7 @@
                         <p class="text-xs text-slate-500">{{ __('admin.products.images.alt_hint') }}</p>
                         @foreach (config('app.supported_locales') as $locale)
                             <div class="flex items-center gap-1.5">
-                                <span class="w-6 shrink-0 text-center text-[11px] font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
+                                <span class="w-6 shrink-0 text-center text-xs font-bold uppercase text-slate-400" aria-hidden="true">{{ $locale }}</span>
                                 <input wire:model="alts.{{ $media->id }}.{{ $locale }}" lang="{{ $locale }}" maxlength="255" aria-label="{{ __('admin.image_upload.alt') }} ({{ strtoupper($locale) }})" class="h-9 w-full min-w-0 rounded-lg border border-slate-200 px-2.5 text-base outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 sm:text-sm">
                             </div>
                         @endforeach

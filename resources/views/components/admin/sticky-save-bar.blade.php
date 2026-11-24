@@ -8,9 +8,9 @@
 <div
     wire:dirty.class="lg:translate-y-0"
     wire:dirty.class.remove="lg:translate-y-full"
-    {{ $attributes->class(['fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md transition-transform lg:bottom-0 lg:left-[18rem] lg:translate-y-full lg:px-8']) }}
+    {{ $attributes->class(['fixed inset-x-0 bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md transition-transform lg:bottom-0 lg:left-(--admin-side) lg:translate-y-full lg:px-8']) }}
 >
-    <div class="mx-auto flex max-w-[1600px] items-center gap-3">
+    <div class="mx-auto flex max-w-[100rem] items-center gap-3">
         <p class="hidden min-w-0 flex-1 items-center gap-2 text-sm text-slate-600 sm:flex" aria-live="polite">
             <span wire:dirty class="flex items-center gap-2"><span class="size-2 rounded-full bg-warn" aria-hidden="true"></span>{{ __('admin.form.unsaved') }}</span>
             <span wire:dirty.remove class="flex items-center gap-2"><span class="size-2 rounded-full bg-ok" aria-hidden="true"></span>{{ __('admin.form.all_saved') }}</span>

@@ -47,7 +47,7 @@
                 <div class="min-w-0 flex-1">
                     <p @class(['text-sm font-medium', 'text-slate-500' => $beyondHome])>{{ $question }}</p>
                     <p class="mt-0.5 line-clamp-2 text-xs text-slate-500">{{ $answer }}</p>
-                    <p class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-400">
+                    <p class="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-400">
                         @foreach (config('app.supported_locales') as $locale)
                             <span @class(['rounded px-1', 'bg-brand-50 text-brand-700' => filled($item->getTranslation('question', $locale, false)), 'bg-slate-100 line-through' => blank($item->getTranslation('question', $locale, false))])>{{ strtoupper($locale) }}</span>
                         @endforeach
