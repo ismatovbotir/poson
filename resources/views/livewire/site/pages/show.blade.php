@@ -28,7 +28,7 @@
         <header class="mb-6">
             <h1 class="text-[26px] leading-[1.15] font-bold tracking-[-0.025em] sm:text-[34px]">{{ $title }}</h1>
             @if ($updatedAt)
-                <p class="mt-2 text-sm text-ink-3" data-page-updated>
+                <p class="mt-2 text-sm text-ink-muted" data-page-updated>
                     {{ __('site.pages.updated', ['date' => \App\Support\DateFormat::iso($updatedAt, 'D MMMM YYYY')]) }}
                 </p>
             @endif
@@ -59,12 +59,12 @@
                 <address class="grid gap-4 not-italic">
                     @if ($company->sitePhones() !== [])
                         <div>
-                            <h3 class="mb-1.5 text-sm font-semibold text-ink-3">{{ __('site.contacts.phones') }}</h3>
+                            <h3 class="mb-1.5 text-sm font-semibold text-ink-muted">{{ __('site.contacts.phones') }}</h3>
                             <ul class="grid gap-1.5">
                                 @foreach ($company->sitePhones() as $phone)
                                     <li data-site-phone="{{ $phone['label']->value }}">
                                         <a href="tel:{{ $phone['number'] }}" class="font-semibold text-ink hover:text-brand-600">{{ $phone['display'] }}</a>
-                                        <span class="text-sm text-ink-3">· {{ $phone['label']->label() }}</span>
+                                        <span class="text-sm text-ink-muted">· {{ $phone['label']->label() }}</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -87,12 +87,12 @@
 
                 @if ($requisites !== [])
                     <div class="mt-6 border-t border-line pt-5" data-requisites>
-                        <h3 class="mb-2.5 text-sm font-semibold text-ink-3">{{ __('site.pages.contacts.requisites') }}</h3>
+                        <h3 class="mb-2.5 text-sm font-semibold text-ink-muted">{{ __('site.pages.contacts.requisites') }}</h3>
                         <dl class="grid gap-2 text-sm">
                             @foreach (['legal_name', 'inn', 'legal_address'] as $key)
                                 @if (isset($requisites[$key]))
                                     <div class="grid gap-0.5 sm:grid-cols-[10rem_1fr] sm:gap-3" data-requisite="{{ $key }}">
-                                        <dt class="text-ink-3">{{ __('site.pages.contacts.'.$key) }}</dt>
+                                        <dt class="text-ink-muted">{{ __('site.pages.contacts.'.$key) }}</dt>
                                         <dd class="text-ink">{{ $requisites[$key] }}</dd>
                                     </div>
                                 @endif

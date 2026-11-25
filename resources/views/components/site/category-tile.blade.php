@@ -9,7 +9,8 @@
         <x-site.icon :name="$tile->icon" size="size-[30px]" />
     </span>
     <b class="block text-[15px] leading-[1.3] font-semibold text-ink group-hover:text-brand-600">{{ $tile->name }}</b>
-    @if ($tile->productsCount !== null)
+    {{-- Plan 43 #8: no "0 products" on a tile (the count is already loaded, nothing is queried here). --}}
+    @if ($tile->productsCount !== null && $tile->productsCount > 0)
         <small class="text-sm text-ink-2">{{ trans_choice('site.card.products_count', $tile->productsCount, ['count' => $tile->productsCount]) }}</small>
     @endif
 </a>

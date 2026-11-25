@@ -1,6 +1,6 @@
 {{--
     Sticky site header: burger (below 900px), logo, catalog menu (x-site.catalog-menu), search
-    (/{locale}/search), phone (from 1100px), the cart link with its counter (plan 11a,
+    (/{locale}/search), a call icon button (below 1100px), phone (from 1100px), the cart link with its counter (plan 11a,
     while the cart is on; Site\Cart\Counter) and the quote CTA, followed by the
     main nav.
     The burger toggles "menuOpen" from the x-data on <body> (see x-site.mobile-menu).
@@ -53,6 +53,18 @@
                 <span class="sr-only">{{ __('site.topbar.call_us') }}:</span>
                 <span class="font-bold whitespace-nowrap text-ink">{{ $company->phoneDisplay() }}</span>
                 <span class="text-xs whitespace-nowrap text-ink-2">{{ $company->workingHours() }}</span>
+            </a>
+        @endif
+
+        {{-- Plan 43 #6: a 44px call button in the first row below 1100px (the text phone starts at lg) (the topbar phone scrolls away); E.164 only. --}}
+        @if ($company->phone() !== '')
+            <a
+                href="tel:{{ $company->phone() }}"
+                class="grid size-11 shrink-0 place-items-center rounded-btn text-ink transition-colors hover:bg-bg-soft hover:text-brand-600 lg:hidden"
+                aria-label="{{ __('site.header.call') }}"
+                data-header-call
+            >
+                <x-site.icon name="phone" size="size-6" />
             </a>
         @endif
 

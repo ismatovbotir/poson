@@ -19,7 +19,7 @@
         <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($cards as $card)
                 <li wire:key="vacancy-{{ $card['id'] }}" class="group relative flex flex-col gap-2 rounded-box-lg border border-line bg-white p-5 transition hover:-translate-y-[3px] hover:border-brand hover:shadow-card motion-reduce:hover:translate-y-0" data-vacancy-card="{{ $card['id'] }}">
-                    <p class="text-[13px] text-ink-3">{{ $card['department'] }} · {{ $card['location'] }} · {{ $card['type'] }}</p>
+                    <p class="text-[13px] text-ink-muted">{{ $card['department'] }} · {{ $card['location'] }} · {{ $card['type'] }}</p>
                     <h2 class="text-[17px] leading-snug font-bold text-ink group-hover:text-brand-600">
                         <a href="{{ $card['url'] }}" class="after:absolute after:inset-0 focus-visible:outline-none">{{ $card['title'] }}</a>
                     </h2>

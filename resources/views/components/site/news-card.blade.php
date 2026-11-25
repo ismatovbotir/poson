@@ -13,7 +13,7 @@
     @endif
     <div class="flex flex-1 flex-col gap-2 p-5">
         @if ($card->publishedAt)
-            <time datetime="{{ $card->publishedAt->toDateString() }}" class="text-[13px] text-ink-3">{{ \App\Support\DateFormat::iso($card->publishedAt, 'D MMMM YYYY') }}</time>
+            <time datetime="{{ $card->publishedAt->toDateString() }}" class="text-[13px] text-ink-muted">{{ \App\Support\DateFormat::iso($card->publishedAt, 'D MMMM YYYY') }}</time>
         @endif
         <{{ $headingLevel }} class="text-[17px] leading-snug font-bold text-ink group-hover:text-brand-600">
             <a href="{{ $card->url }}" class="after:absolute after:inset-0 focus-visible:outline-none">{{ $card->title }}</a>

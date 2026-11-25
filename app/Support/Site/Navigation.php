@@ -360,6 +360,19 @@ class Navigation
     }
 
     /**
+     * Static page URL in the current locale only while the page is active, else null
+     * (no fallback anchor): the product page warranty link, the footer legal line.
+     */
+    public static function activePage(string $slug): ?string
+    {
+        if (! PageDirectory::isActive($slug)) {
+            return null;
+        }
+
+        return route('site.page', ['locale' => app()->getLocale(), 'page' => $slug]);
+    }
+
+    /**
      * Service teaser link: its services subcategory (SERVICE_CATEGORIES), else
      * the services category, else the home page lead form.
      */

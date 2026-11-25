@@ -3,7 +3,8 @@
     (Navigation::page()); "For customers" starts with "About us". "Catalog" lists
     the top-level categories (Navigation::footerCatalog(), from CategoryTree), then Brands.
     Contacts come from Settings → Company: site phones (primary first, labelled),
-    email, address with a map link, hours and social icons.
+    email, address with a map link, hours and social icons. The bottom bar adds the
+    legal name and INN (CompanySettings::legal(), escaped, only the filled-in ones).
 --}}
 @inject('company', \App\Support\CompanySettings::class)
 
@@ -12,6 +13,10 @@
     $telegramLabel = $telegram !== '' ? preg_replace('#^https?://#', '', rtrim($telegram, '/')) : '';
     $linkClass = 'transition-colors hover:text-white focus-visible:outline-white';
     $mapUrl = $company->mapUrl();
+    // Plan 43 #11: legal name and INN only (no bank details, director or address), linking to Contacts while it is active.
+    $legal = $company->legal();
+    $legalParts = array_values(array_filter([$legal['legal_name'], $legal['inn'] !== '' ? __('site.footer.inn', ['inn' => $legal['inn']]) : ''], fn (string $part): bool => $part !== ''));
+    $contactsUrl = $legalParts !== [] ? \App\Support\Site\Navigation::activePage('contacts') : null;
 @endphp
 
 <footer id="contacts" class="mt-12 bg-ink pt-12 pb-7 text-ink-3 md:mt-[72px] md:pt-16">
@@ -74,6 +79,13 @@
 
         <div class="mt-11 flex flex-wrap justify-between gap-2.5 border-t border-ink-line pt-[22px] text-[13px]">
             <span>{{ __('site.footer.rights', ['year' => now()->year]) }}</span>
+            @if ($legalParts !== [])
+                @if ($contactsUrl !== null)
+                    <a href="{{ $contactsUrl }}" class="{{ $linkClass }}" data-footer-legal>{{ implode(' · ', $legalParts) }}</a>
+                @else
+                    <span data-footer-legal>{{ implode(' · ', $legalParts) }}</span>
+                @endif
+            @endif
             @php($legalLinks = \App\Support\Site\Navigation::legalPages())
             @if ($legalLinks !== [])
                 <span class="flex flex-wrap gap-x-2" data-legal-links>

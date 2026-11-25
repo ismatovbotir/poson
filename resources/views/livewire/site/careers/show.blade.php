@@ -10,11 +10,11 @@
 
     <article class="max-w-[900px]" data-vacancy>
         <header class="mb-6">
-            <p class="mb-2 text-sm text-ink-3">{{ $vacancy->department->label() }} · {{ $vacancy->location->label() }} · {{ $vacancy->employment_type->label() }}</p>
+            <p class="mb-2 text-sm text-ink-muted">{{ $vacancy->department->label() }} · {{ $vacancy->location->label() }} · {{ $vacancy->employment_type->label() }}</p>
             <h1 class="text-[26px] leading-[1.15] font-bold tracking-[-0.025em] sm:text-[34px]">{{ $title }}</h1>
             <p class="mt-4 text-lg text-ink-2">{{ $summary }}</p>
             @if ($vacancy->valid_through)
-                <p class="mt-3 text-sm text-ink-3">{{ __('careers.site.valid_through', ['date' => \App\Support\DateFormat::iso($vacancy->valid_through, 'D MMMM YYYY')]) }}</p>
+                <p class="mt-3 text-sm text-ink-muted">{{ __('careers.site.valid_through', ['date' => \App\Support\DateFormat::iso($vacancy->valid_through, 'D MMMM YYYY')]) }}</p>
             @endif
         </header>
 

@@ -39,7 +39,9 @@
 
     --color-ink: #0f172a;
     --color-ink-2: #475569;
+    /* ink-3 (2.56:1 on white) is for icons and decoration only; text uses ink-muted (4.76:1, AA). */
     --color-ink-3: #94a3b8;
+    --color-ink-muted: #64748b;
     --color-ink-soft: #cbd5e1;
     --color-ink-line: #1e293b;
     --color-line: #e2e8f0;

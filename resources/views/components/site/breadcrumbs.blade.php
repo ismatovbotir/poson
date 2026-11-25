@@ -5,7 +5,7 @@
     the last item (no url) is the current page. The matching BreadcrumbList JSON-LD
     comes from StructuredData::breadcrumbs().
 --}}
-<nav {{ $attributes->class('py-5 text-[13px] text-ink-3') }} aria-label="{{ __('site.breadcrumbs.aria_label') }}">
+<nav {{ $attributes->class('py-5 text-[13px] text-ink-muted') }} aria-label="{{ __('site.breadcrumbs.aria_label') }}">
     <ol class="flex flex-wrap items-center gap-2">
         @foreach ($items as $item)
             <li class="flex items-center gap-2">

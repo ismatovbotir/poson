@@ -16,6 +16,7 @@ use App\Support\Catalog\ProductDiagram;
 use App\Support\Catalog\SoftwareSpecs;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\FaqContent;
+use App\Support\Site\Navigation;
 use App\Support\Site\NewsCards;
 use App\Support\Site\SeoText;
 use App\Support\Site\StructuredData;
@@ -117,6 +118,8 @@ class Show extends Component
             'ctas' => ProductCtas::for($product),
             // Plan 08: the price is per one label and the page shows the roll picker.
             'pricedPerLabel' => $product->isPricedPerLabel(),
+            // Plan 43 #43/#44: service lines under the buy box CTAs, chosen by product type.
+            'trustLines' => $this->trustLines(),
             'faq' => $faq['items'],
             'videos' => $videos,
             'jsonLd' => array_values(array_filter([
@@ -193,6 +196,42 @@ class Show extends Component
         }
 
         return $rows;
+    }
+
+    /**
+     * Plan 43 #43/#44: the service lines under the buy box CTAs, by product type
+     * (the server-side enum). Hardware: delivery, warranty (linked to the active
+     * warranty page), setup; consumables: printer compatibility, stock, custom sizes;
+     * software: installation and support; services: own service centre and support.
+     *
+     * @return list<array{key: string, icon: string, text: string, url: ?string}>
+     */
+    protected function trustLines(): array
+    {
+        $line = fn (string $key, string $icon, string $text, ?string $url = null): array => ['key' => $key, 'icon' => $icon, 'text' => $text, 'url' => $url];
+
+        return match ($this->product->type) {
+            ProductType::Consumable => [
+                $line('compatibility', 'check', __('site.product.trust.compatibility')),
+                $line('stock', 'truck', __('site.product.trust.stock')),
+                $line('custom_sizes', 'wrench', __('site.product.trust.custom_sizes')),
+            ],
+            ProductType::Software => [
+                $line('software_setup', 'wrench', __('site.product.trust.software_setup')),
+                $line('support', 'phone', __('site.product.trust.support')),
+            ],
+            ProductType::Service => [
+                $line('service', 'wrench', __('site.product.delivery.service')),
+                $line('support', 'phone', __('site.product.trust.support')),
+            ],
+            default => [
+                $line('delivery', 'truck', __('site.home.hero.badge_delivery_text')),
+                $line('warranty', 'shield', $this->product->warranty_months
+                    ? __('site.product.delivery.warranty', ['months' => trans_choice('site.product.months', $this->product->warranty_months, ['count' => $this->product->warranty_months])])
+                    : __('site.product.delivery.warranty_on_request'), Navigation::activePage('warranty-service')),
+                $line('setup', 'wrench', __('site.product.delivery.setup')),
+            ],
+        };
     }
 
     /**
