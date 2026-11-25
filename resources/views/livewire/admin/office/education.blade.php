@@ -12,11 +12,11 @@
         @endforeach
     </nav>
 
-    <p class="mt-4 flex max-w-4xl items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="note" data-education-warning>
+    <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="note" data-education-warning>
         <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.no_real_conversations') }}
     </p>
 
-    @error('version')<p class="mt-4 max-w-4xl rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger" role="alert" data-version-error>{{ $message }}</p>@enderror
+    @error('version')<p class="mt-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger" role="alert" data-version-error>{{ $message }}</p>@enderror
 
     <div class="mt-5 grid gap-4 lg:grid-cols-3 lg:gap-6">
         <form wire:submit="save" class="space-y-4 lg:col-span-2" novalidate>

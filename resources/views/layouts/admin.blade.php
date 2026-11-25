@@ -162,7 +162,7 @@
             </div>
         </header>
 
-        <main id="main" tabindex="-1" class="mx-auto w-full max-w-[100rem] px-4 pt-5 pb-28 focus:outline-none sm:px-6 sm:pt-6 lg:px-8 lg:pb-12">
+        <main id="main" tabindex="-1" class="w-full px-4 pt-5 pb-28 focus:outline-none sm:px-6 sm:pt-6 lg:px-8 lg:pb-12">
             {{ $slot }}
         </main>
     </div>

@@ -13,7 +13,7 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 pb-24 lg:space-y-6">
+    <div class="mt-5 grid items-start gap-4 pb-24 lg:gap-6 xl:grid-cols-2">
 
         {{-- Channel switches: Admin only, privacy gate (CB-13) --}}
         <x-admin.card :title="__($t.'.channels')" :description="__($t.'.channels_help')" data-channels>
@@ -224,7 +224,7 @@
             </div>
         </x-admin.card>
 
-        <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note" data-live-note>
+        <p class="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600 xl:col-span-2" role="note" data-live-note>
             <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.live_note') }}
         </p>
 

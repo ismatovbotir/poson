@@ -9,7 +9,7 @@
         <x-slot:breadcrumbs>{{ __('menu.groups.careers') }} <span class="text-slate-300">/</span> {{ __('careers.admin.applications.title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
-    <details class="mt-3 max-w-3xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600" data-careers-help>
+    <details class="mt-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600" data-careers-help>
         <summary class="cursor-pointer font-semibold text-slate-800">{{ __('careers.admin.help.title') }}</summary>
         <ol class="mt-2 list-decimal space-y-1 pl-5">
             @foreach (__('careers.admin.help.steps') as $step)
