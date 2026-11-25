@@ -4,3 +4,5 @@ import './analytics';
 import './order-placed';
 import './livewire-throttle';
 import './web-chat';
+// Plan 42: the quote request modal (Site\LeadModal) and its data-lead-modal triggers.
+import './lead-modal';

@@ -63,6 +63,7 @@
 
         <a
             href="{{ \App\Support\Site\Navigation::quote() }}"
+            data-lead-modal="callback"
             class="hidden h-[46px] shrink-0 items-center justify-center rounded-btn border-[1.5px] border-brand-600 px-5 font-semibold whitespace-nowrap text-brand-600 transition-colors hover:bg-brand-50 md:inline-flex"
         >
             {{ __('site.header.request_quote') }}

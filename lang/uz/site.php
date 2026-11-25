@@ -198,6 +198,17 @@ return [
         'roll' => 'Rulon',
     ],
 
+    // Plan 42: the quote request modal (Site\LeadModal).
+    'lead_modal' => [
+        'title_callback' => 'Soʻrov qoldiring',
+        'title_product' => 'Tijorat taklifini soʻrash',
+        'title_service' => 'Servisga soʻrov',
+        'title_cart' => 'Savat boʻyicha taklif soʻrash',
+        'intro' => 'Mutaxassisimiz uskunani tanlash, sozlash va integratsiya qilishda yordam beradi, mavjudlik va yetkazib berish muddatini aniqlaydi.',
+        'close' => 'Yopish',
+        'loading' => 'Forma yuklanmoqda…',
+    ],
+
     'cta' => [
         'try' => 'Sinab koʻrish',
         'contact' => 'Bogʻlanish',

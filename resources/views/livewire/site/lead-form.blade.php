@@ -3,6 +3,8 @@
     linked with aria-describedby, and the success / rate-limit messages are announced
     through live regions (the success block also takes focus). "fax_ext" is a
     honeypot, positioned off-screen.
+    Plan 42: ids are "{idPrefix}-{field}" ("lead-…" inline); in Site\LeadModal ($inModal) the
+    card frame is left out and the success block gets a Close button. No lead reference is shown (QM-11).
 --}}
 @php
     $inputClass = 'h-12 w-full rounded-btn border-[1.5px] bg-white px-4 text-ink transition-colors placeholder:text-ink-2 focus:border-brand-600 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
@@ -17,7 +19,7 @@
         : e(__('site.lead_form.consent_privacy'));
 @endphp
 
-<div class="rounded-box-lg bg-white p-5 shadow-card sm:p-7">
+<div @class(['rounded-box-lg bg-white p-5 shadow-card sm:p-7' => ! $inModal])>
     <div role="status" aria-live="polite" aria-atomic="true">
         @if ($sent)
             <div class="flex flex-col items-start gap-3 py-4 focus:outline-none" tabindex="-1" x-init="$nextTick(() => $el.focus())" data-lead-success>
@@ -26,6 +28,14 @@
                 </span>
                 <h3 class="text-xl font-bold">{{ __('site.lead_form.success_title') }}</h3>
                 <p class="text-ink-2">{{ __('site.lead_form.success_text') }}</p>
+                @if ($inModal)
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('lead-modal-close')"
+                        class="mt-2 inline-flex h-12 items-center justify-center rounded-btn border-[1.5px] border-line bg-white px-6 font-semibold text-ink transition-colors hover:border-brand hover:text-brand-600"
+                        data-lead-modal-done
+                    >{{ __('site.lead_modal.close') }}</button>
+                @endif
             </div>
         @endif
     </div>
@@ -50,14 +60,14 @@
 
             @foreach ($fields as $field => $options)
                 <div class="grid gap-1.5" wire:key="lead-field-{{ $field }}">
-                    <label for="lead-{{ $field }}" class="text-sm font-semibold">
+                    <label for="{{ $idPrefix }}-{{ $field }}" class="text-sm font-semibold">
                         {{ __("site.lead_form.{$field}") }}
                         @if ($options['required'])
                             <span class="text-danger" aria-hidden="true">*</span>
                         @endif
                     </label>
                     <input
-                        id="lead-{{ $field }}"
+                        id="{{ $idPrefix }}-{{ $field }}"
                         type="{{ $options['type'] }}"
                         wire:model="{{ $field }}"
                         autocomplete="{{ $options['autocomplete'] }}"
@@ -65,34 +75,34 @@
                         @if ($field === 'phone') inputmode="tel" @endif
                         placeholder="{{ __("site.lead_form.{$field}_placeholder") }}"
                         @if ($options['required']) aria-required="true" @endif
-                        @error($field) aria-invalid="true" aria-describedby="lead-{{ $field }}-error" @enderror
+                        @error($field) aria-invalid="true" aria-describedby="{{ $idPrefix }}-{{ $field }}-error" @enderror
                         @class([$inputClass, 'border-danger' => $errors->has($field), 'border-line' => ! $errors->has($field)])
                     >
                     @error($field)
-                        <p id="lead-{{ $field }}-error" class="text-sm text-danger">{{ $message }}</p>
+                        <p id="{{ $idPrefix }}-{{ $field }}-error" class="text-sm text-danger">{{ $message }}</p>
                     @enderror
                 </div>
             @endforeach
 
             <div class="grid gap-1.5">
-                <label for="lead-message" class="text-sm font-semibold">{{ __('site.lead_form.message') }}</label>
+                <label for="{{ $idPrefix }}-message" class="text-sm font-semibold">{{ __('site.lead_form.message') }}</label>
                 <textarea
-                    id="lead-message"
+                    id="{{ $idPrefix }}-message"
                     wire:model="message"
                     rows="3"
                     maxlength="1000"
                     placeholder="{{ __('site.lead_form.message_placeholder') }}"
-                    @error('message') aria-invalid="true" aria-describedby="lead-message-error" @enderror
+                    @error('message') aria-invalid="true" aria-describedby="{{ $idPrefix }}-message-error" @enderror
                     @class([str_replace('h-12', 'min-h-24 py-3', $inputClass), 'border-danger' => $errors->has('message'), 'border-line' => ! $errors->has('message')])
                 ></textarea>
                 @error('message')
-                    <p id="lead-message-error" class="text-sm text-danger">{{ $message }}</p>
+                    <p id="{{ $idPrefix }}-message-error" class="text-sm text-danger">{{ $message }}</p>
                 @enderror
             </div>
 
             {{-- Honeypot: off-screen and skipped by keyboard and screen readers. --}}
             <div class="absolute -left-[10000px] size-px overflow-hidden" aria-hidden="true">
-                <input type="text" id="lead-fax-ext" name="fax_ext" wire:model="fax_ext" tabindex="-1" autocomplete="off">
+                <input type="text" id="{{ $idPrefix }}-fax-ext" name="fax_ext" wire:model="fax_ext" tabindex="-1" autocomplete="off">
             </div>
 
             <button

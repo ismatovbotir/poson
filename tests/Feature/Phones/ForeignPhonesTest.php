@@ -8,7 +8,7 @@ use App\Data\Leads\LeadData;
 use App\Enums\CustomerType;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
-use App\Livewire\Site\Cart\Page as CartPage;
+use App\Livewire\Site\Cart\QuoteForm as CartQuoteForm;
 use App\Livewire\Site\Checkout\Page as CheckoutPage;
 use App\Livewire\Site\LeadForm;
 use App\Models\Contact;
@@ -97,7 +97,7 @@ it('keeps accepting Uzbek numbers and ignores UZ numbers in the foreign cap', fu
 
 it('accepts a foreign number in the cart quote', function () {
     orderCart();
-    $component = Livewire::test(CartPage::class)->set('name', 'John')->set('phone', '+44 20 7946 0958');
+    $component = Livewire::test(CartQuoteForm::class)->set('name', 'John')->set('phone', '+44 20 7946 0958');
     $this->travel(LeadForm::MIN_FILL_SECONDS + 1)->seconds();
     $component->call('requestQuote')->assertHasNoErrors()->assertSet('sent', true);
 

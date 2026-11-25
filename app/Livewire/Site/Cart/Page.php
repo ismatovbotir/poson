@@ -2,28 +2,17 @@
 
 namespace App\Livewire\Site\Cart;
 
-use App\Actions\Analytics\RecordConversion;
-use App\Actions\Cart\ConvertCartToLead;
 use App\Actions\Cart\RemoveCartLine;
 use App\Actions\Cart\UpdateCartLine;
-use App\Data\Leads\SiteLeadData;
-use App\Enums\AnalyticsGoal;
-use App\Enums\LeadType;
 use App\Livewire\Site\Cart\Concerns\AddsToCart;
-use App\Livewire\Site\Concerns\DispatchesAnalyticsGoals;
-use App\Livewire\Site\Concerns\GuardsLeadSubmissions;
 use App\Models\Cart;
-use App\Rules\PhoneNumber;
-use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartLineKey;
 use App\Support\Cart\CartPricer;
 use App\Support\Cart\CartToken;
-use App\Support\Phone;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -38,58 +27,17 @@ use Livewire\Component;
  * available" (left out of the total) and can only be removed; on-order
  * products note that the manager confirms the lead time.
  *
- * "Request a quote for this cart": an inline lead form (same fields, spam
- * checks and rate limits as Site\LeadForm) creating a checkout lead with
- * the cart's lines (ConvertCartToLead), recorded as a conversion.
+ * "Request a quote for this cart": the Site\Cart\QuoteForm child (plan 42;
+ * inline in #cart-quote, also opened in Site\LeadModal).
  * "Checkout" leads to /{locale}/checkout (plan 11b) while every line can be bought.
  */
 class Page extends Component
 {
     use AddsToCart;
-    use DispatchesAnalyticsGoals;
-    use GuardsLeadSubmissions;
-
-    public string $name = '';
-
-    public string $phone = '';
-
-    public string $company = '';
-
-    public string $message = '';
-
-    /**
-     * Honeypot (see Site\LeadForm).
-     */
-    public string $fax_ext = '';
-
-    public bool $sent = false;
-
-    #[Locked]
-    public string $locale = '';
-
-    #[Locked]
-    public ?string $pageUrl = null;
-
-    /**
-     * @var array<string, string>
-     */
-    #[Locked]
-    public array $attribution = [];
-
-    #[Locked]
-    public int $renderedAt = 0;
 
     public function boot(): void
     {
         abort_unless(config('site.cart_enabled'), 404);
-    }
-
-    public function mount(): void
-    {
-        $this->locale = app()->getLocale();
-        $this->pageUrl = url()->current();
-        $this->attribution = $this->captureAttribution();
-        $this->renderedAt = now()->getTimestamp();
     }
 
     public function increment(mixed $lineKey): void
@@ -142,97 +90,6 @@ class Page extends Component
 
         app(CartToken::class)->refresh();
         $this->dispatch('cart-updated');
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:32', new PhoneNumber(public: true)],
-            'company' => ['nullable', 'string', 'max:160'],
-            'message' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function validationAttributes(): array
-    {
-        return [
-            'name' => __('site.lead_form.attributes.name'),
-            'phone' => __('site.lead_form.attributes.phone'),
-            'company' => __('site.lead_form.attributes.company'),
-            'message' => __('site.lead_form.attributes.message'),
-        ];
-    }
-
-    /**
-     * "Request a quote for this cart".
-     */
-    public function requestQuote(ConvertCartToLead $convertCart, RecordConversion $recordConversion): void
-    {
-        $validated = $this->validate();
-        $phone = Phone::normalizeAny($validated['phone']);
-        $cart = $this->cart();
-
-        if ($cart === null) {
-            $this->addError('form', __('checkout.cart.errors.nothing_to_quote'));
-
-            return;
-        }
-
-        if ($this->leadLimitsExceeded((string) $phone)) {
-            return;
-        }
-
-        // Nothing to quote: refuse before the foreign-phone cap is touched.
-        if (app(CartPricer::class)->price($cart)->quotableLines() === []) {
-            $this->addError('form', __('checkout.cart.errors.nothing_to_quote'));
-
-            return;
-        }
-
-        if ($this->foreignPhoneCapExceeded((string) $phone)) {
-            return;
-        }
-
-        // Bots get the same success screen, but nothing is submitted.
-        if (! $this->looksLikeBot()) {
-            $clickIds = $this->captureAdClickIds();
-
-            try {
-                $convertCart->handle($cart, new SiteLeadData(
-                    name: trim($validated['name']),
-                    phone: (string) $phone,
-                    company: filled($validated['company']) ? trim($validated['company']) : null,
-                    message: filled($validated['message']) ? trim($validated['message']) : null,
-                    locale: $this->locale,
-                    type: LeadType::Checkout,
-                    utm: Attribution::utm($this->attribution),
-                    pageUrl: $this->pageUrl,
-                    trafficChannel: Attribution::channel($this->attribution),
-                    trafficSource: $this->attribution['source'] ?? null,
-                    landingPath: $this->attribution['landing'] ?? null,
-                    yclid: $clickIds['yclid'],
-                    ymClientId: $clickIds['ym_client_id'],
-                ));
-            } catch (ValidationException $exception) {
-                $this->addError('form', (string) collect($exception->errors())->flatten()->first());
-
-                return;
-            }
-
-            $recordConversion->handle(request(), $this->attribution, $this->pageUrl, $this->locale);
-
-            $this->reachGoal(AnalyticsGoal::LeadCartQuote);
-        }
-
-        $this->reset('name', 'phone', 'company', 'message', 'fax_ext');
-        $this->sent = true;
     }
 
     public function render(CartPricer $pricer): View

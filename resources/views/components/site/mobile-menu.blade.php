@@ -71,6 +71,7 @@
 
         <a
             href="{{ \App\Support\Site\Navigation::quote() }}"
+            data-lead-modal="callback"
             x-on:click="menuOpen = false"
             class="inline-flex h-[46px] items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white hover:bg-brand-700"
         >

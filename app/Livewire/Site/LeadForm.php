@@ -46,6 +46,15 @@ use Livewire\Component;
  * the request is rejected with a form error (checked after the rate
  * limits). A label product without any active roll type is asked for
  * without a roll.
+ *
+ * Plan 42: the same form opens in Site\LeadModal. The modal passes the page
+ * request's pageUrl, locale and attribution as mount parameters (QM-5,
+ * QM-6), so a form mounted during a Livewire update never reads the
+ * update URL or writes the session; inline forms keep url()->current() and
+ * the session attribution. idPrefix keeps the input ids unique when the
+ * inline form and the modal form are on one page, and an initial roll from
+ * the page's RollPicker is used only when it is valid for the product (QM-4).
+ * A form that was sent ignores further submits (QM-3).
  */
 class LeadForm extends Component
 {
@@ -117,6 +126,18 @@ class LeadForm extends Component
     public ?string $pageUrl = null;
 
     /**
+     * Prefix of the input ids ("lead" inline, another one in the modal).
+     */
+    #[Locked]
+    public string $idPrefix = 'lead';
+
+    /**
+     * Rendered inside Site\LeadModal: no card frame, the success block has a Close button.
+     */
+    #[Locked]
+    public bool $inModal = false;
+
+    /**
      * Roll type of a label product (plan 08); set by the RollPicker, checked on submit.
      * Untyped like RollPicker's: a tampered value ("abc", an array) is read
      * as "none" (rollTypeIdValue()) instead of failing with a TypeError.
@@ -154,22 +175,42 @@ class LeadForm extends Component
     #[Locked]
     public int $renderedAt = 0;
 
-    public function mount(?int $productId = null): void
-    {
+    /**
+     * @param  string|null  $pageUrl  page URL from the server-rendered layout (modal); null: this request's URL
+     * @param  mixed  $rollTypeId  initial roll type (modal: the last RollPicker choice), used only when valid
+     * @param  mixed  $rolls  initial rolls, used only with a valid roll type and within min_qty..MAX_ROLLS
+     * @param  string|null  $locale  locale of the page request (modal); null: the current locale
+     * @param  array<string, string>|null  $attribution  attribution captured on the page request (modal); null: read the session
+     */
+    public function mount(
+        ?int $productId = null,
+        ?string $pageUrl = null,
+        string $idPrefix = 'lead',
+        bool $inModal = false,
+        mixed $rollTypeId = null,
+        mixed $rolls = null,
+        ?string $locale = null,
+        ?array $attribution = null,
+    ): void {
         $product = $productId !== null ? $this->publishedProduct($productId) : null;
 
         $this->productId = $product?->id;
         $this->productLabel = $product !== null ? $product->name.' ('.$product->sku.')' : null;
         $this->isServiceRequest = $product?->enquiryLeadType() === LeadType::ServiceRequest;
+        $this->rollTypeId = null;
+        $this->rolls = null;
 
         if ($product?->isPricedPerLabel()) {
             $this->sellsRolls = true;
-            $this->rollTypeId = $product->activeRollTypes()->value('roll_types.id');
-            $this->rolls = max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
+            [$this->rollTypeId, $this->rolls] = $this->initialRoll($product, $rollTypeId, $rolls)
+                ?? [$product->activeRollTypes()->value('roll_types.id'), self::minRolls($product)];
         }
-        $this->locale = app()->getLocale();
-        $this->pageUrl = url()->current();
-        $this->attribution = $this->captureAttribution();
+
+        $this->idPrefix = preg_match('/^[a-z][a-z0-9-]{0,30}$/', $idPrefix) === 1 ? $idPrefix : 'lead';
+        $this->inModal = $inModal;
+        $this->locale = $locale !== null && in_array($locale, config('app.supported_locales', []), true) ? $locale : app()->getLocale();
+        $this->pageUrl = $pageUrl ?? url()->current();
+        $this->attribution = $attribution !== null ? Attribution::withoutClickIds(Attribution::sanitize($attribution)) : $this->captureAttribution();
         $this->utm = Attribution::utm($this->attribution);
         $this->renderedAt = now()->getTimestamp();
     }
@@ -214,6 +255,11 @@ class LeadForm extends Component
 
     public function submit(SubmitSiteLead $submitSiteLead, RecordConversion $recordConversion): void
     {
+        // QM-3: a sent form stays sent (no second lead or goal from a double submit); the rate limits stay the real control.
+        if ($this->sent) {
+            return;
+        }
+
         $validated = $this->validate();
         $phone = Phone::normalizeAny($validated['phone']);
 
@@ -307,7 +353,7 @@ class LeadForm extends Component
             return __('catalog.roll.errors.required');
         }
 
-        $min = max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
+        $min = self::minRolls($product);
 
         $rolls = self::intOrNull($this->rolls);
 
@@ -316,6 +362,34 @@ class LeadForm extends Component
         }
 
         return null;
+    }
+
+    /**
+     * QM-4: an initial roll [roll type id, rolls] when the roll type is offered
+     * for this product and the rolls are within min_qty..MAX_ROLLS, else null (defaults apply).
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    protected function initialRoll(Product $product, mixed $rollTypeId, mixed $rolls): ?array
+    {
+        $rollTypeId = self::intOrNull($rollTypeId);
+        $rolls = self::intOrNull($rolls);
+
+        if ($rollTypeId === null || $rolls === null || $rolls < self::minRolls($product) || $rolls > RollPicker::MAX_ROLLS) {
+            return null;
+        }
+
+        $rollType = RollType::query()->find($rollTypeId);
+
+        return $rollType instanceof RollType && RollPricing::isAvailable($product, $rollType) ? [$rollType->id, $rolls] : null;
+    }
+
+    /**
+     * The fewest rolls of a label product that can be asked for.
+     */
+    private static function minRolls(Product $product): int
+    {
+        return max(1, min(RollPicker::MAX_ROLLS, $product->min_qty));
     }
 
     /**

@@ -198,6 +198,17 @@ return [
         'roll' => 'Roll',
     ],
 
+    // Plan 42: the quote request modal (Site\LeadModal).
+    'lead_modal' => [
+        'title_callback' => 'Leave a request',
+        'title_product' => 'Request a quote',
+        'title_service' => 'Request service',
+        'title_cart' => 'Request a quote for this cart',
+        'intro' => 'A specialist will help you choose, set up and integrate the equipment, and confirm availability and delivery time.',
+        'close' => 'Close',
+        'loading' => 'Loading the form…',
+    ],
+
     'cta' => [
         'try' => 'Try',
         'contact' => 'Contact us',

@@ -249,8 +249,9 @@ class Page extends Component
             ->layoutData([
                 'description' => __('checkout.seo_description'),
                 'robots' => 'noindex,nofollow',
-                // Plan 28 C5b (CB-23): no chat launcher on checkout.
+                // Plan 28 C5b (CB-23): no chat launcher on checkout; plan 42 (QM-12): no quote modal.
                 'chat' => false,
+                'leadModal' => false,
             ]);
     }
 

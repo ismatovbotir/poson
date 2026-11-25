@@ -1,19 +1,14 @@
 <?php
 
-use App\Enums\LeadType;
 use App\Enums\Role;
-use App\Enums\SaleMode;
 use App\Enums\StockStatus;
 use App\Enums\VisitType;
 use App\Livewire\Site\Cart\AddButton;
 use App\Livewire\Site\Cart\Counter;
 use App\Livewire\Site\Cart\Page;
 use App\Livewire\Site\Catalog\RollPicker;
-use App\Livewire\Site\LeadForm;
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Lead;
-use App\Models\LeadItem;
 use App\Models\Product;
 use App\Models\RollType;
 use App\Models\Setting;
@@ -25,41 +20,15 @@ use App\Support\Money;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\URL;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
-use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+
+require_once __DIR__.'/CartHelpers.php';
 
 beforeEach(function () {
     config(['site.cart_enabled' => true]);
     app()->setLocale('en');
     URL::defaults(['locale' => 'en']);
 });
-
-/**
- * A cart of the current visitor (its token remembered for this test's requests).
- */
-function visitorCart(): Cart
-{
-    $cart = Cart::factory()->create();
-    app(CartToken::class)->issue($cart->token);
-
-    return $cart;
-}
-
-/**
- * The cart page with a filled-in quote form, opened long enough ago to pass the fill-time check.
- */
-function filledCartQuote(array $overrides = []): Testable
-{
-    $component = Livewire::test(Page::class);
-
-    foreach (array_merge(['name' => 'Aziz', 'phone' => '90 123 45 67', 'company' => 'OOO Market'], $overrides) as $field => $value) {
-        $component->set($field, $value);
-    }
-
-    test()->travel(LeadForm::MIN_FILL_SECONDS + 1)->seconds();
-
-    return $component;
-}
 
 describe('route', function () {
     it('is a 404 while the cart is off', function () {
@@ -132,7 +101,8 @@ describe('page component', function () {
         $component = Livewire::test(Page::class)->assertSee('p'.$product->id, false);
         $state = json_encode($component->instance()->all());
 
-        expect(array_keys($component->instance()->all()))->toEqualCanonicalizing(['name', 'phone', 'company', 'message', 'fax_ext', 'sent', 'locale', 'pageUrl', 'attribution', 'renderedAt'])
+        // Plan 42: the quote form's fields live in Site\Cart\QuoteForm (see QuoteFormTest).
+        expect(array_keys($component->instance()->all()))->toBe([])
             ->and($state)->not->toContain($cart->token)
             ->not->toContain('777700')
             ->not->toContain('2333100')
@@ -248,95 +218,6 @@ describe('more page behaviour', function () {
         Cookie::unqueue(CartToken::COOKIE);
         Livewire::test(Page::class)->call('increment', 'p'.$product->id);
         expect(Cookie::queued(CartToken::COOKIE))->toBeNull();
-    });
-});
-
-describe('quote for the cart', function () {
-    it('leaves out a line whose roll type was detached but keeps a quote-only line', function () {
-        $cart = visitorCart();
-        $rollType = RollType::factory()->create();
-        $labels = Product::factory()->perLabel()->withRollTypes([$rollType])->create(['sku' => 'LBL-D', 'min_qty' => 2]);
-        $quoteOnly = Product::factory()->create(['sku' => 'QUO-1']);
-        CartItem::factory()->for($cart)->for($labels)->roll($rollType)->create(['qty' => 2]);
-        CartItem::factory()->for($cart)->for($quoteOnly)->create(['qty' => 1]);
-        $labels->rollTypes()->detach($rollType->id);
-        $quoteOnly->update(['sale_mode' => SaleMode::Quote]);
-
-        filledCartQuote()->call('requestQuote')->assertSet('sent', true);
-
-        expect(LeadItem::query()->pluck('sku')->all())->toBe(['QUO-1']);
-    });
-
-    it('creates a checkout lead with the cart lines, label products with their roll snapshot', function () {
-        $cart = visitorCart();
-        $rollType = RollType::factory()->size(1000, '40.0')->create();
-        $labels = Product::factory()->perLabel()->withRollTypes([$rollType])->create(['sku' => 'LBL-1', 'min_qty' => 2]);
-        $scanner = Product::factory()->create(['sku' => 'SCN-1']);
-        $hidden = Product::factory()->create(['sku' => 'GONE-1']);
-        CartItem::factory()->for($cart)->for($scanner)->create(['qty' => 2]);
-        CartItem::factory()->for($cart)->for($labels)->roll($rollType)->create(['qty' => 4]);
-        CartItem::factory()->for($cart)->for($hidden)->create(['qty' => 1]);
-        $hidden->update(['is_active' => false]);
-
-        filledCartQuote(['message' => 'Delivery to Fergana'])
-            ->call('requestQuote')
-            ->assertHasNoErrors()
-            ->assertSet('sent', true);
-
-        $lead = Lead::query()->sole();
-        $items = LeadItem::query()->orderBy('sort')->get();
-
-        expect($lead->type)->toBe(LeadType::Checkout)
-            ->and($lead->phone)->toBe('+998901234567')
-            ->and($lead->message)->toBe('Delivery to Fergana')
-            ->and($items->pluck('sku')->all())->toBe(['SCN-1', 'LBL-1'])
-            ->and($items[0]->qty)->toBe(2)
-            ->and($items[0]->roll_type_id)->toBeNull()
-            ->and($items[1]->qty)->toBe(4)
-            ->and($items[1]->roll_type_id)->toBe($rollType->id)
-            ->and($items[1]->labels_per_roll)->toBe(1000)
-            ->and((string) $items[1]->core_diameter_mm)->toBe('40.0')
-            // The cart is kept.
-            ->and($cart->items()->count())->toBe(3);
-    });
-
-    it('applies the lead form checks: honeypot, fill time, phone', function (Closure $submit, bool $sent) {
-        $cart = visitorCart();
-        CartItem::factory()->for($cart)->create();
-
-        $component = $submit();
-
-        expect(Lead::query()->count())->toBe(0);
-        $component->assertSet('sent', $sent);
-    })->with([
-        'honeypot' => [fn () => filledCartQuote(['fax_ext' => 'spam'])->call('requestQuote'), true],
-        'too fast' => [fn () => Livewire::test(Page::class)->set('name', 'Aziz')->set('phone', '90 123 45 67')->call('requestQuote'), true],
-        'phone without country code' => [fn () => filledCartQuote(['phone' => '8 912 3456789'])->call('requestQuote')->assertHasErrors('phone'), false],
-        'no name' => [fn () => filledCartQuote(['name' => ''])->call('requestQuote')->assertHasErrors('name'), false],
-    ]);
-
-    it('shares the lead form rate limits', function () {
-        $cart = visitorCart();
-        CartItem::factory()->for($cart)->create();
-
-        foreach (range(1, LeadForm::PHONE_LIMIT) as $attempt) {
-            filledCartQuote()->call('requestQuote')->assertSet('sent', true);
-        }
-
-        filledCartQuote()->call('requestQuote')->assertHasErrors('form')->assertSet('sent', false);
-
-        expect(Lead::query()->count())->toBe(LeadForm::PHONE_LIMIT);
-    });
-
-    it('says so when nothing in the cart can be quoted', function () {
-        $cart = visitorCart();
-        $product = Product::factory()->create();
-        CartItem::factory()->for($cart)->for($product)->create();
-        $product->delete();
-
-        filledCartQuote()->call('requestQuote')->assertHasErrors('form')->assertSet('sent', false);
-
-        expect(Lead::query()->count())->toBe(0);
     });
 });
 

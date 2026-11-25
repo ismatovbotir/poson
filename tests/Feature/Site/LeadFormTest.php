@@ -5,11 +5,14 @@ use App\Data\Leads\SiteLeadData;
 use App\Enums\LeadSource;
 use App\Enums\LeadType;
 use App\Enums\TrafficChannel;
+use App\Livewire\Site\Catalog\RollPicker;
 use App\Livewire\Site\LeadForm;
 use App\Models\Lead;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\RollType;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -377,4 +380,76 @@ it('moves focus to the success message', function () {
         ->call('submit')
         ->assertSee('data-lead-success', false)
         ->assertSeeHtml('tabindex="-1" x-init="$nextTick(() => $el.focus())"');
+});
+
+describe('plan 42: modal mount parameters', function () {
+    it('prefixes the input ids and keeps the inline defaults', function () {
+        expect(Livewire::test(LeadForm::class, ['idPrefix' => 'lead-modal'])->html())
+            ->toContain('for="lead-modal-name"')->toContain('id="lead-modal-phone"')->toContain('id="lead-modal-fax-ext"')
+            ->not->toContain('id="lead-phone"');
+
+        Livewire::test(LeadForm::class, ['idPrefix' => '"><script>'])->assertSet('idPrefix', 'lead');
+        Livewire::test(LeadForm::class)->assertSet('idPrefix', 'lead')->assertSet('inModal', false);
+    });
+
+    it('takes pageUrl from the mount parameter, else the current URL', function () {
+        Livewire::test(LeadForm::class, ['pageUrl' => 'http://localhost/en/product/x'])->assertSet('pageUrl', 'http://localhost/en/product/x');
+        Livewire::test(LeadForm::class)->assertSet('pageUrl', url()->current());
+    });
+
+    it('rejects tampering with the new locked properties', function (string $property, mixed $value) {
+        Livewire::test(LeadForm::class)->set($property, $value);
+    })->with([
+        'idPrefix' => ['idPrefix', 'x'],
+        'inModal' => ['inModal', true],
+        'productId' => ['productId', 1],
+    ])->throws(CannotUpdateLockedPropertyException::class);
+
+    it('QM-3: a second submit after success creates no second lead and no second limiter hit', function () {
+        $component = filledLeadForm()->call('submit')->assertSet('sent', true);
+        $component->set('name', 'Aziz')->set('phone', '90 123 45 67')->call('submit')->assertHasNoErrors();
+
+        expect(Lead::query()->count())->toBe(1)
+            ->and(RateLimiter::attempts('site-lead:'.sha1('127.0.0.1')))->toBe(1)
+            ->and(RateLimiter::attempts('site-lead-phone:'.sha1('+998901234567')))->toBe(1);
+    });
+
+    it('QM-4: uses an initial roll only when it is offered for the product and within min_qty..MAX', function () {
+        [$small, $large] = [RollType::factory()->size(500, '40.0')->create(), RollType::factory()->size(1000, '40.0')->create()];
+        $foreign = RollType::factory()->size(2000, '76.0')->create();
+        $product = Product::factory()->perLabel()->withRollTypes([$small, $large])->create(['min_qty' => 2]);
+        Product::factory()->perLabel()->withRollTypes([$foreign])->create();
+        $mount = fn (mixed $rollTypeId, mixed $rolls) => Livewire::test(LeadForm::class, ['productId' => $product->id, 'rollTypeId' => $rollTypeId, 'rolls' => $rolls]);
+
+        $mount($large->id, 6)->assertSet('rollTypeId', $large->id)->assertSet('rolls', 6);
+        $mount((string) $large->id, '6')->assertSet('rollTypeId', $large->id)->assertSet('rolls', 6);
+
+        foreach ([[$foreign->id, 6], [$large->id, 1], [$large->id, RollPicker::MAX_ROLLS + 1], [['x'], 6], [$large->id, null], [999_999, 6]] as [$rollTypeId, $rolls]) {
+            $mount($rollTypeId, $rolls)->assertSet('rollTypeId', $small->id)->assertSet('rolls', 2);
+        }
+
+        $large->update(['is_active' => false]);
+        $mount($large->id, 6)->assertSet('rollTypeId', $small->id)->assertSet('rolls', 2);
+    });
+
+    it('QM-4: a foreign roll type passed in is never stored', function () {
+        $own = RollType::factory()->size(500, '40.0')->create();
+        $foreign = RollType::factory()->size(2000, '76.0')->create();
+        $product = Product::factory()->perLabel()->withRollTypes([$own])->create(['min_qty' => 2]);
+        Product::factory()->perLabel()->withRollTypes([$foreign])->create();
+
+        filledLeadForm([], Livewire::test(LeadForm::class, ['productId' => $product->id, 'rollTypeId' => $foreign->id, 'rolls' => 4]))
+            ->call('submit')->assertHasNoErrors()->assertSet('sent', true);
+
+        $item = Lead::query()->sole()->items()->sole();
+
+        expect($item->roll_type_id)->toBe($own->id)->and($item->qty)->toBe(2);
+    });
+
+    it('ignores roll parameters for a product without rolls', function () {
+        $product = Product::factory()->create();
+
+        Livewire::test(LeadForm::class, ['productId' => $product->id, 'rollTypeId' => 5, 'rolls' => 3])
+            ->assertSet('sellsRolls', false)->assertSet('rollTypeId', null)->assertSet('rolls', null);
+    });
 });
