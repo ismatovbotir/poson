@@ -6,13 +6,13 @@
         <x-slot:breadcrumbs>{{ __('menu.groups.office') }} <span class="text-slate-300">/</span> {{ __($t.'.title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
-    <p class="mt-4 flex max-w-4xl items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note">
+    <p class="mt-4 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" role="note">
         <x-admin.icon name="info" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.note') }}
     </p>
 
     {{-- Errors from the mark action (e.g. an assignee who cannot work with office chats) --}}
     @if ($errors->any())
-        <div class="mt-4 max-w-4xl rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger" role="alert" data-mark-errors>
+        <div class="mt-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger" role="alert" data-mark-errors>
             @foreach ($errors->all() as $message)<p>{{ $message }}</p>@endforeach
         </div>
     @endif

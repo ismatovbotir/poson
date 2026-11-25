@@ -20,7 +20,7 @@
         @endforeach
     </nav>
 
-    <fieldset class="mt-5 max-w-4xl space-y-4 pb-10 lg:space-y-6" @disabled(! $passwordConfirmed)>
+    <fieldset class="mt-5 grid items-start gap-4 pb-10 lg:gap-6 xl:grid-cols-2" @disabled(! $passwordConfirmed)>
         <legend class="sr-only">{{ __($t.'.title') }}</legend>
 
         @foreach ($sections as $group => $fields)
@@ -29,7 +29,7 @@
     </fieldset>
 
     {{-- Settings change history (all areas, never values) --}}
-    <section class="max-w-4xl" aria-labelledby="audit-title" data-audit>
+    <section aria-labelledby="audit-title" data-audit>
         <h2 id="audit-title" class="text-lg font-bold tracking-tight">{{ __($t.'.audit.title') }}</h2>
         <p class="mt-0.5 text-sm text-slate-500">{{ __($t.'.audit.subtitle', ['count' => \App\Livewire\Admin\Settings\Integrations::AUDIT_LIMIT]) }}</p>
 

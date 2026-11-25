@@ -46,7 +46,7 @@
         </div>
     </nav>
 
-    <div class="mt-5 max-w-4xl space-y-4 pb-24 lg:space-y-6" role="tabpanel">
+    <div class="mt-5 space-y-4 pb-24 lg:space-y-6" role="tabpanel">
         @if ($tab === 'contacts')
             <x-admin.card :title="__($t.'.sections.company')">
                 <x-admin.locale-tabs :error-keys="['contacts.name', 'contacts.address', 'contacts.city', 'contacts.working_hours']" :label="__('admin.form.content_language')">

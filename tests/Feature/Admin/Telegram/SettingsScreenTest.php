@@ -371,7 +371,7 @@ describe('T21-3 password', function () use ($everyAction) {
     it('shows the confirmation banner and disables the forms until confirmed', function () {
         telegramSettingsScreen()
             ->assertSeeHtml('data-password-required')
-            ->assertSeeHtml('<fieldset class="mt-5 max-w-4xl space-y-4 pb-10 lg:space-y-6" disabled');
+            ->assertSeeHtml('<fieldset class="mt-5 space-y-4 pb-10 lg:space-y-6" disabled');
 
         confirmAdminPassword();
 
