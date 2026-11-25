@@ -6,7 +6,7 @@
 --}}
 @php
     $checkClass = 'size-[18px] shrink-0 cursor-pointer rounded-[5px] accent-brand-600';
-    $fieldClass = 'h-10 w-full min-w-0 rounded-btn border-[1.5px] border-line bg-white px-2.5 text-sm text-ink placeholder:text-ink-3 focus:border-brand-600 focus:outline-none';
+    $fieldClass = 'h-10 w-full min-w-0 rounded-btn border-[1.5px] border-line bg-white px-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand-600 focus:outline-none';
     $number = fn (int|string|null $value): string => $value === null ? '' : \App\Support\NumberFormat::format($value);
     $total = $number($products->total());
 @endphp
@@ -98,10 +98,10 @@
                         <fieldset class="py-[18px]" wire:key="filter-brand">
                             <legend class="mb-3 text-sm font-bold">{{ __('site.catalog.brand') }}</legend>
                             @foreach ($facets['brands'] as $item)
-                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-brand-{{ $item['slug'] }}">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-muted opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-brand-{{ $item['slug'] }}">
                                     <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) @disabled($item['disabled']) wire:click="toggleBrand(@js($item['slug']))">
                                     <span>{{ $item['name'] }}</span>
-                                    <em class="ml-auto text-xs text-ink-3 not-italic">{{ $item['count'] }}</em>
+                                    <em class="ml-auto text-xs text-ink-muted not-italic">{{ $item['count'] }}</em>
                                 </label>
                             @endforeach
                         </fieldset>
@@ -130,7 +130,7 @@
                             @if ($facet['type']->hasOptions())
                                 @foreach ($facet['options'] as $option)
                                     @php($disabled = ($option['disabled'] ?? false) || (! $option['checked'] && $facet['selected'] >= \App\Support\Catalog\CatalogQuery::MAX_OPTIONS))
-                                    <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $disabled ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-{{ $facet['code'] }}-{{ $option['id'] }}">
+                                    <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $disabled ? 'cursor-not-allowed text-ink-muted opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-{{ $facet['code'] }}-{{ $option['id'] }}">
                                         <input type="checkbox" class="{{ $checkClass }}" @checked($option['checked']) @disabled($disabled) wire:click="toggleValue(@js($facet['code']), '{{ $option['id'] }}')">
                                         {{-- Plan 38 (RD-13): colour dot only from the normalized hex, as a fill attribute; the label always follows. --}}
                                         @php($dot = \App\Support\HexColor::normalize($option['hex'] ?? null))
@@ -138,14 +138,14 @@
                                             <svg viewBox="0 0 12 12" class="size-3 shrink-0" aria-hidden="true" focusable="false" data-swatch><circle cx="6" cy="6" r="5.25" fill="{{ $dot }}" @class(['stroke-ink-3' => \App\Support\HexColor::isLight($dot)]) stroke-width="{{ \App\Support\HexColor::isLight($dot) ? '1.2' : '0' }}"></circle></svg>
                                         @endif
                                         <span>{{ $option['label'] }}</span>
-                                        <em class="ml-auto text-xs text-ink-3 not-italic">{{ $option['count'] }}</em>
+                                        <em class="ml-auto text-xs text-ink-muted not-italic">{{ $option['count'] }}</em>
                                     </label>
                                 @endforeach
                             @elseif ($facet['type'] === \App\Enums\AttributeType::Boolean)
-                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $facet['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $facet['disabled'] ? 'cursor-not-allowed text-ink-muted opacity-60' : 'cursor-pointer text-ink-2' }}">
                                     <input type="checkbox" class="{{ $checkClass }}" @checked($facet['checked']) @disabled($facet['disabled']) wire:click="toggleValue(@js($facet['code']), '1')">
                                     <span>{{ __('site.product.yes') }}</span>
-                                    <em class="ml-auto text-xs text-ink-3 not-italic">{{ $facet['count'] }}</em>
+                                    <em class="ml-auto text-xs text-ink-muted not-italic">{{ $facet['count'] }}</em>
                                 </label>
                             @else
                                 <div class="flex items-center gap-2">
@@ -164,10 +164,10 @@
                         <fieldset class="py-[18px]" wire:key="filter-stock">
                             <legend class="mb-3 text-sm font-bold">{{ __('site.catalog.stock') }}</legend>
                             @foreach ($facets['stock'] as $item)
-                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-3 opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-stock-{{ $item['value'] }}">
+                                <label class="flex items-center gap-2.5 py-[5px] text-sm {{ $item['disabled'] ? 'cursor-not-allowed text-ink-muted opacity-60' : 'cursor-pointer text-ink-2' }}" wire:key="filter-stock-{{ $item['value'] }}">
                                     <input type="checkbox" class="{{ $checkClass }}" @checked($item['checked']) @disabled($item['disabled']) wire:click="toggleStock(@js($item['value']))">
                                     <span>{{ $item['label'] }}</span>
-                                    <em class="ml-auto text-xs text-ink-3 not-italic">{{ $item['count'] }}</em>
+                                    <em class="ml-auto text-xs text-ink-muted not-italic">{{ $item['count'] }}</em>
                                 </label>
                             @endforeach
                         </fieldset>

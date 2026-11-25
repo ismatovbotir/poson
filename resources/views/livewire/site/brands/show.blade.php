@@ -64,7 +64,7 @@
                             @class([$chipClass, 'border-brand-600 bg-brand-50 text-brand-600' => $section['checked'], 'border-line bg-white text-ink hover:border-brand hover:text-brand-600' => ! $section['checked']])
                         >
                             {{ $section['label'] }}
-                            <span class="text-xs font-medium text-ink-3">{{ \App\Support\NumberFormat::format($section['count']) }}</span>
+                            <span class="text-xs font-medium text-ink-muted">{{ \App\Support\NumberFormat::format($section['count']) }}</span>
                         </button>
                     </li>
                 @endforeach

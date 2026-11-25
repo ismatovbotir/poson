@@ -31,11 +31,11 @@
         @if ($product->category)
             <span class="text-xs font-semibold tracking-[0.05em] text-ink-2 uppercase">{{ $product->category }}</span>
         @endif
-        <h3 class="text-sm leading-[1.35] font-semibold sm:text-[15px]">
+        <h3 class="line-clamp-3 text-sm leading-[1.35] font-semibold sm:text-[15px]">
             <a href="{{ $product->url }}" class="hover:text-brand-600">{{ $product->name }}</a>
         </h3>
         @if ($product->specs !== '')
-            <span class="text-[13px] text-ink-2" data-key-specs>{{ $product->specs }}</span>
+            <span class="line-clamp-2 text-[13px] text-ink-2" data-key-specs>{{ $product->specs }}</span>
         @endif
         @if ($product->showStock)
             <x-site.stock-badge :status="$product->stockStatus" />

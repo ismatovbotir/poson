@@ -142,6 +142,8 @@
             <div id="{{ \App\Data\Site\ProductCta::BUY_BOX_ANCHOR }}" class="my-[22px] scroll-mt-36 rounded-box-lg border border-line bg-white p-6 shadow-card" data-buybox>
                 @if ($product->price !== null)
                     <p class="text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-4xl" data-price>{{ $pricedPerLabel ? __('catalog.roll.per_label', ['price' => \App\Support\Money::format($product->price)]) : \App\Support\Money::format($product->price) }}</p>
+                    {{-- Plan 43 #46: every price includes VAT (App\Support\Vat), as in the cart. --}}
+                    <p class="mt-1.5 text-[13px] text-ink-2" data-vat-note>{{ __('checkout.summary.vat', ['percent' => \App\Support\Vat::PERCENT]) }}</p>
                 @else
                     <p class="text-2xl font-bold text-ink" data-price>{{ __('site.card.price_on_request') }}</p>
                     <p class="mt-1.5 text-sm text-ink-2">{{ __('site.product.price_on_request_note') }}</p>
@@ -168,6 +170,22 @@
                         @endunless
                     @endforeach
                 </div>
+
+                {{-- Plan 43 #43/#44: service lines by product type (Show::trustLines()), directly under the CTAs. --}}
+                @if ($trustLines !== [])
+                    <ul class="mt-5 grid gap-3 border-t border-line pt-5 text-sm text-ink-2" data-trust-lines>
+                        @foreach ($trustLines as $line)
+                            <li class="flex items-center gap-3" wire:key="trust-{{ $line['key'] }}" data-trust="{{ $line['key'] }}">
+                                <x-site.icon :name="$line['icon']" class="shrink-0 text-brand-600" />
+                                @if ($line['url'] !== null)
+                                    <a href="{{ $line['url'] }}" class="font-medium text-brand-600 underline-offset-2 hover:underline" data-trust-link>{{ $line['text'] }}</a>
+                                @else
+                                    <span>{{ $line['text'] }}</span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
 
             @if ($keySpecs !== [])
@@ -175,7 +193,7 @@
                 <dl class="grid grid-cols-2 gap-2.5" data-key-specs>
                     @foreach ($keySpecs as $spec)
                         <div class="rounded-btn bg-bg-soft px-3.5 py-2.5 text-[13px]" wire:key="key-spec-{{ $loop->index }}">
-                            <dt class="text-ink-3">{{ $spec['label'] }}</dt>
+                            <dt class="text-ink-muted">{{ $spec['label'] }}</dt>
                             <dd class="font-semibold">{{ $spec['value'] }}</dd>
                         </div>
                     @endforeach
@@ -185,34 +203,24 @@
             @if ($software !== [])
                 @include('livewire.site.catalog.partials.software-details', ['software' => $software])
             @endif
-
-            <ul class="mt-5 grid gap-3 text-sm text-ink-2">
-                <li class="flex items-center gap-3"><x-site.icon name="truck" class="text-brand-600" />{{ __('site.home.hero.badge_delivery_text') }}</li>
-                <li class="flex items-center gap-3">
-                    <x-site.icon name="shield" class="text-brand-600" />
-                    @if ($product->warranty_months)
-                        {{ __('site.product.delivery.warranty', ['months' => trans_choice('site.product.months', $product->warranty_months, ['count' => $product->warranty_months])]) }}
-                    @else
-                        {{ __('site.product.delivery.warranty_on_request') }}
-                    @endif
-                </li>
-                <li class="flex items-center gap-3"><x-site.icon name="wrench" class="text-brand-600" />{{ __('site.product.delivery.setup') }}</li>
-            </ul>
         </div>
     </div>
 
-    {{-- Tabs --}}
-    <section class="mt-12 md:mt-16" x-data="{ tab: 'description' }" aria-label="{{ __('site.product.tabs.label') }}">
-        <div class="flex gap-1.5 overflow-x-auto border-b border-line [scrollbar-width:none]" role="tablist">
+    {{-- Tabs. Plan 43 #47: siteTabs (resources/js/app.js) adds the ARIA keyboard pattern (Left/Right/Home/End). --}}
+    <section class="mt-12 md:mt-16" x-data="siteTabs" aria-label="{{ __('site.product.tabs.label') }}">
+        <div class="flex gap-1.5 overflow-x-auto border-b border-line [scrollbar-width:none]" role="tablist" x-on:keydown="key($event)">
             @foreach (array_keys($tabs) as $key)
                 <button
                     type="button"
                     id="tab-{{ $key }}"
                     role="tab"
                     aria-controls="panel-{{ $key }}"
+                    aria-selected="{{ $loop->first ? 'true' : 'false' }}"
+                    tabindex="{{ $loop->first ? 0 : -1 }}"
+                    data-tab="{{ $key }}"
                     x-bind:aria-selected="(tab === '{{ $key }}').toString()"
                     x-bind:tabindex="tab === '{{ $key }}' ? 0 : -1"
-                    x-on:click="tab = '{{ $key }}'"
+                    x-on:click="show('{{ $key }}')"
                     x-bind:class="tab === '{{ $key }}' ? 'border-brand text-brand-600' : 'border-transparent text-ink-2'"
                     class="-mb-px border-b-[3px] px-5 py-3.5 font-semibold whitespace-nowrap transition-colors hover:text-brand-600"
                 >{{ __('site.product.tabs.'.$key) }}</button>
@@ -232,15 +240,15 @@
                 <caption class="sr-only">{{ __('site.product.tabs.specs') }}</caption>
                 <tbody>
                     @if ($brand)
-                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.brand') }}</th><td class="py-[13px] font-medium"><a href="{{ route('site.brands.show', ['brand' => $brand->slug]) }}" class="hover:text-brand-600 hover:underline">{{ $brand->name }}</a></td></tr>
+                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-muted">{{ __('site.product.brand') }}</th><td class="py-[13px] font-medium"><a href="{{ route('site.brands.show', ['brand' => $brand->slug]) }}" class="hover:text-brand-600 hover:underline">{{ $brand->name }}</a></td></tr>
                     @endif
                     @if ($product->model)
-                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.model') }}</th><td class="py-[13px] font-medium">{{ $product->model }}</td></tr>
+                        <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-muted">{{ __('site.product.model') }}</th><td class="py-[13px] font-medium">{{ $product->model }}</td></tr>
                     @endif
-                    <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ __('site.product.sku') }}</th><td class="py-[13px] font-medium">{{ $product->sku }}</td></tr>
+                    <tr class="border-b border-line"><th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-muted">{{ __('site.product.sku') }}</th><td class="py-[13px] font-medium">{{ $product->sku }}</td></tr>
                     @foreach ($specs as $spec)
                         <tr class="border-b border-line" wire:key="spec-{{ $loop->index }}" data-spec-row>
-                            <th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-3">{{ $spec['label'] }}</th>
+                            <th scope="row" class="w-[42%] py-[13px] pr-4 text-left font-normal text-ink-muted">{{ $spec['label'] }}</th>
                             <td class="py-[13px] font-medium">{{ $spec['value'] }}</td>
                         </tr>
                     @endforeach
@@ -258,7 +266,7 @@
                                 <span class="block font-semibold">{{ $document['title'] }}</span>
                                 <span class="text-[13px] text-ink-2">{{ $document['type'] }} · {{ $document['kind'] }}@if ($document['locale']) · {{ $document['locale'] }}@endif</span>
                                 @if ($document['sha256'])
-                                    <span class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-3" x-data="{ copied: false }" data-sha256="{{ $document['sha256'] }}">
+                                    <span class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted" x-data="{ copied: false }" data-sha256="{{ $document['sha256'] }}">
                                         <span>{{ __('site.product.checksum') }}:</span>
                                         <code class="font-mono text-ink-2" title="{{ $document['sha256'] }}">{{ substr($document['sha256'], 0, 12) }}…</code>
                                         <button

@@ -22,7 +22,7 @@
     <article class="max-w-[900px]" data-news-post>
         <header class="mb-6">
             @if ($publishedAt)
-                <time datetime="{{ $publishedAt->toAtomString() }}" class="mb-2 block text-sm text-ink-3" data-news-date>{{ \App\Support\DateFormat::iso($publishedAt, 'D MMMM YYYY') }}</time>
+                <time datetime="{{ $publishedAt->toAtomString() }}" class="mb-2 block text-sm text-ink-muted" data-news-date>{{ \App\Support\DateFormat::iso($publishedAt, 'D MMMM YYYY') }}</time>
             @endif
             <h1 class="text-[26px] leading-[1.15] font-bold tracking-[-0.025em] sm:text-[34px]">{{ $title }}</h1>
             @if ($excerpt !== '')
@@ -40,7 +40,7 @@
 
         @if ($categories !== [])
             <section class="mt-8" aria-labelledby="news-categories-title" data-news-categories>
-                <h2 id="news-categories-title" class="mb-3 text-sm font-semibold text-ink-3">{{ $kind->siteText('related_categories') }}</h2>
+                <h2 id="news-categories-title" class="mb-3 text-sm font-semibold text-ink-muted">{{ $kind->siteText('related_categories') }}</h2>
                 <ul class="flex flex-wrap gap-2">
                     @foreach ($categories as $category)
                         <li><a href="{{ $category['url'] }}" class="inline-flex h-9 items-center rounded-full border border-line bg-white px-4 text-sm font-medium text-ink-2 transition-colors hover:border-brand hover:text-brand-600">{{ $category['name'] }}</a></li>
