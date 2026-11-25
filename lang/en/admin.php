@@ -544,6 +544,10 @@ return [
         'last_changed' => 'Last changed: :date',
         'read_only' => 'You can view this product but not change it.',
         'active_incomplete' => 'This product is published, but some required specs are empty. Fill them in so the product page is complete.',
+        'diagram_preview' => [
+            'title' => 'Auto-generated image',
+            'note' => 'Built from saved specs; the site shows it only when the product has no photo.',
+        ],
         'save_first' => 'Save the product first, then you can add this.',
         'no_brand' => '— No brand',
         'no_badge' => 'None',

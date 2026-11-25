@@ -544,6 +544,10 @@ return [
         'last_changed' => 'Oxirgi oʻzgarish: :date',
         'read_only' => 'Siz bu mahsulotni koʻrishingiz mumkin, lekin oʻzgartira olmaysiz.',
         'active_incomplete' => 'Mahsulot nashr qilingan, lekin ayrim majburiy xususiyatlar toʻldirilmagan. Mahsulot sahifasi toʻliq boʻlishi uchun ularni toʻldiring.',
+        'diagram_preview' => [
+            'title' => 'Avtomatik yaratilgan rasm',
+            'note' => 'Saqlangan xususiyatlar asosida yaratilgan; saytda faqat mahsulotda surat boʻlmasa koʻrsatiladi.',
+        ],
         'save_first' => 'Avval mahsulotni saqlang, keyin buni qoʻshish mumkin boʻladi.',
         'no_brand' => '— Brendsiz',
         'no_badge' => 'Yoʻq',

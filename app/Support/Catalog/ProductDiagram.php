@@ -23,6 +23,14 @@ final class ProductDiagram
     }
 
     /**
+     * Admin preview only (Products form): ignores media. Never use on the site, home cache or TMA.
+     */
+    public static function preview(Product $product): LabelDiagram|RollDiagram|null
+    {
+        return LabelDiagram::preview($product) ?? RollDiagram::preview($product);
+    }
+
+    /**
      * @return array{kind: string, data: array<string, mixed>}
      */
     public static function toArray(LabelDiagram|RollDiagram $diagram): array
