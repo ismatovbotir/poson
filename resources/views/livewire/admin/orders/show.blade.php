@@ -19,7 +19,14 @@
                 <h1 class="text-xl font-bold tracking-tight sm:text-2xl">{{ __('orders.show_title', ['number' => $order->number]) }}</h1>
                 @include('livewire.admin.orders.partials.badges', ['order' => $order])
             </div>
-            <p class="mt-1 text-sm text-slate-500">{{ $when($order->created_at, 'D MMMM YYYY, HH:mm') }} · {{ $order->source->label() }}@if ($order->createdBy) · {{ $order->createdBy->name }}@endif</p>
+            <p class="mt-1 text-sm text-slate-500">{{ $when($order->created_at, 'D MMMM YYYY, HH:mm') }} · {{ $order->source->label() }}@if ($order->createdBy) · {{ $order->createdBy->name }}@endif
+                {{-- Plan 20 MA-40: the customer's bot conversation, only for staff who may open it (the chat page re-checks). --}}
+                @if ($telegramUser)
+                    @can('view', $telegramUser)
+                        · <a href="{{ route('admin.telegram.chats.show', $telegramUser) }}" wire:navigate class="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline" data-telegram-chat-link><x-admin.icon name="telegram" size="size-3.5" />{{ __('orders.telegram_chat') }}</a>
+                    @endcan
+                @endif
+            </p>
         </div>
         <div class="flex flex-wrap gap-2">
             @if ($hasInvoice)

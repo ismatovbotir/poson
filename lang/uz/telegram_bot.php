@@ -72,7 +72,7 @@ return [
 
     // Plan 20 M5 (MA-14, MA-26): customer order status messages, order number and status label only.
     'order_status' => [
-        'text' => 'Buyurtma :number holati: :status.',
+        'text' => 'Buyurtmangiz :number holati yangilandi: :status.',
         'button' => 'Buyurtmani ochish',
     ],
 

@@ -350,4 +350,6 @@ return [
         'stamp_place' => 'M.Oʻ.',
     ],
 
+    // Plan 20 MA-40: the customer's bot conversation on the order page.
+    'telegram_chat' => 'Telegram chati',
 ];

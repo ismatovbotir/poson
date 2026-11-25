@@ -9,6 +9,8 @@ use App\Models\SettingsAudit;
 use App\Models\User;
 use App\Support\Telegram\Bot\BotChecklist;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\MiniApp\MiniAppMenuSync;
+use App\Support\Telegram\MiniApp\MiniAppSwitch;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +27,8 @@ use Illuminate\Support\Facades\DB;
  * (row locked): unchanged state → false; otherwise the
  * telegram.bot_enabled row (group telegram) is written and audited
  * (enabled / disabled, actor, IP). BotSwitch reads it fresh per update.
+ * While the Mini App row is on, an effective change also starts the Mini
+ * App menu fan-out (plan 20 MA-35, MiniAppMenuSync, after commit).
  */
 class SetBotEnabled
 {
@@ -95,6 +99,11 @@ class SetBotEnabled
             $row->forceFill(['group' => SettingsArea::TelegramBot->group(), 'value' => $enabled])->save();
 
             SettingsAudit::record(SettingsArea::TelegramBot, BotSwitch::KEY, $enabled ? AuditAction::Enabled : AuditAction::Disabled, $user, $ip);
+
+            // Plan 20 MA-35: with the Mini App row on, the bot switch changes who sees the Mini App.
+            if (MiniAppSwitch::isStoredOn()) {
+                MiniAppMenuSync::start();
+            }
 
             return true;
         });

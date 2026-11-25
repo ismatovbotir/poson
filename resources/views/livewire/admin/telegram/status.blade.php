@@ -49,7 +49,7 @@
                             @endif
                             @if ($link && $link['route'])
                                 @can($link['can'])
-                                    @if ($row['state'] !== 'ok' && $row['state'] !== 'neutral' || $row['link'] === 'bot')
+                                    @if ($row['state'] !== 'ok' && $row['state'] !== 'neutral' || in_array($row['link'], ['bot', 'mini_app'], true))
                                         <a href="{{ route($link['route']) }}" wire:navigate class="mt-1.5 inline-block text-brand-700 hover:underline" data-link="{{ $row['link'] }}">{{ __($t.'.links.'.$row['link']) }}</a>
                                     @endif
                                 @endcan

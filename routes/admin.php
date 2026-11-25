@@ -208,6 +208,8 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
 
     // Telegram bot page (plan 14 v2 §9): telegram.bot (Admin only), password re-confirmation on every write.
     Route::livewire('/telegram/bot', Telegram\Bot::class)->name('telegram.bot');
+    // Plan 20 M6: Telegram Mini App switch (telegram.bot, Admin only), password re-confirmation, rate limit and audit on every write.
+    Route::livewire('/telegram/mini-app', Telegram\MiniApp::class)->name('telegram.mini-app');
     // Plan 21 stream C: settings.integrations (Admin only), authorized in the component.
     Route::livewire('/telegram/settings', Telegram\Settings::class)->name('telegram.settings');
     // Telegram status panel (plan 21 E2): telegram.bot (Admin only), read-only, no Telegram call on load.
