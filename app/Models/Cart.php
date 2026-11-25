@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -21,8 +22,15 @@ use Illuminate\Support\Carbon;
  * converted_order_id / converted_at: set once an order is placed from the
  * cart (plan 11b); such a cart is closed for changes.
  *
+ * telegram_user_id (plan 20): a Telegram Mini App cart (App\Support\Telegram\MiniApp\TmaCart).
+ * Its token is never rendered or sent as a cookie; site token lookups
+ * (CartToken, AddToCart without an owner, PlaceOrder without an origin)
+ * ignore such carts, and Mini App lookups ignore site carts (MA-21).
+ * Assigned explicitly by TmaCart, never mass-assigned.
+ *
  * @property int $id
  * @property string $token
+ * @property int|null $telegram_user_id
  * @property string $locale
  * @property int|null $converted_order_id
  * @property Carbon|null $converted_at
@@ -53,6 +61,7 @@ class Cart extends Model
     protected function casts(): array
     {
         return [
+            'telegram_user_id' => 'integer',
             'converted_order_id' => 'integer',
             'converted_at' => 'datetime',
         ];
@@ -64,6 +73,26 @@ class Cart extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class)->orderBy('id');
+    }
+
+    /**
+     * The Telegram Mini App user owning the cart (null = a site cart).
+     *
+     * @return BelongsTo<TelegramUser, $this>
+     */
+    public function telegramUser(): BelongsTo
+    {
+        return $this->belongsTo(TelegramUser::class);
+    }
+
+    /**
+     * Site carts only (no Telegram owner): every cookie-token lookup.
+     *
+     * @param  Builder<Cart>  $query
+     */
+    public function scopeForSite(Builder $query): void
+    {
+        $query->whereNull('carts.telegram_user_id');
     }
 
     /**

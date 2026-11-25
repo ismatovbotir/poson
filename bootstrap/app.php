@@ -4,25 +4,37 @@ use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\AuthenticateMcpToken;
 use App\Http\Middleware\BlockSearchIndexing;
 use App\Http\Middleware\CaptureAttribution;
+use App\Http\Middleware\ConfigureTmaSession;
+use App\Http\Middleware\DenyFraming;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureStaff;
+use App\Http\Middleware\EnsureTmaUser;
 use App\Http\Middleware\LimitJsonBody;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SetTmaLocale;
+use App\Http\Middleware\TmaHeaders;
 use App\Http\Middleware\TrackVisit;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\VerifyTelegramSecret;
 use App\Support\Careers\CareersPostTooLarge;
 use App\Support\Site\CanonicalHost;
+use App\Support\Telegram\MiniApp\TmaErrorPage;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Livewire;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -37,6 +49,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('admin')
                 ->name('admin.')
                 ->group(base_path('routes/admin.php'));
+
+            // Plan 20: the Telegram Mini App, outside "web" (own session, headers and noindex).
+            Route::middleware('tma')
+                ->prefix('tma')
+                ->name('tma.')
+                ->group(base_path('routes/tma.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -49,7 +67,27 @@ return Application::configure(basePath: dirname(__DIR__))
             // Plan 13 MCP (routes/ai.php). Deliberately NOT in the priority list, so the
             // route keeps its order: throttle:mcp-ip → mcp.auth → EnsureMcpUser → throttle:mcp.
             'mcp.auth' => AuthenticateMcpToken::class,
+            // Plan 20: the Telegram Mini App (routes/tma.php).
+            'tma.locale' => SetTmaLocale::class,
+            'tma.user' => EnsureTmaUser::class,
         ]);
+
+        // Plan 20 (MA-5): the Mini App group has its own session cookie (path /tma, SameSite=None,
+        // Partitioned) and headers (MA-3); no "web" middleware runs there. TmaHeaders is first so
+        // every response, a 404 or 419 included, gets the CSP and noindex.
+        $middleware->group('tma', [
+            TmaHeaders::class,
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            ConfigureTmaSession::class,
+            StartSession::class,
+            ShareErrorsFromSession::class,
+            PreventRequestForgery::class,
+            SubstituteBindings::class,
+        ]);
+        $middleware->prependToPriorityList(before: StartSession::class, prepend: ConfigureTmaSession::class);
+        // The signed-in user is checked before route bindings and the per-user throttles.
+        $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: EnsureTmaUser::class);
 
         // Price API order (plan 09): body size → token → per-token throttle (the
         // throttle key needs the token; ThrottleRequests is otherwise sorted first).
@@ -80,9 +118,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // get no session; CaptureAttribution runs inside the session (first-touch attribution).
         $middleware->append(TrackVisit::class);
         // Plan 15 C: X-Robots-Tag noindex, nofollow on every web response while the site is closed for indexing.
-        $middleware->web(append: [CaptureAttribution::class, BlockSearchIndexing::class]);
+        // Plan 20 (MA-4): nobody frames the site, the admin or the customer links (DenyFraming).
+        // Prepended, so 419 and route-binding 404 responses carry it too (security review L3).
+        $middleware->web(prepend: [DenyFraming::class], append: [CaptureAttribution::class, BlockSearchIndexing::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Plan 20 (MA-11): the Mini App's signed initData is never flashed back.
+        $exceptions->dontFlash(['init_data']);
+
+        // Plan 20 (security review L8): Mini App HTML errors (404, 419, 429, 500…) use the CSP-safe
+        // tma/error view (no inline style, no site layout, no locale cookie). JSON keeps the default.
+        $exceptions->render(fn (Throwable $exception, Request $request) => TmaErrorPage::render($exception, $request));
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

@@ -39,6 +39,7 @@ return [
         'placed' => 'Yangi buyurtma :number',
         'total' => 'Summa',
         'payment_method' => 'Toʻlov',
+        'source' => 'Manba',
         'delivery' => 'Yetkazib berish',
         'delivery_separate' => 'alohida toʻlanadi',
         'products' => 'Mahsulotlar',

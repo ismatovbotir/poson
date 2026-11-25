@@ -8,6 +8,9 @@
 @source not '../views/components/admin';
 @source not '../views/livewire/admin';
 @source not '../views/vendor/pagination/admin.blade.php';
+/* The Telegram Mini App has its own bundle (resources/css/tma.css, plan 20). */
+@source not '../views/tma';
+@source not '../views/layouts/tma.blade.php';
 @source '../js';
 @source '../../app';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

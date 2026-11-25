@@ -16,7 +16,12 @@ it('exposes products publicly only through the product page, its document downlo
         ->filter(fn (RoutingRoute $route): bool => str_contains($route->uri(), 'product') || str_contains((string) $route->getName(), 'product'));
 
     // All check Product::isVisible() (ProductPageTest, PartnerRedirectTest); the redirect exposes only the software brand's link.
+    // Plan 20: the Telegram Mini App product page, its one-tap request and service form (signed-in users only, MiniAppCatalogTest).
     expect($public->map(fn (RoutingRoute $route) => $route->uri())->sort()->values()->all())->toBe([
+        'tma/{locale}/p/{product}',
+        'tma/{locale}/p/{product}/quote',
+        'tma/{locale}/p/{product}/service',
+        'tma/{locale}/p/{product}/service',
         '{locale}/go/{product}',
         '{locale}/product/{product}',
         '{locale}/product/{product}/documents/{document}',

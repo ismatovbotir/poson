@@ -6,7 +6,7 @@ use App\Livewire\Site\LeadForm;
 use App\Support\Analytics\AdClickIds;
 use App\Support\Analytics\Attribution;
 use App\Support\ForeignPhoneLimit;
-use Illuminate\Support\Facades\RateLimiter;
+use App\Support\Leads\LeadLimits;
 
 /**
  * Spam checks shared by the site's lead forms (Site\LeadForm and the cart
@@ -26,8 +26,9 @@ trait GuardsLeadSubmissions
     protected function leadLimitsExceeded(string $phone): bool
     {
         // Count first, then compare: concurrent requests can't slip past the limit.
-        return $this->limitExceeded('site-lead:'.sha1((string) request()->ip()), LeadForm::RATE_LIMIT, LeadForm::RATE_LIMIT_SECONDS)
-            || $this->limitExceeded('site-lead-phone:'.sha1($phone), LeadForm::PHONE_LIMIT, LeadForm::PHONE_LIMIT_SECONDS);
+        // The keys are LeadLimits' (shared with the Telegram Mini App, plan 20 MA-12).
+        return $this->limitExceeded(LeadLimits::ipKey((string) request()->ip()), LeadForm::RATE_LIMIT, LeadForm::RATE_LIMIT_SECONDS)
+            || $this->limitExceeded(LeadLimits::phoneKey($phone), LeadForm::PHONE_LIMIT, LeadForm::PHONE_LIMIT_SECONDS);
     }
 
     /**
@@ -51,12 +52,12 @@ trait GuardsLeadSubmissions
      */
     protected function limitExceeded(string $key, int $maxAttempts, int $decaySeconds): bool
     {
-        if (RateLimiter::hit($key, $decaySeconds) <= $maxAttempts) {
+        if (! LeadLimits::exceeded($key, $maxAttempts, $decaySeconds)) {
             return false;
         }
 
         $this->addError('form', __('site.lead_form.error_rate_limited', [
-            'seconds' => RateLimiter::availableIn($key),
+            'seconds' => LeadLimits::availableIn($key),
         ]));
 
         return true;

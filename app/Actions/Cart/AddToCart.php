@@ -29,13 +29,18 @@ use Illuminate\Validation\ValidationException;
  * The cart row is created on the first add (lazy) and locked for the
  * upsert, so concurrent adds can't pass the line cap or duplicate a line
  * (unique cart_id + line_key). Errors are ValidationExceptions on "cart".
+ *
+ * Owner (plan 20, MA-21): without $telegramUserId only a site cart (no
+ * Telegram owner) is used or created; with it only that user's Mini App
+ * cart, which App\Support\Telegram\MiniApp\TmaCart created first (never
+ * created here). A token of the other kind is refused as unavailable.
  */
 class AddToCart
 {
     /**
      * @throws ValidationException
      */
-    public function handle(string $token, int $productId, ?int $rollTypeId, int $qty, string $locale): CartItem
+    public function handle(string $token, int $productId, ?int $rollTypeId, int $qty, string $locale, ?int $telegramUserId = null): CartItem
     {
         if (! config('site.cart_enabled')) {
             throw ValidationException::withMessages(['cart' => __('checkout.cart.errors.disabled')]);
@@ -54,8 +59,8 @@ class AddToCart
 
         // attempts: 3 — two first adds of one token can deadlock on MySQL gap locks
         // (select … for update on a missing row, then insert); the retry sees the row.
-        return DB::transaction(function () use ($token, $locale, $lineKey, $product, $rollTypeId, $rollType, $qty): CartItem {
-            $cart = static::lockCart($token, $locale);
+        return DB::transaction(function () use ($token, $locale, $lineKey, $product, $rollTypeId, $rollType, $qty, $telegramUserId): CartItem {
+            $cart = static::lockCart($token, $locale, $telegramUserId);
 
             if ($cart->isConverted()) {
                 throw ValidationException::withMessages(['cart' => __('checkout.cart.errors.closed')]);
@@ -86,14 +91,25 @@ class AddToCart
     }
 
     /**
-     * The cart of a token, created when missing, locked for this transaction.
+     * The cart of a token, created when missing (site carts only), locked for
+     * this transaction; a cart of another owner is refused (MA-21).
+     *
+     * @throws ValidationException
      */
-    public static function lockCart(string $token, string $locale): Cart
+    public static function lockCart(string $token, string $locale, ?int $telegramUserId = null): Cart
     {
         $cart = Cart::query()->where('token', $token)->lockForUpdate()->first();
 
         if ($cart instanceof Cart) {
+            if ($cart->telegram_user_id !== $telegramUserId) {
+                throw ValidationException::withMessages(['cart' => __('checkout.cart.errors.unavailable')]);
+            }
+
             return $cart;
+        }
+
+        if ($telegramUserId !== null) {
+            throw ValidationException::withMessages(['cart' => __('checkout.cart.errors.unavailable')]);
         }
 
         $locale = in_array($locale, config('app.supported_locales'), true) ? $locale : config('app.locale');
@@ -101,7 +117,13 @@ class AddToCart
         // A concurrent first add may have created it: createOrFirst() falls back to that row.
         Cart::query()->createOrFirst(['token' => $token], ['locale' => $locale]);
 
-        return Cart::query()->where('token', $token)->lockForUpdate()->firstOrFail();
+        $cart = Cart::query()->where('token', $token)->lockForUpdate()->firstOrFail();
+
+        if ($cart->telegram_user_id !== null) {
+            throw ValidationException::withMessages(['cart' => __('checkout.cart.errors.unavailable')]);
+        }
+
+        return $cart;
     }
 
     /**

@@ -6,7 +6,6 @@ use App\Actions\Orders\CreateManualOrder;
 use App\Actions\Orders\UpdateOrder;
 use App\Enums\BuyerType;
 use App\Enums\DeliveryType;
-use App\Enums\OrderSource;
 use App\Enums\PriceLevel;
 use App\Enums\Region;
 use App\Enums\Role;
@@ -104,7 +103,7 @@ class Form extends Component
     public function priceLevel(): PriceLevel
     {
         if ($this->order !== null) {
-            return $this->order->source === OrderSource::Site ? PriceLevel::Retail : $this->order->price_level;
+            return $this->order->source->isCustomerCheckout() ? PriceLevel::Retail : $this->order->price_level;
         }
 
         return $this->customer?->price_level ?? PriceLevel::Retail;
@@ -331,7 +330,7 @@ class Form extends Component
 
     private function isSiteOrder(): bool
     {
-        return $this->order?->source === OrderSource::Site;
+        return $this->order?->source->isCustomerCheckout() === true;
     }
 
     /**

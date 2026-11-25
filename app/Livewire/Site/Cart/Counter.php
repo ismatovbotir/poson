@@ -61,7 +61,7 @@ class Counter extends Component
         $token = app(CartToken::class)->current();
 
         $count = $token !== null
-            ? CartItem::query()->whereHas('cart', fn ($cart) => $cart->open()->where('token', $token))->count()
+            ? CartItem::query()->whereHas('cart', fn ($cart) => $cart->forSite()->open()->where('token', $token))->count()
             : 0;
 
         return view('livewire.site.cart.counter', ['count' => $count]);

@@ -39,6 +39,7 @@ return [
         'placed' => 'New order :number',
         'total' => 'Total',
         'payment_method' => 'Payment',
+        'source' => 'Source',
         'delivery' => 'Delivery',
         'delivery_separate' => 'billed separately',
         'products' => 'Products',

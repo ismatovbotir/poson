@@ -3,6 +3,7 @@
 namespace App\Support\Telegram;
 
 use App\Enums\DeliveryPricing;
+use App\Enums\OrderSource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderPayment;
@@ -15,7 +16,8 @@ use App\Support\Phone;
  * is escaped with e(). TEST orders start with the "🧪 TEST" marker.
  *
  * - placed (sales chat): number, total, payment method, delivery type and
- *   region, products, buyer name + phone and company name;
+ *   region, the source line "Telegram Mini App" (plan 20), products, buyer
+ *   name + phone and company name;
  * - payment alerts (finance, and sales where the plan says): number,
  *   method, amount, the reference masked to its last 4 characters, the
  *   staff member and the date — no buyer data.
@@ -39,6 +41,11 @@ final class OrderMessage
                 self::line('payment_method', $order->payment_method->label()),
                 self::line('delivery', self::delivery($order)),
             ];
+
+            // Plan 20: orders from the Telegram Mini App say so (no Telegram id or username).
+            if ($order->source === OrderSource::Telegram) {
+                $lines[] = self::line('source', $order->source->label());
+            }
 
             $items = $order->items->take(self::MAX_ITEMS)->map(fn (OrderItem $item): string => e($item->name)
                 .($item->sku ? ' ('.e($item->sku).')' : '')

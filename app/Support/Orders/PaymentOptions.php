@@ -34,6 +34,12 @@ use Illuminate\Support\Facades\Route;
  *   is offered (static = fallback; staff can still pick it in admin).
  *
  * Payme and Click are never offered or accepted for new orders (isReserved()).
+ *
+ * forMiniApp() (plan 20, MA-8): the Telegram Mini App checkout offers only
+ * for() ∩ telegram.mini_app.payment_methods (values read with tryFrom),
+ * never an online (isOnline()) or reserved method; computed by PlaceOrder
+ * itself for source Telegram. Staff may still switch such an order later in
+ * admin (ChangeOrderPaymentMethod, owner 2026-11-24).
  */
 class PaymentOptions
 {
@@ -72,6 +78,31 @@ class PaymentOptions
         }
 
         return $methods;
+    }
+
+    /**
+     * Methods the Telegram Mini App checkout offers (plan 20, MA-8): manual
+     * methods from the config list that the matrix allows; never online or
+     * reserved, whatever the config says. Empty for an individual with a
+     * regional courier (the cart then goes to a manager as a request).
+     *
+     * @return list<PaymentMethod>
+     */
+    public function forMiniApp(PaymentContext $context): array
+    {
+        $configured = array_values(array_filter(array_map(
+            fn (mixed $value): ?PaymentMethod => is_string($value) ? PaymentMethod::tryFrom($value) : null,
+            (array) config('telegram.mini_app.payment_methods', []),
+        )));
+
+        // Only the configured methods are evaluated (in display order), so an unlisted one costs no lookup.
+        return array_values(array_filter(
+            PaymentMethod::available(),
+            fn (PaymentMethod $method): bool => in_array($method, $configured, true)
+                && ! $method->isOnline()
+                && ! $method->isReserved()
+                && $this->rejection($method, $context) === null,
+        ));
     }
 
     /**

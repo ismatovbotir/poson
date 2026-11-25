@@ -39,6 +39,7 @@ return [
         'placed' => 'Новый заказ :number',
         'total' => 'Сумма',
         'payment_method' => 'Оплата',
+        'source' => 'Источник',
         'delivery' => 'Доставка',
         'delivery_separate' => 'оплачивается отдельно',
         'products' => 'Товары',

@@ -12,6 +12,11 @@ final class CartLineKey
 {
     public const PATTERN = '/^p(\d{1,10})(?:-r(\d{1,10}))?$/';
 
+    /**
+     * PATTERN as a route constraint (Telegram Mini App cart routes, plan 20); parse() still decides.
+     */
+    public const ROUTE_PATTERN = 'p\d{1,10}(?:-r\d{1,10})?';
+
     public static function make(int $productId, ?int $rollTypeId = null): string
     {
         return 'p'.$productId.($rollTypeId !== null ? '-r'.$rollTypeId : '');

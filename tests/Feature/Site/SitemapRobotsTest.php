@@ -103,6 +103,7 @@ it('serves robots.txt with the base rules and the sitemap', function () {
             'Disallow: /*/checkout$',
             'Disallow: /o/',
             'Disallow: /r/',
+            'Disallow: /tma/',
             'Disallow: /*?*sort=',
             'Disallow: /*?*f[',
             'Disallow: /*?*f%5B',
