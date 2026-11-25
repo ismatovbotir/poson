@@ -8,6 +8,7 @@
     addInPlace (plan 11a, product cards): "Add to cart" is a button that sends "cart-add"
     with the product id to the header Site\Cart\Counter instead of a link (label products
     keep the link: their roll is picked on the product page).
+    Plan 42: lead-form CTAs keep their link and also open Site\LeadModal (data-lead-modal="product").
 --}}
 @php
     $href ??= $cta->url;
@@ -46,6 +47,7 @@
     @if ($external) target="_blank" rel="nofollow sponsored noopener" @elseif ($cta->kind === \App\Enums\ProductCtaKind::DeviceService) rel="nofollow" @endif
     {{ $attributes->class($classes) }}
     data-cta="{{ $cta->kind->value }}"
+    @if ($cta->action === \App\Data\Site\ProductCta::ACTION_LEAD_FORM) data-lead-modal="product" data-product-id="{{ (int) $cta->productId }}" @endif
 >
     @if ($cta->kind === \App\Enums\ProductCtaKind::Cart)
         <x-site.icon name="cart" />

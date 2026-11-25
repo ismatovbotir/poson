@@ -3,7 +3,7 @@
 use App\Enums\AnalyticsGoal;
 use App\Enums\ProductType;
 use App\Enums\Role;
-use App\Livewire\Site\Cart\Page as CartPage;
+use App\Livewire\Site\Cart\QuoteForm as CartQuoteForm;
 use App\Livewire\Site\Checkout\Page as CheckoutPage;
 use App\Livewire\Site\LeadForm;
 use App\Livewire\Site\Services\RequestPage;
@@ -88,7 +88,7 @@ describe('YD-3 goals from the lead forms', function () {
         ydTracking();
         orderCart();
 
-        $component = ydFill(Livewire::test(CartPage::class), ['name' => 'Aziz', 'phone' => '90 123 45 67'])->call('requestQuote');
+        $component = ydFill(Livewire::test(CartQuoteForm::class), ['name' => 'Aziz', 'phone' => '90 123 45 67'])->call('requestQuote');
 
         expect(ydDispatched($component, 'poson-goal'))->toBe([['goal' => 'lead_cart_quote']]);
     });

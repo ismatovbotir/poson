@@ -49,7 +49,7 @@
                 @endif
                 <div class="mt-5 flex flex-wrap justify-center gap-3">
                     <a href="{{ route('site.catalog.index') }}" class="inline-flex h-[46px] items-center justify-center rounded-btn border-[1.5px] border-line bg-white px-5 font-semibold transition-colors hover:border-brand hover:text-brand-600">{{ __('site.home.categories.all') }}</a>
-                    <a href="{{ \App\Support\Site\Navigation::quote() }}" class="inline-flex h-[46px] items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white hover:bg-brand-700">{{ __('site.header.request_quote') }}</a>
+                    <a href="{{ \App\Support\Site\Navigation::quote() }}" data-lead-modal="callback" class="inline-flex h-[46px] items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white hover:bg-brand-700">{{ __('site.header.request_quote') }}</a>
                 </div>
             </div>
         @endif

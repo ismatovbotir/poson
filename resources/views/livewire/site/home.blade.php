@@ -37,6 +37,7 @@
                     </a>
                     <a
                         href="#lead"
+                        data-lead-modal="callback"
                         class="inline-flex h-[54px] items-center justify-center rounded-btn border-[1.5px] border-line bg-white px-[30px] text-base font-semibold text-ink transition-colors hover:border-brand-600 hover:text-brand-600"
                     >
                         {{ __('site.home.hero.cta_quote') }}
@@ -130,6 +131,7 @@
                     <p class="mb-6 max-w-[520px] text-ink-soft">{{ __('site.home.b2b.text') }}</p>
                     <a
                         href="#lead"
+                        data-lead-modal="callback"
                         class="inline-flex h-[54px] items-center justify-center rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-white"
                     >{{ __('site.home.b2b.cta') }}</a>
                 </div>

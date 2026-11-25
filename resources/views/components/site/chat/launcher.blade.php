@@ -5,6 +5,7 @@
     widget (Site\Chat\Widget) sits in an x-if template and is loaded lazily when the visitor opens it.
     Only a chat cookie with recent staff activity loads it right after the page (deferred) and shows
     the unread dot. State and visibility: App\Support\Chat\WebChatLauncher::state().
+    Plan 42 (QM-10): opening the quote modal ("lead-modal-opened") closes the panel without moving focus.
 --}}
 @php
     $chatLauncher = \App\Support\Chat\WebChatLauncher::state();
@@ -17,6 +18,7 @@
     @endphp
     <div
         x-data="{ open: false, mounted: @js($chatLauncher['autoMount']), unread: @js($chatLauncher['autoMount']) }"
+        x-on:lead-modal-opened.window="open = false"
         x-on:chat-close.window="open = false; $nextTick(() => $refs.chatLauncherButton?.focus())"
         x-on:chat-updated.window="if (! open) unread = true"
         x-on:keydown.escape.window="if (open) { open = false; $nextTick(() => $refs.chatLauncherButton?.focus()) }"

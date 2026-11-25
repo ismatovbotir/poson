@@ -5,6 +5,7 @@
     'robots' => null,
     'type' => 'website',
     'chat' => true,
+    'leadModal' => true,
 ])
 
 {{--
@@ -14,6 +15,8 @@
     Extra <head> tags (JSON-LD, robots): @push('head'); content after the footer
     (e.g. room for a fixed mobile bar): @push('after-footer').
     The website chat launcher (plan 28 C5b) renders unless the page passes chat=false (checkout).
+    The quote request modal (plan 42, QM-12) renders only on localized pages and unless the page
+    passes leadModal=false (checkout); its page URL is this request's url()->current() (QM-6).
 --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -54,6 +57,10 @@
 
     @if ($chat)
         <x-site.chat.launcher />
+    @endif
+
+    @if ($leadModal && isset(\Illuminate\Support\Facades\URL::getDefaultParameters()['locale']))
+        <livewire:site.lead-modal :page-url="url()->current()" />
     @endif
 
     @livewireScripts

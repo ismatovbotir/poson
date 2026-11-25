@@ -7,7 +7,7 @@ use App\Enums\CustomerType;
 use App\Enums\LeadSource;
 use App\Enums\Role;
 use App\Livewire\Admin\Customers\Form as CustomerFormScreen;
-use App\Livewire\Site\Cart\Page as CartPage;
+use App\Livewire\Site\Cart\QuoteForm as CartQuoteForm;
 use App\Livewire\Site\Checkout\Page as CheckoutPage;
 use App\Livewire\Site\LeadForm;
 use App\Models\Cart;
@@ -61,7 +61,7 @@ function submitPublic(string $entry, string $phone, string $honeypot = ''): Test
 
     $component = Livewire::test(match ($entry) {
         'lead' => LeadForm::class,
-        'cart' => CartPage::class,
+        'cart' => CartQuoteForm::class,
         'checkout' => CheckoutPage::class,
     });
 
@@ -425,7 +425,7 @@ it('does not count a cart without quotable lines toward the foreign-phone cap', 
     $cart = Cart::factory()->create();
     app(CartToken::class)->issue($cart->token);
 
-    $component = Livewire::test(CartPage::class)->set('name', 'John')->set('phone', '+7 916 123 45 67');
+    $component = Livewire::test(CartQuoteForm::class)->set('name', 'John')->set('phone', '+7 916 123 45 67');
     $this->travel(LeadForm::MIN_FILL_SECONDS + 1)->seconds();
     $component->call('requestQuote')->assertHasErrors(['form']);
 

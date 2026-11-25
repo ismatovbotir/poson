@@ -4,17 +4,9 @@
     (breadcrumbs, page head, bordered boxes, the roll picker's stepper, the lead form).
     Brand rule: Retail prices only, shown plainly; no old prices or discount wording.
     Lines are referenced by their key only; prices and totals are never Livewire state.
+    The quote form is Site\Cart\QuoteForm (plan 42); its button also opens it in Site\LeadModal.
 --}}
 @php
-    $inputClass = 'h-12 w-full rounded-btn border-[1.5px] bg-white px-4 text-ink transition-colors placeholder:text-ink-2 focus:border-brand-600 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
-    $fields = [
-        'name' => ['type' => 'text', 'autocomplete' => 'name', 'required' => true, 'maxlength' => 120],
-        'phone' => ['type' => 'tel', 'autocomplete' => 'tel', 'required' => true, 'maxlength' => 32],
-        'company' => ['type' => 'text', 'autocomplete' => 'organization', 'required' => false, 'maxlength' => 160],
-    ];
-    $privacyLink = \App\Support\Site\PageDirectory::isActive('privacy')
-        ? '<a href="'.e(\App\Support\Site\Navigation::page('privacy')).'" class="font-medium text-brand-600 underline hover:text-brand-700">'.e(__('site.lead_form.consent_privacy')).'</a>'
-        : e(__('site.lead_form.consent_privacy'));
     $money = fn (int $tiyin): string => \App\Support\Money::format($tiyin);
 @endphp
 
@@ -174,13 +166,13 @@
                 @else
                     <a href="{{ route('site.checkout') }}" class="inline-flex h-12 items-center justify-center rounded-btn bg-brand-600 px-5 font-semibold text-white transition-colors hover:bg-brand-700" data-checkout-link>{{ __('checkout.cart.checkout') }}</a>
                 @endif
-                <a href="#cart-quote" class="inline-flex h-12 items-center justify-center rounded-btn border-[1.5px] border-brand-600 px-5 font-semibold text-brand-600 transition-colors hover:bg-brand-50" data-quote-link>{{ __('checkout.cart.quote.button') }}</a>
+                <a href="#cart-quote" data-lead-modal="cart" class="inline-flex h-12 items-center justify-center rounded-btn border-[1.5px] border-brand-600 px-5 font-semibold text-brand-600 transition-colors hover:bg-brand-50" data-quote-link>{{ __('checkout.cart.quote.button') }}</a>
             </aside>
         </div>
     @endif
 
     {{-- Request a quote for this cart --}}
-    @if (($cart !== null && ! $cart->isEmpty()) || $sent)
+    @if ($cart !== null && ! $cart->isEmpty())
         <section id="cart-quote" class="mt-12 scroll-mt-28 md:mt-[72px]" aria-labelledby="cart-quote-title">
             <div class="grid items-start gap-8 rounded-[28px] bg-bg-tint px-6 py-8 md:grid-cols-2 md:gap-12 md:p-14">
                 <div>
@@ -188,88 +180,7 @@
                     <p class="text-ink-2">{{ __('checkout.cart.quote.text') }}</p>
                 </div>
 
-                <div class="rounded-box-lg bg-white p-5 shadow-card sm:p-7">
-                    <div role="status" aria-live="polite" aria-atomic="true">
-                        @if ($sent)
-                            <div class="flex flex-col items-start gap-3 py-4 focus:outline-none" tabindex="-1" x-init="$nextTick(() => $el.focus())" data-lead-success>
-                                <span class="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-600">
-                                    <x-site.icon name="check" size="size-6" />
-                                </span>
-                                <h3 class="text-xl font-bold">{{ __('site.lead_form.success_title') }}</h3>
-                                <p class="text-ink-2">{{ __('checkout.cart.quote.success_text') }}</p>
-                            </div>
-                        @endif
-                    </div>
-
-                    @unless ($sent)
-                        <form wire:submit="requestQuote" novalidate class="relative grid gap-3.5" data-cart-quote-form>
-                            <div role="alert">
-                                @error('form')
-                                    <p class="rounded-btn border border-danger/30 bg-danger/5 px-4 py-3 text-sm font-medium text-danger" data-form-error>{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            @foreach ($fields as $field => $options)
-                                <div class="grid gap-1.5" wire:key="cart-quote-field-{{ $field }}">
-                                    <label for="cart-quote-{{ $field }}" class="text-sm font-semibold">
-                                        {{ __("site.lead_form.{$field}") }}
-                                        @if ($options['required'])
-                                            <span class="text-danger" aria-hidden="true">*</span>
-                                        @endif
-                                    </label>
-                                    <input
-                                        id="cart-quote-{{ $field }}"
-                                        type="{{ $options['type'] }}"
-                                        wire:model="{{ $field }}"
-                                        autocomplete="{{ $options['autocomplete'] }}"
-                                        maxlength="{{ $options['maxlength'] }}"
-                                        @if ($field === 'phone') inputmode="tel" @endif
-                                        placeholder="{{ __("site.lead_form.{$field}_placeholder") }}"
-                                        @if ($options['required']) aria-required="true" @endif
-                                        @error($field) aria-invalid="true" aria-describedby="cart-quote-{{ $field }}-error" @enderror
-                                        @class([$inputClass, 'border-danger' => $errors->has($field), 'border-line' => ! $errors->has($field)])
-                                    >
-                                    @error($field)
-                                        <p id="cart-quote-{{ $field }}-error" class="text-sm text-danger">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            @endforeach
-
-                            <div class="grid gap-1.5">
-                                <label for="cart-quote-message" class="text-sm font-semibold">{{ __('site.lead_form.message') }}</label>
-                                <textarea
-                                    id="cart-quote-message"
-                                    wire:model="message"
-                                    rows="3"
-                                    maxlength="1000"
-                                    placeholder="{{ __('checkout.cart.quote.message_placeholder') }}"
-                                    @error('message') aria-invalid="true" aria-describedby="cart-quote-message-error" @enderror
-                                    @class([str_replace('h-12', 'min-h-24 py-3', $inputClass), 'border-danger' => $errors->has('message'), 'border-line' => ! $errors->has('message')])
-                                ></textarea>
-                                @error('message')
-                                    <p id="cart-quote-message-error" class="text-sm text-danger">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- Honeypot: off-screen and skipped by keyboard and screen readers. --}}
-                            <div class="absolute -left-[10000px] size-px overflow-hidden" aria-hidden="true">
-                                <input type="text" id="cart-quote-fax-ext" name="fax_ext" wire:model="fax_ext" tabindex="-1" autocomplete="off">
-                            </div>
-
-                            <button
-                                type="submit"
-                                class="mt-1 inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-wait disabled:opacity-80"
-                                wire:loading.attr="disabled"
-                                wire:target="requestQuote"
-                            >
-                                <span wire:loading.remove wire:target="requestQuote">{{ __('checkout.cart.quote.submit') }}</span>
-                                <span wire:loading wire:target="requestQuote">{{ __('site.lead_form.sending') }}</span>
-                            </button>
-
-                            <p class="text-xs text-ink-2">{!! __('site.lead_form.consent', ['privacy' => $privacyLink]) !!}</p>
-                        </form>
-                    @endunless
-                </div>
+                <livewire:site.cart.quote-form :key="'cart-quote-form'" />
             </div>
         </section>
     @endif

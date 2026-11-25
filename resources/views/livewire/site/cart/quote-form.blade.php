@@ -1,0 +1,109 @@
+{{--
+    "Request a quote for this cart" (App\Livewire\Site\Cart\QuoteForm, plan 11a, extracted
+    from the cart page in plan 42). Same markup as before: labels tied to inputs, errors
+    linked with aria-describedby, live regions, "fax_ext" honeypot off-screen. Ids are
+    "{idPrefix}-{field}" ("cart-quote-…" inline). In Site\LeadModal ($inModal) the card frame
+    is left out and the success block gets a Close button. No lead reference is shown (QM-11).
+--}}
+@php
+    $inputClass = 'h-12 w-full rounded-btn border-[1.5px] bg-white px-4 text-ink transition-colors placeholder:text-ink-2 focus:border-brand-600 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600';
+    $fields = [
+        'name' => ['type' => 'text', 'autocomplete' => 'name', 'required' => true, 'maxlength' => 120],
+        'phone' => ['type' => 'tel', 'autocomplete' => 'tel', 'required' => true, 'maxlength' => 32],
+        'company' => ['type' => 'text', 'autocomplete' => 'organization', 'required' => false, 'maxlength' => 160],
+    ];
+    $privacyLink = \App\Support\Site\PageDirectory::isActive('privacy')
+        ? '<a href="'.e(\App\Support\Site\Navigation::page('privacy')).'" class="font-medium text-brand-600 underline hover:text-brand-700">'.e(__('site.lead_form.consent_privacy')).'</a>'
+        : e(__('site.lead_form.consent_privacy'));
+@endphp
+
+<div @class(['rounded-box-lg bg-white p-5 shadow-card sm:p-7' => ! $inModal])>
+    <div role="status" aria-live="polite" aria-atomic="true">
+        @if ($sent)
+            <div class="flex flex-col items-start gap-3 py-4 focus:outline-none" tabindex="-1" x-init="$nextTick(() => $el.focus())" data-lead-success>
+                <span class="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-600">
+                    <x-site.icon name="check" size="size-6" />
+                </span>
+                <h3 class="text-xl font-bold">{{ __('site.lead_form.success_title') }}</h3>
+                <p class="text-ink-2">{{ __('checkout.cart.quote.success_text') }}</p>
+                @if ($inModal)
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('lead-modal-close')"
+                        class="mt-2 inline-flex h-12 items-center justify-center rounded-btn border-[1.5px] border-line bg-white px-6 font-semibold text-ink transition-colors hover:border-brand hover:text-brand-600"
+                        data-lead-modal-done
+                    >{{ __('site.lead_modal.close') }}</button>
+                @endif
+            </div>
+        @endif
+    </div>
+
+    @unless ($sent)
+        <form wire:submit="requestQuote" novalidate class="relative grid gap-3.5" data-cart-quote-form>
+            <div role="alert">
+                @error('form')
+                    <p class="rounded-btn border border-danger/30 bg-danger/5 px-4 py-3 text-sm font-medium text-danger" data-form-error>{{ $message }}</p>
+                @enderror
+            </div>
+
+            @foreach ($fields as $field => $options)
+                <div class="grid gap-1.5" wire:key="cart-quote-field-{{ $field }}">
+                    <label for="{{ $idPrefix }}-{{ $field }}" class="text-sm font-semibold">
+                        {{ __("site.lead_form.{$field}") }}
+                        @if ($options['required'])
+                            <span class="text-danger" aria-hidden="true">*</span>
+                        @endif
+                    </label>
+                    <input
+                        id="{{ $idPrefix }}-{{ $field }}"
+                        type="{{ $options['type'] }}"
+                        wire:model="{{ $field }}"
+                        autocomplete="{{ $options['autocomplete'] }}"
+                        maxlength="{{ $options['maxlength'] }}"
+                        @if ($field === 'phone') inputmode="tel" @endif
+                        placeholder="{{ __("site.lead_form.{$field}_placeholder") }}"
+                        @if ($options['required']) aria-required="true" @endif
+                        @error($field) aria-invalid="true" aria-describedby="{{ $idPrefix }}-{{ $field }}-error" @enderror
+                        @class([$inputClass, 'border-danger' => $errors->has($field), 'border-line' => ! $errors->has($field)])
+                    >
+                    @error($field)
+                        <p id="{{ $idPrefix }}-{{ $field }}-error" class="text-sm text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endforeach
+
+            <div class="grid gap-1.5">
+                <label for="{{ $idPrefix }}-message" class="text-sm font-semibold">{{ __('site.lead_form.message') }}</label>
+                <textarea
+                    id="{{ $idPrefix }}-message"
+                    wire:model="message"
+                    rows="3"
+                    maxlength="1000"
+                    placeholder="{{ __('checkout.cart.quote.message_placeholder') }}"
+                    @error('message') aria-invalid="true" aria-describedby="{{ $idPrefix }}-message-error" @enderror
+                    @class([str_replace('h-12', 'min-h-24 py-3', $inputClass), 'border-danger' => $errors->has('message'), 'border-line' => ! $errors->has('message')])
+                ></textarea>
+                @error('message')
+                    <p id="{{ $idPrefix }}-message-error" class="text-sm text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Honeypot: off-screen and skipped by keyboard and screen readers. --}}
+            <div class="absolute -left-[10000px] size-px overflow-hidden" aria-hidden="true">
+                <input type="text" id="{{ $idPrefix }}-fax-ext" name="fax_ext" wire:model="fax_ext" tabindex="-1" autocomplete="off">
+            </div>
+
+            <button
+                type="submit"
+                class="mt-1 inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-btn bg-brand-600 px-[30px] text-base font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-wait disabled:opacity-80"
+                wire:loading.attr="disabled"
+                wire:target="requestQuote"
+            >
+                <span wire:loading.remove wire:target="requestQuote">{{ __('checkout.cart.quote.submit') }}</span>
+                <span wire:loading wire:target="requestQuote">{{ __('site.lead_form.sending') }}</span>
+            </button>
+
+            <p class="text-xs text-ink-2">{!! __('site.lead_form.consent', ['privacy' => $privacyLink]) !!}</p>
+        </form>
+    @endunless
+</div>
