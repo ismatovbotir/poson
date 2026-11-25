@@ -9,7 +9,7 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 lg:space-y-6">
+    <div class="mt-5 space-y-4 lg:space-y-6">
         @unless ($passwordConfirmed)
             <p class="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-password-required>
                 <x-admin.icon name="lock" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.password_hint') }}
