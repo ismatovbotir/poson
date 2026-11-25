@@ -38,6 +38,8 @@ return [
     'unrecorded_tasks' => [
         'monitoring:check',
         RecordWorkerHeartbeat::class,
+        // The worker started from the scheduler (routes/console.php) runs every minute for ~40 s.
+        'queue-worker',
     ],
 
     /*
@@ -72,7 +74,7 @@ return [
 
     /*
     | Queue of the "Run now" job (MON-S2). The worker must listen to it:
-    | `queue:work --queue=default,monitoring,ai-admin` (ai-admin: the AI product wizard stages, plan 32).
+    | `queue:work --queue=default,monitoring,ai-admin,knowledge` (the scheduler starts it, see WorkerQueues) (ai-admin: the AI product wizard stages, plan 32).
     */
 
     'queue' => 'monitoring',

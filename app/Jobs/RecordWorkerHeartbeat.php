@@ -32,6 +32,6 @@ class RecordWorkerHeartbeat implements ShouldBeUnique, ShouldQueue
     {
         $lagMs = max(0, (int) round((microtime(true) - $this->dispatchedAt) * 1000));
 
-        Heartbeat::tick(Heartbeat::WORKER, ['lag_ms' => $lagMs]);
+        Heartbeat::tick(Heartbeat::WORKER, ['lag_ms' => $lagMs, 'pcntl' => extension_loaded('pcntl')]);
     }
 }

@@ -9,6 +9,10 @@ return [
 
     'retry_after_warning' => 'Navbatning retry_after qiymati :retry_after s va «Hozir ishga tushirish» vazifasi taymautidan (:timeout s) katta emas: uzoq vazifa ikki marta ishga tushishi mumkin. Serverda DB_QUEUE_RETRY_AFTER=660 qiymatini belgilang.',
 
+    'pcntl_warning' => 'Navbat ishchisi uchun PHP «pcntl» kengaytmasi yoʻq, shu sababli vazifa vaqt chegarasi ishlamaydi. Hostingdan uni yoqishni soʻrang (cron PHP orqali tekshirish: php -m | grep pcntl) yoki jadval loglari va xotirani kuzating.',
+
+    'worker_hint' => 'Navbat ishchisini rejalashtiruvchi ishga tushiradi: bitta cron qatori (schedule:run) yetarli. queue:work bilan eski cron qatorini oʻchiring. DB_QUEUE_RETRY_AFTER=660 ni saqlang yoki umuman bermang. pcntl ni cron PHP orqali tekshiring (php -m | grep pcntl). 60 soniyagacha kechikish normal. Rejalashtiruvchi ham, ishchi ham jim boʻlsa — cron muammosi; faqat ishchi jim boʻlsa — jadval loglari, pcntl yoki xotirani tekshiring.',
+
     'units' => ['ms' => 'ms', 'min' => 'daq'],
 
     'telegram_problem_open' => 'Bot sahifasini ochish',

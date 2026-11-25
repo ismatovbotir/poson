@@ -9,6 +9,7 @@ use App\Models\PriceSyncLog;
 use App\Models\ScheduledTaskRun;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
+use App\Support\Monitoring\WorkerQueues;
 use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -230,6 +231,16 @@ Schedule::command('ai:prune-drafts')->hourly()->withoutOverlapping(30)->onOneSer
 */
 
 Schedule::command('cache:prune-expired')->dailyAt('04:05')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
+
+/*
+| Queue worker from the scheduler (shared hosting: one cron line, `schedule:run`).
+| Runs about 40 s each minute in the foreground (no runInBackground(): RunRecorder
+| rule), no --stop-when-empty. Must stay the LAST Schedule:: line: it blocks the
+| events after it for those 40 s. Not recorded in scheduled_task_runs
+| (monitoring.unrecorded_tasks). The queue list is built in WorkerQueues.
+*/
+Schedule::command('queue:work', ['database', '--queue' => WorkerQueues::list(), '--max-time' => 40, '--sleep' => 2, '--tries' => 3, '--timeout' => 60, '--memory' => 128])
+    ->everyMinute()->withoutOverlapping(2)->onOneServer()->name('queue-worker');
 
 /*
 | Keep the last output of every command (overwritten each run, never

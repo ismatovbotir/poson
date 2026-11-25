@@ -24,6 +24,14 @@
         </p>
     @endif
 
+    @if (($worker?->meta['pcntl'] ?? null) === false)
+        <p class="mt-4 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note" data-pcntl-warning>
+            <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.pcntl_warning') }}
+        </p>
+    @endif
+
+    <p class="mt-4 text-sm text-slate-500" data-worker-hint>{{ __($t.'.worker_hint') }}</p>
+
     @foreach ($telegramProblems as $event => $since)
         <p wire:key="telegram-problem-{{ $event }}" class="mt-4 flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-danger" role="alert" data-telegram-problem="{{ $event }}">
             <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />

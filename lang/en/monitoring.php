@@ -9,6 +9,10 @@ return [
 
     'retry_after_warning' => 'Queue retry_after is :retry_after s, which is not above the “Run now” job timeout (:timeout s): a long task could be started twice. Set DB_QUEUE_RETRY_AFTER=660 on the server.',
 
+    'pcntl_warning' => 'The PHP "pcntl" extension is missing for the queue worker, so the job time limit is not enforced. Ask the host to enable it (check with the cron\'s PHP binary: php -m | grep pcntl), or watch the schedule logs and memory.',
+
+    'worker_hint' => 'The queue worker is started by the scheduler: one cron line (schedule:run) is enough. Delete any old queue:work cron line. Keep DB_QUEUE_RETRY_AFTER=660 or leave it unset. Check pcntl with the cron\'s PHP binary (php -m | grep pcntl). A lag of up to about 60 s is normal. If both the scheduler and the worker are silent, it is a cron problem; if only the worker is silent, check the schedule logs, pcntl or memory.',
+
     'units' => ['ms' => 'ms', 'min' => 'min'],
 
     'telegram_problem_open' => 'Open the bot page',
