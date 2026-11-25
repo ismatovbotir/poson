@@ -98,6 +98,52 @@ class Attribute extends Model
     }
 
     /**
+     * Plan 43 #26: an option label with the attribute's unit ("203 dpi",
+     * "25 mm"), for the catalog facets and the card specs. Only a purely
+     * numeric label ("203", "12.7", "100 x 150", "1/2") gets the unit of the
+     * current locale; "USB 3.0", "Wi-Fi 6" and "OUT" stay as they are, and so
+     * does a label that already ends with the unit as stored or as localized
+     * in any supported locale ("25 mm", "25mm"; "3 dim" doesn't count for "m").
+     * Plain text: the caller escapes it.
+     */
+    public function optionWithUnit(string $label): string
+    {
+        $unit = $this->unitLabel();
+
+        if ($unit === null || trim($label) === '' || $this->endsWithUnit($label)) {
+            return $label;
+        }
+
+        if (preg_match('/^[\d\s.,\-–\/x×]+$/u', $label) !== 1 || preg_match('/\d/', $label) !== 1) {
+            return $label;
+        }
+
+        return trim($label).' '.$unit;
+    }
+
+    /**
+     * Whether the label ends with the unit (stored code or a localized label),
+     * case-insensitively, not as the tail of a longer word.
+     */
+    private function endsWithUnit(string $label): bool
+    {
+        $units = [(string) $this->unit];
+
+        foreach (config('app.supported_locales', []) as $locale) {
+            $key = "catalog.units.{$this->unit}";
+            $units[] = Lang::has($key, $locale) ? (string) __($key, [], $locale) : (string) $this->unit;
+        }
+
+        foreach (array_unique(array_filter($units, fn (string $unit): bool => trim($unit) !== '')) as $unit) {
+            if (preg_match('/(?<!\p{L})\s?'.preg_quote(trim($unit), '/').'$/iu', trim($label)) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * A formatted number with its unit: plural-aware for counted units
      * (catalog.unit_counts: "2 года", "5 лет", "1 month"), else "50 mm".
      * A fractional number takes the form of 2 ("12,5 месяца", "1.5 months").

@@ -8,7 +8,7 @@
             <div class="flex items-center gap-2">
                 <label for="add-qty-{{ $productId }}" class="sr-only">{{ __('checkout.cart.quantity') }}</label>
                 <button type="button" wire:click="decrement" @disabled($qty <= $minQty) class="grid size-[54px] place-items-center rounded-btn border-[1.5px] border-line text-lg font-semibold transition-colors hover:border-brand disabled:opacity-40" aria-label="{{ __('checkout.cart.decrease') }}">−</button>
-                <input id="add-qty-{{ $productId }}" type="number" wire:model.live.debounce.400ms="qty" min="{{ $minQty }}" max="{{ $maxQty }}" step="1" inputmode="numeric" class="h-[54px] w-20 rounded-btn border-[1.5px] border-line bg-white px-2 text-center font-semibold tabular-nums focus:border-brand-600 focus:outline-none" data-qty>
+                <input id="add-qty-{{ $productId }}" type="number" wire:model.live.debounce.400ms="qty" min="{{ $minQty }}" max="{{ $maxQty }}" step="1" inputmode="numeric" class="h-[54px] w-20 rounded-btn border-[1.5px] border-line bg-white px-2 text-center font-semibold tabular-nums focus:border-brand-600" data-qty>
                 <button type="button" wire:click="increment" @disabled($qty >= $maxQty) class="grid size-[54px] place-items-center rounded-btn border-[1.5px] border-line text-lg font-semibold transition-colors hover:border-brand disabled:opacity-40" aria-label="{{ __('checkout.cart.increase') }}">+</button>
             </div>
 

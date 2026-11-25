@@ -10,6 +10,7 @@ use App\Http\Controllers\Site\PublicOrderController;
 use App\Http\Controllers\Site\PublicQuoteController;
 use App\Http\Controllers\Site\RepairStatusController;
 use App\Http\Controllers\Site\RobotsController;
+use App\Http\Controllers\Site\SearchSuggestController;
 use App\Http\Controllers\Site\SitemapController;
 use App\Http\Controllers\Site\SubmitJobApplicationController;
 use App\Http\Middleware\CaptureAttribution;
@@ -86,6 +87,8 @@ Route::prefix('{locale}')
         Route::livewire('/brands/{brand:slug}', Brands\Show::class)->name('brands.show');
 
         Route::livewire('/search', Search::class)->name('search');
+        // Plan 43 #40 (UQ2-1): the header search dropdown's JSON; noindex, robots.txt disallows /*/search.
+        Route::get('/search/suggest', SearchSuggestController::class)->middleware('throttle:search-suggest')->name('search.suggest');
 
         // Cart (plan 11a): 404 while config site.cart_enabled is off; noindex, robots.txt disallows /*/cart.
         // Service request (plan 36): no /services index or show route; a future /services/{service} must come after this one.

@@ -116,7 +116,7 @@
                                             step="1"
                                             inputmode="numeric"
                                             wire:change="updateQty('{{ $line->lineKey }}', $event.target.value)"
-                                            class="h-10 w-20 rounded-btn border-[1.5px] border-line bg-white px-2 text-center font-semibold tabular-nums focus:border-brand-600 focus:outline-none"
+                                            class="h-10 w-20 rounded-btn border-[1.5px] border-line bg-white px-2 text-center font-semibold tabular-nums focus:border-brand-600"
                                             data-qty
                                         >
                                         <button type="button" wire:click="increment('{{ $line->lineKey }}')" @disabled($line->qty >= $maxQty) class="grid size-10 place-items-center rounded-btn border-[1.5px] border-line text-lg font-semibold transition-colors hover:border-brand disabled:opacity-40" aria-label="{{ __('checkout.cart.increase') }}">+</button>

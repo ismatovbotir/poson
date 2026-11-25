@@ -6,6 +6,7 @@ use App\Actions\Api\SyncPrices;
 use App\Actions\Mcp\RecordMcpCall;
 use App\Enums\McpCallStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Site\SearchSuggestController;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\AuthenticateMcpToken;
 use App\Http\Middleware\EnsurePasswordChanged;
@@ -180,6 +181,11 @@ class AppServiceProvider extends ServiceProvider
         ]);
         // Plan 31 (CR-1): the careers application POST, per IP, after CSRF, before every other check.
         RateLimiter::for('careers-apply', fn (Request $request) => Limit::perMinutes(10, 5)->by('careers-apply:'.$request->ip()));
+
+        // Plan 43 #40 (UQ2-1): header search suggestions, 60 per minute per IP (IPv6 by /64); a quiet, empty 429.
+        RateLimiter::for('search-suggest', fn (Request $request) => Limit::perMinute(60)
+            ->by('search-suggest:'.LivewireThrottle::ipKey($request->ip()))
+            ->response(fn (Request $request, array $headers) => response()->json([], 429, [...$headers, ...SearchSuggestController::HEADERS])));
 
         // Price API (plan 09): 30 batches per minute per token (after AuthenticateApiToken).
         RateLimiter::for('price-api', fn (Request $request) => Limit::perMinute(SyncPrices::RATE_PER_MINUTE)

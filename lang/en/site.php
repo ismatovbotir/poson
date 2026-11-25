@@ -44,6 +44,10 @@ return [
         'search_label' => 'Search the catalog',
         'request_quote' => 'Request a quote',
         'menu_title' => 'Menu',
+        'suggest_label' => 'Search suggestions',
+        'suggest_categories' => 'Categories',
+        'suggest_products' => 'Products',
+        'suggest_all' => 'Show all results',
     ],
 
     'nav' => [
@@ -432,6 +436,10 @@ return [
         'nothing' => 'Nothing found for “:query”.',
         'hint' => 'Check the spelling or describe your task, and a specialist will select the equipment.',
         'seo_description' => 'Search the Poson catalog of Auto-ID equipment, consumables and services.',
+        'categories' => 'Result categories',
+        'all_categories' => 'All',
+        'write_telegram' => 'Write to us in Telegram',
+        'popular_categories' => 'Popular categories',
     ],
 
     'footer' => [

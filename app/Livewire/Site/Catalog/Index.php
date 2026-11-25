@@ -284,7 +284,8 @@ class Index extends Component
         return view('livewire.site.catalog.index', [
             'products' => $products,
             'cards' => ProductCards::fromProducts($products->items()),
-            'facets' => $query->facets(),
+            // Plan 43 #27: single-option groups that every result has are hidden.
+            'facets' => CatalogQuery::withoutRedundantFacets($query->facets(), $products->total()),
             'chips' => $query->activeFilters(),
             'activeCount' => $query->activeFilterCount(),
             'subcategories' => $this->subcategories(),
