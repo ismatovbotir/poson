@@ -20,7 +20,8 @@ use Throwable;
  * built from the current request (H1: a spoofed Host header must not move
  * the webhook). Refuses without a bot token or webhook secret. setWebhook
  * sends the secret_token, allowed_updates (message, callback_query,
- * my_chat_member), max_connections 10 and drop_pending_updates.
+ * my_chat_member and, plan 41, the four business types), max_connections 10
+ * and drop_pending_updates.
  *
  * set() / delete() check telegram.bot themselves for a user (null = the
  * console as system actor). The explicit set() drops pending updates by
@@ -40,7 +41,11 @@ class ConfigureTelegramWebhook
 
     public const AUDIT_KEY = 'telegram.webhook';
 
-    public const ALLOWED_UPDATES = ['message', 'callback_query', 'my_chat_member'];
+    /**
+     * Plan 41: plus the four Telegram Business types (BusinessUpdate::TYPES). setWebhook replaces the
+     * list, so after a deploy the webhook is re-registered with updateAllowedUpdates() (VO-15).
+     */
+    public const ALLOWED_UPDATES = ['message', 'callback_query', 'my_chat_member', 'business_connection', 'business_message', 'edited_business_message', 'deleted_business_messages'];
 
     public const MAX_CONNECTIONS = 10;
 
@@ -138,6 +143,61 @@ class ConfigureTelegramWebhook
         }
 
         SettingsAudit::record(SettingsArea::TelegramBot, self::AUDIT_KEY, AuditAction::WebhookDeleted, $user, $ip);
+    }
+
+    /**
+     * Plan 41 (VO-15): register the webhook again so Telegram sends the
+     * current ALLOWED_UPDATES, WITHOUT dropping pending updates, and ONLY
+     * when Telegram's current URL is exactly our expected URL (never take
+     * over a webhook that points elsewhere). Runbook: deploy (office ingest
+     * off) → this → enable ingest. Same rules as set() (telegram.bot, audit).
+     *
+     * @return self::SKIPPED|self::SET
+     *
+     * @throws AuthorizationException
+     * @throws TelegramBotException not_https | no_token | no_secret | telegram_error
+     */
+    public function updateAllowedUpdates(?User $user, ?string $ip): string
+    {
+        $this->authorize($user);
+
+        $expected = self::expectedUrl();
+
+        if ($expected === null) {
+            throw new TelegramBotException('not_https');
+        }
+
+        if (! $this->client->isConfigured()) {
+            throw new TelegramBotException('no_token');
+        }
+
+        try {
+            $current = $this->client->getWebhookInfo()['url'] ?? null;
+        } catch (TelegramException $exception) {
+            throw new TelegramBotException('telegram_error', apiCode: $exception->code());
+        }
+
+        if (! is_string($current) || ! hash_equals($expected, $current)) {
+            return self::SKIPPED;
+        }
+
+        $this->register($user, $ip, dropPendingUpdates: false);
+
+        return self::SET;
+    }
+
+    /**
+     * Whether a getWebhookInfo result lists every update type we need (an
+     * empty or missing list means Telegram's default, which leaves out the
+     * business types).
+     *
+     * @param  array<string, mixed>|null  $info
+     */
+    public static function hasAllowedUpdates(?array $info): bool
+    {
+        $allowed = is_array($info['allowed_updates'] ?? null) ? $info['allowed_updates'] : [];
+
+        return array_diff(self::ALLOWED_UPDATES, $allowed) === [];
     }
 
     /**

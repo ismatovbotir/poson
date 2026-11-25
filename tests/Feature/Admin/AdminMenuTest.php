@@ -57,6 +57,8 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'seo' => ['sitemap'],
         'telegram' => ['telegram-status', 'telegram-bot', 'telegram-mini-app', 'telegram-settings'],
         'chatbot' => ['telegram-chats', 'chatbot-rules', 'chatbot-unmatched', 'chatbot-console', 'chatbot-stats', 'chatbot-settings', 'chatbot-help'],
+        // Plan 41: Virtual office.
+        'office' => ['office-chats', 'office-unmarked', 'office-education', 'office-settings'],
         'settings' => ['company', 'users', 'checkout', 'indexing', 'integrations', 'api-tokens', 'mcp'],
         'system' => ['monitoring', 'commands'],
     ]],
@@ -66,12 +68,14 @@ it('shows each role its part of the menu', function (Role $role, array $expected
         'catalog' => $catalogItems,
         'service' => ['service-requests', 'repairs'],
         'chatbot' => ['telegram-chats', 'chatbot-help'],
+        'office' => ['office-chats'],
     ]],
     'service engineer' => [Role::ServiceEngineer, [
         'dashboard' => ['dashboard'],
         'sales' => ['leads', 'customers', 'orders'],
         'catalog' => $catalogItems,
         'service' => ['service-requests', 'repairs'],
+        'office' => ['office-chats'],
     ]],
     'content manager' => [Role::ContentManager, [
         'dashboard' => ['dashboard'],

@@ -1,0 +1,11 @@
+{
+    "update_id": 0,
+    "business_message": {
+        "business_connection_id": "fake-conn-0001",
+        "message_id": 107,
+        "from": {"id": 9990010777, "is_bot": false, "first_name": "Someone"},
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza"},
+        "date": 1764000700,
+        "text": "A sender who is neither the owner nor the chat."
+    }
+}

@@ -65,6 +65,11 @@ enum AuditAction: string
     case PasswordChanged = 'password_changed';
     case PasswordReset = 'password_reset';
 
+    /**
+     * Plan 41: a Telegram Business chat marked as client / employee / ignored (never a name).
+     */
+    case Marked = 'marked';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

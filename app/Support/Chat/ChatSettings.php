@@ -209,7 +209,7 @@ final class ChatSettings
         $caps = [];
 
         foreach (AiUsageChannel::cases() as $channel) {
-            if (! $channel->isAdmin()) {
+            if (! $channel->isAdmin() || $channel->isOffice()) {
                 continue;
             }
 

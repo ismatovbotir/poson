@@ -62,6 +62,7 @@ return [
         'telegram' => 'Telegram',
         'phone' => 'Телефон',
         'manual' => 'Вручную',
+        'tg_business' => 'Telegram Business',
     ],
 
     'preferred_contact' => [
@@ -116,6 +117,8 @@ return [
         'cv_download' => 'Скачивание резюме',
         'ai_create' => 'Создан с ИИ',
         'ai_improve' => 'Улучшен с ИИ',
+        'ai_summary' => 'Анализ виртуального офиса',
+        'office_mark' => 'Чат отмечен',
     ],
 
     'quote_status' => [
@@ -235,6 +238,7 @@ return [
         'chatbot' => 'Чат-бот',
         'telegram_inbox' => 'Входящие Telegram',
         'users' => 'Сотрудники',
+        'office' => 'Виртуальный офис',
     ],
 
     'audit_action' => [
@@ -264,6 +268,7 @@ return [
         'deleted' => 'Удалено навсегда',
         'password_changed' => 'Пароль изменён',
         'password_reset' => 'Пароль сброшен',
+        'marked' => 'Отмечен',
     ],
 
     'price_sync_status' => [
@@ -546,6 +551,10 @@ return [
         'adm_vision' => 'Админ: чтение фото',
         'adm_write' => 'Админ: написание текста',
         'adm_trans' => 'Админ: перевод',
+        'vo_route' => 'Виртуальный офис: маршрутизатор',
+        'vo_sales' => 'Виртуальный офис: продажи',
+        'vo_serv' => 'Виртуальный офис: сервис',
+        'vo_support' => 'Виртуальный офис: поддержка',
     ],
 
     'chat_ai_role' => [
@@ -699,4 +708,40 @@ return [
         'worker_missing' => 'Обработчик очереди не запущен: измерение не началось.',
         'exception' => 'Измерение не удалось. См. лог сервера.',
     ],
+
+    'business_chat_kind' => [
+        'unmarked' => 'Не отмечен',
+        'client' => 'Клиент',
+        'employee' => 'Сотрудник',
+        'ignored' => 'Игнорируется',
+    ],
+
+    'business_author' => [
+        'client' => 'Клиент',
+        'owner' => 'Менеджер',
+        'bot' => 'Бот',
+    ],
+
+    'agent_role' => [
+        'router' => 'Маршрутизатор',
+        'sales' => 'Продажи',
+        'service' => 'Сервис',
+        'support' => 'Поддержка',
+        'other' => 'Другое',
+    ],
+
+    'analysis_status' => [
+        'queued' => 'В очереди',
+        'running' => 'Выполняется',
+        'done' => 'Готово',
+        'failed' => 'Ошибка',
+        'skipped' => 'Пропущено',
+        'capped' => 'Достигнут дневной лимит',
+    ],
+
+    'telegram_party' => [
+        'client' => 'Клиент',
+        'employee' => 'Сотрудник',
+    ],
+
 ];

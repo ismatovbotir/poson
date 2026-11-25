@@ -24,7 +24,8 @@ use Illuminate\Database\Seeder;
  * never changed), the category icons (ApplyCategoryIcons: only empty or
  * old default icons), the real products (ProductsSeeder, plan 16:
  * insert-only by SKU, published directly unless specs are missing; PublishSeededProducts
- * publishes earlier drafts once), FAQ, the built-in chat bot rules (inert until its switch is on), starter pages and draft articles, then the demo
+ * publishes earlier drafts once), FAQ, the built-in chat bot rules (inert until its switch is on), the
+ * Virtual office agents (plan 41, create-only, inert until the office AI is on), starter pages and draft articles, then the demo
  * news and banners (DemoSeeding opt-in for this process only). There are no
  * demo products any more. Never demo leads, customers, quotes or extra
  * users. Every step is idempotent. Run `php artisan demo:remove --force`
@@ -51,6 +52,7 @@ class LaunchSeeder extends Seeder
         $this->call([
             FaqSeeder::class,
             ChatbotDefaultsSeeder::class,
+            OfficeAgentsSeeder::class,
             PagesSeeder::class,
             ArticlesSeeder::class,
         ]);

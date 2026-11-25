@@ -2,6 +2,7 @@
 
 namespace App\Support\Telegram;
 
+use App\Enums\LeadSource;
 use App\Models\Lead;
 use App\Models\LeadItem;
 use App\Support\Phone;
@@ -20,6 +21,9 @@ use Illuminate\Support\Str;
  * the matched customer. Every value is escaped with e(). Never included: email, INN, UTM tags, traffic source,
  * page / landing URLs, IP. The "Open in admin" button only when APP_URL is
  * https; its URL is APP_URL + the relative admin path (never the request host).
+ *
+ * Plan 41 (VO-14): a TelegramBusiness lead carries the reference, type,
+ * source and the button only.
  *
  * Needs "items" and "customer" loaded on the lead.
  */
@@ -60,6 +64,12 @@ final readonly class LeadMessage
             $lead->traffic_channel?->label(),
         ]);
         $lines[] = self::line('channel', implode(' · ', $channel));
+
+        // Plan 41 (VO-14): a Telegram Business lead comes from a private chat: reference, type,
+        // source and the admin link only — no products, name, phone, company, comment or customer.
+        if ($lead->source === LeadSource::TelegramBusiness) {
+            return implode("\n", $lines);
+        }
 
         $items = $lead->items->take(self::MAX_ITEMS)->map(fn (LeadItem $item): string => e($item->product_name)
             .($item->sku ? ' ('.e($item->sku).')' : '')

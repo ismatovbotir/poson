@@ -82,6 +82,18 @@ class RolesAndPermissionsSeeder extends Seeder
     public const AI = ['ai.generate'];
 
     /**
+     * Plan 41 §7: Virtual office. office.chats = client chats assigned to me (chats-all: every
+     * client chat), office.analyse = "Analyse now" and the lead form, office.assign = hand a chat
+     * to another office user (sales: own chats only, in BusinessChatPolicy). mark, education and
+     * settings: Admin only. Also added by the add_office_permissions migration.
+     */
+    public const OFFICE = ['office.chats', 'office.chats-all', 'office.analyse', 'office.mark', 'office.assign', 'office.education', 'office.settings'];
+
+    public const OFFICE_SALES = ['office.chats', 'office.analyse', 'office.assign'];
+
+    public const OFFICE_ENGINEER = ['office.chats', 'office.analyse'];
+
+    /**
      * Seed the roles and permissions.
      */
     public function run(): void
@@ -174,6 +186,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'payments.viewAny', 'payments.view',
                 ...self::TELEGRAM_SALES,
                 ...self::REPAIRS_SALES,
+                ...self::OFFICE_SALES,
             ],
 
             Role::ServiceEngineer->value => [
@@ -184,6 +197,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'customers.viewAny', 'customers.view',
                 'orders.viewAny', 'orders.view',
                 ...self::REPAIRS_ENGINEER,
+                ...self::OFFICE_ENGINEER,
             ],
         ];
     }
@@ -262,6 +276,8 @@ class RolesAndPermissionsSeeder extends Seeder
             ...self::CAREERS,
             // Plan 32: AI product wizard (also added by the add_ai_generate_permission migration).
             ...self::AI,
+            // Plan 41: Virtual office (also added by the add_office_permissions migration).
+            ...self::OFFICE,
         ];
     }
 

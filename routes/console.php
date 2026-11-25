@@ -240,3 +240,16 @@ foreach (Schedule::events() as $scheduledEvent) {
         $scheduledEvent->storeOutput();
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Virtual office (plan 41), Tashkent time
+|--------------------------------------------------------------------------
+| Every minute: queue the due analyses of Telegram Business client chats
+| (nothing while the office AI is off; at most 3 pending at once). Nightly:
+| retention (unmarked stubs 14 days, client chats 12 months, 5 analyses per
+| chat, drafts 30 days, strangers' connections 30 days), counts-only log.
+*/
+
+Schedule::command('office:analyse-due')->everyMinute()->withoutOverlapping(5)->onOneServer();
+Schedule::command('office:prune')->dailyAt('03:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();

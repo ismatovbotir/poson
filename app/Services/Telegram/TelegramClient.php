@@ -244,6 +244,19 @@ class TelegramClient
     }
 
     /**
+     * A Telegram Business connection (plan 41 §3): the only business call
+     * the app makes in phase 1 (read-only, VO-2). Returns BusinessConnection.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws TelegramException
+     */
+    public function getBusinessConnection(string $connectionId): array
+    {
+        return $this->call('getBusinessConnection', ['business_connection_id' => $connectionId]);
+    }
+
+    /**
      * Long polling (development only: telegram:poll). Use withTimeout() above $timeout.
      *
      * @param  list<string>  $allowedUpdates

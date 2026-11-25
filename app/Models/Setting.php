@@ -6,6 +6,7 @@ use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\ChatSettings;
 use App\Support\CompanySettings;
 use App\Support\Media\AdminMediaUrl;
+use App\Support\Office\OfficeSettings;
 use App\Support\Secrets;
 use Database\Factories\SettingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -159,6 +160,12 @@ class Setting extends Model implements HasMedia
         if ($this->group === 'chatbot') {
             ChatbotSwitch::forget();
             ChatSettings::forget();
+
+            return;
+        }
+
+        if ($this->group === 'office') {
+            OfficeSettings::forget();
 
             return;
         }

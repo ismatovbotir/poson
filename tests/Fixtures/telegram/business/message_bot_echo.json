@@ -1,0 +1,12 @@
+{
+    "update_id": 0,
+    "business_message": {
+        "business_connection_id": "fake-conn-0001",
+        "message_id": 106,
+        "from": {"id": 9990000001, "is_bot": false, "first_name": "Owner"},
+        "sender_business_bot": {"id": 9990000500, "is_bot": true, "first_name": "Poson bot", "username": "fake_poson_bot"},
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza"},
+        "date": 1764000600,
+        "text": "Sent by the bot on behalf of the owner (phase 2)."
+    }
+}

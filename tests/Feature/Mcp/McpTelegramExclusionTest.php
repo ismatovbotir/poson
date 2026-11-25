@@ -1,6 +1,12 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\AgentProfile;
+use App\Models\AgentProfileVersion;
+use App\Models\BusinessChat;
+use App\Models\BusinessChatAnalysis;
+use App\Models\BusinessConnection;
+use App\Models\BusinessMessage;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\Repair;
@@ -31,6 +37,8 @@ const MCP_ALLOWED_MODELS = [
 const MCP_FORBIDDEN_CLASSES = [
     TelegramUser::class, TelegramMessage::class, TelegramUpdate::class,
     Customer::class, Contact::class, Activity::class, Repair::class, WebChat::class, WebChatMessage::class,
+    // Plan 41 (VO-17): Virtual office (Telegram Business) models.
+    BusinessConnection::class, BusinessChat::class, BusinessMessage::class, BusinessChatAnalysis::class, AgentProfile::class, AgentProfileVersion::class,
 ];
 
 /**
@@ -221,4 +229,18 @@ it('keeps website chat models and tables out of MCP and sees them in the scanner
         ->and(McpExclusionScanner::labels('<?php return DB::table("web_chats")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name')
         ->and(McpExclusionScanner::labels('<?php return DB::table("web_chat_messages")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name')
         ->and(McpExclusionScanner::labels('<?php return DB::table("x")->where("web_chats.id", 1);', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name');
+});
+
+/**
+ * Plan 41 (VO-17): Telegram Business chats, messages and analyses are private conversations.
+ */
+it('keeps every Virtual office model and table out of MCP and catches a referencing fixture', function () {
+    expect(McpExclusionScanner::CRM_MODELS)->toContain('BusinessConnection', 'BusinessChat', 'BusinessMessage', 'BusinessChatAnalysis', 'AgentProfile', 'AgentProfileVersion')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("business_chats")->count();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name', 'business_')
+        ->and(McpExclusionScanner::labels('<?php return $row->where("business_connection_id", 1);', 'app/Mcp/Tools/Fixture.php'))->toContain('business_')
+        ->and(McpExclusionScanner::labels('<?php return DB::table("agent_profile_versions")->get();', 'app/Mcp/Tools/Fixture.php'))->toContain('CRM table name');
+
+    foreach (array_merge(mcpPhpFiles('app/Mcp', 'app/Actions/Mcp'), mcpSupportFiles()) as $path) {
+        expect(McpExclusionScanner::withoutComments((string) file_get_contents(mcpRoot($path))))->not->toMatch('/\\bBusiness(?:Chat|Message|Connection|ChatAnalysis)\\b|AgentProfile|Office\\\\/', $path);
+    }
 });

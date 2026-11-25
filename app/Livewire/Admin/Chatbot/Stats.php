@@ -142,6 +142,18 @@ class Stats extends Component
      */
     public static function prices(AiUsageChannel $channel): array
     {
+        // Plan 41: the Virtual office channels are priced by their role's configured model.
+        if ($channel->isOffice()) {
+            $role = match ($channel) {
+                AiUsageChannel::OfficeRoute => 'router',
+                AiUsageChannel::OfficeSales => 'sales',
+                AiUsageChannel::OfficeService => 'service',
+                default => 'support',
+            };
+
+            return (array) config('chatbot.ai.product.prices.'.config("office.agents.{$role}.model"), []);
+        }
+
         $stage = match ($channel) {
             AiUsageChannel::AdminVision => 'vision',
             AiUsageChannel::AdminWrite => 'write',

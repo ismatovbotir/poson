@@ -32,6 +32,18 @@
             </select>
             <x-admin.icon name="chevron-down" size="size-4" class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
         </label>
+        @if ($canFilterParty)
+            <label class="relative flex-1 sm:flex-none">
+                <span class="sr-only">{{ __('office.party.filter') }}</span>
+                <select wire:model.live="party" data-party-filter class="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 lg:h-10">
+                    <option value="">{{ __('office.party.filter_all') }}</option>
+                    @foreach (\App\Enums\TelegramParty::cases() as $case)
+                        <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                    @endforeach
+                </select>
+                <x-admin.icon name="chevron-down" size="size-4" class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            </label>
+        @endif
         @if ($filtering)
             <button type="button" wire:click="clearFilters" class="px-1 text-sm font-semibold text-brand-600 hover:text-brand-700">{{ __($t.'.filters.clear') }}</button>
         @endif

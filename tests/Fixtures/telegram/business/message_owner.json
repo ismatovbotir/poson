@@ -1,0 +1,11 @@
+{
+    "update_id": 0,
+    "business_message": {
+        "business_connection_id": "fake-conn-0001",
+        "message_id": 102,
+        "from": {"id": 9990000001, "is_bot": false, "first_name": "Owner", "username": "fake_owner"},
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza", "username": "fake_client"},
+        "date": 1764000200,
+        "text": "Assalomu alaykum! Kuniga nechta yorliq chop etasiz?"
+    }
+}

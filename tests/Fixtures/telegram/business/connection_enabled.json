@@ -1,0 +1,11 @@
+{
+    "update_id": 0,
+    "business_connection": {
+        "id": "fake-conn-0001",
+        "user": {"id": 9990000001, "is_bot": false, "first_name": "Owner", "username": "fake_owner"},
+        "user_chat_id": 9990000001,
+        "date": 1764000000,
+        "rights": {"can_reply": true, "can_read_messages": true, "can_edit_bio": true, "can_transfer_stars": true},
+        "is_enabled": true
+    }
+}

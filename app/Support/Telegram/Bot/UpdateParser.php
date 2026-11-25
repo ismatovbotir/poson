@@ -98,9 +98,15 @@ final readonly class UpdateParser
     /**
      * Null when the payload has no integer update_id.
      *
+     * Plan 41 (VO-2): the four Telegram Business update types become a
+     * separate BusinessUpdate DTO (never this class), which
+     * HandleTelegramUpdate routes away right after the dedupe, before any
+     * customer-bot code. A "message" that carries business_connection_id is
+     * not a bot conversation and is reduced to TYPE_OTHER (dropped).
+     *
      * @param  array<mixed>  $update
      */
-    public static function fromArray(array $update): ?self
+    public static function fromArray(array $update): self|BusinessUpdate|null
     {
         $updateId = $update['update_id'] ?? null;
 
@@ -108,7 +114,17 @@ final readonly class UpdateParser
             return null;
         }
 
+        $business = BusinessUpdate::fromUpdate($updateId, $update);
+
+        if ($business !== null) {
+            return $business;
+        }
+
         if (is_array($update['message'] ?? null)) {
+            if (array_key_exists('business_connection_id', $update['message'])) {
+                return new self($updateId, self::TYPE_OTHER);
+            }
+
             return self::fromMessage($updateId, $update['message']);
         }
 
@@ -143,23 +159,53 @@ final readonly class UpdateParser
      */
     private static function fromMessage(int $updateId, array $message): self
     {
-        $kind = self::kindOf($message);
-        $text = $kind === TelegramMessageKind::Text ? self::string($message['text'] ?? null, self::TEXT_LIMIT) : self::string($message['caption'] ?? null, self::TEXT_LIMIT);
-        $contact = $kind === TelegramMessageKind::Contact && is_array($message['contact'] ?? null) ? $message['contact'] : [];
+        $content = self::content($message);
 
         return new self(
             $updateId,
             self::TYPE_MESSAGE,
             ...self::chatAndSender($message['chat'] ?? null, $message['from'] ?? null),
             messageId: is_int($message['message_id'] ?? null) ? $message['message_id'] : null,
-            kind: $kind,
-            text: $text,
-            media: self::mediaParams($kind, $message),
-            isForwarded: isset($message['forward_origin']) || isset($message['forward_from']) || isset($message['forward_date']),
-            contactPhone: self::string($contact['phone_number'] ?? null, 32),
-            contactUserId: is_int($contact['user_id'] ?? null) ? $contact['user_id'] : null,
-            mediaGroupId: is_string($message['media_group_id'] ?? null) && preg_match('/^[\w-]{1,32}$/D', $message['media_group_id']) === 1 ? $message['media_group_id'] : null,
+            kind: $content['kind'],
+            text: $content['text'],
+            media: $content['media'],
+            isForwarded: $content['isForwarded'],
+            contactPhone: $content['contactPhone'],
+            contactUserId: $content['contactUserId'],
+            mediaGroupId: $content['mediaGroupId'],
         );
+    }
+
+    /**
+     * The safe content of a message (shared with BusinessUpdate, plan 41):
+     * kind, cleaned text or caption, media params (never a file_id), the
+     * shared contact's phone and user id, the forward flag and media group.
+     *
+     * @param  array<mixed>  $message
+     * @return array{kind: TelegramMessageKind, text: ?string, media: array<string, int|string>, isForwarded: bool, contactPhone: ?string, contactUserId: ?int, mediaGroupId: ?string}
+     */
+    public static function content(array $message): array
+    {
+        $kind = self::kindOf($message);
+        $contact = $kind === TelegramMessageKind::Contact && is_array($message['contact'] ?? null) ? $message['contact'] : [];
+
+        return [
+            'kind' => $kind,
+            'text' => $kind === TelegramMessageKind::Text ? self::string($message['text'] ?? null, self::TEXT_LIMIT) : self::string($message['caption'] ?? null, self::TEXT_LIMIT),
+            'media' => self::mediaParams($kind, $message),
+            'isForwarded' => isset($message['forward_origin']) || isset($message['forward_from']) || isset($message['forward_date']),
+            'contactPhone' => self::string($contact['phone_number'] ?? null, 32),
+            'contactUserId' => is_int($contact['user_id'] ?? null) ? $contact['user_id'] : null,
+            'mediaGroupId' => is_string($message['media_group_id'] ?? null) && preg_match('/^[\w-]{1,32}$/D', $message['media_group_id']) === 1 ? $message['media_group_id'] : null,
+        ];
+    }
+
+    /**
+     * A trimmed string without control characters, cut to $limit; null when empty (shared with BusinessUpdate).
+     */
+    public static function cleanString(mixed $value, int $limit): ?string
+    {
+        return self::string($value, $limit);
     }
 
     /**

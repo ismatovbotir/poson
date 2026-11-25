@@ -18,7 +18,7 @@ final class McpExclusionScanner
         'app/Support/Orders/OrderMetrics.php',
     ];
 
-    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched', 'ChatAiTurn', 'ChatAiUsageDaily', 'JobApplication', 'AiProductDraft', 'WebChat', 'WebChatMessage'];
+    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched', 'ChatAiTurn', 'ChatAiUsageDaily', 'JobApplication', 'AiProductDraft', 'WebChat', 'WebChatMessage', 'BusinessConnection', 'BusinessChat', 'BusinessMessage', 'BusinessChatAnalysis', 'AgentProfile', 'AgentProfileVersion'];
 
     /**
      * Exact phrases that are not CRM data, per file (repo-relative path => phrases).
@@ -50,6 +50,8 @@ final class McpExclusionScanner
             'message key/property' => '/[\'"]message[\'"]|->message\b/i',
             'phone/email/inn/tin key or property' => '/[\'"](?:phone|email|inn|tin)[\'"]|->(?:phone|email|inn|tin)\b/i',
             'customer/contact relation' => '/->(?:customer|contact)\b|[\'"](?:customer|contact)[\'".]/i',
+            // Plan 41 (VO-17): Telegram Business (Virtual office) tables and columns, e.g. business_chats, business_connection_id.
+            'business_' => '/business_(?:connection|chat|message)|agent_profile/i',
         ];
     }
 
@@ -61,7 +63,7 @@ final class McpExclusionScanner
      */
     public static function tableNeedle(): string
     {
-        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched|chat_ai_turns|chat_ai_usage_daily|job_applications|ai_product_drafts|web_chats|web_chat_messages';
+        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched|chat_ai_turns|chat_ai_usage_daily|job_applications|ai_product_drafts|web_chats|web_chat_messages|business_connections|business_chats|business_messages|business_chat_analyses|agent_profiles|agent_profile_versions';
 
         return '/(?:table|from|join|joinSub)\(\s*[\'"](?:'.$tables.')[\'"]|[\'"](?:'.$tables.')\.[a-z][a-z_]*[\'"]/';
     }

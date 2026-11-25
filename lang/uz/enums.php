@@ -62,6 +62,7 @@ return [
         'telegram' => 'Telegram',
         'phone' => 'Telefon',
         'manual' => 'Qoʻlda',
+        'tg_business' => 'Telegram Business',
     ],
 
     'preferred_contact' => [
@@ -116,6 +117,8 @@ return [
         'cv_download' => 'Rezyume yuklab olindi',
         'ai_create' => 'AI bilan yaratildi',
         'ai_improve' => 'AI bilan yaxshilandi',
+        'ai_summary' => 'Virtual ofis tahlili',
+        'office_mark' => 'Chat belgilandi',
     ],
 
     'quote_status' => [
@@ -235,6 +238,7 @@ return [
         'chatbot' => 'Chat-bot',
         'telegram_inbox' => 'Telegram kiruvchi xabarlari',
         'users' => 'Xodimlar',
+        'office' => 'Virtual ofis',
     ],
 
     'audit_action' => [
@@ -264,6 +268,7 @@ return [
         'deleted' => 'Butunlay oʻchirildi',
         'password_changed' => 'Parol oʻzgartirildi',
         'password_reset' => 'Parol tiklandi',
+        'marked' => 'Belgilandi',
     ],
 
     'price_sync_status' => [
@@ -546,6 +551,10 @@ return [
         'adm_vision' => 'Admin: rasmlarni oʻqish',
         'adm_write' => 'Admin: matn yozish',
         'adm_trans' => 'Admin: tarjima',
+        'vo_route' => 'Virtual ofis: yoʻnaltiruvchi',
+        'vo_sales' => 'Virtual ofis: savdo',
+        'vo_serv' => 'Virtual ofis: servis',
+        'vo_support' => 'Virtual ofis: yordam',
     ],
 
     'chat_ai_role' => [
@@ -699,4 +708,40 @@ return [
         'worker_missing' => 'Navbat ishlovchisi ishlamayapti: oʻlchash boshlanmadi.',
         'exception' => 'Oʻlchash amalga oshmadi. Server jurnaliga qarang.',
     ],
+
+    'business_chat_kind' => [
+        'unmarked' => 'Belgilanmagan',
+        'client' => 'Mijoz',
+        'employee' => 'Xodim',
+        'ignored' => 'Eʼtiborsiz',
+    ],
+
+    'business_author' => [
+        'client' => 'Mijoz',
+        'owner' => 'Menejer',
+        'bot' => 'Bot',
+    ],
+
+    'agent_role' => [
+        'router' => 'Yoʻnaltiruvchi',
+        'sales' => 'Savdo',
+        'service' => 'Servis',
+        'support' => 'Yordam',
+        'other' => 'Boshqa',
+    ],
+
+    'analysis_status' => [
+        'queued' => 'Navbatda',
+        'running' => 'Bajarilmoqda',
+        'done' => 'Tayyor',
+        'failed' => 'Xato',
+        'skipped' => 'Oʻtkazib yuborildi',
+        'capped' => 'Kunlik limitga yetildi',
+    ],
+
+    'telegram_party' => [
+        'client' => 'Mijoz',
+        'employee' => 'Xodim',
+    ],
+
 ];
