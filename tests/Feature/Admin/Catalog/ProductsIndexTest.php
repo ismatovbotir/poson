@@ -8,8 +8,11 @@ use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductAttributeValue;
 use App\Models\ProductDocument;
+use App\Models\RollType;
 use App\Support\Catalog\CategoryTree;
+use Database\Seeders\CatalogSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -245,5 +248,106 @@ describe('category chooser triggers', function () {
         DB::disableQueryLog();
 
         expect($queries)->toBeEmpty();
+    });
+});
+
+describe('generated diagram thumbnails', function () {
+    function indexDiagramLabel(string $name = 'Secret Label Name'): Product
+    {
+        $category = Category::query()->where('slug', 'thermal-labels')->first() ?? Category::factory()->create(['slug' => 'thermal-labels']);
+        $product = Product::factory()->perLabel(12)->inCategory($category)
+            ->withRollTypes([RollType::query()->where('labels_per_roll', 500)->first() ?? RollType::factory()->size(500, '40.0')->create()])
+            ->create(['name' => ['uz' => $name, 'ru' => $name, 'en' => $name]]);
+
+        foreach (['label_width' => 100, 'label_height' => 150] as $code => $value) {
+            $attribute = Attribute::query()->where('code', $code)->first() ?? Attribute::factory()->number('mm')->create(['code' => $code]);
+            $row = ProductAttributeValue::factory()->for($product)->create(['attribute_id' => $attribute->id]);
+            DB::table('product_attribute_values')->where('id', $row->id)->update(['value_number' => $value, 'value_text' => null]);
+        }
+
+        return $product;
+    }
+
+    function indexDiagramRibbon(): Product
+    {
+        $product = Product::factory()->consumable()->inCategory(Category::query()->where('slug', 'ribbons')->firstOrFail())->create();
+
+        foreach (['ribbon_width' => 110, 'ribbon_length' => 300] as $code => $value) {
+            $attribute = Attribute::query()->where('code', $code)->firstOrFail();
+            $row = ProductAttributeValue::factory()->for($product)->create(['attribute_id' => $attribute->id]);
+            DB::table('product_attribute_values')->where('id', $row->id)->update(['value_number' => $value, 'value_text' => null]);
+        }
+
+        return $product;
+    }
+
+    beforeEach(function () {
+        openSearchIndexing();
+        $this->seed(CatalogSeeder::class);
+    });
+
+    it('shows the label diagram for a product without a photo, with no DB text in the title', function () {
+        indexDiagramLabel('Secret Label Name');
+
+        $html = Livewire::actingAs(staffUser())->test(Index::class)->html();
+
+        expect($html)->toContain('data-label-diagram')->not->toContain('data-product-thumb');
+        preg_match('#<svg[^>]*data-label-diagram.*?</svg>#s', $html, $svg);
+        preg_match('#<title[^>]*>(.*?)</title>#s', $svg[0], $title);
+        expect($svg[0])->toContain('aria-hidden="true"')
+            ->and($title[1])->not->toContain('Secret Label Name');
+    });
+
+    it('keeps the photo thumbnail and the placeholder when there is no diagram', function () {
+        $withPhoto = indexDiagramLabel('Photo Label');
+        $withPhoto->addMedia(UploadedFile::fake()->image('p.jpg', 200, 200))->toMediaCollection('images');
+        Product::factory()->create(['name' => ['uz' => 'Plain Product']]);
+
+        $html = Livewire::actingAs(staffUser())->test(Index::class)->html();
+
+        expect($html)->toContain('data-product-thumb')->not->toContain('data-label-diagram')->not->toContain('data-roll-diagram');
+        expect(substr_count($html, 'data-icon') + substr_count($html, '<svg'))->toBeGreaterThan(0);
+    });
+
+    it('shows the roll diagram in the trash tab', function () {
+        indexDiagramRibbon()->delete();
+
+        Livewire::actingAs(staffUser())->test(Index::class, ['tab' => 'trash'])->assertSeeHtml('data-roll-diagram');
+    });
+
+    it('gives two label diagrams unique title ids', function () {
+        indexDiagramLabel('One');
+        indexDiagramLabel('Two');
+
+        $html = Livewire::actingAs(staffUser())->test(Index::class)->html();
+        preg_match_all('#aria-labelledby="([^"]+)"#', $html, $refs);
+        $refs = array_values(array_filter($refs[1], fn (string $id) => str_starts_with($id, 'label-diagram-')));
+
+        expect($refs)->not->toBeEmpty()->and(array_unique($refs))->toHaveCount(count($refs));
+        foreach ($refs as $id) {
+            expect($html)->toContain('<title id="'.$id.'"');
+        }
+    });
+
+    it('loads diagram specs with a constant number of queries', function () {
+        $user = staffUser();
+        $count = function () use ($user): int {
+            Livewire::actingAs($user)->test(Index::class); // warm caches
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            Livewire::actingAs($user)->test(Index::class);
+            $queries = count(DB::getQueryLog());
+            DB::disableQueryLog();
+
+            return $queries;
+        };
+
+        indexDiagramLabel();
+        $one = $count();
+
+        foreach (range(1, 9) as $i) {
+            indexDiagramLabel();
+        }
+        expect($count())->toBe($one);
     });
 });

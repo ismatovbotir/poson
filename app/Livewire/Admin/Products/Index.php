@@ -16,6 +16,7 @@ use App\Livewire\Forms\Admin\Products\CopyProductForm;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Catalog\ProductCards;
 use App\Support\Search;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -358,6 +359,7 @@ class Index extends Component
             ->orderByDesc('id');
 
         $products = $query->paginate(self::PER_PAGE);
+        ProductCards::loadDiagramSpecs($products->getCollection());
         $user = auth()->user();
         // Plan 32: the AI wizard links only when ai.generate, the Admin switch and the key allow it.
         $aiWizard = AiWizardGate::allowsUser($user);
