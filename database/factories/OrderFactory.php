@@ -12,6 +12,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\PriceLevel;
 use App\Enums\Region;
 use App\Models\Order;
+use App\Models\TelegramUser;
 use App\Support\Vat;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -21,7 +22,8 @@ use Illuminate\Support\Str;
  * lines (totals 0; use totalling() or add OrderItem rows), with a valid
  * public link. Rows are inserted directly (number random, not from the
  * sequence). States: totalling(), paid(), test(), bankTransfer(), uzqr(),
- * region(), separateDelivery(), company(), status(), manual(), expiredLink().
+ * region(), separateDelivery(), company(), status(), manual(), expiredLink(),
+ * telegram() (plan 20: placed in the Mini App).
  *
  * @extends Factory<Order>
  */
@@ -108,6 +110,18 @@ class OrderFactory extends Factory
     public function placedMonthsAgo(int $months): static
     {
         return $this->state(fn (array $attributes) => ['created_at' => now()->subMonths($months)->subHour()]);
+    }
+
+    /**
+     * Placed in the Telegram Mini App by the user (a new registered user by default), with the user's phone.
+     */
+    public function telegram(?TelegramUser $user = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'source' => OrderSource::Telegram,
+            'telegram_user_id' => $user?->id ?? TelegramUser::factory()->registered(),
+            'phone' => $user?->phone ?? $attributes['phone'],
+        ]);
     }
 
     public function manual(): static

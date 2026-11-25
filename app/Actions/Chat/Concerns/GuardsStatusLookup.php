@@ -3,14 +3,13 @@
 namespace App\Actions\Chat\Concerns;
 
 use App\Actions\Chat\RecordChatStat;
-use App\Actions\Telegram\RegisterTelegramUser;
 use App\Enums\ChatChannel;
 use App\Enums\ChatMetric;
 use App\Jobs\SendChatLookupFailureAlert;
 use App\Models\TelegramUser;
 use App\Support\Chat\ChatReply;
 use App\Support\DateFormat;
-use App\Support\Phone;
+use App\Support\Telegram\VerifiedTelegramPhone;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -37,28 +36,11 @@ trait GuardsStatusLookup
     abstract protected function kind(): string;
 
     /**
-     * The phone this customer may look up with, or null.
+     * The phone this customer may look up with, or null (the shared rule, plan 20 finding 5).
      */
     protected function verifiedPhone(TelegramUser $user): ?string
     {
-        if (! $user->isRegistered() || $user->isBanned() || RegisterTelegramUser::isAnonymousNumber($user->phone)) {
-            return null;
-        }
-
-        $phone = Phone::normalizeAny($user->phone);
-
-        if ($phone === null) {
-            return null;
-        }
-
-        $newest = TelegramUser::query()
-            ->where('phone', $phone)
-            ->whereNotNull('registered_at')
-            ->orderByDesc('registered_at')
-            ->orderByDesc('id')
-            ->value('id');
-
-        return $newest === $user->id ? $phone : null;
+        return VerifiedTelegramPhone::for($user);
     }
 
     /**

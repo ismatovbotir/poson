@@ -5,7 +5,6 @@ namespace App\Actions\Orders;
 use App\Actions\Quotes\SaveQuoteItems;
 use App\Data\Catalog\RollLine;
 use App\Data\Orders\OrderLineData;
-use App\Enums\OrderSource;
 use App\Enums\PriceLevel;
 use App\Enums\ProductUnit;
 use App\Enums\StockStatus;
@@ -59,7 +58,7 @@ class SaveOrderItems
             throw ValidationException::withMessages(['items' => __('orders.errors.too_many_items', ['max' => Order::MAX_LINES])]);
         }
 
-        $manual = $order->source !== OrderSource::Site;
+        $manual = ! $order->source->isCustomerCheckout();
         $level = $manual ? $order->price_level : PriceLevel::Retail;
         $existing = OrderItem::query()->where('order_id', $order->id)->get()->keyBy('id');
         $products = Product::query()

@@ -104,6 +104,8 @@ return [
         'r/*',
         // Plan 13: the MCP endpoint (machine traffic, bearer tokens; C27).
         'mcp', 'mcp/*',
+        // Plan 20: the Telegram Mini App (no analytics there, MA-18).
+        'tma', 'tma/*',
     ],
 
     /*

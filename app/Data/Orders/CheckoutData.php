@@ -31,4 +31,23 @@ final readonly class CheckoutData
         public array $attribution = [],
         public ?string $trafficChannel = null,
     ) {}
+
+    /**
+     * A copy with some fields replaced (named constructor arguments). Every
+     * other field is carried over as it is, including fields added later.
+     *
+     * @param  array<string, mixed>  $changes
+     */
+    public function with(array $changes): self
+    {
+        return new self(...array_merge(get_object_vars($this), $changes));
+    }
+
+    /**
+     * A copy with another phone (the Telegram Mini App's registration phone, plan 20).
+     */
+    public function withPhone(string $phone): self
+    {
+        return $this->with(['phone' => $phone]);
+    }
 }

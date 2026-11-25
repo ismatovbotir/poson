@@ -19,6 +19,9 @@ use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
  * request (e.g. the header counter) already sees it. Every successful
  * add / change / removal sends the cookie again (refresh()), so the 30 days
  * run from the last change (rolling).
+ *
+ * Only site carts are ever found by a cookie token: a Telegram Mini App
+ * cart (carts.telegram_user_id) is invisible here (plan 20, MA-21).
  */
 class CartToken
 {
@@ -51,7 +54,7 @@ class CartToken
     {
         $token = $this->current();
 
-        if ($token !== null && $this->issued === null && Cart::query()->where('token', $token)->whereNotNull('converted_at')->exists()) {
+        if ($token !== null && $this->issued === null && Cart::query()->forSite()->where('token', $token)->whereNotNull('converted_at')->exists()) {
             return null;
         }
 
@@ -96,7 +99,7 @@ class CartToken
     {
         $token = $this->current();
 
-        return $token !== null ? Cart::query()->open()->where('token', $token)->first() : null;
+        return $token !== null ? Cart::query()->forSite()->open()->where('token', $token)->first() : null;
     }
 
     /**

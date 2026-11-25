@@ -42,6 +42,8 @@ class RobotsTxt
         '/o/',
         // Plan 35: the repair status link printed on the receipt QR.
         '/r/',
+        // Plan 20: the Telegram Mini App (session pages, noindex).
+        '/tma/',
         '/*?*sort=',
         '/*?*f[',
         '/*?*f%5B',

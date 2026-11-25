@@ -48,6 +48,7 @@ use Illuminate\Support\Carbon;
  * @property bool $is_test
  * @property OrderSource $source
  * @property int|null $customer_id
+ * @property int|null $telegram_user_id
  * @property int|null $manager_id
  * @property int|null $created_by_id
  * @property OrderStatus $status
@@ -91,7 +92,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  */
 #[Fillable([
-    'number', 'ulid', 'public_until', 'is_test', 'source', 'customer_id', 'manager_id', 'created_by_id',
+    'number', 'ulid', 'public_until', 'is_test', 'source', 'customer_id', 'telegram_user_id', 'manager_id', 'created_by_id',
     'status', 'payment_status', 'payment_method', 'payment_pending_at', 'price_level', 'locale',
     'buyer_type', 'name', 'phone', 'company_name', 'tin',
     'delivery_type', 'region', 'address', 'kokand_address_confirmed', 'comment', 'staff_note',
@@ -122,6 +123,7 @@ class Order extends Model
             'is_test' => 'boolean',
             'source' => OrderSource::class,
             'customer_id' => 'integer',
+            'telegram_user_id' => 'integer',
             'manager_id' => 'integer',
             'status' => OrderStatus::class,
             'payment_status' => PaymentStatus::class,
@@ -184,6 +186,17 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * The Telegram Mini App user who placed the order (plan 20; null otherwise).
+     * Never exposed to MCP, AI knowledge or exports (MA-18).
+     *
+     * @return BelongsTo<TelegramUser, $this>
+     */
+    public function telegramUser(): BelongsTo
+    {
+        return $this->belongsTo(TelegramUser::class);
     }
 
     /**

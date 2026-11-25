@@ -51,7 +51,9 @@ final class Redactor
 
         $text = (string) preg_replace('/\b((?:Proxy-)?Authorization|Auth|X-[\w-]*(?:Key|Token|Secret|Auth)[\w-]*)[ \t]*:[ \t]*[^\n]+/i', '$1: '.self::MASK, $text);
         $text = (string) preg_replace('/\b(Bearer|Basic)[ \t]+[A-Za-z0-9._~+\/=-]+/i', '$1 '.self::MASK, $text);
-        $text = (string) preg_replace('/\b([\w.-]*(?:password|passwd|secret|token|key|sign\w*|auth\w*)[\w.-]*)=("[^"]*"|\'[^\']*\'|[^\s&,;]*)/i', '$1='.self::MASK, $text);
+        // Plan 20 (MA-11): a JSON "init_data" / "hash" value, e.g. a logged Mini App request body.
+        $text = (string) preg_replace('/"((?:init_?data|tgWebAppData|hash))"\s*:\s*"(?:[^"\\\\]|\\\\.)*"/i', '"$1":"'.self::MASK.'"', $text);
+        $text = (string) preg_replace('/\b([\w.-]*(?:password|passwd|secret|token|key|sign\w*|auth\w*|init_?data|hash)[\w.-]*)=("[^"]*"|\'[^\']*\'|[^\s&,;]*)/i', '$1='.self::MASK, $text);
         $text = (string) preg_replace('/\?[^\s"\'<>]*=[^\s"\'<>]*/', '?[query]', $text);
         $text = (string) preg_replace('/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/', '[email]', $text);
         // TG-46: any international number: "+" then 8-15 digits, separators allowed.

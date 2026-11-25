@@ -3,9 +3,9 @@
 namespace App\Actions\Orders;
 
 use App\Data\Orders\CheckoutData;
+use App\Data\Orders\OrderOrigin;
 use App\Enums\BuyerType;
 use App\Enums\DeliveryType;
-use App\Enums\OrderSource;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
@@ -17,6 +17,7 @@ use App\Events\Orders\OrderPlaced;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\TelegramUser;
 use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Cart\CartPricer;
@@ -30,6 +31,7 @@ use App\Support\Orders\PaymentOptions;
 use App\Support\Orders\TaxId;
 use App\Support\Phone;
 use App\Support\Quotes\WorkingDays;
+use App\Support\Telegram\VerifiedTelegramPhone;
 use App\Support\Vat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -54,6 +56,18 @@ use Illuminate\Validation\ValidationException;
  *    STIR and the phone both match the same customer (prices never change),
  *    and mark the cart converted.
  * 3. OrderPlaced after commit (Telegram sales chat).
+ *
+ * Origin (plan 20 §6.1; optional, the site checkout passes none):
+ *  - Site: the cart must have no Telegram owner (MA-21), methods from
+ *    PaymentOptions::forCheckout().
+ *  - Telegram (Mini App): the phone is the user's verified registration
+ *    phone (VerifiedTelegramPhone, MA-9; whatever CheckoutData says), the
+ *    locked cart must belong to that user (MA-21), the methods are
+ *    PaymentOptions::forMiniApp() computed here, and an online or reserved
+ *    method is refused whatever it says (MA-8). source telegram and
+ *    telegram_user_id are written; the customer is the user's linked
+ *    customer only while the link is verified (isLinkVerified()), else the
+ *    STIR + phone match. Retail only, like the site.
  */
 class PlaceOrder
 {
@@ -70,24 +84,48 @@ class PlaceOrder
      */
     public static function fingerprint(PricedCart $cart, DeliveryQuote $delivery): string
     {
-        return hash('sha256', $cart->fingerprint.'|'.$delivery->pricing->value.'|'.$delivery->amount);
+        return static::fingerprintFrom($cart->fingerprint, $delivery);
+    }
+
+    /**
+     * The same fingerprint from the cart's own fingerprint (the Mini App page
+     * shows the cart, the delivery choice is made in the same form).
+     */
+    public static function fingerprintFrom(string $cartFingerprint, DeliveryQuote $delivery): string
+    {
+        return hash('sha256', $cartFingerprint.'|'.$delivery->pricing->value.'|'.$delivery->amount);
     }
 
     /**
      * @throws ValidationException
      */
-    public function handle(string $cartToken, CheckoutData $data): Order
+    public function handle(string $cartToken, CheckoutData $data, ?OrderOrigin $origin = null): Order
     {
         if (! config('site.cart_enabled')) {
             throw ValidationException::withMessages(['form' => __('checkout.cart.errors.disabled')]);
         }
 
+        $origin ??= OrderOrigin::site();
+        $telegramUser = null;
+
+        if ($origin->isTelegram()) {
+            $telegramUser = TelegramUser::query()->find($origin->telegramUserId);
+            $phone = $telegramUser instanceof TelegramUser ? VerifiedTelegramPhone::for($telegramUser) : null;
+
+            if ($phone === null) {
+                throw ValidationException::withMessages(['form' => __('tma.checkout.phone_unverified')]);
+            }
+
+            $data = $data->withPhone($phone);
+        }
+
         $input = $this->validated($data);
 
-        $result = DB::transaction(function () use ($cartToken, $data, $input): array {
+        $result = DB::transaction(function () use ($cartToken, $data, $input, $origin, $telegramUser): array {
             $cart = Cart::query()->where('token', $cartToken)->lockForUpdate()->first();
 
-            if (! $cart instanceof Cart) {
+            // MA-21: a Mini App cart only for its own user, a site cart only without an origin user.
+            if (! $cart instanceof Cart || $cart->telegram_user_id !== $origin->telegramUserId) {
                 throw ValidationException::withMessages(['form' => __('checkout.errors.empty')]);
             }
 
@@ -130,17 +168,25 @@ class PlaceOrder
             $ikpuComplete = static::ikpuComplete($priced, $delivery, $this->settings);
             $context = new PaymentContext($input['delivery_type'], $input['buyer_type'], $total, $ikpuComplete);
 
-            if (! in_array($input['payment_method'], $this->paymentOptions->forCheckout($context), true)) {
+            $allowed = $origin->isTelegram() ? $this->paymentOptions->forMiniApp($context) : $this->paymentOptions->forCheckout($context);
+            $method = $input['payment_method'];
+
+            if (! in_array($method, $allowed, true) || ($origin->isTelegram() && ($method->isOnline() || $method->isReserved()))) {
                 throw ValidationException::withMessages(['paymentMethod' => __('checkout.errors.payment_unavailable')]);
             }
+
+            $customerId = $telegramUser instanceof TelegramUser && $telegramUser->isLinkVerified()
+                ? $telegramUser->customer_id
+                : $this->linkCustomer->findMatch($input['tin'], $input['phone']);
 
             $order = Order::query()->create([
                 'number' => OrderNumber::next(),
                 'ulid' => strtoupper((string) Str::ulid()),
                 'public_until' => now()->addDays((int) config('checkout.public_link_days', 90)),
                 'is_test' => false,
-                'source' => OrderSource::Site,
-                'customer_id' => $this->linkCustomer->findMatch($input['tin'], $input['phone']),
+                'source' => $origin->source,
+                'customer_id' => $customerId,
+                'telegram_user_id' => $origin->telegramUserId,
                 'status' => OrderStatus::New,
                 'payment_status' => PaymentStatus::Unpaid,
                 'payment_method' => $input['payment_method'],
@@ -175,7 +221,7 @@ class PlaceOrder
 
             $cart->forceFill(['converted_order_id' => $order->id, 'converted_at' => now()])->save();
 
-            $this->log->handle($order, 'created', null, ['source' => OrderSource::Site->value, 'total' => $total]);
+            $this->log->handle($order, 'created', null, ['source' => $origin->source->value, 'total' => $total]);
 
             return [$order, true];
         });

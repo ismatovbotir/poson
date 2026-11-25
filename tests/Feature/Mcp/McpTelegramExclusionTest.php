@@ -196,6 +196,28 @@ it('keeps Telegram, contact, customer, personal data and CRM table names out of 
 });
 
 /**
+ * Plan 20 MA-18: the Mini App columns orders.telegram_user_id and carts.telegram_user_id (and the
+ * Mini App code) never reach MCP. The scanner's "telegram_" needle must keep catching the column.
+ */
+it('keeps the Mini App columns and classes out of MCP (plan 20 MA-18)', function () {
+    expect(McpExclusionScanner::labels("Order::query()->where('telegram_user_id', 1)"))->toContain('telegram_')
+        ->and(McpExclusionScanner::labels('$cart->telegram_user_id'))->toContain('telegram_');
+
+    foreach (array_merge(mcpPhpFiles('app/Mcp', 'app/Actions/Mcp'), mcpSupportFiles()) as $path) {
+        $code = McpExclusionScanner::withoutComments((string) file_get_contents(mcpRoot($path)));
+
+        expect($code)->not->toContain('telegram_user_id', $path)
+            ->not->toContain('telegramUser', $path)
+            ->not->toContain('MiniApp', $path)
+            ->not->toContain('OrderSource::Telegram', $path);
+    }
+});
+
+arch('MCP never uses the Telegram Mini App code (plan 20 MA-18)')
+    ->expect(MCP_NAMESPACES)
+    ->not->toUse(['App\Support\Telegram\MiniApp', 'App\Http\Controllers\Tma', 'App\Actions\Telegram\MiniApp']);
+
+/**
  * Plan 28 C5d (CB-26, WC-12): website chats are visitor data. Neither the models, the tables nor
  * the chat actions and admin screens may be reached from MCP code (or the Support classes behind it).
  */

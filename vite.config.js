@@ -11,6 +11,9 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/admin.css',
                 'resources/js/admin.js',
+                // Plan 20: the Telegram Mini App (/tma), no webfont.
+                'resources/css/tma.css',
+                'resources/js/tma.js',
             ],
             refresh: true,
             fonts: [

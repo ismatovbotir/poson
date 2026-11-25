@@ -248,7 +248,7 @@ class OrderForm extends Form
      */
     public function lineData(OrderSource $source): array
     {
-        $manual = $source !== OrderSource::Site;
+        $manual = ! $source->isCustomerCheckout();
 
         return array_map(fn (array $item): OrderLineData => new OrderLineData(
             productId: isset($item['product_id']) ? (int) $item['product_id'] : null,

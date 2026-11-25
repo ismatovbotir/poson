@@ -1,0 +1,146 @@
+/*
+ * Telegram Mini App bundle (plan 20 §2 A4): only the /tma views, the shared
+ * catalog diagrams and the bank-details partial. No webfont (system font),
+ * colours follow the Telegram theme (var(--tg-theme-*), set by
+ * telegram-web-app.js through CSSOM) with light fallbacks. No style=
+ * attributes anywhere in the markup (CSP style-src 'self', MA-3).
+ */
+@import 'tailwindcss' source(none);
+
+@source '../views/tma';
+@source '../views/layouts/tma.blade.php';
+@source '../views/components/catalog';
+@source '../views/site/partials/order-bank.blade.php';
+@source '../../app/Support/Catalog/LabelDiagram.php';
+@source '../../app/Support/Catalog/RollDiagram.php';
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+    /* Brand and diagram tokens (same values as resources/css/app.css). */
+    --color-brand: #1f9d55;
+    --color-brand-600: #178045;
+    --color-brand-700: #126637;
+    --color-brand-50: #e8f8ee;
+    --color-ink: #0f172a;
+    --color-ink-2: #475569;
+    --color-ink-3: #94a3b8;
+    --color-ink-soft: #cbd5e1;
+    --color-ink-line: #1e293b;
+    --color-line: #e2e8f0;
+    --color-label-liner: #fdf6c3;
+    --color-label-liner-edge: #e9dc8c;
+    --color-bg-soft: #f5f7fb;
+    --color-bg-tint: #eefaf2;
+    --color-danger: #d93636;
+    --color-ok: #12a150;
+
+    --radius-box: 12px;
+}
+
+/* Telegram theme colours (fallbacks = the light theme). */
+@theme inline {
+    --color-tg-bg: var(--tg-theme-bg-color, #ffffff);
+    --color-tg-text: var(--tg-theme-text-color, #0f172a);
+    --color-tg-hint: var(--tg-theme-hint-color, #64748b);
+    --color-tg-link: var(--tg-theme-link-color, #178045);
+    --color-tg-button: var(--tg-theme-button-color, #178045);
+    --color-tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+    --color-tg-secondary: var(--tg-theme-secondary-bg-color, #f5f7fb);
+    --color-tg-section: var(--tg-theme-section-bg-color, #ffffff);
+    --color-tg-separator: var(--tg-theme-section-separator-color, #e2e8f0);
+    --color-tg-danger: var(--tg-theme-destructive-text-color, #d93636);
+}
+
+@utility tma-btn {
+    display: inline-flex;
+    width: 100%;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-box);
+    background-color: var(--color-tg-button);
+    padding-inline: 1rem;
+    font-weight: 600;
+    color: var(--color-tg-button-text);
+}
+
+@utility tma-btn-outline {
+    display: inline-flex;
+    width: 100%;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-box);
+    border: 1.5px solid var(--color-tg-button);
+    padding-inline: 1rem;
+    font-weight: 600;
+    color: var(--color-tg-link);
+}
+
+@utility tma-card {
+    border-radius: var(--radius-box);
+    background-color: var(--color-tg-section);
+    padding: 0.875rem;
+}
+
+@utility tma-input {
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-tg-separator);
+    background-color: var(--color-tg-bg);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-tg-text);
+}
+
+@layer base {
+    body {
+        font-size: 15px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-tg-link);
+        outline-offset: 2px;
+    }
+
+    /* tma.js marks the page when Telegram's own MainButton replaces the HTML one. */
+    .tma-main-button [data-main-button] {
+        display: none;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    .tma-prose p,
+    .tma-prose ul,
+    .tma-prose ol {
+        margin-block: 0.5rem;
+    }
+
+    .tma-prose ul {
+        list-style: disc;
+        padding-inline-start: 1.25rem;
+    }
+
+    .tma-prose ol {
+        list-style: decimal;
+        padding-inline-start: 1.25rem;
+    }
+
+    .tma-prose a {
+        color: var(--color-tg-link);
+        text-decoration: underline;
+    }
+
+    .tma-prose h2,
+    .tma-prose h3 {
+        margin-block: 0.75rem 0.25rem;
+        font-weight: 600;
+    }
+}

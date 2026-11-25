@@ -88,6 +88,11 @@ class TelegramUser extends Model implements ChatSubject
     public const KEEP_THREAD_MONTHS = 12;
 
     /**
+     * A user with a real Mini App order this recent is never pruned (plan 20, MA-15).
+     */
+    public const KEEP_ORDER_MONTHS = 12;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -140,6 +145,10 @@ class TelegramUser extends Model implements ChatSubject
      * Prune makes no Telegram call (TG-27 amended: copies in the staff chat cannot be removed
      * by retention). The activities go in the `deleting` hook, which prune and delete share.
      *
+     * Plan 20 (MA-15): never a user with a real (non-TEST) Mini App order in the
+     * last 12 months or a cart with items. Orders keep their row when a user is
+     * deleted (orders.telegram_user_id nullOnDelete); carts are deleted with it.
+     *
      * @return Builder<self>
      */
     public function prunable(): Builder
@@ -148,6 +157,8 @@ class TelegramUser extends Model implements ChatSubject
 
         return static::query()
             ->whereNull('banned_at')
+            ->whereDoesntHave('orders', fn (Builder $orders) => $orders->where('orders.is_test', false)->where('orders.created_at', '>=', now()->subMonths(self::KEEP_ORDER_MONTHS)))
+            ->whereDoesntHave('carts', fn (Builder $carts) => $carts->whereHas('items'))
             ->where(function (Builder $query) use ($withoutLeadMessage): void {
                 $query->where(fn (Builder $unregistered) => $unregistered
                     ->whereNull('registered_at')
@@ -207,6 +218,26 @@ class TelegramUser extends Model implements ChatSubject
     public function messages(): HasMany
     {
         return $this->hasMany(TelegramMessage::class);
+    }
+
+    /**
+     * Mini App carts (plan 20): deleted with the user.
+     *
+     * @return HasMany<Cart, $this>
+     */
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Orders placed in the Mini App (plan 20): kept when the user is deleted.
+     *
+     * @return HasMany<Order, $this>
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 
     /**

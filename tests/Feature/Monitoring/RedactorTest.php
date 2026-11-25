@@ -121,3 +121,14 @@ it('masks international phone numbers of any country', function (string $input) 
 it('keeps short numbers after a plus and plain text untouched', function () {
     expect(Redactor::clean('Retry +5 in 3 seconds, code +1234'))->toBe('Retry +5 in 3 seconds, code +1234');
 });
+
+it('masks a Telegram Mini App initData as JSON and as key=value (plan 20, MA-11)', function (string $text) {
+    $out = Redactor::clean($text, 1000);
+
+    expect($out)->not->toContain('AAHdF6IQ')->not->toContain('d2c3abd5')->not->toContain('5550001')->toContain('[redacted]');
+})->with([
+    'json body' => ['{"init_data":"query_id=AAHdF6IQ&user=%7B%22id%22%3A5550001%7D&hash=d2c3abd5a96db8dd","next":"orders"}'],
+    'json with spaces and escapes' => ['payload { "init_data" : "query_id=AAHdF6IQ\"x\"&user=5550001&hash=d2c3abd5" }'],
+    'json tgWebAppData' => ['{"tgWebAppData":"query_id=AAHdF6IQ&user=5550001&hash=d2c3abd5"}'],
+    'form encoded' => ['init_data=query_id%3DAAHdF6IQ%26user%3D5550001%26hash%3Dd2c3abd5 failed'],
+]);

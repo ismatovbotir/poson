@@ -13,6 +13,7 @@ use App\Models\RollType;
 use App\Rules\PhoneNumber;
 use App\Support\Analytics\Attribution;
 use App\Support\Catalog\RollPricing;
+use App\Support\Leads\LeadLimits;
 use App\Support\NumberFormat;
 use App\Support\Phone;
 use Illuminate\Contracts\View\View;
@@ -49,16 +50,16 @@ class LeadForm extends Component
     /**
      * Valid submissions allowed per IP within RATE_LIMIT_SECONDS.
      */
-    public const RATE_LIMIT = 5;
+    public const RATE_LIMIT = LeadLimits::IP_LIMIT;
 
-    public const RATE_LIMIT_SECONDS = 600;
+    public const RATE_LIMIT_SECONDS = LeadLimits::IP_SECONDS;
 
     /**
      * Valid submissions allowed per phone number within PHONE_LIMIT_SECONDS.
      */
-    public const PHONE_LIMIT = 3;
+    public const PHONE_LIMIT = LeadLimits::PHONE_LIMIT;
 
-    public const PHONE_LIMIT_SECONDS = 3600;
+    public const PHONE_LIMIT_SECONDS = LeadLimits::PHONE_SECONDS;
 
     /**
      * Forms submitted faster than this after rendering are treated as bots.

@@ -334,6 +334,7 @@ return [
         'site' => 'Sayt',
         'quote' => 'Tijorat taklifi',
         'manual' => 'Qoʻlda',
+        'telegram' => 'Telegram Mini App',
     ],
 
     'buyer_type' => [

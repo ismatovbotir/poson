@@ -334,6 +334,7 @@ return [
         'site' => 'Site',
         'quote' => 'Quote',
         'manual' => 'Manual',
+        'telegram' => 'Telegram Mini App',
     ],
 
     'buyer_type' => [

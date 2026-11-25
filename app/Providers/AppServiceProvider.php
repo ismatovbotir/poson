@@ -49,6 +49,7 @@ use App\Support\Monitoring\RunRecorder;
 use App\Support\Secrets;
 use App\Support\Site\BannerDirectory;
 use App\Support\Site\HomeCache;
+use App\Support\Telegram\MiniApp\TmaSession;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
@@ -205,6 +206,14 @@ class AppServiceProvider extends ServiceProvider
                     'message' => 'Too many requests for this token. Retry later.',
                 ], 429, $headers);
             }));
+
+        // Telegram Mini App (plan 20, MA-12): the sign-in POST per IP (the per-Telegram-id budget
+        // is hit only after the signature checked, in Tma\AuthController), pages and cart writes per
+        // signed-in user (session row id, else IP). Leads, service requests and checkout have their
+        // own budgets in the controllers, hit outside every DB transaction.
+        RateLimiter::for('tma-auth', fn (Request $request) => Limit::perMinute(30)->by('tma-auth:'.$request->ip()));
+        RateLimiter::for('tma', fn (Request $request) => Limit::perMinute(120)->by('tma:'.TmaSession::limiterKey($request)));
+        RateLimiter::for('tma-cart', fn (Request $request) => Limit::perMinute(30)->by('tma-cart:'.TmaSession::limiterKey($request)));
 
         // Admins may do everything; other roles go through permissions and policies.
         Gate::before(fn (User $user): ?bool => $user->hasRole(Role::Admin) ? true : null);

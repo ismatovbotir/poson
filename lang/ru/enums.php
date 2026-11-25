@@ -334,6 +334,7 @@ return [
         'site' => 'Сайт',
         'quote' => 'Коммерческое предложение',
         'manual' => 'Вручную',
+        'telegram' => 'Telegram Mini App',
     ],
 
     'buyer_type' => [
