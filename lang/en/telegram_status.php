@@ -107,10 +107,10 @@ return [
             'not_database' => 'Not measurable: the queue is not the database queue.',
             'cron_dead' => 'Not measurable: the scheduler (cron) is not running.',
             'never' => 'The worker has not reported yet.',
-            'next' => 'Restart the queue worker on the server (supervisor keeps "php artisan queue:work" running), then check again.',
+            'next' => 'The queue worker is started by the scheduler: check that the server crontab has the schedule:run line and that it runs every minute, then check again.',
             'next_not_database' => 'This panel only measures the database queue. To check your queue, use your queue system\'s own tools.',
             'next_cron_dead' => 'Check the scheduler (cron) row first; the worker is judged only while cron runs. The crontab must contain `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1`.',
-            'next_never' => 'Make sure a queue worker is started on the server (supervisor keeps "php artisan queue:work" running). A new worker reports within a minute.',
+            'next_never' => 'The queue worker is started by the scheduler: check that the server crontab has the schedule:run line and that it runs every minute. The worker reports within a minute.',
         ],
         'cron' => [
             'label' => 'Scheduler (cron)',

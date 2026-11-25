@@ -107,10 +107,10 @@ return [
             'not_database' => 'Oʻlchanmaydi: navbat maʼlumotlar bazasida emas.',
             'cron_dead' => 'Oʻlchanmaydi: rejalashtiruvchi (cron) ishlamayapti.',
             'never' => 'Ishchi hali signal bermagan.',
-            'next' => 'Serverda navbat ishchisini qayta ishga tushiring (supervisor «php artisan queue:work» ni ishlatib turadi) va qayta tekshiring.',
+            'next' => 'Navbat ishchisini rejalashtiruvchi ishga tushiradi: serverdagi crontabda schedule:run qatori borligini va u har daqiqada bajarilishini tekshiring, soʻng qayta tekshiring.',
             'next_not_database' => 'Panel faqat maʼlumotlar bazasidagi navbatni oʻlchaydi. Navbat holatini oʻz tizimingiz vositalari bilan tekshiring.',
             'next_cron_dead' => 'Avval rejalashtiruvchi (cron) qatorini koʻring: ishchi faqat cron ishlayotganda baholanadi. Crontabda `* * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1` qatori boʻlishi kerak.',
-            'next_never' => 'Serverda navbat ishchisi ishga tushirilganini tekshiring (supervisor «php artisan queue:work» ni ishlatib turadi). Yangi ishchi bir daqiqa ichida signal beradi.',
+            'next_never' => 'Navbat ishchisini rejalashtiruvchi ishga tushiradi: serverdagi crontabda schedule:run qatori borligini va u har daqiqada bajarilishini tekshiring. Ishchi bir daqiqa ichida signal beradi.',
         ],
         'cron' => [
             'label' => 'Rejalashtiruvchi (cron)',

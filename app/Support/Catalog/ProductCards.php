@@ -4,6 +4,7 @@ namespace App\Support\Catalog;
 
 use App\Data\Site\ProductCard;
 use App\Enums\ProductType;
+use App\Models\Attribute;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -158,8 +159,15 @@ class ProductCards
                 continue;
             }
 
+            // Plan 43 #26: an option value keeps the attribute's unit ("203 dpi").
+            $attribute = $value->getRelationValue('attribute');
+
+            if ($attribute instanceof Attribute && $attribute->type->hasOptions()) {
+                $display = $attribute->optionWithUnit($display);
+            }
+
             $id = $value->attribute_id;
-            $specs[$id] ??= ['label' => (string) $value->getRelationValue('attribute')?->name, 'values' => []];
+            $specs[$id] ??= ['label' => (string) $attribute?->name, 'values' => []];
             $specs[$id]['values'][] = $display;
         }
 

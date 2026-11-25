@@ -6,7 +6,7 @@
 --}}
 @php
     $checkClass = 'size-[18px] shrink-0 cursor-pointer rounded-[5px] accent-brand-600';
-    $fieldClass = 'h-10 w-full min-w-0 rounded-btn border-[1.5px] border-line bg-white px-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand-600 focus:outline-none';
+    $fieldClass = 'h-10 w-full min-w-0 rounded-btn border-[1.5px] border-line bg-white px-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-brand-600';
     $number = fn (int|string|null $value): string => $value === null ? '' : \App\Support\NumberFormat::format($value);
     $total = $number($products->total());
 @endphp
@@ -207,7 +207,7 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     <label for="catalog-sort" class="text-sm text-ink-2 max-sm:sr-only">{{ __('site.catalog.sort.label') }}</label>
-                    <select id="catalog-sort" wire:model.live="sort" class="h-[42px] rounded-btn border-[1.5px] border-line bg-white px-3 text-sm focus:border-brand-600 focus:outline-none">
+                    <select id="catalog-sort" wire:model.live="sort" class="h-[42px] rounded-btn border-[1.5px] border-line bg-white px-3 text-sm focus:border-brand-600">
                         @foreach ($sorts as $value)
                             <option value="{{ $value }}">{{ __('site.catalog.sort.'.$value) }}</option>
                         @endforeach
