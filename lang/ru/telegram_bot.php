@@ -64,6 +64,16 @@ return [
         'language' => 'Язык',
         'contact_manager_reply' => 'Напишите свой вопрос здесь — он поступит нашей команде.',
         'catalog_reply' => 'Каталог оборудования: :url',
+        // Plan 20 M5: the Mini App menu button and the inline "Open catalog" reply.
+        'open_app' => 'Каталог',
+        'open_catalog' => 'Открыть каталог',
+        'open_app_reply' => 'Откройте каталог прямо здесь, в Telegram.',
+    ],
+
+    // Plan 20 M5 (MA-14, MA-26): customer order status messages, order number and status label only.
+    'order_status' => [
+        'text' => 'Статус заказа :number: :status.',
+        'button' => 'Открыть заказ',
     ],
 
     'help' => 'Это официальный бот Poson. Здесь можно написать свой вопрос по сканерам штрих-кода, принтерам, ТСД и POS-оборудованию, открыть каталог и сменить язык. Просто напишите свой вопрос.',

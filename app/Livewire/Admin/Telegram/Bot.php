@@ -14,6 +14,7 @@ use App\Support\Admin\PasswordConfirmation;
 use App\Support\Telegram\Bot\BotChecklist;
 use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\TelegramStatus;
+use App\Support\Telegram\MiniApp\BotUsername;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\RateLimiter;
@@ -233,6 +234,8 @@ class Bot extends Component
         if ($client->isConfigured()) {
             try {
                 $me = $client->getMe();
+                // The public username for t.me links (plan 20 M5, MA-20): validated before it is stored.
+                BotUsername::remember($me['username'] ?? null);
                 $this->bot = [
                     'username' => is_string($me['username'] ?? null) ? $me['username'] : null,
                     'id' => is_int($me['id'] ?? null) ? $me['id'] : null,

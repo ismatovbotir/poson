@@ -30,6 +30,10 @@ use Illuminate\Support\Facades\Log;
  * Skipped when the row is gone, banned, or the kill switch is off.
  * Answering the callback and clearing old buttons are best effort and only
  * on the first try (a retry after 429 / 5xx only re-sends the prompt).
+ * Keyboard OPEN_APP (plan 20 M5): the inline web_app "Open catalog" button
+ * when the user is still in the Mini App audience and the canonical https
+ * URL is valid, built here; otherwise the text becomes menu.catalog_reply
+ * with the main menu (MA-20).
  * Logs: row id and error code only.
  */
 class SendBotPrompt implements ShouldQueueAfterCommit
@@ -94,14 +98,33 @@ class SendBotPrompt implements ShouldQueueAfterCommit
             $this->bestEffort(fn () => $client->editMessageReplyMarkup($chatId, (int) $this->clearMarkupMessageId));
         }
 
-        $text = BotText::render($user, $this->prompts);
+        $locale = BotText::locale($user);
+        $prompts = $this->prompts;
+        $keyboard = $this->keyboard;
+        $webApp = null;
+
+        // "Open catalog" (plan 20 M5, MA-20): eligibility re-checked now; otherwise the site catalog link.
+        if ($keyboard === BotKeyboards::OPEN_APP) {
+            $webApp = BotKeyboards::openCatalog($user, $locale);
+
+            if ($webApp === null) {
+                $prompts = ['menu.catalog_reply'];
+                $keyboard = BotKeyboards::MENU;
+            }
+        }
+
+        $text = BotText::render($user, $prompts);
 
         if ($text === '') {
             return;
         }
 
         try {
-            $client->sendMessage($chatId, $text, [], BotKeyboards::markup($this->keyboard, BotText::locale($user)), parseMode: null);
+            if ($webApp !== null) {
+                $client->sendWebAppMessage($chatId, $text, $webApp);
+            } else {
+                $client->sendMessage($chatId, $text, [], BotKeyboards::markup($keyboard, $locale), parseMode: null);
+            }
         } catch (TelegramException $exception) {
             Log::warning('Telegram bot prompt failed', ['telegram_user_id' => $user->id, 'code' => $exception->code()]);
 

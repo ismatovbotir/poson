@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
 use App\Enums\TelegramUserState;
+use App\Jobs\SyncMiniAppMenuButton;
 use App\Models\SettingsAudit;
 use App\Models\TelegramUser;
 use App\Models\User;
@@ -105,6 +106,9 @@ class SetConversationBan
                 'meta' => ['action' => $banned ? 'ban' : 'unban'],
                 'created_at' => now(),
             ]);
+
+            // Always (plan 20 M5): banned → reset to Telegram's default; unbanned → the job decides (audience, switch).
+            dispatch(new SyncMiniAppMenuButton($fresh->id, reset: $banned))->afterCommit();
 
             return true;
         });

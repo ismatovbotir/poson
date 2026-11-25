@@ -2,8 +2,11 @@
 
 namespace App\Support\Telegram\Bot;
 
+use App\Models\TelegramUser;
+use App\Services\Telegram\WebAppButton;
 use App\Support\Chat\Adapters\TelegramAdapter;
 use App\Support\Chat\ChatbotSwitch;
+use App\Support\Telegram\MiniApp\MiniAppAudience;
 
 /**
  * Keyboards of the customer bot (plan 14 v2 §5, §7) and the callback data
@@ -29,7 +32,14 @@ final class BotKeyboards
 
     public const REMOVE = 'remove';
 
-    public const ALL = [self::LANGUAGE, self::CONTACT, self::SKIP_COMPANY, self::SKIP_INN, self::NAME_CONFIRM, self::MENU, self::REMOVE];
+    /**
+     * The inline web_app "Open catalog" button (plan 20 M5, MA-20). Built
+     * inside SendBotPrompt by openCatalog() after the eligibility re-check;
+     * markup() never renders it, so it cannot reach a plain reply.
+     */
+    public const OPEN_APP = 'open_app';
+
+    public const ALL = [self::LANGUAGE, self::CONTACT, self::SKIP_COMPANY, self::SKIP_INN, self::NAME_CONFIRM, self::MENU, self::REMOVE, self::OPEN_APP];
 
     public const CALLBACK_PATTERN = '/^(?:lang:(?:uz|ru|en)|skip:(?:company|inn)|name:(?:yes|change)|'.TelegramAdapter::CALLBACK_BODY.')$/D';
 
@@ -130,6 +140,21 @@ final class BotKeyboards
             self::REMOVE => ['remove_keyboard' => true],
             default => null,
         };
+    }
+
+    /**
+     * The "Open catalog" web_app button for this user now, or null: not in
+     * the Mini App audience (registered, not banned / blocked, switch on) or
+     * no canonical https Mini App URL. The caller then falls back to
+     * menu.catalog_reply.
+     */
+    public static function openCatalog(TelegramUser $user, string $locale): ?WebAppButton
+    {
+        if (! MiniAppAudience::includes($user)) {
+            return null;
+        }
+
+        return WebAppButton::miniApp(__('telegram_bot.menu.open_catalog', [], $locale));
     }
 
     /**

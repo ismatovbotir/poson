@@ -438,7 +438,7 @@ class Show extends Component
         $newestFirst = TelegramMessage::query()
             ->select([
                 'id', 'telegram_user_id', 'direction', 'kind', 'text', 'media', 'user_id', 'status', 'error_code',
-                'sent_at', 'forward_status', 'forward_error_code', 'lead_id', 'created_at', 'updated_at',
+                'sent_at', 'forward_status', 'forward_error_code', 'lead_id', 'order_id', 'order_status', 'created_at', 'updated_at',
             ])
             ->where('telegram_user_id', $conversation->id)
             ->with('user:id,name')

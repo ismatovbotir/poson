@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Gate;
  * one (the worker died; the customer may already have it, so the screen warns,
  * which is UX only). Author or Admin only (policy "resend").
  *
- * Ownerless rows (the auto-ack) are not retryable, for an Admin either. The
+ * Ownerless rows (the auto-ack, customer order status messages) are not
+ * retryable, for an Admin either; a status row is refused even if it ever
+ * had an author (MA-32). The
  * row moves back to pending by one conditional update and the job is
  * dispatched only when that update changed exactly one row, so concurrent
  * calls send once.
@@ -40,7 +42,8 @@ class ResendTelegramMessage
 
             Gate::forUser($actor)->authorize('resend', [$conversation, $row]);
 
-            if (! $row->isResendable()) {
+            // Order status messages (plan 20 M5, MA-32) are delivered only by DeliverOrderStatusMessage: never resent from here.
+            if ($row->isOrderStatusMessage() || ! $row->isResendable()) {
                 throw new InboxRefused('not_retryable');
             }
 

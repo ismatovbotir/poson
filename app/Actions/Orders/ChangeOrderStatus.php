@@ -9,6 +9,7 @@ use App\Enums\OrderPaymentPurpose;
 use App\Enums\OrderPaymentStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Events\Orders\OrderStatusChanged;
 use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\User;
@@ -25,7 +26,8 @@ use Illuminate\Validation\ValidationException;
  * - shipped: needs payment unless paid on receipt; a Kokand courier needs
  *   the address confirmed on the call;
  * - completed: needs payment and no pending delivery charge.
- * Payment never changes the status by itself.
+ * Payment never changes the status by itself. Every change dispatches
+ * OrderStatusChanged after commit (plan 20 M5).
  */
 class ChangeOrderStatus
 {
@@ -103,6 +105,9 @@ class ChangeOrderStatus
             }
 
             $this->log->handle($order, 'status', $actor, ['from' => $from->value, 'to' => $to->value], body: $reason !== '' ? $reason : null);
+
+            // After commit only (plan 20 M5, MA-14): a rolled-back change announces nothing.
+            OrderStatusChanged::dispatch($order, $from, $to);
         });
     }
 }
