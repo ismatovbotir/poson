@@ -105,6 +105,15 @@
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/css/tma.css": {
+    "file": "assets/tma-D9Qe56e2.css",
+    "name": "tma",
+    "names": [
+      "tma.css"
+    ],
+    "src": "resources/css/tma.css",
+    "isEntry": true
+  },
   "resources/js/admin.js": {
     "file": "assets/admin-DClfcKkj.js",
     "name": "admin",
@@ -122,5 +131,11 @@
     "imports": [
       "_livewire-throttle-CgsT-bj1.js"
     ]
+  },
+  "resources/js/tma.js": {
+    "file": "assets/tma-qvNaYJr-.js",
+    "name": "tma",
+    "src": "resources/js/tma.js",
+    "isEntry": true
   }
 }

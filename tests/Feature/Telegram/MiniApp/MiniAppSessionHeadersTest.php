@@ -20,17 +20,22 @@ beforeEach(function () {
     tmaEnabled();
 });
 
-function tmaExpectedCsp(): string
+/**
+ * The CSP pins connect-src/form-action to the request origin (TmaHeaders uses
+ * getSchemeAndHttpHost()), so the expected value is built from the same origin.
+ */
+function tmaExpectedCsp(string $origin): string
 {
+
     return "default-src 'self'; script-src https://telegram.org/js/telegram-web-app.js 'self'; style-src 'self'; img-src 'self' data:; "
-        ."connect-src http://localhost/tma/; form-action http://localhost/tma/; frame-src 'none'; worker-src 'none'; manifest-src 'none'; "
+        ."connect-src {$origin}/tma/; form-action {$origin}/tma/; frame-src 'none'; worker-src 'none'; manifest-src 'none'; "
         ."base-uri 'none'; object-src 'none'; frame-ancestors https://web.telegram.org";
 }
 
 it('sends the exact CSP, noindex and no-store on every Mini App response, and no X-Frame-Options (MA-3)', function (string $url) {
     $response = $this->get($url);
 
-    expect($response->headers->get('Content-Security-Policy'))->toBe(tmaExpectedCsp())
+    expect($response->headers->get('Content-Security-Policy'))->toBe(tmaExpectedCsp($response->baseRequest->getSchemeAndHttpHost()))
         ->and($response->headers->get('X-Robots-Tag'))->toBe('noindex, nofollow, noarchive')
         ->and($response->headers->get('Cache-Control'))->toContain('no-store')
         ->and($response->headers->get('Referrer-Policy'))->toBe('no-referrer')
