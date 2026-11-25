@@ -10,6 +10,7 @@ use App\Models\ChatAiUsageDaily;
 use App\Services\Ai\AiResult;
 use App\Support\Chat\ChatSettings;
 use App\Support\Chat\WorkingHours;
+use App\Support\Office\OfficeSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,11 @@ class RecordAiUsage
      */
     public static function caps(AiUsageChannel $channel): array
     {
+        // Plan 41: the Virtual office channels have their own caps (Office → Settings, bounded, VO-11).
+        if ($channel->isOffice()) {
+            return OfficeSettings::caps($channel);
+        }
+
         $ai = ChatSettings::all()['ai'];
 
         if (! $channel->isAdmin()) {

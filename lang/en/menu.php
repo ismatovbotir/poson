@@ -17,6 +17,7 @@ return [
         'chatbot' => 'Chat bot',
         'settings' => 'Settings',
         'system' => 'System',
+        'office' => 'Virtual office',
     ],
 
     'items' => [
@@ -62,6 +63,10 @@ return [
         'sitemap' => 'Sitemap',
         'commands' => 'Commands',
         'monitoring' => 'Monitoring',
+        'office_chats' => 'Business chats',
+        'office_unmarked' => 'Unmarked chats',
+        'office_education' => 'Education',
+        'office_settings' => 'Settings',
     ],
 
     'tabs' => [

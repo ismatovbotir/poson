@@ -16,6 +16,11 @@ enum AiUsageChannel: string
     case AdminVision = 'adm_vision';
     case AdminWrite = 'adm_write';
     case AdminTranslate = 'adm_trans';
+    // Plan 41: the Virtual office router and role agents (caps in Office → Settings, config/office.php).
+    case OfficeRoute = 'vo_route';
+    case OfficeSales = 'vo_sales';
+    case OfficeService = 'vo_serv';
+    case OfficeSupport = 'vo_support';
 
     public function label(): string
     {
@@ -43,5 +48,20 @@ enum AiUsageChannel: string
     public function isAdmin(): bool
     {
         return ! in_array($this, self::bots(), true);
+    }
+
+    /**
+     * The Virtual office channels (plan 41): their caps come from OfficeSettings, not the chat bot settings.
+     *
+     * @return list<self>
+     */
+    public static function office(): array
+    {
+        return [self::OfficeRoute, self::OfficeSales, self::OfficeService, self::OfficeSupport];
+    }
+
+    public function isOffice(): bool
+    {
+        return in_array($this, self::office(), true);
     }
 }

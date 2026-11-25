@@ -2,13 +2,16 @@
 
 namespace App\Actions\Telegram;
 
+use App\Actions\Office\HandleBusinessUpdate;
 use App\Jobs\AnswerBotCallback;
 use App\Jobs\SendBotPrompt;
 use App\Models\TelegramUpdate;
 use App\Models\TelegramUser;
+use App\Support\Office\OfficeSettings;
 use App\Support\Telegram\Bot\BotLimits;
 use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\BotText;
+use App\Support\Telegram\Bot\BusinessUpdate;
 use App\Support\Telegram\Bot\UpdateParser;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +21,11 @@ use Illuminate\Support\Facades\DB;
  *
  *  1. insert the update_id into telegram_updates (insertOrIgnore): a
  *     duplicate means it was handled already → nothing else happens;
+ *  1b. plan 41 (VO-2): a Telegram Business update (BusinessUpdate, a
+ *     separate DTO type) goes to HandleBusinessUpdate and returns here,
+ *     BEFORE the private-chat check, the kill switch, the limits,
+ *     telegram_users and the registration: it can never reach the
+ *     customer bot;
  *  2. non-private chats, updates without a sender and senders with
  *     is_bot are dropped here, before any other write (condition 4);
  *  3. my_chat_member: the user blocked (kicked) / unblocked (member) the
@@ -44,6 +52,8 @@ class HandleTelegramUpdate
 
     public const PROCESSED = 'processed';
 
+    public const BUSINESS = 'business';
+
     /**
      * @param  array<mixed>  $payload  The decoded update
      * @return self::* What happened (for tests and the poll command output)
@@ -61,6 +71,14 @@ class HandleTelegramUpdate
 
             if ($inserted === 0) {
                 return self::DUPLICATE;
+            }
+
+            if ($update instanceof BusinessUpdate) {
+                // A fresh read of the office switches and allow-list for every business update (telegram:poll is long-running).
+                OfficeSettings::forget();
+                app(HandleBusinessUpdate::class)->handle($update);
+
+                return self::BUSINESS;
             }
 
             if (! $update->isPrivate() || $update->fromIsBot || $update->fromId === null) {

@@ -1,0 +1,8 @@
+{
+    "update_id": 0,
+    "deleted_business_messages": {
+        "business_connection_id": "fake-conn-0001",
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza"},
+        "message_ids": [101]
+    }
+}

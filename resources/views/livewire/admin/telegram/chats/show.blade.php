@@ -204,6 +204,22 @@
                 </dl>
             </x-admin.card>
 
+            {{-- Plan 41 §4: who this person is to the company (Admin only, informational) --}}
+            @if ($canMarkParty)
+                <x-admin.card :title="__('office.party.title')" data-party-panel>
+                    <p class="text-sm">{{ __('office.party.current') }}: <strong data-party="{{ $conversation->party?->value ?? 'none' }}">{{ $conversation->party?->label() ?? __('admin.common.empty_value') }}</strong></p>
+                    <div class="mt-3 space-y-2">
+                        <div class="flex flex-wrap gap-2">
+                            <x-admin.button size="sm" variant="secondary" wire:click="setParty('client')" data-action="party-client">{{ __('office.party.as_client') }}</x-admin.button>
+                            <x-admin.button size="sm" variant="secondary" wire:click="setParty('employee')" data-action="party-employee">{{ __('office.party.as_employee') }}</x-admin.button>
+                            @if ($conversation->party)
+                                <x-admin.button size="sm" variant="ghost" wire:click="setParty('')" data-action="party-clear">{{ __('office.party.clear') }}</x-admin.button>
+                            @endif
+                        </div>
+                    </div>
+                </x-admin.card>
+            @endif
+
             @include('livewire.admin.telegram.chats.partials.crm-panel')
             @include('livewire.admin.telegram.chats.partials.manage-panel')
             @include('livewire.admin.telegram.chats.partials.ai-panel')

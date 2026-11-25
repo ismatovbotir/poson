@@ -2,10 +2,12 @@
 
 namespace App\Support\Admin;
 
+use App\Enums\BusinessChatKind;
 use App\Enums\JobApplicationStatus;
 use App\Enums\LeadStatus;
 use App\Enums\Role;
 use App\Enums\SettingsArea;
+use App\Models\BusinessChat;
 use App\Models\JobApplication;
 use App\Models\Lead;
 use App\Models\Setting;
@@ -115,6 +117,15 @@ final class Menu
                 new MenuItem('chatbot-help', 'menu.items.chatbot_help', 'info', 'admin.chatbot.help', permission: ['chatbot.rules', 'chatbot.settings', 'telegram.inbox']),
             ]),
 
+            // Plan 41: Virtual office (Telegram Business chats, read and analyse only). Chats: office.chats
+            // (staff: assigned chats only); unmarked, education and settings: Admin only.
+            new MenuGroup('office', 'menu.groups.office', [
+                new MenuItem('office-chats', 'menu.items.office_chats', 'message', 'admin.office.chats.index', permission: 'office.chats', active: 'admin.office.chats.*'),
+                new MenuItem('office-unmarked', 'menu.items.office_unmarked', 'inbox', 'admin.office.unmarked', permission: 'office.mark'),
+                new MenuItem('office-education', 'menu.items.office_education', 'book', 'admin.office.education', permission: 'office.education'),
+                new MenuItem('office-settings', 'menu.items.office_settings', 'settings', 'admin.office.settings', permission: 'office.settings'),
+            ]),
+
             new MenuGroup('settings', 'menu.groups.settings', [
                 new MenuItem('company', 'menu.items.company', 'briefcase', 'admin.settings.company', permission: 'settings.company'),
                 new MenuItem('users', 'menu.items.users', 'users', 'admin.users.index', roles: $admin),
@@ -181,6 +192,15 @@ final class Menu
             // Plan 28 C5c: website chats count too (each channel through its own visibleTo scope).
             $badges['telegram-chats'] = TelegramUser::query()->visibleTo($user)->where('unread_count', '>', 0)->count()
                 + WebChat::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
+        }
+
+        // Plan 41: Telegram Business chats waiting for a mark (Admin) and visible client chats with unread messages.
+        if ($user->can('office.mark')) {
+            $badges['office-unmarked'] = BusinessChat::query()->where('kind', BusinessChatKind::Unmarked->value)->where('unread_count', '>', 0)->count();
+        }
+
+        if ($user->can('office.chats')) {
+            $badges['office-chats'] = BusinessChat::query()->visibleTo($user)->where('unread_count', '>', 0)->count();
         }
 
         // Plan 31 (CR-11): new applications, only for users with careers.applications.

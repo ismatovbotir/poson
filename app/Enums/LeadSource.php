@@ -11,6 +11,8 @@ enum LeadSource: string
     case Telegram = 'telegram';
     case Phone = 'phone';
     case Manual = 'manual';
+    // Plan 41: a lead from an analysed Telegram Business chat (Virtual office).
+    case TelegramBusiness = 'tg_business';
 
     public function label(): string
     {

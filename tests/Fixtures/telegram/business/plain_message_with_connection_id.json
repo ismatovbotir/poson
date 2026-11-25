@@ -1,0 +1,11 @@
+{
+    "update_id": 0,
+    "message": {
+        "business_connection_id": "fake-conn-0001",
+        "message_id": 108,
+        "from": {"id": 9990010001, "is_bot": false, "first_name": "Aziza"},
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza"},
+        "date": 1764000800,
+        "text": "Salom"
+    }
+}

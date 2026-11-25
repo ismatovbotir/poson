@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Telegram\Chats;
 
 use App\Actions\Leads\CreateLead;
+use App\Actions\Office\SetTelegramParty;
 use App\Actions\Telegram\AssignConversation;
 use App\Actions\Telegram\ChangeConversationStatus;
 use App\Actions\Telegram\ConvertTelegramToLead;
@@ -19,6 +20,7 @@ use App\Enums\ActivityType;
 use App\Enums\ConversationStatus;
 use App\Enums\LeadType;
 use App\Enums\TelegramDirection;
+use App\Enums\TelegramParty;
 use App\Jobs\DeleteForwardedCopies;
 use App\Models\Activity;
 use App\Models\ChatAiTurn;
@@ -85,6 +87,8 @@ class Show extends Component
         'consent_at', 'registered_at', 'customer_id', 'contact_id', 'link_verified_at', 'link_verified_by_id',
         'account_changed', 'conversation_status', 'manager_id', 'unread_count',
         'last_message_at', 'last_inbound_at', 'closed_at', 'blocked_at', 'banned_at', 'created_at',
+        // Plan 41: the client / employee mark.
+        'party', 'staff_user_id',
     ];
 
     #[Locked]
@@ -328,6 +332,22 @@ class Show extends Component
         $this->leaveIfNoLongerVisible();
     }
 
+    /**
+     * Plan 41 §4: mark the person as a client / employee (or clear it), office.mark (Admin only).
+     */
+    public function setParty(string $party, SetTelegramParty $setParty): void
+    {
+        $conversation = $this->conversation();
+        $this->authorize('view', $conversation);
+        $this->authorize('office.mark');
+
+        $case = TelegramParty::tryFrom($party);
+        $setParty->handle($this->user(), $conversation, $case, null, request()->ip());
+
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: $case?->label() ?? __('office.party.cleared'), type: 'success');
+        $this->loaded = null;
+    }
+
     public function verifyLink(VerifyConversationLink $verify): void
     {
         $this->authorize('view', $this->conversation());
@@ -441,6 +461,8 @@ class Show extends Component
             ...$this->linkPicker($conversation),
             ...$this->convertPanel($conversation, $messages),
             'canOpenLeads' => $this->user()->can('leads.view'),
+            // Plan 41: "Mark as client / employee" (office.mark, Admin only).
+            'canMarkParty' => $this->user()->can('office.mark'),
             'candidates' => $this->assignOpen && $this->user()->can('assign', $conversation) ? app(AssignConversation::class)->candidates() : collect(),
             'history' => $this->historyOpen ? $this->history($conversation) : [],
             'deleteWarnings' => $this->deleteOpen ? $this->deleteWarnings($conversation) : [],

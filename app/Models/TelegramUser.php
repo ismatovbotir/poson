@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ChatChannel;
 use App\Enums\ChatMode;
 use App\Enums\ConversationStatus;
+use App\Enums\TelegramParty;
 use App\Enums\TelegramUserState;
 use App\Support\Chat\ChatSettings;
 use App\Support\Chat\ChatSubject;
@@ -65,6 +66,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_staff_reply_at
  * @property Carbon|null $ai_context_at
  * @property Carbon|null $contact_intro_sent_at
+ * @property TelegramParty|null $party
+ * @property int|null $staff_user_id
  */
 #[Fillable([
     'telegram_id', 'username', 'first_name', 'last_name', 'locale', 'state',
@@ -99,6 +102,8 @@ class TelegramUser extends Model implements ChatSubject
             'state' => TelegramUserState::class,
             'conversation_status' => ConversationStatus::class,
             'chat_mode' => ChatMode::class,
+            // Plan 41: client / employee, set by an Admin (SetTelegramParty, MarkBusinessChat); never an AI-cap exemption.
+            'party' => TelegramParty::class,
             'bot_dialog' => 'array',
             'handoff_at' => 'datetime',
             'last_staff_reply_at' => 'datetime',
@@ -183,6 +188,16 @@ class TelegramUser extends Model implements ChatSubject
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Plan 41: the staff account of an employee bot user.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function staffUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'staff_user_id');
     }
 
     /**

@@ -47,7 +47,8 @@ it('sets the webhook to APP_URL plus the fixed path with secret and options, aud
         ->and($call['data'])->toBe([
             'url' => 'https://poson.example.uz/api/telegram/webhook',
             'secret_token' => TG_WEBHOOK_SECRET,
-            'allowed_updates' => ['message', 'callback_query', 'my_chat_member'],
+            // Plan 41: plus the four Telegram Business types.
+            'allowed_updates' => ['message', 'callback_query', 'my_chat_member', 'business_connection', 'business_message', 'edited_business_message', 'deleted_business_messages'],
             'max_connections' => 10,
             'drop_pending_updates' => true,
         ])

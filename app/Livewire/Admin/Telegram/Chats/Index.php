@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Telegram\Chats;
 
 use App\Enums\ConversationStatus;
+use App\Enums\TelegramParty;
 use App\Livewire\Admin\Concerns\WithAdminPagination;
 use App\Models\TelegramMessage;
 use App\Models\TelegramUser;
@@ -73,6 +74,12 @@ class Index extends Component
     #[Url(except: '')]
     public string $search = '';
 
+    /**
+     * Plan 41 §4: client / employee mark of bot users (office.mark only; Telegram rows only).
+     */
+    #[Url(except: '')]
+    public string $party = '';
+
     public function mount(): void
     {
         $this->authorize('viewAny', TelegramUser::class);
@@ -85,7 +92,7 @@ class Index extends Component
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['channel', 'scope', 'status', 'search'], true)) {
+        if (in_array($property, ['channel', 'scope', 'status', 'search', 'party'], true)) {
             $this->resetPage();
         }
     }
@@ -114,7 +121,7 @@ class Index extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('channel', 'scope', 'status', 'search');
+        $this->reset('channel', 'scope', 'status', 'search', 'party');
         $this->resetPage();
     }
 
@@ -127,8 +134,10 @@ class Index extends Component
         $status = ConversationStatus::tryFrom($this->status);
         $search = mb_substr($this->search, 0, 100);
 
-        // "Unlinked" only exists for Telegram; the web channel ignores it.
-        $telegramOnly = $scope === 'unlinked' && $channel !== 'web';
+        $party = $user->can('office.mark') ? TelegramParty::tryFrom($this->party) : null;
+
+        // "Unlinked" (and the plan 41 party filter) only exist for Telegram; the web channel ignores them.
+        $telegramOnly = ($scope === 'unlinked' || $party !== null) && $channel !== 'web';
         $useTelegram = $channel !== 'web';
         $useWeb = $channel !== 'telegram' && ! $telegramOnly;
 
@@ -142,6 +151,7 @@ class Index extends Component
                 ->when($scope === 'unread', fn (Builder $query) => $query->where('telegram_users.unread_count', '>', 0))
                 ->when($scope === 'unlinked', fn (Builder $query) => $query->registered()->whereNull('telegram_users.customer_id'))
                 ->when($status !== null, fn (Builder $query) => $query->where('telegram_users.conversation_status', $status))
+                ->when($party !== null, fn (Builder $query) => $query->where('telegram_users.party', $party?->value))
                 ->search($search)
                 ->toBase()
                 ->select([DB::raw("'telegram' as channel"), 'telegram_users.id', 'telegram_users.manager_id', 'telegram_users.unread_count', 'telegram_users.conversation_status', 'telegram_users.last_message_at']);
@@ -186,7 +196,8 @@ class Index extends Component
         return view('livewire.admin.telegram.chats.index', [
             'items' => $items,
             'stuck' => $stuck,
-            'filtering' => $scope !== 'all' || $status !== null || trim($this->search) !== '' || $channel !== 'all',
+            'filtering' => $scope !== 'all' || $status !== null || trim($this->search) !== '' || $channel !== 'all' || $party !== null,
+            'canFilterParty' => $user->can('office.mark'),
             'currentScope' => $scope,
             'currentChannel' => $channel,
             'marksInactiveManagers' => $user->can('telegram.inbox-all'),

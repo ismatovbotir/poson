@@ -161,8 +161,16 @@
                 </div>
             </dl>
 
+            {{-- Plan 41 (VO-15): Telegram does not send every update type we need (e.g. the business types after a deploy) --}}
+            @if ($webhook !== null && $webhook['matches'] && ! ($webhook['allowed_ok'] ?? true))
+                <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="status" data-allowed-updates-missing>
+                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.allowed_updates_missing') }}
+                </p>
+            @endif
+
             <div class="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
                 <x-admin.button icon="link" wire:click="setWebhook" loading="setWebhook" data-action="set-webhook">{{ __($t.'.set_webhook') }}</x-admin.button>
+                <x-admin.button variant="secondary" icon="restore" wire:click="updateAllowedUpdates" loading="updateAllowedUpdates" data-action="update-allowed-updates">{{ __($t.'.update_allowed_updates') }}</x-admin.button>
                 <x-admin.button variant="secondary" icon="trash" wire:click="deleteWebhook" wire:confirm="{{ __($t.'.confirm_delete_webhook') }}" loading="deleteWebhook" data-action="delete-webhook">{{ __($t.'.delete_webhook') }}</x-admin.button>
             </div>
         </x-admin.card>

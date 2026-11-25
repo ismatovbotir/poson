@@ -24,6 +24,9 @@ enum ActivityType: string
     // Plan 32: a product created / improved with the AI wizard (body: field keys and counts only, PW-19).
     case AiCreate = 'ai_create';
     case AiImprove = 'ai_improve';
+    // Plan 41: a Virtual office analysis on a lead (meta: analysis id, topic) and a business chat mark.
+    case AiSummary = 'ai_summary';
+    case OfficeMark = 'office_mark';
 
     public function label(): string
     {
@@ -49,7 +52,8 @@ enum ActivityType: string
             self::Payment => 'card',
             self::Repair => 'tool',
             self::CvDownload => 'download',
-            self::AiCreate, self::AiImprove => 'sparkles',
+            self::AiCreate, self::AiImprove, self::AiSummary => 'sparkles',
+            self::OfficeMark => 'telegram',
         };
     }
 
@@ -72,7 +76,8 @@ enum ActivityType: string
             self::Payment => 'bg-brand-600',
             self::Repair => 'bg-violet-500',
             self::CvDownload => 'bg-slate-400',
-            self::AiCreate, self::AiImprove => 'bg-violet-500',
+            self::AiCreate, self::AiImprove, self::AiSummary => 'bg-violet-500',
+            self::OfficeMark => 'bg-slate-400',
         };
     }
 

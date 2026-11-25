@@ -62,6 +62,7 @@ return [
         'telegram' => 'Telegram',
         'phone' => 'Phone',
         'manual' => 'Manual',
+        'tg_business' => 'Telegram Business',
     ],
 
     'preferred_contact' => [
@@ -116,6 +117,8 @@ return [
         'cv_download' => 'CV download',
         'ai_create' => 'Created with AI',
         'ai_improve' => 'Improved with AI',
+        'ai_summary' => 'Virtual office analysis',
+        'office_mark' => 'Chat marked',
     ],
 
     'quote_status' => [
@@ -236,6 +239,7 @@ return [
         'chatbot' => 'Chat bot',
         'telegram_inbox' => 'Telegram inbox',
         'users' => 'Staff',
+        'office' => 'Virtual office',
     ],
 
     'audit_action' => [
@@ -266,6 +270,7 @@ return [
         'password_changed' => 'Password changed',
         'password_reset' => 'Password reset',
         'exported' => 'Exported',
+        'marked' => 'Marked',
     ],
 
     'price_sync_status' => [
@@ -548,6 +553,10 @@ return [
         'adm_vision' => 'Admin: photo reading',
         'adm_write' => 'Admin: text writing',
         'adm_trans' => 'Admin: translation',
+        'vo_route' => 'Virtual office: router',
+        'vo_sales' => 'Virtual office: sales',
+        'vo_serv' => 'Virtual office: service',
+        'vo_support' => 'Virtual office: support',
     ],
 
     'chat_ai_role' => [
@@ -717,6 +726,41 @@ return [
         'add_to_cart' => 'Added to cart',
         'order_paid' => 'Order paid (offline)',
         'quote_accepted' => 'Quote accepted (offline)',
+    ],
+
+    'business_chat_kind' => [
+        'unmarked' => 'Unmarked',
+        'client' => 'Client',
+        'employee' => 'Employee',
+        'ignored' => 'Ignored',
+    ],
+
+    'business_author' => [
+        'client' => 'Client',
+        'owner' => 'Manager',
+        'bot' => 'Bot',
+    ],
+
+    'agent_role' => [
+        'router' => 'Router',
+        'sales' => 'Sales',
+        'service' => 'Service',
+        'support' => 'Support',
+        'other' => 'Other',
+    ],
+
+    'analysis_status' => [
+        'queued' => 'Queued',
+        'running' => 'Running',
+        'done' => 'Done',
+        'failed' => 'Failed',
+        'skipped' => 'Skipped',
+        'capped' => 'Daily limit reached',
+    ],
+
+    'telegram_party' => [
+        'client' => 'Client',
+        'employee' => 'Employee',
     ],
 
 ];

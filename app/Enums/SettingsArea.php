@@ -43,6 +43,8 @@ enum SettingsArea: string
     case Users = 'users';
     case Careers = 'careers';
     case Monitoring = 'monitoring';
+    // Plan 41: Virtual office switches, owner allow-list, caps, education and chat marks (Admin only).
+    case Office = 'office';
 
     /**
      * Plan 40 (Admin only, analytics.export): the ad click id switch
@@ -70,6 +72,7 @@ enum SettingsArea: string
             self::Checkout => 'checkout',
             self::Careers => 'careers',
             self::Monitoring => 'monitoring',
+            self::Office => 'office',
         };
     }
 
@@ -78,6 +81,6 @@ enum SettingsArea: string
      */
     public function isRestricted(): bool
     {
-        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers, self::Monitoring, self::Analytics], true);
+        return in_array($this, [self::Legal, self::Tracking, self::Integrations, self::ApiTokens, self::PriceSync, self::Checkout, self::Indexing, self::Mcp, self::Catalog, self::TelegramBot, self::TelegramInbox, self::Chatbot, self::Users, self::Careers, self::Monitoring, self::Analytics, self::Office], true);
     }
 }

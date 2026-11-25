@@ -26,6 +26,7 @@ use App\Livewire\Admin\Customers;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Leads;
 use App\Livewire\Admin\News;
+use App\Livewire\Admin\Office;
 use App\Livewire\Admin\Orders;
 use App\Livewire\Admin\Pages;
 use App\Livewire\Admin\Payments;
@@ -225,6 +226,14 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     // Plan 28 C5c: website chat thread (telegram.inbox + WebChatPolicy), authorized in the component.
     Route::livewire('/chats/web/{webChat}', Chat\Web\Show::class)->name('telegram.chats.web.show')->whereNumber('webChat');
     Route::livewire('/telegram/chats/{telegramUser}', Telegram\Chats\Show::class)->name('telegram.chats.show')->whereNumber('telegramUser');
+    // Plan 41: Virtual office (Telegram Business, read and analyse only). Authorized in the components:
+    // unmarked / education / settings Admin only (office.mark / office.education / office.settings),
+    // chats through BusinessChatPolicy + BusinessChat::visibleTo (office.chats).
+    Route::livewire('/office/unmarked', Office\Unmarked::class)->name('office.unmarked');
+    Route::livewire('/office/chats', Office\Chats\Index::class)->name('office.chats.index');
+    Route::livewire('/office/chats/{businessChat}', Office\Chats\Show::class)->name('office.chats.show')->whereNumber('businessChat');
+    Route::livewire('/office/education/{role?}', Office\Education::class)->name('office.education')->whereIn('role', ['router', 'sales', 'service', 'support']);
+    Route::livewire('/office/settings', Office\Settings::class)->name('office.settings');
 
     Route::livewire('/confirm-password', ConfirmPassword::class)->name('confirm-password');
 });

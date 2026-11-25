@@ -1,0 +1,12 @@
+{
+    "update_id": 0,
+    "business_message": {
+        "business_connection_id": "fake-conn-0001",
+        "message_id": 104,
+        "from": {"id": 9990010001, "is_bot": false, "first_name": "Aziza"},
+        "chat": {"id": 9990010001, "type": "private", "first_name": "Aziza"},
+        "date": 1764000400,
+        "document": {"file_name": "rekvizitlar.pdf", "mime_type": "application/pdf", "file_size": 20480},
+        "caption": "Mana rekvizitlar"
+    }
+}

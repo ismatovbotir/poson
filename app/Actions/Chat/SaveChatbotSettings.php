@@ -253,7 +253,7 @@ class SaveChatbotSettings
 
         // Plan 32 (PW-12): daily caps of the admin usage channels, Admin only when they change.
         foreach (AiUsageChannel::cases() as $channel) {
-            if (! $channel->isAdmin()) {
+            if (! $channel->isAdmin() || $channel->isOffice()) {
                 continue;
             }
 

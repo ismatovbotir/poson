@@ -14,6 +14,7 @@ use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
 use App\Models\Banner;
 use App\Models\Brand;
+use App\Models\BusinessChat;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\FaqItem;
@@ -46,6 +47,7 @@ use App\Support\Http\LivewireThrottle;
 use App\Support\Media\MediaReplacer;
 use App\Support\Monitoring\CronWatchdog;
 use App\Support\Monitoring\RunRecorder;
+use App\Support\Office\OfficeSettings;
 use App\Support\Secrets;
 use App\Support\Site\BannerDirectory;
 use App\Support\Site\HomeCache;
@@ -81,6 +83,8 @@ class AppServiceProvider extends ServiceProvider
         // Scoped: the chat bot channel switches are read once per request or job.
         ChatbotSwitch::register();
         ChatSettings::register();
+        // Plan 41: the Virtual office settings memo (per request / queued job).
+        OfficeSettings::register();
 
         // Scoped: the cart token issued during a request is seen by the rest of that request only.
         $this->app->scoped(CartToken::class);
@@ -119,6 +123,8 @@ class AppServiceProvider extends ServiceProvider
         // this map directly, so models as component properties are unaffected.
         Relation::enforceMorphMap([
             'brand' => Brand::class,
+            // Plan 41: Virtual office chats (mark / assignment history).
+            'business_chat' => BusinessChat::class,
             'category' => Category::class,
             'customer' => Customer::class,
             'faq_item' => FaqItem::class,

@@ -17,6 +17,7 @@ return [
         'chatbot' => 'Чат-бот',
         'settings' => 'Настройки',
         'system' => 'Система',
+        'office' => 'Виртуальный офис',
     ],
 
     'items' => [
@@ -62,6 +63,10 @@ return [
         'sitemap' => 'Карта сайта',
         'commands' => 'Команды',
         'monitoring' => 'Мониторинг',
+        'office_chats' => 'Бизнес-чаты',
+        'office_unmarked' => 'Неотмеченные чаты',
+        'office_education' => 'Обучение',
+        'office_settings' => 'Настройки',
     ],
 
     'tabs' => [

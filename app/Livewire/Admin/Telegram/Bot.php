@@ -165,6 +165,15 @@ class Bot extends Component
         });
     }
 
+    /**
+     * Plan 41 (VO-15): re-register the webhook with the current allowed_updates, keeping pending updates.
+     */
+    public function updateAllowedUpdates(ConfigureTelegramWebhook $configure): void
+    {
+        $this->write(fn (): string => $configure->updateAllowedUpdates(auth()->user(), request()->ip()) === ConfigureTelegramWebhook::SET
+            ? __('admin.telegram_bot.flash.allowed_updates_set') : __('admin.telegram_bot.flash.allowed_updates_skipped'));
+    }
+
     public function deleteWebhook(ConfigureTelegramWebhook $configure): void
     {
         $this->write(function () use ($configure): string {
@@ -238,6 +247,8 @@ class Bot extends Component
                     'matches' => $expected !== null && $url !== '' && hash_equals($expected, $url),
                     'pending' => is_int($info['pending_update_count'] ?? null) ? $info['pending_update_count'] : 0,
                     'last_error_at' => is_int($info['last_error_date'] ?? null) ? $info['last_error_date'] : null,
+                    // Plan 41: Telegram sends every update type we need (the business types included).
+                    'allowed_ok' => ConfigureTelegramWebhook::hasAllowedUpdates($info),
                 ];
             } catch (TelegramException $exception) {
                 $this->loadError = $exception->code();

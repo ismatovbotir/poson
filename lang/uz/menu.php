@@ -17,6 +17,7 @@ return [
         'chatbot' => 'Chat-bot',
         'settings' => 'Sozlamalar',
         'system' => 'Tizim',
+        'office' => 'Virtual ofis',
     ],
 
     'items' => [
@@ -62,6 +63,10 @@ return [
         'sitemap' => 'Sayt xaritasi',
         'commands' => 'Buyruqlar',
         'monitoring' => 'Monitoring',
+        'office_chats' => 'Biznes chatlar',
+        'office_unmarked' => 'Belgilanmagan chatlar',
+        'office_education' => 'Oʻqitish',
+        'office_settings' => 'Sozlamalar',
     ],
 
     'tabs' => [

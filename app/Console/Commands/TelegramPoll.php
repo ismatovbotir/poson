@@ -8,6 +8,7 @@ use App\Actions\Telegram\TelegramUpdateFailed;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Chat\ChatbotSwitch;
+use App\Support\Office\OfficeSettings;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -67,6 +68,8 @@ Refuses to run in production. Side effects: stores update ids and processes bot 
 
             // A long-lived loop must see a switch change made meanwhile.
             ChatbotSwitch::forget();
+            // Plan 41: the Virtual office switches are read fresh per batch too.
+            OfficeSettings::forget();
 
             foreach ($updates as $update) {
                 $updateId = $update['update_id'] ?? null;
