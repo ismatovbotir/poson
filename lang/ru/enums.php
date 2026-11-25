@@ -469,6 +469,7 @@ return [
         'sending' => 'Отправляется',
         'sent' => 'Отправлено',
         'failed' => 'Ошибка',
+        'skipped' => 'Пропущено',
     ],
 
     'telegram_message_kind' => [

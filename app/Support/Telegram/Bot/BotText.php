@@ -27,7 +27,7 @@ final class BotText
         'company.prompt', 'company.invalid',
         'inn.prompt', 'inn.invalid',
         'welcome',
-        'menu.main', 'menu.contact_manager_reply', 'menu.catalog_reply',
+        'menu.main', 'menu.contact_manager_reply', 'menu.catalog_reply', 'menu.open_app_reply',
         'help',
         'registration.continue',
         'rate_limited',

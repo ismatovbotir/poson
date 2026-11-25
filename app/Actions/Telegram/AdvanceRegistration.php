@@ -8,6 +8,7 @@ use App\Enums\TelegramMessageKind;
 use App\Enums\TelegramUserState;
 use App\Jobs\AnswerBotCallback;
 use App\Jobs\SendBotPrompt;
+use App\Jobs\SyncMiniAppMenuButton;
 use App\Models\TelegramUser;
 use App\Support\Chat\ChatbotSwitch;
 use App\Support\Chat\LeadDialog;
@@ -15,6 +16,8 @@ use App\Support\Phone;
 use App\Support\Telegram\Bot\BotKeyboards;
 use App\Support\Telegram\Bot\BotText;
 use App\Support\Telegram\Bot\UpdateParser;
+use App\Support\Telegram\MiniApp\MiniAppAudience;
+use App\Support\Telegram\MiniApp\MiniAppSwitch;
 
 /**
  * The customer bot conversation state machine (plan 14 v2 §7). Runs inside
@@ -127,7 +130,7 @@ class AdvanceRegistration
             $command === 'menu:faq' && $registered => $this->chat->menuKey($user, 'faq'),
             $command === 'menu:order_status' && $registered => $this->chat->menuKey($user, 'order_status'),
             $command === 'menu:repair_status' && $registered => $this->chat->menuKey($user, 'repair_status'),
-            $command === 'menu:catalog' && $registered => $this->reply($user, ['menu.catalog_reply'], BotKeyboards::MENU),
+            $command === 'menu:catalog' && $registered => $this->catalog($user),
             // A menu label typed before registration is just text: re-prompt.
             default => $this->currentStep($user, prefix: $this->continuePrefix($user)),
         };
@@ -184,6 +187,11 @@ class AdvanceRegistration
         $user->save();
 
         if ($user->state === TelegramUserState::Registered) {
+            // The menu button label follows the language (plan 20 M5).
+            if (MiniAppSwitch::isStoredOn()) {
+                dispatch(new SyncMiniAppMenuButton($user->id))->afterCommit();
+            }
+
             $this->reply($user, ['language.changed'], BotKeyboards::MENU, $answer);
 
             return;
@@ -324,6 +332,22 @@ class AdvanceRegistration
         $user->save();
         $this->register->handle($user);
         $this->reply($user, ['welcome'], BotKeyboards::MENU, $answer);
+    }
+
+    /**
+     * "Catalog" (plan 20 M5, MA-20): Mini App audience → the inline web_app
+     * "Open catalog" button (the job carries the keyboard name only, builds
+     * the URL and checks the audience again); everyone else → the site link.
+     */
+    private function catalog(TelegramUser $user): void
+    {
+        if (MiniAppAudience::includes($user)) {
+            $this->reply($user, ['menu.open_app_reply'], BotKeyboards::OPEN_APP);
+
+            return;
+        }
+
+        $this->reply($user, ['menu.catalog_reply'], BotKeyboards::MENU);
     }
 
     /**

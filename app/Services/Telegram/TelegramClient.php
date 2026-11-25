@@ -6,6 +6,7 @@ use App\Support\Secrets;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -82,10 +83,11 @@ class TelegramClient
      * parseMode null (plain text, condition 15).
      *
      * @param  list<array{text: string, url: string}>  $buttons  URL buttons, one per row (ignored when $replyMarkup is given)
-     * @param  array<string, mixed>|null  $replyMarkup  Inline keyboard, reply keyboard or remove_keyboard markup
+     * @param  array<string, mixed>|null  $replyMarkup  Inline keyboard, reply keyboard or remove_keyboard markup (never web_app: sendWebAppMessage)
      * @return array<string, mixed> The sent message
      *
      * @throws TelegramException
+     * @throws InvalidArgumentException web_app markup (MA-29)
      */
     public function sendMessage(string $chatId, string $html, array $buttons = [], ?array $replyMarkup = null, ?string $parseMode = 'HTML'): array
     {
@@ -100,6 +102,7 @@ class TelegramClient
         }
 
         if ($replyMarkup !== null) {
+            self::refuseWebApp($replyMarkup);
             $payload['reply_markup'] = $replyMarkup;
         } elseif ($buttons !== []) {
             $payload['reply_markup'] = [
@@ -108,6 +111,56 @@ class TelegramClient
         }
 
         return $this->call('sendMessage', $payload);
+    }
+
+    /**
+     * Send a plain-text message (no parse_mode) with one inline web_app
+     * button (plan 20 M5): the only way a web_app button is sent, and only
+     * as the closed WebAppButton type (MA-29).
+     *
+     * @return array<string, mixed> The sent message
+     *
+     * @throws TelegramException
+     * @throws InvalidArgumentException
+     */
+    public function sendWebAppMessage(string $chatId, string $text, WebAppButton $button): array
+    {
+        self::assertWebApp($button);
+
+        return $this->call('sendMessage', [
+            'chat_id' => $chatId,
+            'text' => $text,
+            'link_preview_options' => ['is_disabled' => true],
+            'reply_markup' => ['inline_keyboard' => [[$button->inline()]]],
+        ]);
+    }
+
+    /**
+     * Set one private chat's menu button (plan 20 M5, MA-28): the Mini App
+     * web_app button, or with null Telegram's default. Without a chat id
+     * only the global default may be set; a web_app button is never the
+     * bot-wide default.
+     *
+     * @throws TelegramException
+     * @throws InvalidArgumentException
+     */
+    public function setChatMenuButton(?string $chatId, ?WebAppButton $button = null): void
+    {
+        if ($button !== null) {
+            if ($chatId === null) {
+                throw new InvalidArgumentException('A web_app menu button is never the global default.');
+            }
+
+            self::assertWebApp($button);
+        }
+
+        $payload = ['menu_button' => $button?->menuButton() ?? ['type' => 'default']];
+
+        if ($chatId !== null) {
+            $payload['chat_id'] = $chatId;
+        }
+
+        $this->callRaw('setChatMenuButton', $payload);
     }
 
     /**
@@ -143,6 +196,10 @@ class TelegramClient
      */
     public function editMessageReplyMarkup(string $chatId, int $messageId, ?array $replyMarkup = null): void
     {
+        if ($replyMarkup !== null) {
+            self::refuseWebApp($replyMarkup);
+        }
+
         $this->callRaw('editMessageReplyMarkup', [
             'chat_id' => $chatId,
             'message_id' => $messageId,
@@ -383,6 +440,47 @@ class TelegramClient
         }
 
         return $bytes;
+    }
+
+    /**
+     * web_app buttons only through WebAppButton (MA-29): free markup that
+     * contains one anywhere is refused before any request.
+     *
+     * @param  array<mixed>  $markup
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function refuseWebApp(array $markup): void
+    {
+        if (self::containsWebApp($markup)) {
+            throw new InvalidArgumentException('web_app buttons are sent only as a WebAppButton.');
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $markup
+     */
+    private static function containsWebApp(array $markup): bool
+    {
+        foreach ($markup as $key => $value) {
+            if ($key === 'web_app' || (is_array($value) && self::containsWebApp($value))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The URL is checked again at send time (APP_URL may have changed).
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function assertWebApp(WebAppButton $button): void
+    {
+        if (! WebAppButton::isAllowedUrl($button->url)) {
+            throw new InvalidArgumentException('A web_app button must open the Mini App on the canonical https APP_URL.');
+        }
     }
 
     /**

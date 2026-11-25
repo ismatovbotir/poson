@@ -7,11 +7,13 @@ use App\Enums\CustomerType;
 use App\Enums\LeadSource;
 use App\Enums\PriceLevel;
 use App\Enums\TelegramUserState;
+use App\Jobs\SyncMiniAppMenuButton;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\TelegramUser;
 use App\Models\User;
 use App\Support\Telegram\Bot\BotLimits;
+use App\Support\Telegram\MiniApp\MiniAppSwitch;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -74,6 +76,11 @@ class RegisterTelegramUser
             'meta' => array_filter(['match' => $match, 'customer_id' => $customer?->id, 'contact_id' => $contact?->id]),
             'created_at' => now(),
         ]);
+
+        // The Mini App menu button (plan 20 M5): queued while the Mini App is on; the job re-checks the audience when it runs.
+        if (MiniAppSwitch::isStoredOn()) {
+            dispatch(new SyncMiniAppMenuButton($user->id))->afterCommit();
+        }
     }
 
     public static function isAnonymousNumber(?string $phone): bool

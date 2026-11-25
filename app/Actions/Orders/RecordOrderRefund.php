@@ -11,6 +11,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Events\Orders\OrderRefunded;
+use App\Events\Orders\OrderStatusChanged;
 use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\User;
@@ -70,7 +71,8 @@ class RecordOrderRefund
             ])->save();
 
             if ($payment->purpose === OrderPaymentPurpose::Goods) {
-                $cancel = in_array($order->status, [OrderStatus::New, OrderStatus::Confirmed, OrderStatus::Processing], true);
+                $from = $order->status;
+                $cancel = in_array($from, [OrderStatus::New, OrderStatus::Confirmed, OrderStatus::Processing], true);
 
                 $order->forceFill([
                     'payment_status' => PaymentStatus::Refunded,
@@ -80,6 +82,11 @@ class RecordOrderRefund
 
                 // Nothing more is asked of a refunded order (security review M1).
                 $this->cancelPendingCharges($order, $reason, $actor, $this->log);
+
+                // A refund that cancels is a status change too (plan 20 M5, MA-14): after commit, no reason text.
+                if ($cancel) {
+                    OrderStatusChanged::dispatch($order, $from, OrderStatus::Cancelled);
+                }
             }
 
             $this->log->handle($order, 'refunded', $actor, [

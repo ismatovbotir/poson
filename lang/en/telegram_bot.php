@@ -64,6 +64,16 @@ return [
         'language' => 'Language',
         'contact_manager_reply' => 'Write your question here and it will reach our team.',
         'catalog_reply' => 'Equipment catalog: :url',
+        // Plan 20 M5: the Mini App menu button and the inline "Open catalog" reply.
+        'open_app' => 'Catalog',
+        'open_catalog' => 'Open catalog',
+        'open_app_reply' => 'Open the catalog right here in Telegram.',
+    ],
+
+    // Plan 20 M5 (MA-14, MA-26): customer order status messages, order number and status label only.
+    'order_status' => [
+        'text' => 'Order :number status: :status.',
+        'button' => 'Open order',
     ],
 
     'help' => 'This is the official Poson bot. You can send your question about barcode scanners, printers, mobile computers and POS equipment, open the catalog and change the language. Just write your question here.',

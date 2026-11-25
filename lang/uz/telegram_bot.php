@@ -64,6 +64,16 @@ return [
         'language' => 'Til',
         'contact_manager_reply' => 'Savolingizni shu yerda yozing — u jamoamizga yetib boradi.',
         'catalog_reply' => 'Uskunalar katalogi: :url',
+        // Plan 20 M5: the Mini App menu button and the inline "Open catalog" reply.
+        'open_app' => 'Katalog',
+        'open_catalog' => 'Katalogni ochish',
+        'open_app_reply' => 'Katalogni shu yerda, Telegram ichida oching.',
+    ],
+
+    // Plan 20 M5 (MA-14, MA-26): customer order status messages, order number and status label only.
+    'order_status' => [
+        'text' => 'Buyurtma :number holati: :status.',
+        'button' => 'Buyurtmani ochish',
     ],
 
     'help' => 'Bu Poson rasmiy boti. Shtrix-kod skanerlari, printerlar, TSD va POS uskunalari boʻyicha savol yozishingiz, katalogni ochishingiz va tilni oʻzgartirishingiz mumkin. Savolingizni shu yerda yozing.',

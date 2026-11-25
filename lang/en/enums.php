@@ -469,6 +469,7 @@ return [
         'sending' => 'Sending',
         'sent' => 'Sent',
         'failed' => 'Failed',
+        'skipped' => 'Skipped',
     ],
 
     'telegram_message_kind' => [

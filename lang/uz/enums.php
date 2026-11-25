@@ -469,6 +469,7 @@ return [
         'sending' => 'Yuborilmoqda',
         'sent' => 'Yuborilgan',
         'failed' => 'Xatolik',
+        'skipped' => 'Oʻtkazib yuborilgan',
     ],
 
     'telegram_message_kind' => [

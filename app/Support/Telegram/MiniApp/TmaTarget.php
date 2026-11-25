@@ -24,7 +24,10 @@ use Illuminate\Routing\Route;
  */
 final class TmaTarget
 {
-    public const PATTERN = '/\A(p\d{1,10}|c\d{1,10}|orders|o\d{1,10})\z/';
+    /**
+     * Ids without a leading zero (plan 20 §21 abuse case 2: "o01" is not "o1").
+     */
+    public const PATTERN = '/\A(p[1-9]\d{0,9}|c[1-9]\d{0,9}|orders|o[1-9]\d{0,9})\z/';
 
     public static function isValid(mixed $value): bool
     {

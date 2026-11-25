@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use App\Enums\TelegramDirection;
 use App\Enums\TelegramForwardStatus;
 use App\Enums\TelegramMessageKind;
@@ -37,6 +38,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $forwarded_chat_id
  * @property int|null $forward_error_code
  * @property int|null $lead_id
+ * @property int|null $order_id
+ * @property OrderStatus|null $order_status
  */
 #[Fillable([
     'telegram_user_id', 'direction', 'kind', 'text', 'media', 'media_group_id',
@@ -60,6 +63,8 @@ class TelegramMessage extends Model
             'kind' => TelegramMessageKind::class,
             'status' => TelegramMessageStatus::class,
             'forward_status' => TelegramForwardStatus::class,
+            'order_status' => OrderStatus::class,
+            'order_id' => 'integer',
             'media' => 'array',
             'telegram_message_id' => 'integer',
             'error_code' => 'integer',
@@ -103,7 +108,7 @@ class TelegramMessage extends Model
     /**
      * Outbound staff replies a person may send again (T21-13): failed, or left
      * pending / sending for more than STUCK_MINUTES. Ownerless rows (the
-     * auto-ack) never qualify.
+     * auto-ack) and order status messages (plan 20 M5, MA-32) never qualify.
      *
      * @param  Builder<self>  $query
      */
@@ -111,6 +116,8 @@ class TelegramMessage extends Model
     {
         $query->where('telegram_messages.direction', TelegramDirection::Out)
             ->whereNotNull('telegram_messages.user_id')
+            ->whereNull('telegram_messages.order_id')
+            ->whereNull('telegram_messages.order_status')
             ->where(fn (Builder $inner) => $inner
                 ->where('telegram_messages.status', TelegramMessageStatus::Failed)
                 ->orWhere(fn (Builder $old) => $old
@@ -123,7 +130,7 @@ class TelegramMessage extends Model
      */
     public function isResendable(): bool
     {
-        if ($this->direction !== TelegramDirection::Out || $this->user_id === null) {
+        if ($this->direction !== TelegramDirection::Out || $this->user_id === null || $this->isOrderStatusMessage()) {
             return false;
         }
 
@@ -172,5 +179,25 @@ class TelegramMessage extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    /**
+     * The order a customer status message announces (plan 20 M5).
+     *
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * A customer order status message (plan 20 M5): written only by
+     * QueueOrderStatusMessage and delivered only by DeliverOrderStatusMessage
+     * (MA-32). A row whose order was deleted keeps its order_status.
+     */
+    public function isOrderStatusMessage(): bool
+    {
+        return $this->order_id !== null || $this->order_status !== null;
     }
 }
