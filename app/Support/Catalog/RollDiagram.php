@@ -205,7 +205,24 @@ final readonly class RollDiagram
 
     public static function for(Product $product): ?self
     {
-        if ($product->isPricedPerLabel() || ! $product->relationLoaded('media') || $product->media->isNotEmpty()) {
+        if (! $product->relationLoaded('media') || $product->media->isNotEmpty()) {
+            return null;
+        }
+
+        return self::fromProduct($product);
+    }
+
+    /**
+     * Admin preview only: the same diagram as for(), built even when the product has media.
+     */
+    public static function preview(Product $product): ?self
+    {
+        return self::fromProduct($product);
+    }
+
+    private static function fromProduct(Product $product): ?self
+    {
+        if ($product->isPricedPerLabel()) {
             return null;
         }
 

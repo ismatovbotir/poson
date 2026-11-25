@@ -21,8 +21,11 @@ use App\Models\Product;
 use App\Models\RollType;
 use App\Support\Admin\PasswordConfirmation;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Catalog\LabelDiagram;
 use App\Support\Catalog\ProductAttributeResolver;
+use App\Support\Catalog\ProductDiagram;
 use App\Support\Catalog\ResolvedAttribute;
+use App\Support\Catalog\RollDiagram;
 use App\Support\Content\AiFill\AiField;
 use App\Support\Content\ContentLimits;
 use App\Support\Search;
@@ -212,6 +215,34 @@ class Form extends Component
         $rows = app(ProductAttributeResolver::class)->resolve($categoryId, [], array_column($this->form->specs, 'attribute_id'));
 
         return collect($rows)->keyBy(fn (ResolvedAttribute $row): int => $row->attribute->id)->all();
+    }
+
+    /**
+     * The generated label / ribbon / receipt-roll diagram of the SAVED product (never the
+     * unsaved form state), shown in the Images tab even when the product has photos.
+     * Built from a separate query by id so no relation is loaded onto the locked product.
+     * Cheap gates first (no query for other product types). Null on create.
+     */
+    #[Computed]
+    public function diagramPreview(): LabelDiagram|RollDiagram|null
+    {
+        if ($this->product === null) {
+            return null;
+        }
+
+        $isLabel = $this->product->isPricedPerLabel();
+
+        if (! $isLabel && $this->product->type !== ProductType::Consumable) {
+            return null;
+        }
+
+        $with = $isLabel
+            ? ['labelSizeValues.attribute', 'activeRollTypes']
+            : ['rollSpecValues.attribute', 'rollSpecValues.option'];
+
+        $fresh = Product::query()->with($with)->find($this->product->id);
+
+        return $fresh === null ? null : ProductDiagram::preview($fresh);
     }
 
     /**
@@ -413,7 +444,7 @@ class Form extends Component
         $this->product = $product->fresh();
         $this->form->setProduct($this->product, app(ProductAttributeResolver::class)->forProduct($this->product));
         $this->movedToExtras = [];
-        unset($this->specMeta, $this->extraResults);
+        unset($this->specMeta, $this->extraResults, $this->diagramPreview);
 
         $this->dispatch('toast', title: __('admin.toast.saved'), body: __('admin.products.saved', ['name' => $this->product->name]));
     }

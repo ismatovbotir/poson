@@ -329,6 +329,17 @@
                 @endif
             </section>
 
+            {{-- Auto-generated diagram of the saved specs (shown even with photos) --}}
+            @if ($product && ($diagram = $this->diagramPreview))
+                <section id="s-diagram-preview" wire:key="diagram-preview-{{ $product->id }}" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
+                    <div class="border-b border-slate-100 px-4 py-3.5 sm:px-6"><h2 class="text-base font-semibold">{{ __('admin.products.diagram_preview.title') }}</h2></div>
+                    <div class="flex flex-col items-start gap-3 p-4 sm:p-6">
+                        <x-catalog.product-diagram :diagram="$diagram" context="gallery" class="size-48 rounded-xl border border-slate-200 bg-white" />
+                        <p class="text-sm text-slate-500">{{ __('admin.products.diagram_preview.note') }}</p>
+                    </div>
+                </section>
+            @endif
+
             {{-- Videos --}}
             <section id="s-videos" class="scroll-mt-32 rounded-2xl border border-slate-200 bg-white">
                 @if ($product)
