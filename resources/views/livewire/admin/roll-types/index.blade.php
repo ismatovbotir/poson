@@ -13,7 +13,7 @@
         @endif
     </x-admin.page-header>
 
-    <p class="mt-2 max-w-3xl text-sm text-slate-500">{{ __('admin.roll_types.intro') }}</p>
+    <p class="mt-2 text-sm text-slate-500">{{ __('admin.roll_types.intro') }}</p>
 
     <div class="mt-5 flex flex-wrap items-center gap-2">
         <label class="relative flex-1 sm:flex-none">

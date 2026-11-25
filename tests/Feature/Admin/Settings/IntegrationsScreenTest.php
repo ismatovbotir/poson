@@ -143,7 +143,7 @@ describe('password confirmation', function () {
     it('shows the confirmation banner and disables the forms until confirmed', function () {
         integrationsScreen()
             ->assertSeeHtml('data-password-required')
-            ->assertSeeHtml('<fieldset class="mt-5 max-w-4xl space-y-4 pb-10 lg:space-y-6" disabled');
+            ->assertSeeHtml('<fieldset class="mt-5 grid items-start gap-4 pb-10 lg:gap-6 xl:grid-cols-2" disabled');
 
         confirmAdminPassword();
 

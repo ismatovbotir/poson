@@ -13,7 +13,7 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 lg:space-y-6">
+    <div class="mt-5 space-y-4 lg:space-y-6">
         <p class="text-sm text-slate-500" data-checked-at>{{ $checkedAt ? __($t.'.checked_at', ['time' => $checkedAt]) : __($t.'.never_checked') }}</p>
 
         <x-admin.card :title="__($t.'.rows_title')">

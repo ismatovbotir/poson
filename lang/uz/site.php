@@ -44,6 +44,10 @@ return [
         'search_label' => 'Katalog boʻyicha qidirish',
         'request_quote' => 'Taklif soʻrash',
         'menu_title' => 'Menyu',
+        'suggest_label' => 'Qidiruv takliflari',
+        'suggest_categories' => 'Kategoriyalar',
+        'suggest_products' => 'Mahsulotlar',
+        'suggest_all' => 'Barcha natijalarni koʻrsatish',
     ],
 
     'nav' => [
@@ -432,6 +436,10 @@ return [
         'nothing' => '«:query» boʻyicha hech narsa topilmadi.',
         'hint' => 'Imloni tekshiring yoki vazifangizni yozing — mutaxassis uskunani tanlab beradi.',
         'seo_description' => 'Poson katalogi boʻyicha qidiruv: Auto-ID uskunalari, sarf materiallari va xizmatlar.',
+        'categories' => 'Natijalar kategoriyalari',
+        'all_categories' => 'Hammasi',
+        'write_telegram' => 'Telegramda yozing',
+        'popular_categories' => 'Mashhur kategoriyalar',
     ],
 
     'footer' => [

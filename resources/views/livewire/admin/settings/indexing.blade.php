@@ -6,7 +6,7 @@
         <x-slot:breadcrumbs>{{ __('menu.groups.settings') }} <span class="text-slate-300">/</span> {{ __($t.'.title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 lg:space-y-6">
+    <div class="mt-5 grid items-start gap-4 lg:gap-6 xl:grid-cols-2">
         <x-admin.card :title="__($t.'.card_title')" :description="__($t.'.card_hint')">
             <x-slot:actions>
                 <x-admin.badge :color="$isOpen ? 'brand' : 'amber'" dot data-indexing-state="{{ $isOpen ? 'open' : 'closed' }}">

@@ -9,7 +9,7 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 pb-24 lg:space-y-6">
+    <div class="mt-5 grid items-start gap-4 pb-24 lg:gap-6 xl:grid-cols-2">
         <x-admin.card :title="__($t.'.switches')" :description="__($t.'.switches_help')">
             <div class="space-y-4">
                 <x-admin.toggle wire:model="ingestEnabled" :label="__($t.'.ingest_enabled')" :description="__($t.'.ingest_enabled_hint')" />

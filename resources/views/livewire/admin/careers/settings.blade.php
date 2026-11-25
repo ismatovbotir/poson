@@ -6,7 +6,7 @@
         <x-slot:breadcrumbs>{{ __('menu.groups.careers') }} <span class="text-slate-300">/</span> {{ __($t.'.title') }}</x-slot:breadcrumbs>
     </x-admin.page-header>
 
-    <div class="mt-5 max-w-4xl space-y-4 lg:space-y-6">
+    <div class="mt-5 grid items-start gap-4 lg:gap-6 xl:grid-cols-2">
         <x-admin.card :title="__($t.'.switches')" :description="__($t.'.switches_help')">
             <div class="space-y-4">
                 <x-admin.toggle wire:model="applications_enabled" :label="__($t.'.applications_enabled')" :description="__($t.'.applications_enabled_hint')" />

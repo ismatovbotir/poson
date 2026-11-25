@@ -44,6 +44,10 @@ return [
         'search_label' => 'Поиск по каталогу',
         'request_quote' => 'Запросить КП',
         'menu_title' => 'Меню',
+        'suggest_label' => 'Подсказки поиска',
+        'suggest_categories' => 'Категории',
+        'suggest_products' => 'Товары',
+        'suggest_all' => 'Показать все результаты',
     ],
 
     'nav' => [
@@ -432,6 +436,10 @@ return [
         'nothing' => 'По запросу «:query» ничего не найдено.',
         'hint' => 'Проверьте написание или опишите задачу — специалист подберёт оборудование.',
         'seo_description' => 'Поиск по каталогу Poson: оборудование Auto-ID, расходные материалы и услуги.',
+        'categories' => 'Категории результатов',
+        'all_categories' => 'Все',
+        'write_telegram' => 'Написать в Telegram',
+        'popular_categories' => 'Популярные категории',
     ],
 
     'footer' => [

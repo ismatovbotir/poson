@@ -263,14 +263,29 @@ class CatalogQuery
     {
         $query = $this->filteredQuery()->with(ProductCards::EAGER_LOADS);
 
-        match ($this->sort) {
-            'price_asc' => $query->orderByRaw('price is null')->orderBy('products.price')->orderBy('products.id'),
-            'price_desc' => $query->orderByRaw('price is null')->orderByDesc('products.price')->orderBy('products.id'),
+        return static::applySort($query, $this->sort)->paginate($perPage);
+    }
+
+    /**
+     * Orders a product query by one of SORTS (anything else is the default
+     * sort); earlier orderings are dropped. Shared with the search page (#39).
+     *
+     * @param  Builder<Product>  $query
+     * @return Builder<Product>
+     */
+    public static function applySort(Builder $query, mixed $sort): Builder
+    {
+        $sort = is_string($sort) && in_array($sort, self::SORTS, true) ? $sort : self::DEFAULT_SORT;
+        $query->reorder();
+
+        match ($sort) {
+            'price_asc' => $query->orderByRaw('products.price is null')->orderBy('products.price')->orderBy('products.id'),
+            'price_desc' => $query->orderByRaw('products.price is null')->orderByDesc('products.price')->orderBy('products.id'),
             'new' => $query->orderByDesc('products.created_at')->orderByDesc('products.id'),
             default => $query->orderByDesc('products.is_featured')->orderBy('products.sort')->orderBy('products.id'),
         };
 
-        return $query->paginate($perPage);
+        return $query;
     }
 
     /**
@@ -445,6 +460,46 @@ class CatalogQuery
     }
 
     /**
+     * Plan 43 #27: facets() without the groups that can't narrow the listing:
+     * a brand, stock or option group with a single entry that every one of the
+     * $total results has, and a boolean whose count equals $total. A group
+     * with a ticked value always stays (UQ2-10), so it can be unticked; the
+     * price and number ranges are kept (a range is already dropped when its
+     * min equals its max). Display only: filter validation doesn't change.
+     *
+     * @param  array{brands: list<array<string, mixed>>, stock: list<array<string, mixed>>, price: array<string, mixed>, attributes: list<array<string, mixed>>}  $facets
+     * @return array{brands: list<array<string, mixed>>, stock: list<array<string, mixed>>, price: array<string, mixed>, attributes: list<array<string, mixed>>}
+     */
+    public static function withoutRedundantFacets(array $facets, int $total): array
+    {
+        $single = fn (array $items): bool => count($items) === 1
+            && ! $items[0]['checked']
+            && (int) $items[0]['count'] === $total;
+
+        if ($single($facets['brands'])) {
+            $facets['brands'] = [];
+        }
+
+        if ($single($facets['stock'])) {
+            $facets['stock'] = [];
+        }
+
+        $facets['attributes'] = array_values(array_filter($facets['attributes'], function (array $facet) use ($single, $total): bool {
+            if ($facet['type']->hasOptions()) {
+                return ! $single($facet['options']);
+            }
+
+            if ($facet['type'] === AttributeType::Boolean) {
+                return $facet['checked'] || (int) $facet['count'] !== $total;
+            }
+
+            return true;
+        }));
+
+        return $facets;
+    }
+
+    /**
      * Chips of the active filters; "remove" holds the arguments of the
      * component's removeFilter().
      *
@@ -482,7 +537,7 @@ class CatalogQuery
                 $options = $attribute->options->keyBy('id');
 
                 foreach ($filter['options'] as $optionId) {
-                    $chips[] = ['label' => $name.': '.$options[$optionId]->value, 'remove' => ['option', $code, (string) $optionId]];
+                    $chips[] = ['label' => $name.': '.$attribute->optionWithUnit((string) $options[$optionId]->value), 'remove' => ['option', $code, (string) $optionId]];
                 }
             } elseif ($filter['flag']) {
                 $chips[] = ['label' => $name, 'remove' => ['attribute', $code, '']];
@@ -723,7 +778,8 @@ class CatalogQuery
 
                     $facet['options'][] = [
                         'id' => $option->id,
-                        'label' => (string) $option->value,
+                        // Plan 43 #26: the unit after a numeric option label ("203 dpi").
+                        'label' => $attribute->optionWithUnit((string) $option->value),
                         // Plan 38: swatch dot colour (normalized again in the view, RD-13).
                         'hex' => $option->hexColor(),
                         'count' => $count,

@@ -6,7 +6,7 @@
 
     @include('livewire.admin.settings.integrations.password-banner')
 
-    <fieldset class="mt-5 max-w-4xl space-y-4 pb-10 lg:space-y-6" @disabled(! $passwordConfirmed)>
+    <fieldset class="mt-5 space-y-4 pb-10 lg:space-y-6" @disabled(! $passwordConfirmed)>
         <legend class="sr-only">{{ __($t.'.title') }}</legend>
 
         @foreach ($sections as $group => $fields)
@@ -15,7 +15,7 @@
     </fieldset>
 
     {{-- Telegram settings change history (never values) --}}
-    <section class="max-w-4xl" aria-labelledby="audit-title" data-audit>
+    <section aria-labelledby="audit-title" data-audit>
         <h2 id="audit-title" class="text-lg font-bold tracking-tight">{{ __('admin.settings.integrations.audit.title') }}</h2>
         <p class="mt-0.5 text-sm text-slate-500">{{ __($t.'.audit_subtitle', ['count' => \App\Livewire\Admin\Telegram\Settings::AUDIT_LIMIT]) }}</p>
 

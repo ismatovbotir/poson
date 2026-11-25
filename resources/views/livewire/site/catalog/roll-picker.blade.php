@@ -21,7 +21,7 @@
             <label for="roll-picker-rolls" class="mb-2 block text-sm font-semibold">{{ __('site.roll_picker.rolls') }}</label>
             <div class="flex items-center gap-2">
                 <button type="button" wire:click="decrement" @disabled($rolls <= $minRolls) class="grid size-11 place-items-center rounded-btn border-[1.5px] border-line text-lg font-semibold transition-colors hover:border-brand disabled:opacity-40" aria-label="{{ __('site.roll_picker.decrease') }}">−</button>
-                <input id="roll-picker-rolls" type="number" wire:model.live.debounce.400ms="rolls" min="{{ $minRolls }}" max="{{ $maxRolls }}" step="1" inputmode="numeric" class="h-11 w-24 rounded-btn border-[1.5px] border-line bg-white px-3 text-center font-semibold tabular-nums focus:border-brand-600 focus:outline-none" aria-describedby="roll-picker-min" data-rolls>
+                <input id="roll-picker-rolls" type="number" wire:model.live.debounce.400ms="rolls" min="{{ $minRolls }}" max="{{ $maxRolls }}" step="1" inputmode="numeric" class="h-11 w-24 rounded-btn border-[1.5px] border-line bg-white px-3 text-center font-semibold tabular-nums focus:border-brand-600" aria-describedby="roll-picker-min" data-rolls>
                 <button type="button" wire:click="increment" @disabled($rolls >= $maxRolls) class="grid size-11 place-items-center rounded-btn border-[1.5px] border-line text-lg font-semibold transition-colors hover:border-brand disabled:opacity-40" aria-label="{{ __('site.roll_picker.increase') }}">+</button>
             </div>
             <p id="roll-picker-min" class="mt-1.5 text-[13px] text-ink-2" data-min-rolls>{{ trans_choice('site.roll_picker.min_hint', $minRolls, ['count' => \App\Support\NumberFormat::format($minRolls)]) }}</p>
