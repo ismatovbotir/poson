@@ -39,14 +39,30 @@
     --radius-box: 12px;
 }
 
+/*
+ * Brand accents (owner decision): buttons, links, active chips and the focus
+ * ring use the Poson green, never Telegram blue. Light: brand-600 #178045
+ * (AA on white). Dark (tma.js adds .tma-dark from colorScheme): logo green
+ * #20d67b for links/accents; the button stays #178045 with white text (5:1).
+ */
+:root {
+    --tma-accent: #178045;
+    --tma-button: #178045;
+    --tma-button-text: #ffffff;
+}
+
+.tma-dark {
+    --tma-accent: #20d67b;
+}
+
 /* Telegram theme colours (fallbacks = the light theme). */
 @theme inline {
     --color-tg-bg: var(--tg-theme-bg-color, #ffffff);
     --color-tg-text: var(--tg-theme-text-color, #0f172a);
     --color-tg-hint: var(--tg-theme-hint-color, #64748b);
-    --color-tg-link: var(--tg-theme-link-color, #178045);
-    --color-tg-button: var(--tg-theme-button-color, #178045);
-    --color-tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+    --color-tg-link: var(--tma-accent);
+    --color-tg-button: var(--tma-button);
+    --color-tg-button-text: var(--tma-button-text);
     --color-tg-secondary: var(--tg-theme-secondary-bg-color, #f5f7fb);
     --color-tg-section: var(--tg-theme-section-bg-color, #ffffff);
     --color-tg-separator: var(--tg-theme-section-separator-color, #e2e8f0);
@@ -54,7 +70,7 @@
     /* Plan 45 §1: section headers, subtitles and accents follow the theme too (dark mode). */
     --color-tg-header: var(--tg-theme-section-header-text-color, #64748b);
     --color-tg-subtitle: var(--tg-theme-subtitle-text-color, #64748b);
-    --color-tg-accent: var(--tg-theme-accent-text-color, #178045);
+    --color-tg-accent: var(--tma-accent);
 }
 
 @utility tma-btn {
