@@ -97,7 +97,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-BYwFOhIJ.css",
+    "file": "assets/app-Dbd113r9.css",
     "name": "app",
     "names": [
       "app.css"
@@ -106,7 +106,7 @@
     "isEntry": true
   },
   "resources/css/tma.css": {
-    "file": "assets/tma-D9Qe56e2.css",
+    "file": "assets/tma-p1JFH1bG.css",
     "name": "tma",
     "names": [
       "tma.css"
@@ -133,9 +133,13 @@
     ]
   },
   "resources/js/tma.js": {
-    "file": "assets/tma-qvNaYJr-.js",
+    "file": "assets/tma-BnEDNnVU.js",
     "name": "tma",
     "src": "resources/js/tma.js",
     "isEntry": true
+  },
+  "resources/svg/tma-icons.svg": {
+    "file": "assets/tma-icons-IdIjcSve.svg",
+    "src": "resources/svg/tma-icons.svg"
   }
 }

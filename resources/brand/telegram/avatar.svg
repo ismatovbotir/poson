@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#0b5a5f"/>
+      <stop offset="1" stop-color="#06343b"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" x2="1">
+      <stop offset="0" stop-color="#20d67b" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#20d67b" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#20d67b" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#bg)"/>
+  <circle cx="320" cy="320" r="232" fill="none" stroke="#20d67b" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="320" cy="320" r="262" fill="none" stroke="#20d67b" stroke-opacity=".08" stroke-width="2"/>
+  <svg x="170" y="160" width="300" height="300" viewBox="672 1277 420 420"><path fill="#20d67b" d="M1084.21,1486.63c0,111.59-90.47,202.05-202.06,202.05-16.65,0-32.82-2.01-48.3-5.81-1.28-.31-2.57-.64-3.84-.99-12.39-4.04-21.34-15.69-21.34-29.43,0-2.78.37-5.55,1.11-8.23s1.78-5.11,3.14-7.43,2.99-4.41,4.88-6.29,4.02-3.51,6.32-4.84,4.85-2.4,7.45-3.1c3.69-.99,7.7-1.36,11.5-.86.31.04.62.09.93.15,1.87.35,3.7.95,5.55,1.39s3.8.86,5.72,1.23c.9.17,1.8.34,2.7.49,3.79.66,7.61,1.16,11.45,1.5s7.81.54,11.72.57c.34,0,.67,0,1.01,0,77.55,0,140.41-62.86,140.41-140.4s-62.86-140.41-140.41-140.41-140.41,62.86-140.41,140.41v145.28c-38.01-36.73-61.64-88.24-61.64-145.28s23.63-108.56,61.64-145.29c36.35-35.14,85.86-56.77,140.41-56.77,111.59,0,202.06,90.46,202.06,202.06Z"/><circle fill="#20d67b" cx="882.15" cy="1486.63" r="79.76"/></svg>
+  <g fill="#ffffff" fill-opacity=".85">
+    <rect x="236" y="486" width="8" height="34" rx="1"/><rect x="250" y="486" width="3" height="34"/><rect x="259" y="486" width="10" height="34"/>
+    <rect x="275" y="486" width="3" height="34"/><rect x="284" y="486" width="6" height="34"/><rect x="296" y="486" width="3" height="34"/>
+    <rect x="305" y="486" width="12" height="34"/><rect x="323" y="486" width="3" height="34"/><rect x="332" y="486" width="7" height="34"/>
+    <rect x="345" y="486" width="3" height="34"/><rect x="354" y="486" width="10" height="34"/><rect x="370" y="486" width="4" height="34"/>
+    <rect x="380" y="486" width="8" height="34"/><rect x="394" y="486" width="3" height="34"/><rect x="401" y="486" width="3" height="34"/>
+  </g>
+  <rect x="210" y="500" width="220" height="5" rx="2.5" fill="url(#beam)"/>
+</svg>
