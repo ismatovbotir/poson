@@ -1653,7 +1653,7 @@ return [
         'cart_off' => 'The site cart is off: the Mini App works as a catalog with quote and service requests.',
         'confirm_disable' => 'Turn the Mini App off? Customers get Telegram\'s default menu button back.',
         'disable' => 'Turn off',
-        'disable_hint' => 'Works even while Telegram is unreachable. In an emergency: php artisan telegram:mini-app disable.',
+        'disable_hint' => 'Always available: no limit on turning off, and it works while Telegram is unreachable. From the server: php artisan telegram:mini-app disable.',
         'enable' => 'Turn on',
         'enable_hint' => 'Every check passed. Turning on updates the menu button for all registered customers.',
         'enable_blocked' => 'Fix the failed checks below first.',

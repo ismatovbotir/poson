@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Telegram\RequestMiniAppMenuSync;
 use App\Actions\Telegram\SetBotEnabled;
 use App\Actions\Telegram\SetMiniAppEnabled;
 use App\Actions\Telegram\TelegramBotException;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Livewire\Attributes\Locked;
 use Livewire\Livewire;
 
 require_once __DIR__.'/../../Helpers/MiniApp.php';
@@ -94,7 +96,7 @@ function m6Admin(): User
 }
 
 // 1
-it('forbids non-Admin roles the page and enable / disable: no row, no job', function (Role $role) {
+it('forbids non-Admin roles the page, enable / disable and sync: no row, no audit, no job', function (Role $role) {
     Queue::fake();
     Setting::query()->where('key', MiniAppSwitch::KEY)->delete();
     confirmAdminPassword();
@@ -105,8 +107,9 @@ it('forbids non-Admin roles the page and enable / disable: no row, no job', func
 
     expect(fn () => app(SetMiniAppEnabled::class)->enable($user, '10.0.0.1'))->toThrow(AuthorizationException::class)
         ->and(fn () => app(SetMiniAppEnabled::class)->disable($user, '10.0.0.1'))->toThrow(AuthorizationException::class)
+        ->and(fn () => app(RequestMiniAppMenuSync::class)->handle($user, '10.0.0.1'))->toThrow(AuthorizationException::class)
         ->and(Setting::query()->where('key', MiniAppSwitch::KEY)->exists())->toBeFalse()
-        ->and(SettingsAudit::query()->where('key', MiniAppSwitch::KEY)->exists())->toBeFalse()
+        ->and(SettingsAudit::query()->exists())->toBeFalse()
         ->and(MiniAppMenuSync::current())->toBe(0);
 
     Queue::assertNothingPushed();
@@ -153,9 +156,11 @@ it('refuses a failing checklist on the server whatever the client claims', funct
 
     $component = Livewire::actingAs($admin)->test(MiniApp::class);
 
-    // Nothing on the component can be forged: the checklist lives in render(), not in public state.
-    $public = array_filter((new ReflectionClass(MiniApp::class))->getProperties(ReflectionProperty::IS_PUBLIC), fn (ReflectionProperty $property): bool => $property->class === MiniApp::class);
-    expect($public)->toBe([])
+    // The only public state is the display checklist, and it is locked: the client cannot forge it.
+    $public = array_values(array_map(fn (ReflectionProperty $property): string => $property->getName(), array_filter((new ReflectionClass(MiniApp::class))->getProperties(ReflectionProperty::IS_PUBLIC), fn (ReflectionProperty $property): bool => $property->class === MiniApp::class)));
+    expect($public)->toBe(['checklist'])
+        ->and((new ReflectionProperty(MiniApp::class, 'checklist'))->getAttributes(Locked::class))->toHaveCount(1)
+        ->and(fn () => $component->set('checklist.username', true))->toThrow(Exception::class)
         ->and(fn () => $component->set('ready', true))->toThrow(Exception::class);
 
     Livewire::actingAs($admin)->test(MiniApp::class)
@@ -266,26 +271,65 @@ it('disables while the Telegram API answers 5xx: still off and audited', functio
 });
 
 // 8
-it('refuses the 4th toggle within 10 minutes', function () {
+it('refuses the 4th enable or sync within 10 minutes, but never a disable', function () {
     Queue::fake([SyncMiniAppMenus::class]);
     $admin = m6Admin();
     $component = Livewire::actingAs($admin)->test(MiniApp::class);
+    $limited = __('admin.telegram_mini_app.errors.too_many_toggles', ['minutes' => 10]);
 
-    $component->call('enable')->call('disable')->call('enable');
+    // enable, sync, enable use the 3 slots; the disables in between use none.
+    $component->call('enable')->call('syncMenus')->call('disable')->call('enable');
     expect(MiniAppSwitch::isStoredOn())->toBeTrue();
 
-    $component->call('disable')->assertDispatched('toast', type: 'error', body: __('admin.telegram_mini_app.errors.too_many_toggles', ['minutes' => 10]));
+    $component->call('syncMenus')->assertDispatched('toast', type: 'error', body: $limited);
+    $component->call('disable')->assertDispatched('toast', type: 'success', body: __('admin.telegram_mini_app.flash.disabled'));
+    $component->call('enable')->assertDispatched('toast', type: 'error', body: $limited);
+    $component->call('disable')->call('disable')->call('disable');
 
-    expect(MiniAppSwitch::isStoredOn())->toBeTrue()
-        ->and(SettingsAudit::query()->where('key', MiniAppSwitch::KEY)->count())->toBe(3);
+    expect(MiniAppSwitch::isStoredOn())->toBeFalse()
+        ->and(SettingsAudit::query()->where('key', MiniAppSwitch::KEY)->pluck('action')->map->value->all())->toBe(['enabled', 'disabled', 'enabled', 'disabled'])
+        ->and(SettingsAudit::query()->where('key', MiniAppMenuSync::STATE_KEY)->count())->toBe(1);
 
-    Queue::assertPushed(SyncMiniAppMenus::class, 3);
+    Queue::assertPushed(SyncMiniAppMenus::class, 5);
 
     $this->travel(11)->minutes();
     confirmAdminPassword();
-    Livewire::actingAs($admin)->test(MiniApp::class)->call('disable');
+    Livewire::actingAs($admin)->test(MiniApp::class)->call('enable');
 
-    expect(MiniAppSwitch::isStoredOn())->toBeFalse();
+    expect(MiniAppSwitch::isStoredOn())->toBeTrue();
+});
+
+it('lets the kill switch through after enable → disable → enable → sync used the limit: one fan-out, then unchanged', function () {
+    Queue::fake([SyncMiniAppMenus::class]);
+    $component = Livewire::actingAs(m6Admin())->test(MiniApp::class);
+
+    $component->call('enable')->call('disable')->call('enable')->call('syncMenus');
+    $component->call('syncMenus')->assertDispatched('toast', type: 'error');
+    $before = Queue::pushed(SyncMiniAppMenus::class)->count();
+
+    $component->call('disable')->assertDispatched('toast', type: 'success', body: __('admin.telegram_mini_app.flash.disabled'));
+    expect(MiniAppSwitch::isStoredOn())->toBeFalse()
+        ->and(Queue::pushed(SyncMiniAppMenus::class)->count())->toBe($before + 1)
+        ->and(Queue::pushed(SyncMiniAppMenus::class)->last()->generation)->toBe(MiniAppMenuSync::current());
+
+    $component->call('disable')->assertDispatched('toast', type: 'success', body: __('admin.telegram_mini_app.flash.unchanged'));
+    expect(Queue::pushed(SyncMiniAppMenus::class)->count())->toBe($before + 1);
+});
+
+it('gives the slot back when an enable is refused by the checklist', function () {
+    Queue::fake([SyncMiniAppMenus::class]);
+    $admin = m6Admin();
+    Setting::query()->where('key', BotUsername::KEY)->delete();
+    $component = Livewire::actingAs($admin)->test(MiniApp::class);
+
+    foreach (range(1, MiniApp::TOGGLES_PER_WINDOW + 2) as $ignored) {
+        $component->call('enable')->assertDispatched('toast', body: __('admin.telegram_bot.errors.mini_app_not_ready'));
+    }
+
+    BotUsername::remember('poson_test_bot');
+    $component->call('enable')->assertDispatched('toast', type: 'success');
+
+    expect(MiniAppSwitch::isStoredOn())->toBeTrue();
 });
 
 // 9

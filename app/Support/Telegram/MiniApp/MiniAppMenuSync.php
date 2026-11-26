@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  *    `telegram:mini-app-menu --all`. A fan-out whose generation is no longer
  *    current stops at its next step (MA-37);
  *  - "telegram.mini_app_menu_sync" (array): display state for the admin page
- *    (generation, state, queued_at, last_run_at, finished_at, synced). Only
+ *    (generation, state, queued_at, last_run_at, finished_at, synced, cursor). Only
  *    counts and times, never a Telegram id or an API response.
  *
  * start() queues SyncMiniAppMenus only after the surrounding transaction
@@ -62,6 +62,7 @@ final class MiniAppMenuSync
                 'last_run_at' => null,
                 'finished_at' => null,
                 'synced' => 0,
+                'cursor' => 0,
             ]);
 
             DB::afterCommit(fn () => dispatch(new SyncMiniAppMenus($generation)));
@@ -83,7 +84,7 @@ final class MiniAppMenuSync
     /**
      * Display state; null before the first sync.
      *
-     * @return array{generation: int, state: string, queued_at: string|null, last_run_at: string|null, finished_at: string|null, synced: int}|null
+     * @return array{generation: int, state: string, queued_at: string|null, last_run_at: string|null, finished_at: string|null, synced: int, cursor: int}|null
      */
     public static function state(): ?array
     {
@@ -102,13 +103,35 @@ final class MiniAppMenuSync
             'last_run_at' => $time('last_run_at'),
             'finished_at' => $time('finished_at'),
             'synced' => is_int($value['synced'] ?? null) ? max(0, $value['synced']) : 0,
+            'cursor' => is_int($value['cursor'] ?? null) ? max(0, $value['cursor']) : 0,
         ];
     }
 
     /**
-     * Record a fan-out step, only while its generation is still current.
+     * Record a finished step (chats queued from $afterId up to $cursor). Idempotent per
+     * (generation, cursor): a retried step whose cursor is already recorded adds nothing.
+     */
+    public static function recordStep(int $generation, int $afterId, int $cursor, int $queued, bool $more): void
+    {
+        $state = self::state();
+
+        if ($state === null || $state['generation'] !== $generation || $state['cursor'] !== $afterId || self::current() !== $generation) {
+            return;
+        }
+
+        $state['state'] = $more ? self::RUNNING : self::DONE;
+        $state['synced'] += $queued;
+        $state['cursor'] = $cursor;
+        $state['last_run_at'] = now()->toIso8601String();
+        $state['finished_at'] = $more ? null : now()->toIso8601String();
+
+        self::writeState($state);
+    }
+
+    /**
+     * Record a state change of the fan-out (running / failed), only while its generation is current.
      *
-     * @param  array{state?: string, synced?: int, finished?: bool}  $changes
+     * @param  array{state?: string, finished?: bool}  $changes
      */
     public static function record(int $generation, array $changes): void
     {
@@ -116,14 +139,14 @@ final class MiniAppMenuSync
             return;
         }
 
-        $state = self::state() ?? ['generation' => $generation, 'state' => self::QUEUED, 'queued_at' => null, 'last_run_at' => null, 'finished_at' => null, 'synced' => 0];
+        $state = self::state() ?? ['generation' => $generation, 'state' => self::QUEUED, 'queued_at' => null, 'last_run_at' => null, 'finished_at' => null, 'synced' => 0, 'cursor' => 0];
 
-        if ($state['generation'] !== $generation) {
+        // A retried first step does not turn a finished fan-out back into "running".
+        if ($state['generation'] !== $generation || ($state['state'] === self::DONE && ($changes['state'] ?? null) === self::RUNNING)) {
             return;
         }
 
         $state['state'] = $changes['state'] ?? $state['state'];
-        $state['synced'] += $changes['synced'] ?? 0;
         $state['last_run_at'] = now()->toIso8601String();
         $state['finished_at'] = ($changes['finished'] ?? false) ? now()->toIso8601String() : $state['finished_at'];
 

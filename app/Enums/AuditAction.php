@@ -76,6 +76,11 @@ enum AuditAction: string
      */
     case Marked = 'marked';
 
+    /**
+     * Plan 20 M6: "Sync menu buttons" on the Mini App page (actor and IP only).
+     */
+    case SyncRequested = 'sync_requested';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

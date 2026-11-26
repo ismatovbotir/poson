@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Telegram;
 
+use App\Actions\Telegram\RequestMiniAppMenuSync;
 use App\Actions\Telegram\SetMiniAppEnabled;
 use App\Actions\Telegram\TelegramBotException;
 use App\Enums\OrderSource;
@@ -21,6 +22,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -34,10 +36,11 @@ use Livewire\Component;
  *
  * Admin only (telegram.bot), authorized on every request (boot) and before
  * each write. Enable / disable / "Sync menu buttons" need a password
- * confirmation from the last 15 minutes and share a limit of
+ * confirmation from the last 15 minutes; enable and sync share a limit of
  * TOGGLES_PER_WINDOW per admin per TOGGLE_WINDOW seconds (MA-38, hit
- * outside the transaction); SetMiniAppEnabled re-checks permission,
- * password and checklist itself (MA-34). "Check bot" (getMe, stores the
+ * outside the transaction). Disable is never limited (the kill switch must
+ * not fail closed). The actions re-check permission, password and (enable)
+ * the checklist themselves (MA-34). "Check bot" (getMe, stores the
  * username) is limited like the bot page refresh.
  */
 #[Layout('layouts::admin')]
@@ -53,33 +56,52 @@ class MiniApp extends Component
 
     public const ORDER_DAYS = 30;
 
+    /**
+     * Display copy of the checklist, evaluated on mount and after each action
+     * (not on every render). Informational only: SetMiniAppEnabled evaluates
+     * it again on the server on every enable.
+     *
+     * @var array<string, bool>
+     */
+    #[Locked]
+    public array $checklist = [];
+
     public function boot(): void
     {
         $this->authorize('telegram.bot');
     }
 
+    public function mount(MiniAppChecklist $checklist): void
+    {
+        $this->checklist = $checklist->evaluate();
+    }
+
     public function enable(SetMiniAppEnabled $setMiniAppEnabled): void
     {
         $this->write(fn (): string => $setMiniAppEnabled->enable(auth()->user(), request()->ip())
-            ? __('admin.telegram_mini_app.flash.enabled') : __('admin.telegram_mini_app.flash.unchanged'));
-    }
-
-    public function disable(SetMiniAppEnabled $setMiniAppEnabled): void
-    {
-        $this->write(fn (): string => $setMiniAppEnabled->disable(auth()->user(), request()->ip())
-            ? __('admin.telegram_mini_app.flash.disabled') : __('admin.telegram_mini_app.flash.unchanged'));
+            ? __('admin.telegram_mini_app.flash.enabled') : __('admin.telegram_mini_app.flash.unchanged'), limited: true);
     }
 
     /**
-     * "Sync menu buttons": a new fan-out generation (the same job as a toggle).
+     * The kill switch: authorized and password-confirmed, but never rate-limited
+     * (it must not fail closed; security review M6).
      */
-    public function syncMenus(): void
+    public function disable(SetMiniAppEnabled $setMiniAppEnabled): void
     {
-        $this->write(function (): string {
-            MiniAppMenuSync::start();
+        $this->write(fn (): string => $setMiniAppEnabled->disable(auth()->user(), request()->ip())
+            ? __('admin.telegram_mini_app.flash.disabled') : __('admin.telegram_mini_app.flash.unchanged'), limited: false);
+    }
+
+    /**
+     * "Sync menu buttons": a new fan-out generation (the same job as a toggle), audited.
+     */
+    public function syncMenus(RequestMiniAppMenuSync $requestSync): void
+    {
+        $this->write(function () use ($requestSync): string {
+            $requestSync->handle(auth()->user(), request()->ip());
 
             return __('admin.telegram_mini_app.flash.sync_queued');
-        });
+        }, limited: true);
     }
 
     /**
@@ -123,11 +145,16 @@ class MiniApp extends Component
     }
 
     /**
-     * Authorize, require a recent password, apply the toggle limit, run the write, toast.
+     * Authorize, require a recent password, apply the toggle limit (enable and
+     * sync only), run the write, toast, refresh the checklist.
+     *
+     * The limit is one atomic hit (the cache increment returns the new count);
+     * over the limit the hit is taken back and nothing runs. A refused enable
+     * (failing checklist) also gives its slot back.
      *
      * @param  callable(): string  $write  Returns the success message
      */
-    protected function write(callable $write): void
+    protected function write(callable $write, bool $limited): void
     {
         $this->authorize('telegram.bot');
 
@@ -139,19 +166,24 @@ class MiniApp extends Component
 
         $key = 'telegram-mini-app-toggle:'.auth()->id();
 
-        if (RateLimiter::tooManyAttempts($key, self::TOGGLES_PER_WINDOW)) {
+        if ($limited && RateLimiter::hit($key, self::TOGGLE_WINDOW) > self::TOGGLES_PER_WINDOW) {
+            RateLimiter::decrement($key);
             $this->dispatch('toast', title: __('admin.toast.error'), body: __('admin.telegram_mini_app.errors.too_many_toggles', ['minutes' => max(1, (int) ceil(RateLimiter::availableIn($key) / 60))]), type: 'error');
 
             return;
         }
 
-        RateLimiter::hit($key, self::TOGGLE_WINDOW);
-
         try {
             $this->dispatch('toast', title: __('admin.toast.done'), body: $write(), type: 'success');
         } catch (TelegramBotException $exception) {
+            if ($limited && $exception->reason === 'mini_app_not_ready') {
+                RateLimiter::decrement($key);
+            }
+
             $this->dispatch('toast', title: __('admin.toast.error'), body: $exception->translated(), type: 'error');
         }
+
+        $this->checklist = app(MiniAppChecklist::class)->evaluate();
     }
 
     /**
@@ -163,7 +195,7 @@ class MiniApp extends Component
     {
         return SettingsAudit::query()
             ->where('area', SettingsArea::TelegramBot->value)
-            ->where('key', MiniAppSwitch::KEY)
+            ->whereIn('key', [MiniAppSwitch::KEY, MiniAppMenuSync::STATE_KEY])
             ->with('user:id,name')
             ->latest('id')
             ->limit(self::AUDIT_LIMIT)
@@ -172,7 +204,7 @@ class MiniApp extends Component
 
     public function render(MiniAppChecklist $checklist): View
     {
-        $items = $checklist->evaluate();
+        $items = $this->checklist;
 
         return view('livewire.admin.telegram.mini-app', [
             'enabled' => MiniAppSwitch::isEnabled(),

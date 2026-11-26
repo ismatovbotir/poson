@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\Orders\OrderPlaced;
+use App\Livewire\Admin\Telegram\MiniApp;
 use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Order;
@@ -10,6 +11,7 @@ use App\Models\ProductAttributeValue;
 use App\Support\Telegram\MiniApp\TmaCart;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+use Livewire\Livewire;
 
 require_once __DIR__.'/../../../Helpers/MiniApp.php';
 
@@ -27,6 +29,8 @@ beforeEach(function () {
     $this->tgUser = tmaUser();
     tmaSignIn($this->tgUser);
 });
+
+afterEach(fn () => Model::preventLazyLoading(false));
 
 function m6BudgetFixtures(object $test): array
 {
@@ -53,7 +57,7 @@ function m6BudgetFixtures(object $test): array
     return ['/tma/uz', '/tma/uz/checkout', '/tma/uz/orders', '/tma/uz/orders/'.$orders->first()->id];
 }
 
-it('keeps home, checkout, my orders and the order page within 15 queries without lazy loading', function () {
+it('keeps home, checkout, my orders and the order page within 15 queries and the cart within 8, without lazy loading', function () {
     $urls = m6BudgetFixtures($this);
 
     Model::preventLazyLoading();
@@ -61,6 +65,8 @@ it('keeps home, checkout, my orders and the order page within 15 queries without
     foreach ($urls as $url) {
         expect(countQueries(fn () => $this->get($url)->assertOk()))->toBeLessThanOrEqual(15, $url);
     }
+
+    expect(countQueries(fn () => $this->get('/tma/uz/cart')->assertOk()))->toBeLessThanOrEqual(8);
 });
 
 it('keeps the cart, checkout, my orders and the order page within 30 KB gzipped without polling', function () {
@@ -71,7 +77,8 @@ it('keeps the cart, checkout, my orders and the order page within 30 KB gzipped 
 
         expect(strlen(gzencode($html, 9)))->toBeLessThanOrEqual(30 * 1024, $url)
             ->and($html)->not->toContain('wire:poll')
-            ->and($html)->not->toContain('http-equiv="refresh"');
+            ->and($html)->not->toContain('http-equiv="refresh"')
+            ->and($html)->not->toMatch('/\\bset(Interval|Timeout)\\s*\\(/');
     }
 });
 
@@ -79,7 +86,26 @@ it('ships a front-end script without polling or webfonts', function () {
     $js = file_get_contents(resource_path('js/tma.js'));
     $css = file_get_contents(resource_path('css/tma.css'));
 
-    expect($js)->not->toContain('setInterval')
+    // No timers at all: neither setInterval nor a self-rescheduling setTimeout loop, no Livewire polling.
+    expect($js)->not->toMatch('/\\bset(Interval|Timeout)\\s*\\(/')
+        ->and($js)->not->toContain('requestAnimationFrame')
+        ->and($js)->not->toContain('wire:poll')
         ->and($css)->not->toContain('@font-face')
         ->and($css)->not->toContain('fonts.googleapis');
+});
+
+it('keeps the admin Mini App page within its query budget, without lazy loading and without re-evaluating the checklist on every render', function () {
+    Order::factory()->telegram($this->tgUser)->count(5)->create();
+    $admin = staffUser();
+    $this->actingAs($admin);
+
+    Model::preventLazyLoading();
+
+    $page = countQueries(fn () => $this->get(route('admin.telegram.mini-app'))->assertOk());
+    $component = Livewire::test(MiniApp::class);
+    $rerender = countQueries(fn () => $component->call('$refresh'));
+
+    expect($page)->toBeLessThanOrEqual(25)
+        ->and($rerender)->toBeLessThan($page)
+        ->and($rerender)->toBeLessThanOrEqual(10);
 });

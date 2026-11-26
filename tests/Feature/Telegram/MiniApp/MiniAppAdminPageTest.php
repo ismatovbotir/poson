@@ -315,3 +315,43 @@ it('refuses an enable while the password confirmation is missing in the action i
 
     expect(MiniAppSwitch::isStoredOn())->toBeFalse();
 });
+
+it('refuses --all --reset while the Mini App is on and runs it while it is off', function () {
+    Queue::fake([SyncMiniAppMenus::class]);
+    tmaEnabled();
+
+    $this->artisan('telegram:mini-app-menu', ['--all' => true, '--reset' => true])->assertFailed();
+    Queue::assertNotPushed(SyncMiniAppMenus::class);
+    expect(m6PageCalls('setChatMenuButton'))->toBe([]);
+
+    tmaEnabled(miniApp: false);
+    $this->artisan('telegram:mini-app-menu', ['--all' => true, '--reset' => true])->assertSuccessful();
+    Queue::assertPushed(SyncMiniAppMenus::class, 1);
+});
+
+it('counts a retried fan-out step once per (generation, cursor)', function () {
+    Queue::fake([SyncMiniAppMenus::class, SyncMiniAppMenuButton::class]);
+    tmaUser();
+    tmaUser();
+    $generation = MiniAppMenuSync::start();
+
+    (new SyncMiniAppMenus($generation))->handle(app(TelegramClient::class));
+    (new SyncMiniAppMenus($generation))->handle(app(TelegramClient::class));
+
+    expect(MiniAppMenuSync::state())->toMatchArray(['state' => MiniAppMenuSync::DONE, 'synced' => 2]);
+});
+
+it('audits "Sync menu buttons" with the actor and no value', function () {
+    Queue::fake([SyncMiniAppMenus::class]);
+    confirmAdminPassword();
+    $admin = staffUser();
+
+    Livewire::actingAs($admin)->test(MiniApp::class)->call('syncMenus')->assertDispatched('toast', type: 'success');
+
+    $audit = SettingsAudit::query()->where('key', MiniAppMenuSync::STATE_KEY)->sole();
+
+    expect($audit->action)->toBe(AuditAction::SyncRequested)
+        ->and($audit->user_id)->toBe($admin->id)
+        ->and($audit->old_text)->toBeNull()
+        ->and($audit->new_text)->toBeNull();
+});

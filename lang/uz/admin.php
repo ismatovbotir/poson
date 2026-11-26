@@ -1653,7 +1653,7 @@ return [
         'cart_off' => 'Sayt savati oʻchirilgan: Mini App tijoriy taklif va servis soʻrovlari bilan katalog sifatida ishlaydi.',
         'confirm_disable' => 'Mini App oʻchirilsinmi? Mijozlarga Telegramning standart menyu tugmasi qaytariladi.',
         'disable' => 'Oʻchirish',
-        'disable_hint' => 'Telegram ishlamay turganda ham ishlaydi. Favqulodda holatda: php artisan telegram:mini-app disable.',
+        'disable_hint' => 'Har doim mavjud: oʻchirish cheklanmagan va Telegram ishlamay turganda ham ishlaydi. Serverdan: php artisan telegram:mini-app disable.',
         'enable' => 'Yoqish',
         'enable_hint' => 'Barcha tekshiruvlardan oʻtdi. Yoqilgach, roʻyxatdan oʻtgan barcha mijozlarda menyu tugmasi yangilanadi.',
         'enable_blocked' => 'Avval quyidagi oʻtmagan tekshiruvlarni tuzating.',

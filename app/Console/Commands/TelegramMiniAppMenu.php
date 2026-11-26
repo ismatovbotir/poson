@@ -23,12 +23,12 @@ use Illuminate\Console\Command;
  *    of SyncMiniAppMenus::CHUNK, spread out; each button is computed from
  *    MiniAppAudience when its job runs (a 429 releases it for retry_after,
  *    403 → blocked). With --reset the bot-wide default is set first;
- *    eligible customers keep the Mini App button while the switch is on;
+ *    refused (FAILURE) while the Mini App is on;
  *  - --reset: Telegram's default button instead of the Mini App one (with
  *    --chat for that chat; alone, the bot-wide default, which is never a
  *    web_app button).
  */
-#[Signature('telegram:mini-app-menu {--all : Every registered conversation} {--reset : Set Telegram\'s default menu button instead} {--chat= : One conversation, by its Telegram id}')]
+#[Signature('telegram:mini-app-menu {--all : Every registered conversation} {--reset : Set Telegram\'s default menu button instead (with --all: only while the Mini App is off)} {--chat= : One conversation, by its Telegram id}')]
 #[Description('Sync or reset the Telegram Mini App menu button for one chat or every registered chat')]
 class TelegramMiniAppMenu extends Command
 {
@@ -38,7 +38,7 @@ class TelegramMiniAppMenu extends Command
      * @var string
      */
     protected $help = 'Sets the bot chat menu button: the Mini App "Catalog" button for customers who may use it (registered, not banned or blocked, Mini App switch on), Telegram\'s default for everyone else.
-Use --chat=<telegram id> for one conversation, --all for every registered one (one fan-out job on the default queue that queues the chats in steps of 100, about 5 per second, and stops when a newer Mini App toggle starts another), and --reset to put back the default button (alone: the bot-wide default only; with --all the bot-wide default first, while customers who may use the Mini App keep its button until it is switched off).
+Use --chat=<telegram id> for one conversation, --all for every registered one (one fan-out job on the default queue that queues the chats in steps of 100, about 5 per second, and stops when a newer Mini App toggle starts another), and --reset to put back the default button (alone: the bot-wide default only; with --all the bot-wide default first, then every chat; refused while the Mini App is on, because each button follows the switch).
 Turning the Mini App or the bot switch on or off in admin starts the same fan-out automatically; run it by hand after changing APP_URL. Side effects: Bot API calls (setChatMenuButton, getMe) and the stored bot username. Manual only, not scheduled.';
 
     public function handle(TelegramClient $client): int
@@ -102,12 +102,16 @@ Turning the Mini App or the bot switch on or off in admin starts the same fan-ou
 
     private function all(TelegramClient $client, bool $reset): int
     {
-        if ($reset && ! $this->resetDefault($client)) {
+        // Each per-user button is computed when its job runs (MA-37), so a reset of every
+        // chat is only possible while the Mini App is off.
+        if ($reset && MiniAppSwitch::isEnabled()) {
+            $this->error('The Mini App is on, so --all --reset would leave its button with every customer who may use it. Turn it off first with "telegram:mini-app disable" (that already resets every chat).');
+
             return self::FAILURE;
         }
 
-        if ($reset && MiniAppSwitch::isEnabled()) {
-            $this->warn('The Mini App is on: customers who may use it keep the Mini App button. Turn it off first with "telegram:mini-app disable".');
+        if ($reset && ! $this->resetDefault($client)) {
+            return self::FAILURE;
         }
 
         $generation = MiniAppMenuSync::start();

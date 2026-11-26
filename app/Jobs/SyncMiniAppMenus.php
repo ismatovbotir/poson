@@ -99,15 +99,13 @@ class SyncMiniAppMenus implements ShouldBeUniqueUntilProcessing, ShouldQueueAfte
         }
 
         $more = $ids->count() === self::CHUNK;
+        $cursor = $ids->isEmpty() ? $this->afterId : (int) $ids->last();
 
-        MiniAppMenuSync::record($this->generation, [
-            'state' => $more ? MiniAppMenuSync::RUNNING : MiniAppMenuSync::DONE,
-            'synced' => $ids->count(),
-            'finished' => ! $more,
-        ]);
+        // Counted once all chats of the step are queued, once per (generation, cursor): a retry adds nothing.
+        MiniAppMenuSync::recordStep($this->generation, $this->afterId, $cursor, $ids->count(), $more);
 
         if ($more) {
-            dispatch(new self($this->generation, (int) $ids->last()))->delay(now()->addSeconds(intdiv(self::CHUNK, self::PER_SECOND)));
+            dispatch(new self($this->generation, $cursor))->delay(now()->addSeconds(intdiv(self::CHUNK, self::PER_SECOND)));
         }
     }
 
