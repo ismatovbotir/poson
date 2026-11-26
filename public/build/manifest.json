@@ -97,7 +97,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-Dbd113r9.css",
+    "file": "assets/app-DD8KyYg5.css",
     "name": "app",
     "names": [
       "app.css"
@@ -106,7 +106,7 @@
     "isEntry": true
   },
   "resources/css/tma.css": {
-    "file": "assets/tma-p1JFH1bG.css",
+    "file": "assets/tma-D99Mo3Tk.css",
     "name": "tma",
     "names": [
       "tma.css"
@@ -133,7 +133,7 @@
     ]
   },
   "resources/js/tma.js": {
-    "file": "assets/tma-BnEDNnVU.js",
+    "file": "assets/tma-By0j4qqg.js",
     "name": "tma",
     "src": "resources/js/tma.js",
     "isEntry": true
