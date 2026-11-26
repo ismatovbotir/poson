@@ -19,6 +19,16 @@ const data = body.dataset;
 if (tg) {
     tg.ready();
     tg.expand();
+
+    /* Brand colours (BC-1, BC-2): a class only, never inline styles; constant literals only. */
+    const applyScheme = () => document.documentElement.classList.toggle('tma-dark', tg.colorScheme === 'dark');
+    applyScheme();
+    if (typeof tg.onEvent === 'function') {
+        tg.onEvent('themeChanged', applyScheme);
+    }
+    if (tg.MainButton && typeof tg.MainButton.setParams === 'function') {
+        tg.MainButton.setParams({ color: '#178045', text_color: '#ffffff' });
+    }
 }
 
 /* Sign-in: POST the signed initData, follow the internal URL the server returns. */

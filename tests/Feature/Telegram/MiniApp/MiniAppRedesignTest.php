@@ -438,3 +438,18 @@ it('never re-sends a failed add and falls back to the plain form once for an upd
         'update' => ['fetches' => 1, 'resubmits' => 1],
     ]);
 });
+
+it('keeps accent tokens on the brand green, not Telegram blue', function () {
+    $css = file_get_contents(resource_path('css/tma.css'));
+
+    foreach (['--color-tg-link', '--color-tg-button', '--color-tg-button-text', '--color-tg-accent'] as $token) {
+        preg_match('/'.preg_quote($token, '/').':\s*([^;]+);/', $css, $m);
+        expect($m[1] ?? '')->not->toContain('--tg-theme-button-color')->not->toContain('--tg-theme-link-color')->not->toContain('--tg-theme-accent');
+    }
+    expect($css)->toContain('#20d67b')->not->toContain('#2481cc');
+
+    $js = file_get_contents(resource_path('js/tma.js'));
+    expect($js)->toContain("typeof tg.MainButton.setParams === 'function'")
+        ->toContain("color: '#178045'")
+        ->toContain("classList.toggle('tma-dark'");
+});
