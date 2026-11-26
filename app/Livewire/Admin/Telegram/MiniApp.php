@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Telegram;
 
+use App\Actions\Telegram\MiniApp\WarmTmaCatalog;
 use App\Actions\Telegram\RequestMiniAppMenuSync;
 use App\Actions\Telegram\SetMiniAppEnabled;
 use App\Actions\Telegram\TelegramBotException;
@@ -13,6 +14,7 @@ use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Services\Telegram\WebAppButton;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\Catalog\CategoryFacetCache;
 use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\MiniApp\BotUsername;
 use App\Support\Telegram\MiniApp\MiniAppChecklist;
@@ -42,6 +44,13 @@ use Livewire\Component;
  * not fail closed). The actions re-check permission, password and (enable)
  * the checklist themselves (MA-34). "Check bot" (getMe, stores the
  * username) is limited like the bot page refresh.
+ *
+ * Plan 45 B / MA-52: "Rebuild catalog cache" bumps the cache version and
+ * refills the Mini App facet cache synchronously (WarmTmaCatalog, under the
+ * lock shared with the scheduled warm). No arguments, no password step,
+ * WARMS_PER_WINDOW per admin per WARM_WINDOW seconds (the tma-warm limiter,
+ * hit inside the method: Livewire bypasses route throttles), no HTTP or
+ * Telegram call, nothing logged.
  */
 #[Layout('layouts::admin')]
 class MiniApp extends Component
@@ -55,6 +64,10 @@ class MiniApp extends Component
     public const CHECKS_PER_MINUTE = Bot::REFRESHES_PER_MINUTE;
 
     public const ORDER_DAYS = 30;
+
+    public const WARMS_PER_WINDOW = 3;
+
+    public const WARM_WINDOW = 600;
 
     /**
      * Display copy of the checklist, evaluated on mount and after each action
@@ -145,6 +158,34 @@ class MiniApp extends Component
     }
 
     /**
+     * "Rebuild catalog cache" (MA-52): Admin only, limited, synchronous.
+     */
+    public function rebuildCatalogCache(): void
+    {
+        $this->authorize('telegram.bot');
+        $t = 'admin.telegram_mini_app.catalog_cache.';
+        $key = 'tma-warm:'.auth()->id();
+
+        if (RateLimiter::hit($key, self::WARM_WINDOW) > self::WARMS_PER_WINDOW) {
+            RateLimiter::decrement($key);
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'too_many', ['minutes' => max(1, (int) ceil(RateLimiter::availableIn($key) / 60))]), type: 'error');
+
+            return;
+        }
+
+        $result = app(WarmTmaCatalog::class)->handle(bump: true);
+
+        if ($result === null) {
+            RateLimiter::decrement($key);
+            $this->dispatch('toast', title: __('admin.toast.error'), body: __($t.'busy'), type: 'error');
+
+            return;
+        }
+
+        $this->dispatch('toast', title: __('admin.toast.done'), body: __($t.'rebuilt', ['entries' => $result['entries']]), type: 'success');
+    }
+
+    /**
      * Authorize, require a recent password, apply the toggle limit (enable and
      * sync only), run the write, toast, refresh the checklist.
      *
@@ -219,6 +260,7 @@ class MiniApp extends Component
             'orders' => Order::query()->real()->where('source', OrderSource::Telegram)->where('created_at', '>=', now()->subDays(self::ORDER_DAYS))->count(),
             'passwordConfirmed' => PasswordConfirmation::isRecent(),
             'audits' => $this->audits(),
+            'catalogWarmed' => CategoryFacetCache::warmedAt(),
         ])->title(__('admin.telegram_mini_app.title'));
     }
 }

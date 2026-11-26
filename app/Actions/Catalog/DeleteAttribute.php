@@ -4,13 +4,15 @@ namespace App\Actions\Catalog;
 
 use App\Models\Attribute;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Delete a library attribute with its options and category assignments,
  * unless products have values for it. has_missing_specs is recomputed for
- * the products of the categories that assigned it.
+ * the products of the categories that assigned it. The home / Mini App
+ * facet cache is bumped after the commit (plan 45 MA-51).
  */
 class DeleteAttribute
 {
@@ -38,6 +40,8 @@ class DeleteAttribute
             }
 
             $this->recompute->forCategories($affected);
+
+            HomeCache::bump();
         });
     }
 }
