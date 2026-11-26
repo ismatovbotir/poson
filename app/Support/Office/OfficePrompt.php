@@ -24,8 +24,7 @@ final class OfficePrompt
 
     public static function router(AgentProfileVersion $version, BusinessTranscript $transcript, ?string $previousSummary): AiRequest
     {
-        $roles = 'Answer format: role is one of '.implode(', ', array_column(AgentRole::routable(), 'value'))
-            .' (sales = buying, quotes, availability, delivery, payment; service = repair, setup, integration, warranty; support = how-to and general questions; other = nothing to do for the team).';
+        $roles = self::rolesLine();
 
         return new AiRequest(
             system: [
@@ -59,6 +58,15 @@ final class OfficePrompt
             timeout: (float) config('office.agent_timeout', 60),
             outputSchema: self::agentSchema(),
         );
+    }
+
+    /**
+     * What each routable role means (router format line, shared with the group router).
+     */
+    public static function rolesLine(): string
+    {
+        return 'Answer format: role is one of '.implode(', ', array_column(AgentRole::routable(), 'value'))
+            .' (sales = buying, quotes, availability, delivery, payment; service = repair, setup, integration, warranty; support = how-to and general questions; other = nothing to do for the team).';
     }
 
     /**

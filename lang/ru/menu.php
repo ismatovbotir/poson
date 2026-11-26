@@ -64,6 +64,7 @@ return [
         'commands' => 'Команды',
         'monitoring' => 'Мониторинг',
         'office_chats' => 'Бизнес-чаты',
+        'office_groups' => 'Группы Telegram',
         'office_unmarked' => 'Неотмеченные чаты',
         'office_education' => 'Обучение',
         'office_settings' => 'Настройки',

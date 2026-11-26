@@ -4,7 +4,6 @@ use App\Actions\Repairs\RotateRepairStatusToken;
 use App\Enums\Role;
 use App\Livewire\Admin\Repairs\Show;
 use App\Models\Repair;
-use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 

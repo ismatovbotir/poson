@@ -1,0 +1,19 @@
+{
+  "update_id": 0,
+  "message": {
+    "message_id": 28,
+    "from": {
+      "id": 9990000500,
+      "is_bot": true,
+      "first_name": "Fake Other Bot",
+      "username": "fake_other_bot"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "text": "Automatic notice from another bot"
+  }
+}

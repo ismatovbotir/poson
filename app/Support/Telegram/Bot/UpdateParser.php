@@ -101,12 +101,13 @@ final readonly class UpdateParser
      * Plan 41 (VO-2): the four Telegram Business update types become a
      * separate BusinessUpdate DTO (never this class), which
      * HandleTelegramUpdate routes away right after the dedupe, before any
-     * customer-bot code. A "message" that carries business_connection_id is
+     * customer-bot code. Plan 44 (OG-1): so does a GroupUpdate (message, edited_message, my_chat_member
+     * and chat_member of a group or supergroup), checked right after the business branch. A "message" that carries business_connection_id is
      * not a bot conversation and is reduced to TYPE_OTHER (dropped).
      *
      * @param  array<mixed>  $update
      */
-    public static function fromArray(array $update): self|BusinessUpdate|null
+    public static function fromArray(array $update): self|BusinessUpdate|GroupUpdate|null
     {
         $updateId = $update['update_id'] ?? null;
 
@@ -118,6 +119,12 @@ final readonly class UpdateParser
 
         if ($business !== null) {
             return $business;
+        }
+
+        // Plan 44 (OG-1): group and supergroup updates become a GroupUpdate and nothing else. A channel
+        // post, a private edited_message and every other type below end as TYPE_OTHER.
+        if (GroupUpdate::concerns($update)) {
+            return GroupUpdate::fromUpdate($updateId, $update) ?? new self($updateId, self::TYPE_OTHER);
         }
 
         if (is_array($update['message'] ?? null)) {

@@ -40,6 +40,8 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
+            // Must stay above every job timeout on this queue, incl. office.job_timeout (120) and
+            // office.group_job_timeout (240), or a slow Virtual office run could be started twice.
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 660),
             'after_commit' => false,
         ],

@@ -272,6 +272,11 @@ return [
         'exported' => 'Выгружено',
         'marked' => 'Отмечен',
         'sync_requested' => 'Запрошена синхронизация',
+        'group_tracked' => 'Группа отслеживается',
+        'group_ignored' => 'Группа игнорируется',
+        'roles_set' => 'Роли участников заданы',
+        'forgotten' => 'Участник забыт',
+        'group_untracked' => 'Группа снята с отслеживания',
     ],
 
     'price_sync_status' => [
@@ -736,6 +741,19 @@ return [
         'client' => 'Клиент',
         'employee' => 'Сотрудник',
         'ignored' => 'Игнорируется',
+    ],
+
+    'group_status' => [
+        'untracked' => 'Не отслеживается',
+        'tracked' => 'Отслеживается',
+        'ignored' => 'Игнорируется',
+    ],
+
+    'group_member_role' => [
+        'employee' => 'Сотрудник',
+        'client' => 'Клиент',
+        'bot' => 'Бот',
+        'unknown' => 'Неизвестный',
     ],
 
     'business_author' => [

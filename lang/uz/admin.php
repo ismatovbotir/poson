@@ -1606,6 +1606,7 @@ return [
         'set_webhook' => 'Webhookni oʻrnatish',
         'update_allowed_updates' => 'Yangilanish turlarini yangilash',
         'allowed_updates_missing' => 'Telegram sayt uchun kerakli barcha yangilanish turlarini yubormayapti (masalan, sayt yangilangandan keyin Telegram Business). “Yangilanish turlarini yangilash” tugmasini bosing: kutilayotgan yangilanishlar saqlanadi.',
+        'groups_allowed_warning' => 'Guruhlarni qabul qilish yoqilgan, lekin botni hali ham yangi guruhlarga qoʻshish mumkin: BotFatherʼda «Allow Groups»ni oʻchiring (Bot Settings → Allow Groups). Bot allaqachon qoʻshilgan guruhlarda qoladi.',
         'delete_webhook' => 'Webhookni oʻchirish',
         'confirm_delete_webhook' => 'Webhook oʻchirilsinmi? Bot xabarlarni qabul qilmay qoʻyadi.',
         'audit_title' => 'Soʻnggi oʻzgarishlar',

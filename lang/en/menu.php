@@ -64,6 +64,7 @@ return [
         'commands' => 'Commands',
         'monitoring' => 'Monitoring',
         'office_chats' => 'Business chats',
+        'office_groups' => 'Telegram groups',
         'office_unmarked' => 'Unmarked chats',
         'office_education' => 'Education',
         'office_settings' => 'Settings',

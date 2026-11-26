@@ -272,6 +272,11 @@ return [
         'exported' => 'Exported',
         'marked' => 'Marked',
         'sync_requested' => 'Sync requested',
+        'group_tracked' => 'Group tracked',
+        'group_ignored' => 'Group ignored',
+        'roles_set' => 'Member roles set',
+        'forgotten' => 'Member forgotten',
+        'group_untracked' => 'Group untracked',
     ],
 
     'price_sync_status' => [
@@ -736,6 +741,19 @@ return [
         'client' => 'Client',
         'employee' => 'Employee',
         'ignored' => 'Ignored',
+    ],
+
+    'group_status' => [
+        'untracked' => 'Untracked',
+        'tracked' => 'Tracked',
+        'ignored' => 'Ignored',
+    ],
+
+    'group_member_role' => [
+        'employee' => 'Employee',
+        'client' => 'Client',
+        'bot' => 'Bot',
+        'unknown' => 'Unknown',
     ],
 
     'business_author' => [

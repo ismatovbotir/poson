@@ -25,6 +25,7 @@ use Illuminate\Support\Collection;
  *  - analyses: the newest 5 per chat are kept (chunked per chats);
  *    drafts older than 30 days nulled;
  *  - connections that are not allowed and inactive for 30 days → deleted.
+ * Telegram groups (plan 44, OG-12) are pruned by PruneGroupData, called last.
  * A chat with a queued or running analysis is skipped, and every chat is
  * changed under its analysis lock (OfficeLock); a held lock skips it until
  * the next night. (Telegram-deleted messages are nulled at once by
@@ -99,7 +100,8 @@ class PruneBusinessData
             ->where('updated_at', '<', now()->subDays((int) $retention['disallowed_connection_days']))
             ->whereDoesntHave('chats')->delete();
 
-        return $counts;
+        // Plan 44: the Telegram groups rules (own counts, group_*).
+        return $counts + app(PruneGroupData::class)->handle();
     }
 
     /**

@@ -1606,6 +1606,7 @@ return [
         'set_webhook' => 'Установить вебхук',
         'update_allowed_updates' => 'Обновить типы обновлений',
         'allowed_updates_missing' => 'Telegram присылает не все нужные типы обновлений (например, Telegram Business после обновления сайта). Нажмите «Обновить типы обновлений»: ожидающие обновления сохранятся.',
+        'groups_allowed_warning' => 'Приём групп включён, но бота всё ещё можно добавить в новые группы: выключите «Allow Groups» в BotFather (Bot Settings → Allow Groups). В уже добавленных группах бот останется.',
         'delete_webhook' => 'Удалить вебхук',
         'confirm_delete_webhook' => 'Удалить вебхук? Бот перестанет получать сообщения.',
         'audit_title' => 'Последние изменения',

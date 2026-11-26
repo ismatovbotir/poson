@@ -47,6 +47,30 @@ final class OfficeLimits
     }
 
     /**
+     * Plan 44 (OG-2): at most new_groups_per_day new untracked group stubs a Tashkent day; over it nothing is written.
+     */
+    public static function allowNewGroup(): bool
+    {
+        $key = 'office:new-groups:'.now('Asia/Tashkent')->format('Ymd');
+
+        Cache::add($key, 0, now()->addDay());
+
+        return (int) Cache::increment($key) <= (int) config('office.limits.new_groups_per_day', 50);
+    }
+
+    /**
+     * Plan 44 (OG-11): stored messages per tracked group and Tashkent day (counters still move, nothing is stored over it).
+     */
+    public static function allowStoredGroupMessage(int $groupId): bool
+    {
+        $key = 'office:stored-group:'.$groupId.':'.now('Asia/Tashkent')->format('Ymd');
+
+        Cache::add($key, 0, now()->addDay());
+
+        return (int) Cache::increment($key) <= (int) config('office.limits.stored_messages_per_group_daily', 500);
+    }
+
+    /**
      * One fetch per unknown connection id and hour, and a global hourly budget.
      */
     public static function allowConnectionFetch(string $connectionId): bool

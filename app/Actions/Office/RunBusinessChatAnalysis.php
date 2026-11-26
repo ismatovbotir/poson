@@ -4,23 +4,17 @@ namespace App\Actions\Office;
 
 use App\Actions\Chat\AiKnowledgeHit;
 use App\Actions\Chat\FindAiKnowledge;
-use App\Actions\Chat\RecordAiUsage;
 use App\Casts\EncryptedText;
 use App\Enums\AgentRole;
 use App\Enums\AiUsageChannel;
 use App\Enums\AnalysisStatus;
-use App\Enums\ChatAiStatus;
 use App\Models\AgentProfile;
 use App\Models\AgentProfileVersion;
 use App\Models\BusinessChat;
 use App\Models\BusinessChatAnalysis;
-use App\Services\Ai\AiFailed;
 use App\Services\Ai\AiRequest;
 use App\Services\Ai\AiResult;
-use App\Services\Ai\AiUnavailable;
-use App\Services\Ai\AnthropicChatModel;
 use App\Services\Ai\ChatModel;
-use App\Support\Chat\AiSwitch;
 use App\Support\Office\AnalysisOutput;
 use App\Support\Office\BusinessTranscript;
 use App\Support\Office\CoreRules;
@@ -55,9 +49,9 @@ use Throwable;
 class RunBusinessChatAnalysis
 {
     public function __construct(
-        protected RecordAiUsage $usage,
         protected FindAiKnowledge $knowledge,
         protected SyncLeadFromBusinessChat $syncLead,
+        protected CallOfficeModel $modelCall,
     ) {}
 
     public function handle(int $analysisId, ChatModel $model): void
@@ -239,47 +233,7 @@ class RunBusinessChatAnalysis
      */
     protected function call(ChatModel $model, ?AiUsageChannel $channel, AiRequest $request, array &$tokens, array &$models, string $stage): AiResult|string
     {
-        if ($channel === null || ! in_array($request->model, AnthropicChatModel::MODELS, true)) {
-            return 'bad_model';
-        }
-
-        $estimate = $request->estimatedBilledTokens();
-        $day = $this->usage->reserve($channel, $estimate);
-
-        if ($day === null) {
-            $this->usage->capped($channel);
-
-            return 'capped';
-        }
-
-        $status = ChatAiStatus::Failed;
-        $result = null;
-
-        try {
-            $result = $model->complete($request);
-            $status = $result->isRefusal() ? ChatAiStatus::Refused : ChatAiStatus::Answered;
-        } catch (AiUnavailable) {
-            return 'unavailable';
-        } catch (AiFailed $failure) {
-            if (in_array($failure->status, [401, 403], true)) {
-                AiSwitch::markAuthFailed();
-            }
-
-            return 'api_error';
-        } finally {
-            try {
-                $this->usage->settle($channel, $day, $estimate, $status, $result);
-            } catch (Throwable) {
-                // Counters only: a failed settle must not hide the outcome.
-            }
-        }
-
-        $tokens['input'] += $result->inputTokens;
-        $tokens['output'] += $result->outputTokens;
-        $tokens['cache'] += $result->cacheReadTokens;
-        $models[$stage] = $result->model !== '' ? $result->model : (string) $request->model;
-
-        return $result->isRefusal() ? 'refused' : $result;
+        return $this->modelCall->handle($model, $channel, $request, $tokens, $models, $stage);
     }
 
     /**

@@ -1,0 +1,19 @@
+{
+  "update_id": 0,
+  "message": {
+    "message_id": 1,
+    "from": {
+      "id": 9990000002,
+      "is_bot": false,
+      "first_name": "Fake Staff",
+      "username": "fake_staff"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "migrate_from_chat_id": -9990020001
+  }
+}

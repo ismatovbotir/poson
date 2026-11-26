@@ -1,0 +1,35 @@
+{
+  "update_id": 0,
+  "chat_member": {
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "from": {
+      "id": 9990010001,
+      "is_bot": false,
+      "first_name": "Fake Client",
+      "username": "fake_client"
+    },
+    "date": 1764000000,
+    "old_chat_member": {
+      "user": {
+        "id": 9990010001,
+        "is_bot": false,
+        "first_name": "Fake Client",
+        "username": "fake_client"
+      },
+      "status": "left"
+    },
+    "new_chat_member": {
+      "user": {
+        "id": 9990010001,
+        "is_bot": false,
+        "first_name": "Fake Client",
+        "username": "fake_client"
+      },
+      "status": "member"
+    }
+  }
+}

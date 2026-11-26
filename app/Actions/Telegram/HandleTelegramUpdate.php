@@ -3,6 +3,7 @@
 namespace App\Actions\Telegram;
 
 use App\Actions\Office\HandleBusinessUpdate;
+use App\Actions\Office\HandleGroupUpdate;
 use App\Jobs\AnswerBotCallback;
 use App\Jobs\SendBotPrompt;
 use App\Models\TelegramUpdate;
@@ -12,6 +13,7 @@ use App\Support\Telegram\Bot\BotLimits;
 use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\BotText;
 use App\Support\Telegram\Bot\BusinessUpdate;
+use App\Support\Telegram\Bot\GroupUpdate;
 use App\Support\Telegram\Bot\UpdateParser;
 use Illuminate\Support\Facades\DB;
 
@@ -26,6 +28,11 @@ use Illuminate\Support\Facades\DB;
  *     BEFORE the private-chat check, the kill switch, the limits,
  *     telegram_users and the registration: it can never reach the
  *     customer bot;
+ *  1c. plan 44 (OG-1): a GroupUpdate (group / supergroup message,
+ *     edited_message, my_chat_member, chat_member) goes to
+ *     HandleGroupUpdate and returns here, right after the business branch
+ *     and BEFORE isPrivate, BotSwitch, BotLimits, telegram_users and the
+ *     registration; nothing is sent to a group;
  *  2. non-private chats, updates without a sender and senders with
  *     is_bot are dropped here, before any other write (condition 4);
  *  3. my_chat_member: the user blocked (kicked) / unblocked (member) the
@@ -54,6 +61,8 @@ class HandleTelegramUpdate
 
     public const BUSINESS = 'business';
 
+    public const GROUP = 'group';
+
     /**
      * @param  array<mixed>  $payload  The decoded update
      * @return self::* What happened (for tests and the poll command output)
@@ -79,6 +88,14 @@ class HandleTelegramUpdate
                 app(HandleBusinessUpdate::class)->handle($update);
 
                 return self::BUSINESS;
+            }
+
+            if ($update instanceof GroupUpdate) {
+                // A fresh read of the office switches for every group update (telegram:poll is long-running).
+                OfficeSettings::forget();
+                app(HandleGroupUpdate::class)->handle($update);
+
+                return self::GROUP;
             }
 
             if (! $update->isPrivate() || $update->fromIsBot || $update->fromId === null) {

@@ -1606,6 +1606,7 @@ return [
         'set_webhook' => 'Set webhook',
         'update_allowed_updates' => 'Update allowed updates',
         'allowed_updates_missing' => 'Telegram does not send every update type the site needs (for example Telegram Business after an update). Press “Update allowed updates”: pending updates are kept.',
+        'groups_allowed_warning' => 'Telegram groups are on, but the bot can still be added to new groups: turn off “Allow Groups” in BotFather (Bot Settings → Allow Groups). The bot stays in the groups it is already in.',
         'delete_webhook' => 'Delete webhook',
         'confirm_delete_webhook' => 'Delete the webhook? The bot stops receiving messages.',
         'audit_title' => 'Recent changes',

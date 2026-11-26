@@ -1,0 +1,18 @@
+{
+  "update_id": 0,
+  "channel_post": {
+    "message_id": 51,
+    "sender_chat": {
+      "id": -1009990040001,
+      "title": "Fake Channel",
+      "type": "channel"
+    },
+    "chat": {
+      "id": -1009990040001,
+      "title": "Fake Channel",
+      "type": "channel"
+    },
+    "date": 1764000000,
+    "text": "Channel announcement"
+  }
+}

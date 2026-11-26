@@ -41,6 +41,9 @@ return [
         'new_chats_per_day' => 200,
         'stored_messages_per_chat_daily' => 500,
         'connection_fetches_per_hour' => 20,
+        // Plan 44 (OG-2, OG-11): new untracked group stubs a day, stored messages per tracked group and day.
+        'new_groups_per_day' => 50,
+        'stored_messages_per_group_daily' => 500,
     ],
 
     // Daily caps per usage channel (Asia/Tashkent day). The Admin may raise them up to cap_factor × these values.
@@ -65,6 +68,8 @@ return [
     'router_timeout' => 20,
     'agent_timeout' => 60,
     'job_timeout' => 120,
+    // Plan 44: a group run is 1 router + up to 3 agent calls (20 + 3 × 60 s); still below the database queue retry_after (660, config/queue.php).
+    'group_job_timeout' => 240,
     'queue' => 'ai-admin',
 
     // Transcript sent to the model (VO-6): newest messages, oldest first, character budget, per-message cut.
@@ -105,6 +110,11 @@ return [
         'analyses_kept' => 5,
         'draft_days' => 30,
         'disallowed_connection_days' => 30,
+        // Plan 44 (OG-12): groups.
+        'group_months' => 12,
+        'group_member_months' => 12,
+        'group_stub_days' => 30,
+        'group_draft_days' => 30,
     ],
 
     // Seconds an unmark waits for a running analysis of the chat to release its lock (VO-12).

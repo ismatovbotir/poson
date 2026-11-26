@@ -1,0 +1,21 @@
+{
+  "update_id": 0,
+  "edited_message": {
+    "message_id": 41,
+    "from": {
+      "id": 9990010001,
+      "is_bot": false,
+      "first_name": "Fake Client",
+      "username": "fake_client"
+    },
+    "chat": {
+      "id": 9990010001,
+      "first_name": "Fake Client",
+      "username": "fake_client",
+      "type": "private"
+    },
+    "date": 1764000000,
+    "edit_date": 1764000030,
+    "text": "/start"
+  }
+}

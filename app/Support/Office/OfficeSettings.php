@@ -27,6 +27,8 @@ final class OfficeSettings
 
     public const INGEST = 'office.ingest_enabled';
 
+    public const GROUPS = 'office.groups_enabled';
+
     public const AI = 'office.ai_enabled';
 
     public const AUTO_LEAD = 'office.auto_lead';
@@ -39,7 +41,7 @@ final class OfficeSettings
 
     public const CAPS = 'office.caps';
 
-    public const KEYS = [self::INGEST, self::AI, self::AUTO_LEAD, self::OWNERS, self::DEBOUNCE, self::PER_CHAT, self::CAPS];
+    public const KEYS = [self::INGEST, self::GROUPS, self::AI, self::AUTO_LEAD, self::OWNERS, self::DEBOUNCE, self::PER_CHAT, self::CAPS];
 
     private const STATE = 'office.settings.state';
 
@@ -90,6 +92,20 @@ final class OfficeSettings
     public static function ingestEnabled(): bool
     {
         return self::get(self::INGEST) === true;
+    }
+
+    /**
+     * Telegram group ingest (plan 44 §2): its own Admin switch, default off, independent of BotSwitch.
+     * Group updates are processed only while this AND the office ingest switch are on.
+     */
+    public static function groupsStored(): bool
+    {
+        return self::get(self::GROUPS) === true;
+    }
+
+    public static function groupsEnabled(): bool
+    {
+        return self::groupsStored() && self::ingestEnabled();
     }
 
     /**

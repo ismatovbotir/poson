@@ -234,6 +234,10 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     Route::livewire('/office/unmarked', Office\Unmarked::class)->name('office.unmarked');
     Route::livewire('/office/chats', Office\Chats\Index::class)->name('office.chats.index');
     Route::livewire('/office/chats/{businessChat}', Office\Chats\Show::class)->name('office.chats.show')->whereNumber('businessChat');
+    // Plan 44: Telegram groups. Authorized in the components through TelegramGroupPolicy + TelegramGroup::visibleTo
+    // (Admin every group; office.chats only tracked groups assigned to the user); track / ignore / roles / forget = office.mark.
+    Route::livewire('/office/groups', Office\Groups\Index::class)->name('office.groups');
+    Route::livewire('/office/groups/{group}', Office\Groups\Show::class)->name('office.groups.show')->whereNumber('group');
     Route::livewire('/office/education/{role?}', Office\Education::class)->name('office.education')->whereIn('role', ['router', 'sales', 'service', 'support']);
     Route::livewire('/office/settings', Office\Settings::class)->name('office.settings');
 

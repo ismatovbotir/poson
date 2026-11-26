@@ -346,7 +346,10 @@ it('case 3: stores and forwards nothing from a group or a chat that is not the s
     iabUser();
 
     foreach ([['text' => 'Need a quote'], iabPhoto(['caption' => 'invoice'])] as $content) {
-        expect(iabSend(array_merge($content, $override)))->toBe(HandleTelegramUpdate::IGNORED);
+        // Plan 44: a group or supergroup message goes to the group branch (a no-op while the groups switch is off); the rest is ignored.
+        $isGroup = in_array($override['chat']['type'] ?? null, ['group', 'supergroup'], true) && ($override['chat']['id'] ?? 0) < 0;
+
+        expect(iabSend(array_merge($content, $override)))->toBe($isGroup ? HandleTelegramUpdate::GROUP : HandleTelegramUpdate::IGNORED);
     }
 
     expect(TelegramMessage::query()->count())->toBe(0)

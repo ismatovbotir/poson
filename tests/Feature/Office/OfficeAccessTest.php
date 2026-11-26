@@ -164,8 +164,8 @@ it('links the bot user with the same Telegram id and sets the party', function (
 it('shows the office menu by permission', function () {
     $keys = fn (User $user): array => collect(Menu::for($user))->firstWhere('key', 'office')?->items ? array_map(fn ($item) => $item->key, collect(Menu::for($user))->firstWhere('key', 'office')->items) : [];
 
-    expect($keys(officeUser(Role::Admin)))->toBe(['office-chats', 'office-unmarked', 'office-education', 'office-settings'])
-        ->and($keys(officeUser(Role::SalesManager)))->toBe(['office-chats'])
+    expect($keys(officeUser(Role::Admin)))->toBe(['office-chats', 'office-groups', 'office-unmarked', 'office-education', 'office-settings'])
+        ->and($keys(officeUser(Role::SalesManager)))->toBe(['office-chats', 'office-groups'])
         ->and($keys(officeUser(Role::ContentManager)))->toBe([]);
 });
 
