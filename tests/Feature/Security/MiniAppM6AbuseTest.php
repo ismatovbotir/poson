@@ -334,6 +334,7 @@ it('gives the slot back when an enable is refused by the checklist', function ()
 
 // 9
 it('queues at most 100 menu jobs at once for 1000 users and an order alert is not stuck behind them', function () {
+    $this->freezeTime();
     config(['queue.default' => 'database']);
     $now = now();
     TelegramUser::query()->insert(collect(range(1, 1000))->map(fn (int $i): array => TelegramUser::factory()->registered()->raw([
