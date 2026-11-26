@@ -14,6 +14,8 @@ export default defineConfig({
                 // Plan 20: the Telegram Mini App (/tma), no webfont.
                 'resources/css/tma.css',
                 'resources/js/tma.js',
+                // Plan 45 A2: the Mini App icon sprite, same origin, hashed (<use href>, x-tma.icon).
+                'resources/svg/tma-icons.svg',
             ],
             refresh: true,
             fonts: [

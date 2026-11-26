@@ -223,13 +223,16 @@ describe('RD-5 dedupe keeps the colour', function () {
 });
 
 describe('RD-6 home cache bump', function () {
-    it('bumps after a hex change commits, not when it rolls back or nothing changed', function () {
+    it('bumps after every committed save (plan 45 MA-51), not when it rolls back', function () {
         $attribute = Attribute::factory()->select(['Qora'])->create();
         $option = $attribute->options()->first();
-        $version = HomeCache::version();
 
+        // MA-51: a save without a colour change bumps too (rename / filterable / unit relabel the Mini App facets).
+        $before = HomeCache::version();
         app(SaveAttribute::class)->handle($attribute, hexAttributeData($attribute), [['id' => $option->id, 'value' => ['uz' => 'Qora'], 'hex_color' => null]]);
-        expect(HomeCache::version())->toBe($version);
+        expect(HomeCache::version())->not->toBe($before);
+
+        $version = HomeCache::version();
 
         try {
             DB::transaction(function () use ($attribute, $option): void {

@@ -25,7 +25,9 @@ use Illuminate\Validation\ValidationException;
  * - Plan 38: an option row may carry a display colour (hex_color "#RRGGBB" or
  *   null). It is validated here even when the form is bypassed (RD-2) and
  *   stored upper case; a row without the key leaves the stored colour alone.
- *   The home cache is bumped after the commit when a colour changed (RD-6).
+ *   The home cache is bumped after the commit on every save (plan 45 MA-51:
+ *   a rename, type, unit or filterable change relabels the Mini App facets;
+ *   this covers the colour change of RD-6).
  */
 class SaveAttribute
 {
@@ -75,6 +77,8 @@ class SaveAttribute
 
             $this->syncOptions($attribute, $type->hasOptions() ? $options : []);
 
+            HomeCache::bump();
+
             return $attribute;
         });
     }
@@ -94,7 +98,6 @@ class SaveAttribute
         $existing = $attribute->options()->get()->keyBy('id');
         $rows = array_values($rows);
         $submittedIds = [];
-        $colorChanged = false;
 
         foreach ($rows as $index => $row) {
             $option = isset($row['id']) ? $existing->get((int) $row['id']) : null;
@@ -107,7 +110,6 @@ class SaveAttribute
                     $option->hex_color = CreateAttributeOption::color($row['hex_color'], "options.{$index}.hex_color");
                 }
 
-                $colorChanged = $colorChanged || $option->isDirty('hex_color');
                 $option->save();
                 $submittedIds[] = $option->id;
             }
@@ -133,7 +135,6 @@ class SaveAttribute
                     $option->hex_color = $color;
                 }
 
-                $colorChanged = $colorChanged || $option->isDirty('hex_color');
                 $option->save();
             }
 
@@ -143,12 +144,7 @@ class SaveAttribute
         foreach ($existing as $id => $option) {
             if (! in_array($id, $kept, true)) {
                 $this->deleteOption->handle($option);
-                $colorChanged = $colorChanged || $option->hexColor() !== null;
             }
-        }
-
-        if ($colorChanged) {
-            HomeCache::bump();
         }
     }
 }

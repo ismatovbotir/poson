@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductDocument;
 use App\Models\RollType;
+use App\Support\Cart\CartLineKey;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductAttributeResolver;
 use App\Support\Catalog\ProductCards;
@@ -18,6 +19,7 @@ use App\Support\Catalog\RollPricing;
 use App\Support\Catalog\SoftwareSpecs;
 use App\Support\HtmlSanitizer;
 use App\Support\Site\VideoContent;
+use App\Support\Telegram\MiniApp\TmaCards;
 use App\Support\Telegram\MiniApp\TmaLinks;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -38,6 +40,9 @@ use Illuminate\Validation\ValidationException;
  *  - try: openLink to the tracked partner redirect on the site.
  *
  * The site URLs inside ProductCta are never rendered as in-app links (A7).
+ *
+ * Plan 45: a product already in the cart shows its stepper (lineKey,
+ * inCartQty) and the cart bar becomes the MainButton.
  */
 class ProductController extends TmaController
 {
@@ -60,6 +65,8 @@ class ProductController extends TmaController
         $images = $this->images($product);
         $ctas = ProductCtas::for($product);
         $kinds = array_map(fn ($cta): ProductCtaKind => $cta->kind, $ctas);
+        $cart = $this->cartSummary($request);
+        $lineKey = ! $pricedPerLabel && in_array(ProductCtaKind::Cart, $kinds, true) ? CartLineKey::make($product->id) : null;
 
         return $this->page($request, 'tma.product', [
             'product' => $product,
@@ -85,6 +92,12 @@ class ProductController extends TmaController
             'pricedPerLabel' => $pricedPerLabel,
             'rollTypes' => $pricedPerLabel ? $this->rollTypes($product) : [],
             'minQty' => max(1, (int) $product->min_qty),
+            'lineKey' => $lineKey,
+            'inCartQty' => $cart?->qty($lineKey) ?? 0,
+            // Rolls of the pre-selected (first) roll type already in the cart: the in-cart hint, no stepper.
+            'rollInCartQty' => $pricedPerLabel && $cart !== null && ($first = $product->activeRollTypes->first()) !== null ? $cart->qty(CartLineKey::make($product->id, $first->id)) : 0,
+            'categoryIcon' => TmaCards::icon($product->category_id),
+            'cartBar' => $cart,
         ]);
     }
 

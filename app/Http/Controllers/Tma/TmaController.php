@@ -8,6 +8,7 @@ use App\Rules\PhoneNumber;
 use App\Support\ForeignPhoneLimit;
 use App\Support\Telegram\MiniApp\BotUsername;
 use App\Support\Telegram\MiniApp\TmaCart;
+use App\Support\Telegram\MiniApp\TmaCartSummary;
 use App\Support\Telegram\MiniApp\TmaSession;
 use App\Support\Telegram\VerifiedTelegramPhone;
 use Illuminate\Http\RedirectResponse;
@@ -103,17 +104,29 @@ abstract class TmaController extends Controller
     }
 
     /**
+     * The cart bar of the catalogue screens (plan 45, MA-45): the live cart
+     * summary, or null while the cart is off.
+     */
+    protected function cartSummary(Request $request): ?TmaCartSummary
+    {
+        return $this->cartEnabled() ? TmaCart::summary($this->user($request)) : null;
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      */
     protected function page(Request $request, string $view, array $data = []): Response
     {
         $user = $this->user($request);
+        $bar = $this->cartEnabled() && ($data['cartBar'] ?? null) instanceof TmaCartSummary ? $data['cartBar'] : null;
 
-        // A screen that already priced the cart passes its line count ("cartCount") and saves the query.
+        // A screen that already priced the cart passes its line count ("cartCount") or its
+        // cart bar ("cartBar", plan 45) and saves the query.
         return response()->view($view, [
-            'cartCount' => $this->cartEnabled() ? (array_key_exists('cartCount', $data) ? $data['cartCount'] : TmaCart::lineCount($user)) : null,
-            'botLink' => BotUsername::link(),
             ...$data,
+            'cartCount' => $this->cartEnabled() ? ($bar?->count ?? (array_key_exists('cartCount', $data) ? $data['cartCount'] : TmaCart::lineCount($user))) : null,
+            'cartBar' => $bar,
+            'botLink' => BotUsername::link(),
         ]);
     }
 }

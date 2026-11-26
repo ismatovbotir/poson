@@ -4,7 +4,11 @@ namespace App\Support\Telegram\MiniApp;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Product;
 use App\Models\TelegramUser;
+use App\Support\Cart\CartPricer;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -74,7 +78,56 @@ final class TmaCart
     {
         // One query: the lines of the newest open cart (a subquery picks it).
         return CartItem::query()
-            ->where('cart_id', Cart::query()->select('id')->open()->where('telegram_user_id', $user->id)->orderByDesc('id')->limit(1))
+            ->where('cart_id', self::openCartId($user))
             ->count();
+    }
+
+    /**
+     * The cart bar and the cards' in-cart quantities (plan 45, MA-45): the
+     * lines of the newest open cart joined to their products (one query; a
+     * second loads the roll types when a label product is in the cart), each
+     * line checked and priced by CartPricer::evaluate() as the cart page
+     * does (trashed or hidden products are lines that can't be bought). The
+     * label size only names a roll and never changes its price, so it is not
+     * loaded here.
+     */
+    public static function summary(TelegramUser $user): TmaCartSummary
+    {
+        $products = Product::query()
+            ->withTrashed()
+            ->join('cart_items', 'cart_items.product_id', '=', 'products.id')
+            ->where('cart_items.cart_id', self::openCartId($user))
+            ->orderBy('cart_items.id')
+            ->get(['products.*', 'cart_items.line_key as cart_line_key', 'cart_items.roll_type_id as cart_roll_type_id', 'cart_items.qty as cart_qty']);
+
+        $labelProducts = $products->filter(fn (Product $product): bool => $product->isPricedPerLabel());
+
+        if ($labelProducts->isNotEmpty()) {
+            $labelProducts->load('rollTypes');
+            $labelProducts->each(fn (Product $product) => $product->setRelation('attributeValues', new EloquentCollection));
+        }
+
+        $subtotal = 0;
+        $quantities = [];
+
+        foreach ($products as $product) {
+            $rollTypeId = $product->getAttribute('cart_roll_type_id') !== null ? (int) $product->getAttribute('cart_roll_type_id') : null;
+            $qty = (int) $product->getAttribute('cart_qty');
+            $quantities[(string) $product->getAttribute('cart_line_key')] = $qty;
+
+            $rollType = $rollTypeId !== null && $product->isPricedPerLabel() ? $product->rollTypes->firstWhere('id', $rollTypeId) : null;
+            $result = CartPricer::evaluate($product, $rollTypeId, $rollType, $qty);
+            $subtotal += $result['problem'] === null ? (int) $result['total'] : 0;
+        }
+
+        return new TmaCartSummary(count($quantities), $subtotal, $quantities);
+    }
+
+    /**
+     * @return Builder<Cart>
+     */
+    private static function openCartId(TelegramUser $user): Builder
+    {
+        return Cart::query()->select('id')->open()->where('telegram_user_id', $user->id)->orderByDesc('id')->limit(1);
     }
 }

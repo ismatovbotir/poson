@@ -144,13 +144,16 @@ class CheckoutController extends TmaController
 
         $delivery = DeliveryQuote::for(DeliveryType::tryFrom($input('delivery_type')) ?? DeliveryType::Pickup, Region::tryFrom($input('region')), $settings);
 
+        // Plan 45 MA-55: an individual buyer's company name and STIR / PINFL are never passed on.
+        $business = BuyerType::tryFrom($input('buyer_type'))?->isBusiness() ?? false;
+
         try {
             $order = $placeOrder->handle($cart->token, new CheckoutData(
                 name: $input('name'),
                 phone: $phone,
                 buyerType: $input('buyer_type'),
-                companyName: $input('company_name'),
-                tin: $input('tin'),
+                companyName: $business ? $input('company_name') : '',
+                tin: $business ? $input('tin') : '',
                 deliveryType: $input('delivery_type'),
                 region: $input('region'),
                 address: $input('address'),

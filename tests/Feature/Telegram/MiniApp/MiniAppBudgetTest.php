@@ -11,6 +11,7 @@ use App\Models\ProductAttributeValue;
 use App\Support\Telegram\MiniApp\TmaCart;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Process;
 use Livewire\Livewire;
 
 require_once __DIR__.'/../../../Helpers/MiniApp.php';
@@ -108,4 +109,44 @@ it('keeps the admin Mini App page within its query budget, without lazy loading 
     expect($page)->toBeLessThanOrEqual(25)
         ->and($rerender)->toBeLessThan($page)
         ->and($rerender)->toBeLessThanOrEqual(10);
+});
+
+it('keeps the built Mini App assets within budget: tma.css ≤ 12 KB and tma.js ≤ 4 KB gzipped, the sprite cached under /build (plan 45)', function () {
+    $manifestPath = public_path('build/manifest.json');
+    $manifest = is_file($manifestPath) ? json_decode((string) file_get_contents($manifestPath), true) : null;
+
+    if (! is_array($manifest) || ! isset($manifest['resources/css/tma.css'], $manifest['resources/js/tma.js'])) {
+        $this->markTestSkipped('Run npm run build first.');
+    }
+
+    $gzipped = fn (string $entry): int => strlen(gzencode((string) file_get_contents(public_path('build/'.$manifest[$entry]['file'])), 9));
+
+    expect($gzipped('resources/css/tma.css'))->toBeLessThanOrEqual(12 * 1024)
+        ->and($gzipped('resources/js/tma.js'))->toBeLessThanOrEqual(4 * 1024);
+
+    if (isset($manifest['resources/svg/tma-icons.svg'])) {
+        $file = $manifest['resources/svg/tma-icons.svg']['file'];
+
+        expect($file)->toMatch('#\Aassets/tma-icons-[A-Za-z0-9_-]+\.svg\z#')
+            ->and(file_get_contents(public_path('build/'.$file)))->toBe(file_get_contents(resource_path('svg/tma-icons.svg')));
+    }
+});
+
+it('keeps the minified tma.js within 4 KB gzipped even without public/build (plan 45)', function () {
+    $rolldown = base_path('node_modules/.bin/rolldown');
+
+    // Without node_modules (e.g. a PHP-only CI) the built-asset test above is the only size check.
+    if (! is_executable($rolldown)) {
+        $this->markTestSkipped('node_modules/.bin/rolldown is not installed.');
+    }
+
+    $out = sys_get_temp_dir().'/tma-'.uniqid().'.min.js';
+
+    try {
+        Process::run([$rolldown, resource_path('js/tma.js'), '--minify', '--format', 'esm', '--file', $out])->throw();
+
+        expect(strlen(gzencode((string) file_get_contents($out), 9)))->toBeLessThanOrEqual(4 * 1024);
+    } finally {
+        @unlink($out);
+    }
 });

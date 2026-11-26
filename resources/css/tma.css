@@ -9,6 +9,7 @@
 
 @source '../views/tma';
 @source '../views/layouts/tma.blade.php';
+@source '../views/components/tma';
 @source '../views/components/catalog';
 @source '../views/site/partials/order-bank.blade.php';
 @source '../../app/Support/Catalog/LabelDiagram.php';
@@ -50,6 +51,10 @@
     --color-tg-section: var(--tg-theme-section-bg-color, #ffffff);
     --color-tg-separator: var(--tg-theme-section-separator-color, #e2e8f0);
     --color-tg-danger: var(--tg-theme-destructive-text-color, #d93636);
+    /* Plan 45 §1: section headers, subtitles and accents follow the theme too (dark mode). */
+    --color-tg-header: var(--tg-theme-section-header-text-color, #64748b);
+    --color-tg-subtitle: var(--tg-theme-subtitle-text-color, #64748b);
+    --color-tg-accent: var(--tg-theme-accent-text-color, #178045);
 }
 
 @utility tma-btn {
@@ -83,7 +88,105 @@
 @utility tma-card {
     border-radius: var(--radius-box);
     background-color: var(--color-tg-section);
-    padding: 0.875rem;
+    padding: 0.75rem;
+}
+
+/* Plan 45 §1: a card of hairline-separated rows (no block padding: the rows carry it). */
+@utility tma-group {
+    border-radius: var(--radius-box);
+    background-color: var(--color-tg-section);
+    padding-inline: 0.75rem;
+}
+
+/* Plan 45 §1: a 48 px tappable row with a full-width label (grouped lists, filters, radio cards). */
+@utility tma-row {
+    display: flex;
+    min-height: 3rem;
+    width: 100%;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 0.5rem;
+}
+
+@utility tma-chip {
+    display: inline-flex;
+    min-height: 2.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 9999px;
+    background-color: var(--color-tg-section);
+    padding-inline: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* − [n] + with 44 px buttons (cart lines and cards). */
+@utility tma-stepper {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-box);
+    background-color: var(--color-tg-secondary);
+
+    & > button {
+        display: grid;
+        width: 2.75rem;
+        height: 2.75rem;
+        place-items: center;
+        color: var(--color-tg-link);
+    }
+
+    & > button:disabled {
+        color: var(--color-tg-hint);
+    }
+
+    & > output,
+    & > input {
+        min-width: 2.25rem;
+        text-align: center;
+        font-weight: 600;
+    }
+}
+
+/* Sticky bottom bar (cart bar, Apply), above the home indicator. */
+@utility tma-bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 20;
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
+    background-color: var(--color-tg-bg);
+    border-top: 1px solid var(--color-tg-separator);
+}
+
+/* Status and counts only, never a price (MA-54). */
+@utility tma-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background-color: var(--color-tg-secondary);
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+}
+
+@utility tma-toast {
+    position: fixed;
+    inset-inline: 1rem;
+    bottom: calc(5rem + env(safe-area-inset-bottom));
+    z-index: 30;
+    margin-inline: auto;
+    max-width: 34rem;
+    border-radius: var(--radius-box);
+    background-color: var(--color-tg-text);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-tg-bg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @utility tma-input {
@@ -98,7 +201,7 @@
 
 @layer base {
     body {
-        font-size: 15px;
+        font-size: 16px;
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
     }
@@ -115,6 +218,40 @@
 
     [hidden] {
         display: none !important;
+    }
+
+    /* The tapped button while its request runs (Plan 45 §4): CSS only, no skeletons. */
+    [aria-busy='true'] {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    /* tma.js re-adds the class to show a message again; the animation hides it (no timers). */
+    .tma-toast-on {
+        animation: tma-toast 3.5s ease forwards;
+    }
+
+    .tma-toast-error {
+        background-color: var(--color-tg-danger);
+        color: #ffffff;
+    }
+
+    @keyframes tma-toast {
+        0% {
+            opacity: 0;
+            visibility: visible;
+            transform: translateY(0.5rem);
+        }
+        8%,
+        85% {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+        100% {
+            opacity: 0;
+            visibility: hidden;
+        }
     }
 
     .tma-prose p,

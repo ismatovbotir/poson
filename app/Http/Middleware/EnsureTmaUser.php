@@ -19,6 +19,8 @@ use Symfony\Component\HttpFoundation\Response;
  * signs in again from Telegram's initData (and shows the reason screen
  * when it fails); "next" is the current page as a TmaTarget only (MA-7).
  * The user is passed on as the request attribute TmaSession::ATTRIBUTE.
+ * A request that wants JSON (the cart forms of tma.js) gets a 401 JSON
+ * instead, and the script reloads the page, which signs in again.
  */
 class EnsureTmaUser
 {
@@ -36,6 +38,11 @@ class EnsureTmaUser
 
         if (! $valid) {
             $session->invalidate();
+
+            // tma.js (plan 45, MA-43): a 401 it can tell from a page, never a redirect fetch() would follow.
+            if ($request->wantsJson()) {
+                return response()->json(['message' => __('tma.session.expired')], 401);
+            }
 
             return redirect()->route('tma.bootstrap', array_filter(['next' => TmaTarget::forRoute($request->route())]));
         }

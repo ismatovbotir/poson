@@ -12,6 +12,24 @@ return [
         'cart' => 'Cart',
     ],
     'contact_manager' => 'Contact a manager',
+    'bar' => [
+        'label' => 'Cart',
+    ],
+    'toast' => [
+        'error' => 'Something went wrong. Please try again.',
+        'retry' => 'Too many taps. Please try again in a moment.',
+    ],
+    'session' => [
+        'expired' => 'The session has expired. Open the catalogue again.',
+    ],
+    'stepper' => [
+        'less' => 'One less',
+        'more' => 'One more',
+    ],
+    'card' => [
+        'add' => 'Add',
+        'choose_roll' => 'Choose a roll',
+    ],
     'status' => [
         'added' => 'Added to the cart.',
         'quoted' => 'Your request has been sent. A manager will contact you soon.',
@@ -73,13 +91,31 @@ return [
         'empty' => 'Nothing found. Try another word or contact a manager.',
     ],
     'home' => [
+        'why_title' => 'Why Poson',
+        'more' => 'More',
+        'why' => [
+            'warranty' => [
+                'title' => 'Official warranty',
+                'text' => 'Genuine equipment with the official warranty',
+            ],
+            'service' => [
+                'title' => 'Our own service centre',
+                'text' => 'Repair and maintenance by our engineers',
+            ],
+            'setup' => [
+                'title' => 'Setup and integration',
+                'text' => 'We select, set up and connect the equipment to your systems',
+            ],
+        ],
         'title' => 'Catalogue',
         'categories' => 'Categories',
         'empty' => 'The catalogue is being updated.',
         'my_orders' => 'My orders',
-        'service_note' => 'Expert selection, setup and an official warranty from our own service centre.',
     ],
     'category' => [
+        'breadcrumbs' => 'Parent categories',
+        'filters' => 'Filters',
+        'remove_filter' => 'Remove the filter :filter',
         'subcategories' => 'Subcategories',
         'empty' => 'No products match these filters.',
     ],
@@ -102,6 +138,16 @@ return [
         'apply' => 'Show',
     ],
     'product' => [
+        'photos' => 'Swipe to see all :count photos',
+        'in_cart' => 'In the cart',
+        'rolls_in_cart' => 'Rolls of this type in the cart:',
+        'open_cart' => 'Open the cart',
+        'all_specs' => 'All specifications (:count)',
+        'assurance' => [
+            'warranty' => 'Official warranty',
+            'service' => 'Service at our own service centre',
+            'setup' => 'Help with setup and integration',
+        ],
         'sku' => 'SKU :sku',
         'per_roll' => ':price / roll',
         'quantity' => 'Quantity',
@@ -121,12 +167,13 @@ return [
         ],
     ],
     'cart' => [
+        'rolls_labels' => 'Rolls: :rolls · labels: :labels',
+        'per_unit' => ':price each',
         'title' => 'Cart',
         'empty' => 'Your cart is empty.',
         'to_catalog' => 'Go to the catalogue',
         'line_quantity' => 'Choose at least :min.',
         'line_unavailable' => 'This item cannot be ordered now. Remove it or contact a manager.',
-        'update' => 'Update',
         'remove' => 'Remove',
         'subtotal' => 'Total',
         'vat_note' => 'Prices include VAT.',
@@ -139,6 +186,14 @@ return [
         ],
     ],
     'checkout' => [
+        'summary' => 'Your order (:count)',
+        'tin_hint' => 'STIR: 9 digits, PINFL: 14 digits',
+        'steps' => [
+            'contact' => 'Contact',
+            'buyer' => 'Buyer',
+            'delivery' => 'Delivery',
+            'payment' => 'Payment',
+        ],
         'title' => 'Checkout',
         'phone_from_bot' => 'from your bot registration',
         'delivery_note' => [
@@ -171,6 +226,16 @@ return [
         'submit' => 'Send to the service centre',
     ],
     'orders' => [
+        'more_items' => 'and :count more',
+        'items' => 'Items: :count',
+        'received' => 'Order :number received',
+        'next_title' => 'What happens next',
+        'continue' => 'Continue shopping',
+        'next' => [
+            'confirm' => 'A manager confirms the order and the delivery time.',
+            'payment' => 'You receive the payment details.',
+            'delivery' => 'We deliver the order or prepare it for pickup.',
+        ],
         'title' => 'My orders',
         'number' => 'Order :number',
         'empty' => 'You have no orders from this app yet.',
