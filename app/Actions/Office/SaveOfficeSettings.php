@@ -8,7 +8,6 @@ use App\Enums\SettingsArea;
 use App\Models\Setting;
 use App\Models\SettingsAudit;
 use App\Models\User;
-use App\Support\Admin\PasswordConfirmation;
 use App\Support\Chat\AiSwitch;
 use App\Support\Office\OfficeSettings;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -22,13 +21,11 @@ use Illuminate\Validation\ValidationException;
  *
  *  - ingest / AI / auto-lead switches; AI on needs the API key;
  *  - debounce 5–60 minutes, per-chat cap 1–24;
- *  - caps per office channel 0 … cap_factor × default;
- *  - the owner allow-list (Telegram user ids): ignored while
- *    OFFICE_OWNER_TELEGRAM_IDS locks it (the rest still saves), and a change needs a recent
- *    password confirmation; audited with old and new ids
- *    (SettingsAudit::recordText; ids are not secret), then every stored
- *    connection's is_allowed is recomputed.
- * Every other changed key is audited without its value.
+ *  - caps per office channel 0 … cap_factor × default.
+ * Every changed key is audited without its value. The owner allow-list is
+ * not saved here: SetOfficeOwners (plan 44 §1, OG-3) owns it; a submitted
+ * owner_ids value is ignored. Every save still recomputes each stored
+ * connection's is_allowed (a lock set or dropped in .env since).
  */
 class SaveOfficeSettings
 {
@@ -46,14 +43,6 @@ class SaveOfficeSettings
         }
 
         $valid = Validator::make($data, $this->rules())->validate();
-        $owners = OfficeSettings::parseIds($valid['owner_ids'] ?? '');
-        // Locked by OFFICE_OWNER_TELEGRAM_IDS: the submitted ids are ignored (never a change, never stored), so saves still work.
-        $ownersChanged = ! OfficeSettings::ownerIdsLocked()
-            && $owners !== OfficeSettings::parseIds(Setting::query()->where('key', OfficeSettings::OWNERS)->value('value') ?? []);
-
-        if ($ownersChanged && ! PasswordConfirmation::isRecent()) {
-            throw ValidationException::withMessages(['owner_ids' => __('office.errors.password_required')]);
-        }
 
         if ((bool) $valid['ai_enabled'] && ! OfficeSettings::aiStored() && ! AiSwitch::keyConfigured()) {
             throw ValidationException::withMessages(['ai_enabled' => __('office.errors.key_missing')]);
@@ -77,10 +66,6 @@ class SaveOfficeSettings
             OfficeSettings::CAPS => $caps,
         ];
 
-        if (! OfficeSettings::ownerIdsLocked()) {
-            $values[OfficeSettings::OWNERS] = $owners;
-        }
-
         $changed = DB::transaction(function () use ($values, $actor, $ip): int {
             $changed = 0;
 
@@ -91,17 +76,13 @@ class SaveOfficeSettings
                     continue;
                 }
 
-                $old = $row?->value;
-
                 if ($row === null) {
                     Setting::query()->create(['key' => $key, 'group' => SettingsArea::Office->group(), 'value' => $value]);
                 } else {
                     $row->forceFill(['group' => SettingsArea::Office->group(), 'value' => $value])->save();
                 }
 
-                if ($key === OfficeSettings::OWNERS) {
-                    SettingsAudit::recordText(SettingsArea::Office, $key, AuditAction::Updated, $actor, $ip, implode(', ', OfficeSettings::parseIds($old ?? [])), implode(', ', (array) $value));
-                } elseif (is_bool($value)) {
+                if (is_bool($value)) {
                     SettingsAudit::record(SettingsArea::Office, $key, $value ? AuditAction::Enabled : AuditAction::Disabled, $actor, $ip);
                 } else {
                     SettingsAudit::record(SettingsArea::Office, $key, AuditAction::Updated, $actor, $ip);
@@ -114,7 +95,7 @@ class SaveOfficeSettings
         });
 
         OfficeSettings::forget();
-        // Every successful save: connections stored before a lock or allow-list change get their flag again (VO-1).
+        // Every successful save: connections stored before a .env lock change get their flag again (VO-1).
         UpsertBusinessConnection::recomputeAllowed();
 
         return $changed;
@@ -146,7 +127,6 @@ class SaveOfficeSettings
             'ingest_enabled' => ['required', 'boolean'],
             'ai_enabled' => ['required', 'boolean'],
             'auto_lead' => ['required', 'boolean'],
-            'owner_ids' => ['nullable', 'string', 'max:300', 'regex:/^[\d\s,;]*$/'],
             'debounce_minutes' => ['required', 'integer', 'min:'.(int) config('office.debounce_min', 5), 'max:'.(int) config('office.debounce_max', 60)],
             'per_chat_daily' => ['required', 'integer', 'min:1', 'max:'.(int) config('office.per_chat_daily_max', 24)],
             'caps' => ['required', 'array'],

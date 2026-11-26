@@ -80,6 +80,8 @@ class HandleBusinessUpdate
                 'isEnabled' => $update->isEnabled === true,
                 'rights' => $update->rights,
                 'connectionDate' => $update->connectionDate,
+                'ownerFirstName' => $update->ownerFirstName,
+                'ownerUsername' => $update->ownerUsername,
             ]);
 
             return self::CONNECTION;

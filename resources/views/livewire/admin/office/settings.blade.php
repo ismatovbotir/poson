@@ -24,15 +24,102 @@
             </div>
         </x-admin.card>
 
-        <x-admin.card :title="__($t.'.owners')" :description="__($t.'.owners_help')">
+        <x-admin.card :title="__($t.'.owners')" :description="__($t.'.owners_help')" data-owner-picker>
+            @php($sourceLabel = fn (?string $source): string => $source === null ? __($t.'.owner_source_unknown') : __($t.'.owner_source_'.$source))
             <div class="space-y-3">
                 @if ($ownersLocked)
-                    <p class="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" data-owners-locked>{{ __($t.'.owners_locked') }}</p>
+                    <p class="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600" data-owners-locked>{{ __($t.'.owners_locked') }} {{ __($t.'.owners_locked_hint') }}</p>
                 @endif
-                <x-admin.input wire:model="ownerIds" name="owner_ids" :label="__($t.'.owner_ids')" :hint="__($t.'.owner_ids_hint')" inputmode="numeric" maxlength="300" :disabled="$ownersLocked" />
-                @unless ($passwordConfirmed || $ownersLocked)
-                    <p class="text-xs text-slate-500">{{ __($t.'.owners_password') }} <button type="button" wire:click="confirmPassword" class="font-semibold text-brand-700 hover:underline">{{ __($t.'.confirm_password') }}</button></p>
+
+                <ul class="flex flex-wrap gap-2" aria-label="{{ __($t.'.owner_ids') }}" data-owner-chips>
+                    @forelse ($owners as $owner)
+                        @php($ownerName = $owner['first_name'] ?? $owner['username'])
+                        <li wire:key="owner-{{ $owner['telegram_id'] }}" class="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-brand-50 py-1 pl-2.5 pr-1 text-sm text-brand-800" data-owner-chip="{{ $owner['telegram_id'] }}">
+                            <span class="truncate font-semibold">{{ $ownerName !== null ? $ownerName : __($t.'.owner_unknown', ['id' => $owner['telegram_id']]) }}</span>
+                            @if ($ownerName !== null)
+                                @if ($owner['username'])<span class="truncate text-brand-700">{{ '@'.$owner['username'] }}</span>@endif
+                                <span class="tabular-nums text-xs text-brand-700">#{{ $owner['telegram_id'] }}</span>
+                            @endif
+                            @unless ($ownersLocked)
+                                <button type="button" wire:click="removeOwner({{ $owner['telegram_id'] }})" wire:confirm="{{ __($t.'.owner_remove_confirm', ['id' => $owner['telegram_id'], 'source' => $sourceLabel($owner['source'])]) }}" class="grid size-6 place-items-center rounded hover:bg-brand-100" aria-label="{{ __($t.'.owner_remove') }}: #{{ $owner['telegram_id'] }}" data-owner-remove="{{ $owner['telegram_id'] }}"><x-admin.icon name="x" size="size-3.5" /></button>
+                            @else
+                                <span class="sr-only">{{ $sourceLabel($owner['source']) }}</span>
+                            @endunless
+                        </li>
+                    @empty
+                        <li class="text-sm text-slate-500">{{ __($t.'.owners_empty') }}</li>
+                    @endforelse
+                </ul>
+
+                @error('owner_ids')<p class="text-sm text-danger" role="alert">{{ $message }}</p>@enderror
+
+                @unless ($ownersLocked)
+                    @if ($canAddOwner)
+                        <div class="relative">
+                            <x-admin.input
+                                id="owner-search"
+                                type="search"
+                                icon="search"
+                                wire:model.live.debounce.300ms="ownerSearch"
+                                name="ownerSearch"
+                                :label="__($t.'.owner_search')"
+                                :hint="__($t.'.owner_search_hint')"
+                                :placeholder="__($t.'.owner_search_placeholder')"
+                                x-on:keydown.enter.prevent=""
+                                maxlength="64"
+                                autocomplete="off"
+                                aria-controls="owner-candidates"
+                                data-owner-search
+                            />
+
+                            @php($searching = mb_strlen(trim($ownerSearch)) >= \App\Support\Office\OwnerCandidates::MIN_TERM)
+                            <p class="sr-only" aria-live="polite" data-owner-results-count>{{ $searching ? trans_choice($t.'.owner_results', count($candidates), ['count' => count($candidates)]) : '' }}</p>
+                            @if ($searching)
+                                <ul id="owner-candidates" aria-label="{{ __($t.'.owner_results_label') }}" class="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200" data-owner-candidates>
+                                    @forelse ($candidates as $candidate)
+                                        <li wire:key="cand-{{ $candidate['telegram_id'] }}">
+                                            <button
+                                                type="button"
+                                                wire:click="addOwner({{ $candidate['telegram_id'] }})"
+                                                wire:confirm="{{ __($t.'.owner_add_confirm', ['id' => $candidate['telegram_id'], 'source' => $sourceLabel($candidate['source'])]) }}"
+                                                class="flex w-full flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2 text-left text-sm hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                                                data-owner-candidate="{{ $candidate['telegram_id'] }}"
+                                            >
+                                                <span class="font-semibold">{{ $candidate['first_name'] ?? __($t.'.owner_no_name') }}</span>
+                                                @if ($candidate['username'])<span class="text-slate-600">{{ '@'.$candidate['username'] }}</span>@endif
+                                                <span class="tabular-nums text-xs text-slate-500">#{{ $candidate['telegram_id'] }}</span>
+                                                <x-admin.badge :color="$candidate['source'] === \App\Support\Office\OwnerCandidates::SOURCE_CONNECTION ? 'brand' : 'muted'">{{ $sourceLabel($candidate['source']) }}</x-admin.badge>
+                                                <span class="ml-auto text-xs text-slate-500">{{ $candidate['last_seen'] ? __($t.'.owner_last_seen', ['date' => $candidate['last_seen']->copy()->setTimezone(config('app.timezone'))->format('d.m.Y H:i')]) : '' }}</span>
+                                            </button>
+                                        </li>
+                                    @empty
+                                        <li class="px-3 py-2 text-sm text-slate-500">{{ __($t.'.owner_no_results') }}</li>
+                                    @endforelse
+                                </ul>
+                            @endif
+                        </div>
+
+                        <details class="rounded-lg border border-slate-200 px-3 py-2 text-sm" data-owner-manual>
+                            <summary class="cursor-pointer font-semibold text-slate-700">{{ __($t.'.owner_manual') }}</summary>
+                            <div class="mt-2 space-y-2" x-data="{ template: @js(__($t.'.owner_add_confirm', ['id' => '__ID__', 'source' => __($t.'.owner_source_manual')])), invalid: @js(__($t.'.owner_id_invalid')), error: '' }">
+                                <p class="text-xs text-slate-500">{{ __($t.'.owner_manual_hint') }}</p>
+                                <div class="flex flex-wrap items-end gap-2">
+                                    <x-admin.input wire:model="manualOwnerId" name="manualOwnerId" :label="__($t.'.owner_id')" inputmode="numeric" maxlength="16" class="min-w-0 flex-1" x-on:keydown.enter.prevent="" />
+                                    <x-admin.button variant="secondary" icon="plus" loading="addManualOwner" x-on:click="const id = String($wire.manualOwnerId ?? '').trim(); error = /^[1-9][0-9]{0,15}$/.test(id) ? '' : invalid; if (! error && confirm(template.replace('__ID__', id))) { $wire.addManualOwner() }" data-owner-manual-add>{{ __($t.'.owner_add') }}</x-admin.button>
+                                </div>
+                                <p x-show="error" x-text="error" x-cloak class="text-sm text-danger" role="alert" data-owner-manual-error></p>
+                            </div>
+                        </details>
+                    @else
+                        <p class="text-xs text-slate-500">{{ __($t.'.owners_max', ['max' => \App\Actions\Office\SetOfficeOwners::MAX_IDS]) }}</p>
+                    @endif
+
+                    @unless ($passwordConfirmed)
+                        <p class="text-xs text-slate-500">{{ __($t.'.owners_password') }} <button type="button" wire:click="confirmPassword" class="font-semibold text-brand-700 hover:underline">{{ __($t.'.confirm_password') }}</button></p>
+                    @endunless
                 @endunless
+
+                <p class="flex items-start gap-2 text-xs text-slate-500" data-owners-lost-hint><x-admin.icon name="alert" size="size-3.5" class="mt-0.5 shrink-0" />{{ __($t.'.owners_lost_hint') }}</p>
             </div>
         </x-admin.card>
 
@@ -72,15 +159,29 @@
 
         <x-admin.card :title="__($t.'.connections')" :description="__($t.'.connections_help')" data-connections>
             @forelse ($connections as $connection)
-                <div wire:key="conn-{{ $connection->id }}" class="flex flex-wrap items-center gap-2 border-b border-slate-100 py-2 text-sm last:border-0">
+                @php($isOwner = in_array($connection->owner_telegram_id, $ownerIdList, true))
+                <div wire:key="conn-{{ $connection->id }}" class="flex flex-wrap items-center gap-2 border-b border-slate-100 py-2 text-sm last:border-0" data-connection="{{ $connection->id }}">
                     <x-admin.badge :color="$connection->is_enabled ? 'brand' : 'muted'" pill dot>{{ $connection->is_enabled ? __($t.'.connected') : __($t.'.disconnected') }}</x-admin.badge>
                     <x-admin.badge :color="$connection->is_allowed ? 'brand' : 'red'">{{ $connection->is_allowed ? __($t.'.allowed') : __($t.'.not_allowed') }}</x-admin.badge>
+                    <span class="font-semibold">{{ $connection->owner_first_name ?? __($t.'.owner_no_name') }}</span>
+                    @if ($connection->owner_username)<span class="text-slate-600">{{ '@'.$connection->owner_username }}</span>@endif
+                    <span class="tabular-nums text-xs text-slate-500">#{{ $connection->owner_telegram_id }}</span>
                     <span class="text-slate-500">{{ $connection->can_reply ? __($t.'.can_reply') : __($t.'.read_only') }}</span>
                     <span class="ml-auto text-xs text-slate-500">{{ ($connection->connected_at ?? $connection->updated_at)?->copy()->setTimezone(config('app.timezone'))->format('d.m.Y H:i') }}</span>
+                    @unless ($ownersLocked)
+                        @if ($isOwner)
+                            <x-admin.button size="sm" variant="ghost" icon="x" wire:click="removeConnection({{ $connection->id }})" wire:confirm="{{ __($t.'.owner_remove_confirm', ['id' => $connection->owner_telegram_id, 'source' => __($t.'.owner_source_connection')]) }}" loading="removeConnection" data-connection-remove="{{ $connection->id }}">{{ __($t.'.owner_remove') }}</x-admin.button>
+                        @elseif ($canAddOwner)
+                            <x-admin.button size="sm" variant="soft" icon="check" wire:click="allowConnection({{ $connection->id }})" wire:confirm="{{ __($t.'.owner_add_confirm', ['id' => $connection->owner_telegram_id, 'source' => __($t.'.owner_source_connection')]) }}" loading="allowConnection" data-connection-allow="{{ $connection->id }}">{{ __($t.'.owner_allow') }}</x-admin.button>
+                        @endif
+                    @endunless
                 </div>
             @empty
                 <p class="text-sm text-slate-500">{{ __($t.'.no_connections') }}</p>
             @endforelse
+            @if ($connections->contains('is_allowed', false))
+                <p class="mt-3 text-xs text-slate-500">{{ $ownersLocked ? __($t.'.owners_locked_hint') : __($t.'.owners_lost_hint') }}</p>
+            @endif
         </x-admin.card>
 
         <x-admin.card :title="__($t.'.audit')">
