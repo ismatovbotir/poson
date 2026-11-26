@@ -246,6 +246,17 @@ Schedule::command('office:analyse-due')->everyMinute()->withoutOverlapping(5)->o
 Schedule::command('office:prune')->dailyAt('03:30')->timezone('Asia/Tashkent')->withoutOverlapping(30)->onOneServer();
 
 /*
+|--------------------------------------------------------------------------
+| Mini App catalog cache (plan 45 B)
+|--------------------------------------------------------------------------
+| Every 6 hours: the unfiltered filter facets of every visible category ×
+| locale (a few seconds). Shares a lock with the admin "Rebuild" button.
+| Must stay before the queue worker (MA-53).
+*/
+
+Schedule::command('tma:warm-catalog')->everySixHours()->withoutOverlapping(10)->onOneServer();
+
+/*
 | Queue worker from the scheduler (shared hosting: one cron line, `schedule:run`).
 | Runs about 40 s each minute in the foreground (no runInBackground(): RunRecorder
 | rule), no --stop-when-empty. Must stay the LAST Schedule:: line: it blocks the

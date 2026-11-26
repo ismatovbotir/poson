@@ -1706,6 +1706,16 @@ return [
             'sync_queued' => 'The menu button update is queued.',
             'checked' => 'Bot checked, username stored.',
         ],
+        'catalog_cache' => [
+            'title' => 'Catalog cache',
+            'hint' => 'The Mini App filter screen keeps the filter lists of every category for 6 hours. Catalog changes refresh it automatically.',
+            'warmed_at' => 'Catalog cache warmed at :time (:entries entries, :ms ms).',
+            'never' => 'The catalog cache has not been warmed yet.',
+            'button' => 'Rebuild catalog cache',
+            'rebuilt' => 'Catalog cache rebuilt: :entries entries.',
+            'busy' => 'The catalog cache is being rebuilt right now. Try again in a minute.',
+            'too_many' => 'Too many rebuilds. Try again in :minutes min.',
+        ],
         'errors' => [
             'too_many_checks' => 'Too many checks. Try again in :seconds s.',
             'too_many_toggles' => 'Too many changes. Try again in :minutes min.',

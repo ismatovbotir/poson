@@ -3,10 +3,12 @@
 namespace App\Actions\Catalog;
 
 use App\Models\AttributeOption;
+use App\Support\Site\HomeCache;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Delete an attribute value, unless product values use it.
+ * Delete an attribute value, unless product values use it. The home / Mini
+ * App facet cache is bumped after the commit (plan 45 MA-51).
  */
 class DeleteAttributeOption
 {
@@ -20,5 +22,7 @@ class DeleteAttributeOption
         }
 
         $option->delete();
+
+        HomeCache::bump();
     }
 }

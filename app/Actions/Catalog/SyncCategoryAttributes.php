@@ -5,6 +5,7 @@ namespace App\Actions\Catalog;
 use App\Models\Attribute;
 use App\Models\Category;
 use App\Support\Catalog\CategoryTree;
+use App\Support\Site\HomeCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\DB;
  * category already inherits are skipped, and afterwards the same attributes
  * are removed from the category's descendants (pruneSubtree). Text
  * attributes are never filters.
+ *
+ * Pivot writes fire no model events, so the home / Mini App facet cache is
+ * bumped after the commit (plan 45 MA-51).
  */
 class SyncCategoryAttributes
 {
@@ -53,6 +57,8 @@ class SyncCategoryAttributes
 
             // Prunes duplicates and recomputes has_missing_specs for the subtree.
             $this->pruneSubtree($category);
+
+            HomeCache::bump();
         });
     }
 

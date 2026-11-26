@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tma;
 
 use App\Models\Category;
 use App\Support\Catalog\CatalogQuery;
+use App\Support\Catalog\CategoryFacetCache;
 use App\Support\Catalog\CategoryTree;
 use App\Support\Catalog\ProductCards;
 use Illuminate\Http\Request;
@@ -53,18 +54,26 @@ class CategoryController extends TmaController
     /**
      * The filter sheet: facets of the current selection (brand, stock, Retail
      * price, attributes with colour swatches as SVG fill), sort; submits to the listing.
+     *
+     * Plan 45 B / MA-50: without any active filter and without an m[] match
+     * mode, the facets come from CategoryFacetCache (after the live
+     * isVisible check, in the app locale set by tma.locale); a filtered
+     * sheet is always built live.
      */
     public function filters(Request $request, Category $category): Response
     {
         abort_unless(CategoryTree::isVisible($category->id), 404);
 
         $query = $this->query($request, $category);
+        $facets = $query->activeFilterCount() === 0 && ! $request->query->has('m')
+            ? CategoryFacetCache::remember($category, app()->getLocale(), fn (): array => $query->facets())
+            : $query->facets();
 
         return $this->page($request, 'tma.filters', [
             'category' => $category,
             'title' => __('tma.filters.title'),
             'back' => route('tma.category', ['category' => $category->slug, ...$query->queryParameters()]),
-            'facets' => $query->facets(),
+            'facets' => $facets,
             'sort' => $query->sort,
             'sorts' => CatalogQuery::SORTS,
             'priceMin' => $query->priceMin,

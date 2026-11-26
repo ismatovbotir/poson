@@ -13,6 +13,8 @@ use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\SetAdminLocale;
 use App\Http\Middleware\SetLocale;
+use App\Models\Attribute;
+use App\Models\AttributeOption;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\BusinessChat;
@@ -26,6 +28,7 @@ use App\Models\NewsPost;
 use App\Models\Order;
 use App\Models\Page;
 use App\Models\Product;
+use App\Models\ProductAttributeValue;
 use App\Models\Quote;
 use App\Models\Repair;
 use App\Models\Setting;
@@ -255,7 +258,8 @@ class AppServiceProvider extends ServiceProvider
             HomeCache::bump();
         });
 
-        // Home page data cache (plan 34, HC-4): every model whose rows or images appear on the home page.
-        HomeCache::bumpOnModelEvents([Product::class, Category::class, Brand::class, Banner::class, NewsPost::class, FaqItem::class, Media::class]);
+        // Home page data cache (plan 34, HC-4): every model whose rows or images appear on the home page;
+        // plan 45: Attribute, AttributeOption and ProductAttributeValue feed the Mini App facets (also writes that skip the actions).
+        HomeCache::bumpOnModelEvents([Product::class, Category::class, Brand::class, Banner::class, NewsPost::class, FaqItem::class, Media::class, Attribute::class, AttributeOption::class, ProductAttributeValue::class]);
     }
 }

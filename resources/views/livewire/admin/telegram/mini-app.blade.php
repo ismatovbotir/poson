@@ -126,6 +126,24 @@
             </div>
         </x-admin.card>
 
+        {{-- Catalog cache (plan 45 B): the filter facets, warmed every 6 hours; the button bumps and refills synchronously --}}
+        <x-admin.card :title="__($t.'.catalog_cache.title')" :description="__($t.'.catalog_cache.hint')">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm text-slate-700" data-catalog-warmed="{{ $catalogWarmed !== null ? '1' : '0' }}">
+                    @if ($catalogWarmed !== null)
+                        {{ __($t.'.catalog_cache.warmed_at', [
+                            'time' => \Illuminate\Support\Carbon::parse($catalogWarmed['at'])->timezone(config('app.timezone'))->format('d.m.Y H:i'),
+                            'entries' => $catalogWarmed['entries'],
+                            'ms' => $catalogWarmed['ms'],
+                        ]) }}
+                    @else
+                        {{ __($t.'.catalog_cache.never') }}
+                    @endif
+                </p>
+                <x-admin.button variant="secondary" icon="restore" wire:click="rebuildCatalogCache" loading="rebuildCatalogCache" data-action="rebuild-catalog-cache">{{ __($t.'.catalog_cache.button') }}</x-admin.button>
+            </div>
+        </x-admin.card>
+
         {{-- Audit --}}
         <x-admin.card :title="__($t.'.audit_title')">
             @if ($audits->isEmpty())

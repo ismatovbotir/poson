@@ -1706,6 +1706,16 @@ return [
             'sync_queued' => 'Menyu tugmalarini yangilash navbatga qoʻyildi.',
             'checked' => 'Bot tekshirildi, foydalanuvchi nomi saqlandi.',
         ],
+        'catalog_cache' => [
+            'title' => 'Katalog keshi',
+            'hint' => 'Mini App filtrlar ekrani har bir kategoriya filtrlari roʻyxatini 6 soat saqlaydi. Katalogdagi oʻzgarishlar uni avtomatik yangilaydi.',
+            'warmed_at' => 'Oxirgi yangilanish: :time (:entries ta yozuv, :ms ms).',
+            'never' => 'Katalog keshi hali toʻldirilmagan.',
+            'button' => 'Katalog keshini qayta yigʻish',
+            'rebuilt' => 'Katalog keshi qayta yigʻildi: :entries ta yozuv.',
+            'busy' => 'Katalog keshi hozir qayta yigʻilmoqda. Bir daqiqadan keyin qayta urinib koʻring.',
+            'too_many' => 'Juda koʻp qayta yigʻish. :minutes daqiqadan keyin qayta urinib koʻring.',
+        ],
         'errors' => [
             'too_many_checks' => 'Juda koʻp tekshiruv. :seconds soniyadan keyin qayta urinib koʻring.',
             'too_many_toggles' => 'Juda koʻp oʻzgarish. :minutes daqiqadan keyin qayta urinib koʻring.',
