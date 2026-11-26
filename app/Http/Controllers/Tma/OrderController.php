@@ -10,6 +10,7 @@ use App\Models\TelegramUser;
 use App\Support\CompanySettings;
 use App\Support\Telegram\MiniApp\TmaLinks;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -36,6 +37,8 @@ class OrderController extends TmaController
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->limit(self::LIMIT)
+            // Plan 45: the item count and the first item's name (one query for all orders).
+            ->with(['items' => fn (HasMany $items) => $items->select(['id', 'order_id', 'name'])->orderBy('id')])
             ->get(['id', 'number', 'status', 'total', 'created_at', 'payment_method']);
 
         return $this->page($request, 'tma.orders.index', [

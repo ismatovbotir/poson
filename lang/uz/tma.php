@@ -11,6 +11,24 @@ return [
         'cart' => 'Savat',
     ],
     'contact_manager' => 'Menejer bilan bogʻlanish',
+    'bar' => [
+        'label' => 'Savat',
+    ],
+    'toast' => [
+        'error' => 'Xatolik yuz berdi. Qaytadan urinib koʻring.',
+        'retry' => 'Juda koʻp bosildi. Birozdan keyin qayta urinib koʻring.',
+    ],
+    'session' => [
+        'expired' => 'Sessiya muddati tugadi. Katalogni qayta oching.',
+    ],
+    'stepper' => [
+        'less' => 'Kamaytirish',
+        'more' => 'Koʻpaytirish',
+    ],
+    'card' => [
+        'add' => 'Savatga',
+        'choose_roll' => 'Rulonni tanlash',
+    ],
     'status' => [
         'added' => 'Savatga qoʻshildi.',
         'quoted' => 'Soʻrov yuborildi. Menejer tez orada siz bilan bogʻlanadi.',
@@ -72,13 +90,31 @@ return [
         'empty' => 'Hech narsa topilmadi. Boshqa soʻz bilan urinib koʻring yoki menejer bilan bogʻlaning.',
     ],
     'home' => [
+        'why_title' => 'Nega Poson',
+        'more' => 'Yana',
+        'why' => [
+            'warranty' => [
+                'title' => 'Rasmiy kafolat',
+                'text' => 'Rasmiy kafolatli original uskunalar',
+            ],
+            'service' => [
+                'title' => 'Oʻz servis markazimiz',
+                'text' => 'Muhandislarimiz taʼmirlaydi va xizmat koʻrsatadi',
+            ],
+            'setup' => [
+                'title' => 'Sozlash va integratsiya',
+                'text' => 'Uskunani tanlaymiz, sozlaymiz va tizimlaringizga ulaymiz',
+            ],
+        ],
         'title' => 'Katalog',
         'categories' => 'Kategoriyalar',
         'empty' => 'Katalog yangilanmoqda.',
         'my_orders' => 'Buyurtmalarim',
-        'service_note' => 'Mutaxassis tanlovi, sozlash va oʻz servis markazimizdan rasmiy kafolat.',
     ],
     'category' => [
+        'breadcrumbs' => 'Yuqori kategoriyalar',
+        'filters' => 'Filtrlar',
+        'remove_filter' => ':filter filtrini olib tashlash',
         'subcategories' => 'Ichki kategoriyalar',
         'empty' => 'Bu filtrlar boʻyicha mahsulot yoʻq.',
     ],
@@ -101,6 +137,16 @@ return [
         'apply' => 'Koʻrsatish',
     ],
     'product' => [
+        'photos' => 'Barcha rasmlarni (:count) koʻrish uchun suring',
+        'in_cart' => 'Savatda',
+        'rolls_in_cart' => 'Savatda shu turdagi rulonlar:',
+        'open_cart' => 'Savatni ochish',
+        'all_specs' => 'Barcha xususiyatlar (:count)',
+        'assurance' => [
+            'warranty' => 'Rasmiy kafolat',
+            'service' => 'Oʻz servis markazimizda xizmat koʻrsatish',
+            'setup' => 'Sozlash va integratsiyada yordam',
+        ],
         'sku' => 'Artikul :sku',
         'per_roll' => ':price / rulon',
         'quantity' => 'Miqdor',
@@ -120,12 +166,13 @@ return [
         ],
     ],
     'cart' => [
+        'rolls_labels' => 'Rulonlar: :rolls · yorliqlar: :labels',
+        'per_unit' => 'Donasi :price',
         'title' => 'Savat',
         'empty' => 'Savatingiz boʻsh.',
         'to_catalog' => 'Katalogga oʻtish',
         'line_quantity' => 'Kamida :min tanlang.',
         'line_unavailable' => 'Bu mahsulotni hozir buyurtma qilib boʻlmaydi. Uni olib tashlang yoki menejer bilan bogʻlaning.',
-        'update' => 'Yangilash',
         'remove' => 'Olib tashlash',
         'subtotal' => 'Jami',
         'vat_note' => 'Narxlar QQS bilan koʻrsatilgan.',
@@ -138,6 +185,14 @@ return [
         ],
     ],
     'checkout' => [
+        'summary' => 'Buyurtmangiz (:count)',
+        'tin_hint' => 'STIR: 9 ta raqam, JSHSHIR: 14 ta raqam',
+        'steps' => [
+            'contact' => 'Aloqa',
+            'buyer' => 'Xaridor',
+            'delivery' => 'Yetkazib berish',
+            'payment' => 'Toʻlov',
+        ],
         'title' => 'Buyurtmani rasmiylashtirish',
         'phone_from_bot' => 'botdagi roʻyxatdan',
         'delivery_note' => [
@@ -170,6 +225,16 @@ return [
         'submit' => 'Servis markaziga yuborish',
     ],
     'orders' => [
+        'more_items' => 'va yana :count ta',
+        'items' => 'Pozitsiyalar: :count',
+        'received' => 'Buyurtma :number qabul qilindi',
+        'next_title' => 'Keyingi qadamlar',
+        'continue' => 'Xaridni davom ettirish',
+        'next' => [
+            'confirm' => 'Menejer buyurtmani va yetkazib berish muddatini tasdiqlaydi.',
+            'payment' => 'Siz toʻlov rekvizitlarini olasiz.',
+            'delivery' => 'Buyurtmani yetkazib beramiz yoki olib ketish uchun tayyorlaymiz.',
+        ],
         'title' => 'Buyurtmalarim',
         'number' => ':number-buyurtma',
         'empty' => 'Bu ilovadan hali buyurtmangiz yoʻq.',
