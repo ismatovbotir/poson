@@ -100,6 +100,8 @@ final readonly class BusinessUpdate
         public ?bool $isEnabled = null,
         public array $rights = [],
         public ?int $connectionDate = null,
+        public ?string $ownerFirstName = null,
+        public ?string $ownerUsername = null,
     ) {}
 
     /**
@@ -135,9 +137,10 @@ final readonly class BusinessUpdate
 
     /**
      * BusinessConnection fields (also the getBusinessConnection result, A5).
+     * The owner's first name and username are raw strings here; UpsertBusinessConnection cleans them.
      *
      * @param  array<mixed>  $connection
-     * @return array{connectionId: ?string, ownerId: ?int, userChatId: ?int, isEnabled: bool, rights: array<string, bool>, connectionDate: ?int}
+     * @return array{connectionId: ?string, ownerId: ?int, userChatId: ?int, isEnabled: bool, rights: array<string, bool>, connectionDate: ?int, ownerFirstName: ?string, ownerUsername: ?string}
      */
     public static function connectionFields(array $connection): array
     {
@@ -163,6 +166,8 @@ final readonly class BusinessUpdate
             'isEnabled' => ($connection['is_enabled'] ?? false) === true,
             'rights' => $kept,
             'connectionDate' => self::positiveInt($connection['date'] ?? null),
+            'ownerFirstName' => is_string($user['first_name'] ?? null) ? $user['first_name'] : null,
+            'ownerUsername' => is_string($user['username'] ?? null) ? $user['username'] : null,
         ];
     }
 
@@ -213,6 +218,8 @@ final readonly class BusinessUpdate
             isEnabled: $fields['isEnabled'],
             rights: $fields['rights'],
             connectionDate: $fields['connectionDate'],
+            ownerFirstName: $fields['ownerFirstName'],
+            ownerUsername: $fields['ownerUsername'],
         );
     }
 

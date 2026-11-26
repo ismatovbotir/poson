@@ -140,25 +140,16 @@ it('saves from the Education screen', function () {
     expect(AgentProfile::forRole(AgentRole::Service)->currentVersion->instructions)->toBe('Updated service instructions.');
 });
 
-it('needs a recent password to change the owner allow-list, audits old and new ids and recomputes connections (VO-1)', function () {
-    $admin = staffUser();
+it('never changes the owner allow-list from Save: SetOfficeOwners owns it (plan 44 §1)', function () {
     $connection = BusinessConnection::factory()->create(['owner_telegram_id' => OFFICE_OWNER_ID, 'is_allowed' => false]);
-
-    expect(fn () => app(SaveOfficeSettings::class)->handle($admin, officeSettingsData(['owner_ids' => (string) OFFICE_OWNER_ID])))->toThrow(ValidationException::class);
-
     confirmAdminPassword();
-    app(SaveOfficeSettings::class)->handle($admin, officeSettingsData(['owner_ids' => (string) OFFICE_OWNER_ID]));
 
-    $audit = SettingsAudit::query()->where('key', OfficeSettings::OWNERS)->sole();
+    app(SaveOfficeSettings::class)->handle(staffUser(), officeSettingsData(['owner_ids' => (string) OFFICE_OWNER_ID]));
 
-    expect(OfficeSettings::ownerIds())->toBe([OFFICE_OWNER_ID])
-        ->and($audit->old_text)->toBe('')
-        ->and($audit->new_text)->toBe((string) OFFICE_OWNER_ID)
-        ->and($connection->fresh()->is_allowed)->toBeTrue();
-
-    app(SaveOfficeSettings::class)->handle($admin, officeSettingsData(['owner_ids' => '']));
-
-    expect($connection->fresh()->is_allowed)->toBeFalse();
+    expect(OfficeSettings::ownerIds())->toBe([])
+        ->and(Setting::query()->where('key', OfficeSettings::OWNERS)->exists())->toBeFalse()
+        ->and(SettingsAudit::query()->where('key', OfficeSettings::OWNERS)->exists())->toBeFalse()
+        ->and($connection->fresh()->is_allowed)->toBeFalse();
 });
 
 it('ignores the submitted ids while OFFICE_OWNER_TELEGRAM_IDS locks the allow-list, and still saves (VO-1, H1)', function () {

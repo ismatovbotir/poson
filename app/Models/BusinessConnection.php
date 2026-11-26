@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $connection_id
  * @property int $owner_telegram_id
+ * @property string|null $owner_first_name
+ * @property string|null $owner_username
  * @property int|null $user_chat_id
  * @property bool $is_enabled
  * @property bool $is_allowed
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['connection_id', 'owner_telegram_id', 'user_chat_id', 'is_enabled', 'is_allowed', 'can_reply', 'rights', 'connected_at', 'disabled_at'])]
+#[Fillable(['connection_id', 'owner_telegram_id', 'owner_first_name', 'owner_username', 'user_chat_id', 'is_enabled', 'is_allowed', 'can_reply', 'rights', 'connected_at', 'disabled_at'])]
 class BusinessConnection extends Model
 {
     /** @use HasFactory<BusinessConnectionFactory> */
