@@ -21,6 +21,7 @@ return [
         'bot' => 'Open the Bot page',
         'settings' => 'Open Settings',
         'monitoring' => 'Open Monitoring',
+        'mini_app' => 'Open the Mini App page',
     ],
     'chat_keys' => [
         'inbox' => 'Inbox',
@@ -98,6 +99,16 @@ return [
             'problem' => 'The bot is on, but the privacy page is missing, hidden or needs review.',
             'neutral' => 'The privacy page is not ready. It is required before the bot is turned on.',
             'next' => 'Content → Pages: publish the privacy page and clear "needs review".',
+        ],
+        'mini_app' => [
+            'label' => 'Telegram Mini App',
+            'ok' => 'The Mini App is on and customers can open it.',
+            'neutral' => 'The Mini App is off. That is fine until you turn it on.',
+            'problem' => 'The Mini App has a problem.',
+            'bot_off' => 'The Mini App switch is on, but the customer bot is off, so customers cannot open it.',
+            'no_username' => 'The Mini App is on, but no valid bot username is stored: order messages go without a button.',
+            'sync_failed' => 'The last menu button update failed.',
+            'next' => 'Open Telegram → Mini App, press "Check bot", fix the checklist and sync the menu buttons.',
         ],
         'worker' => [
             'label' => 'Queue worker',

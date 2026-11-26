@@ -271,6 +271,7 @@ return [
         'password_reset' => 'Пароль сброшен',
         'exported' => 'Выгружено',
         'marked' => 'Отмечен',
+        'sync_requested' => 'Запрошена синхронизация',
     ],
 
     'price_sync_status' => [

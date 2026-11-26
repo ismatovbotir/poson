@@ -31,6 +31,9 @@ use App\Support\Monitoring\MonitoringAlerts;
 use App\Support\Monitoring\ProblemMonitor;
 use App\Support\Monitoring\QueueStats;
 use App\Support\Secrets;
+use App\Support\Telegram\MiniApp\BotUsername;
+use App\Support\Telegram\MiniApp\MiniAppMenuSync;
+use App\Support\Telegram\MiniApp\MiniAppSwitch;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -157,6 +160,7 @@ final class TelegramStatus
     {
         return [
             'bot' => ['route' => 'admin.telegram.bot', 'can' => 'telegram.bot'],
+            'mini_app' => ['route' => Route::has('admin.telegram.mini-app') ? 'admin.telegram.mini-app' : null, 'can' => 'telegram.bot'],
             'settings' => ['route' => Route::has('admin.telegram.settings') ? 'admin.telegram.settings' : null, 'can' => 'settings.integrations'],
             'monitoring' => ['route' => Route::has('admin.monitoring') ? 'admin.monitoring' : null, 'can' => 'monitoring.view'],
         ];
@@ -269,6 +273,7 @@ final class TelegramStatus
             $this->guardedRow('chat', fn (): array => $this->chat($enabled, $snapshot)),
             $this->guardedRow('management_chat', fn (): array => $this->managementChat($enabled)),
             $this->guardedRow('privacy', fn (): array => $this->privacy($enabled, (bool) app(BotChecklist::class)->local()['privacy'])),
+            $this->guardedRow('mini_app', fn (): array => $this->miniApp($enabled)),
             $this->guardedRow('worker', fn (): array => $this->worker($databaseQueue)),
             $this->guardedRow('cron', fn (): array => $this->cron()),
             $this->guardedRow('oldest_job', fn (): array => $this->oldestJob($databaseQueue)),
@@ -359,6 +364,28 @@ final class TelegramStatus
     private function botSwitch(bool $enabled): array
     {
         return $this->row('bot_switch', $enabled ? self::OK : self::NEUTRAL, link: 'bot');
+    }
+
+    /**
+     * The Telegram Mini App (plan 20 M6): neutral while its switch is off;
+     * a problem while it is on but the bot is off, no valid username is
+     * stored or the last menu button fan-out failed. No username or id in
+     * the params.
+     *
+     * @return array<string, mixed>
+     */
+    private function miniApp(bool $botEnabled): array
+    {
+        if (! MiniAppSwitch::isStoredOn()) {
+            return $this->row('mini_app', self::NEUTRAL, link: 'mini_app');
+        }
+
+        return match (true) {
+            ! $botEnabled => $this->row('mini_app', self::PROBLEM, link: 'mini_app', variant: 'bot_off'),
+            BotUsername::get() === null => $this->row('mini_app', self::PROBLEM, link: 'mini_app', variant: 'no_username'),
+            (MiniAppMenuSync::state()['state'] ?? null) === MiniAppMenuSync::FAILED => $this->row('mini_app', self::PROBLEM, link: 'mini_app', variant: 'sync_failed'),
+            default => $this->row('mini_app', self::OK, link: 'mini_app'),
+        };
     }
 
     /**

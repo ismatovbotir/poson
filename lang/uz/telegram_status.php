@@ -21,6 +21,7 @@ return [
         'bot' => 'Bot sahifasini ochish',
         'settings' => 'Sozlamalarni ochish',
         'monitoring' => 'Monitoringni ochish',
+        'mini_app' => 'Mini App sahifasini ochish',
     ],
     'chat_keys' => [
         'inbox' => 'Kiruvchi',
@@ -98,6 +99,16 @@ return [
             'problem' => 'Bot yoqilgan, lekin maxfiylik sahifasi yoʻq, yashirilgan yoki koʻrib chiqishni talab qiladi.',
             'neutral' => 'Maxfiylik sahifasi tayyor emas. Botni yoqishdan oldin u kerak.',
             'next' => 'Kontent → Sahifalar: maxfiylik sahifasini eʼlon qiling va «koʻrib chiqish kerak» belgisini olib tashlang.',
+        ],
+        'mini_app' => [
+            'label' => 'Telegram Mini App',
+            'ok' => 'Mini App yoqilgan, mijozlar uni ocha oladi.',
+            'neutral' => 'Mini App oʻchirilgan. Uni yoqmaguningizcha bu normal holat.',
+            'problem' => 'Mini Appda muammo bor.',
+            'bot_off' => 'Mini App kaliti yoqilgan, lekin mijozlar boti oʻchirilgan, shuning uchun mijozlar uni ocha olmaydi.',
+            'no_username' => 'Mini App yoqilgan, lekin toʻgʻri bot nomi saqlanmagan: buyurtma xabarlari tugmasiz yuboriladi.',
+            'sync_failed' => 'Menyu tugmalarini oxirgi yangilash xato bilan tugadi.',
+            'next' => 'Telegram → Mini App sahifasini oching, «Botni tekshirish» tugmasini bosing, tekshiruv roʻyxatini tuzating va menyu tugmalarini sinxronlang.',
         ],
         'worker' => [
             'label' => 'Navbat ishchisi',

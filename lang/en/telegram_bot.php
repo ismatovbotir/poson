@@ -72,7 +72,7 @@ return [
 
     // Plan 20 M5 (MA-14, MA-26): customer order status messages, order number and status label only.
     'order_status' => [
-        'text' => 'Order :number status: :status.',
+        'text' => 'Your order :number has a new status: :status.',
         'button' => 'Open order',
     ],
 

@@ -271,6 +271,7 @@ return [
         'password_reset' => 'Parol tiklandi',
         'exported' => 'Eksport qilindi',
         'marked' => 'Belgilandi',
+        'sync_requested' => 'Sinxronlash soʻraldi',
     ],
 
     'price_sync_status' => [

@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\SettingsArea;
+use App\Models\Page;
 use App\Models\Setting;
 use App\Models\TelegramUser;
 use App\Support\Telegram\Bot\BotSwitch;
+use App\Support\Telegram\MiniApp\BotUsername;
 use App\Support\Telegram\MiniApp\InitData;
 use App\Support\Telegram\MiniApp\MiniAppSwitch;
 use App\Support\Telegram\MiniApp\TmaSession;
@@ -80,5 +82,16 @@ if (! function_exists('tmaVector')) {
     function tmaAuth(string $initData, ?string $next = null): TestResponse
     {
         return test()->postJson(route('tma.auth'), array_filter(['init_data' => $initData, 'next' => $next]));
+    }
+
+    /**
+     * Plan 20 M6: every MiniAppChecklist item passes while the Mini App row is still off
+     * (bot on, token, https APP_URL, privacy page, bot username; on_receipt is configured).
+     */
+    function miniAppReady(): void
+    {
+        tmaEnabled(miniApp: false);
+        Page::factory()->create(['slug' => 'privacy', 'is_active' => true, 'needs_review' => false]);
+        BotUsername::remember('poson_test_bot');
     }
 }

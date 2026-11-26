@@ -146,7 +146,7 @@ it('stores the bot username only when it is valid and builds startapp links from
         ->and(BotUsername::startAppLink('tma'))->toBeNull();
 });
 
-it('refreshes the username and queues one sync per registered, unblocked chat with --all', function () {
+it('refreshes the username and queues one sync per registered, unblocked chat with --all (through the SyncMiniAppMenus fan-out)', function () {
     Queue::fake([SyncMiniAppMenuButton::class]);
     Setting::query()->where('key', BotUsername::KEY)->delete();
     tmaUser();
@@ -158,8 +158,9 @@ it('refreshes the username and queues one sync per registered, unblocked chat wi
 
     Queue::assertPushed(SyncMiniAppMenuButton::class, 2);
     Queue::assertPushedOn('default', SyncMiniAppMenuButton::class);
+    // Plan 20 M6 (MA-36): the fan-out sets the bot-wide default (never web_app) before the chats.
     expect(BotUsername::get())->toBe('poson_test_bot')
-        ->and(m5Calls('setChatMenuButton'))->toBe([]);
+        ->and(collect(m5Calls('setChatMenuButton'))->pluck('data')->all())->toBe([['menu_button' => ['type' => 'default']]]);
 });
 
 it('queues one chat with --chat and refuses unknown chats', function () {
@@ -190,7 +191,7 @@ it('sends one stored status message with one URL button when staff confirm a Min
         ->and($row->order_status)->toBe(OrderStatus::Confirmed)
         ->and($row->status)->toBe(TelegramMessageStatus::Sent)
         ->and($row->telegram_message_id)->toBe(77)
-        ->and($row->text)->toBe('Статус заказа O-2026-0301: Подтверждён.')
+        ->and($row->text)->toBe('У вашего заказа O-2026-0301 новый статус: Подтверждён.')
         ->and($call['chat_id'])->toBe('5550301')
         ->and($call['text'])->toBe($row->text)
         ->and($call)->not->toHaveKey('parse_mode')

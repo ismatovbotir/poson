@@ -271,6 +271,7 @@ return [
         'password_reset' => 'Password reset',
         'exported' => 'Exported',
         'marked' => 'Marked',
+        'sync_requested' => 'Sync requested',
     ],
 
     'price_sync_status' => [

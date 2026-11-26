@@ -288,7 +288,7 @@ class Show extends Component
     public function render(): View
     {
         $user = $this->user();
-        $this->order->loadMissing(['items.product', 'payments.recordedBy:id,name', 'customer:id,name,inn', 'manager:id,name', 'createdBy:id,name']);
+        $this->order->loadMissing(['items.product', 'payments.recordedBy:id,name', 'customer:id,name,inn', 'manager:id,name', 'createdBy:id,name', 'telegramUser']);
         $canPayments = $user->can('viewPayments', $this->order);
 
         return view('livewire.admin.orders.show', [
@@ -307,6 +307,8 @@ class Show extends Component
             'publicUrl' => $canPayments && $this->order->isPublicLinkValid() ? route('orders.public', ['ulid' => $this->order->ulid, 'lang' => $this->order->locale]) : null,
             'payMethods' => PaymentMethod::manual(),
             'hasUzqr' => $canPayments && $this->order->uzqrTransactions()->exists(),
+            // Plan 20 MA-40: the view shows the chat link only with @can('view').
+            'telegramUser' => $this->order->telegramUser,
         ])->title(__('orders.show_title', ['number' => $this->order->number]));
     }
 
