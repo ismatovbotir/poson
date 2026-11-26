@@ -1,0 +1,35 @@
+{
+  "update_id": 0,
+  "message": {
+    "message_id": 22,
+    "from": {
+      "id": 9990000002,
+      "is_bot": false,
+      "first_name": "Fake Staff",
+      "username": "fake_staff"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "text": "Which size?",
+    "reply_to_message": {
+      "message_id": 21,
+      "from": {
+        "id": 9990010001,
+        "is_bot": false,
+        "first_name": "Fake Client",
+        "username": "fake_client"
+      },
+      "chat": {
+        "id": -1009990020001,
+        "title": "Fake Supergroup",
+        "type": "supergroup"
+      },
+      "date": 1764000000,
+      "text": "Need a label printer for a shop"
+    }
+  }
+}

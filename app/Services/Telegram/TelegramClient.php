@@ -314,6 +314,19 @@ class TelegramClient
     }
 
     /**
+     * The administrators of a group (plan 44, OG-1): a read call, the only
+     * group call the app makes. Returns a list of ChatMember objects.
+     *
+     * @return list<array<string, mixed>>
+     *
+     * @throws TelegramException
+     */
+    public function getChatAdministrators(string $chatId): array
+    {
+        return array_values(array_filter($this->call('getChatAdministrators', ['chat_id' => $chatId]), 'is_array'));
+    }
+
+    /**
      * Long polling (development only: telegram:poll). Use withTimeout() above $timeout.
      *
      * @param  list<string>  $allowedUpdates

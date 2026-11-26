@@ -40,6 +40,8 @@ class Settings extends Component
 {
     public bool $ingestEnabled = false;
 
+    public bool $groupsEnabled = false;
+
     public bool $aiEnabled = false;
 
     public bool $autoLead = true;
@@ -77,6 +79,7 @@ class Settings extends Component
 
         $changed = $save->handle($this->user(), [
             'ingest_enabled' => $this->ingestEnabled,
+            'groups_enabled' => $this->groupsEnabled,
             'ai_enabled' => $this->aiEnabled,
             'auto_lead' => $this->autoLead,
             'debounce_minutes' => $this->debounceMinutes,
@@ -185,6 +188,7 @@ class Settings extends Component
         OfficeSettings::forget();
 
         $this->ingestEnabled = OfficeSettings::ingestEnabled();
+        $this->groupsEnabled = OfficeSettings::groupsStored();
         $this->aiEnabled = OfficeSettings::aiStored();
         $this->autoLead = OfficeSettings::autoLead();
         $this->debounceMinutes = OfficeSettings::debounceMinutes();

@@ -272,6 +272,11 @@ return [
         'exported' => 'Eksport qilindi',
         'marked' => 'Belgilandi',
         'sync_requested' => 'Sinxronlash soʻraldi',
+        'group_tracked' => 'Guruh kuzatuvga olindi',
+        'group_ignored' => 'Guruh eʼtiborsiz qoldirildi',
+        'roles_set' => 'Aʼzo rollari belgilandi',
+        'forgotten' => 'Aʼzo unutildi',
+        'group_untracked' => 'Guruh kuzatuvdan chiqarildi',
     ],
 
     'price_sync_status' => [
@@ -736,6 +741,19 @@ return [
         'client' => 'Mijoz',
         'employee' => 'Xodim',
         'ignored' => 'Eʼtiborsiz',
+    ],
+
+    'group_status' => [
+        'untracked' => 'Kuzatilmaydi',
+        'tracked' => 'Kuzatiladi',
+        'ignored' => 'Eʼtiborsiz',
+    ],
+
+    'group_member_role' => [
+        'employee' => 'Xodim',
+        'client' => 'Mijoz',
+        'bot' => 'Bot',
+        'unknown' => 'Nomaʼlum',
     ],
 
     'business_author' => [

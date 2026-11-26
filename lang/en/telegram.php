@@ -161,6 +161,7 @@ return [
             'chat_lookup_failures' => 'Repeated failed order or repair status lookups in the bot',
             'chat_web_unanswered' => 'Website chat visitors are waiting for a manager',
             'careers_cv' => 'Careers: problem sending CVs to Telegram',
+            'group_migrate_conflict' => 'A tracked Telegram group moved to a new chat id, but the new id already is a tracked group: nothing was merged, check the groups',
         ],
         'recovered' => [
             'project_size' => 'Project size is below the limit again',
@@ -189,6 +190,8 @@ return [
             'channel' => 'Channel',
             'requests' => 'Requests',
             'tokens' => 'Tokens',
+            'source_messages' => 'Messages in the old group',
+            'target_messages' => 'Messages in the new group',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).

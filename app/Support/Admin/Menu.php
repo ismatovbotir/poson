@@ -122,6 +122,7 @@ final class Menu
             // (staff: assigned chats only); unmarked, education and settings: Admin only.
             new MenuGroup('office', 'menu.groups.office', [
                 new MenuItem('office-chats', 'menu.items.office_chats', 'message', 'admin.office.chats.index', permission: 'office.chats', active: 'admin.office.chats.*'),
+                new MenuItem('office-groups', 'menu.items.office_groups', 'users', 'admin.office.groups', permission: ['office.chats', 'office.mark'], active: 'admin.office.groups*'),
                 new MenuItem('office-unmarked', 'menu.items.office_unmarked', 'inbox', 'admin.office.unmarked', permission: 'office.mark'),
                 new MenuItem('office-education', 'menu.items.office_education', 'book', 'admin.office.education', permission: 'office.education'),
                 new MenuItem('office-settings', 'menu.items.office_settings', 'settings', 'admin.office.settings', permission: 'office.settings'),

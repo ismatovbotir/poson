@@ -42,10 +42,12 @@ class ConfigureTelegramWebhook
     public const AUDIT_KEY = 'telegram.webhook';
 
     /**
-     * Plan 41: plus the four Telegram Business types (BusinessUpdate::TYPES). setWebhook replaces the
+     * Plan 41: plus the four Telegram Business types (BusinessUpdate::TYPES); plan 44 (OG-9): plus
+     * edited_message and chat_member for groups (9 types; a private edited_message stays ignored,
+     * a chat_member is never delivered in private chats). setWebhook replaces the
      * list, so after a deploy the webhook is re-registered with updateAllowedUpdates() (VO-15).
      */
-    public const ALLOWED_UPDATES = ['message', 'callback_query', 'my_chat_member', 'business_connection', 'business_message', 'edited_business_message', 'deleted_business_messages'];
+    public const ALLOWED_UPDATES = ['message', 'edited_message', 'callback_query', 'my_chat_member', 'chat_member', 'business_connection', 'business_message', 'edited_business_message', 'deleted_business_messages'];
 
     public const MAX_CONNECTIONS = 10;
 

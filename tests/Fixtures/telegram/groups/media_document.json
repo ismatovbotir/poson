@@ -1,0 +1,26 @@
+{
+  "update_id": 0,
+  "message": {
+    "message_id": 32,
+    "from": {
+      "id": 9990010001,
+      "is_bot": false,
+      "first_name": "Fake Client",
+      "username": "fake_client"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "caption": "Price list",
+    "document": {
+      "file_name": "offer +998900000003.pdf",
+      "mime_type": "application/pdf",
+      "file_id": "FAKE_FILE_ID_MUST_NOT_BE_STORED",
+      "file_unique_id": "FAKE_UNIQUE_ID_MUST_NOT_BE_STORED",
+      "file_size": 50000
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "update_id": 0,
+  "message": {
+    "message_id": 26,
+    "from": {
+      "id": 9990000701,
+      "is_bot": false,
+      "first_name": "Fake Channel Service",
+      "username": "fake_channel_service"
+    },
+    "sender_chat": {
+      "id": -1009990040001,
+      "title": "Fake Channel",
+      "type": "channel"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "text": "Channel post copy"
+  }
+}

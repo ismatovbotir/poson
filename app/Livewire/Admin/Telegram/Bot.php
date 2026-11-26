@@ -11,6 +11,7 @@ use App\Models\SettingsAudit;
 use App\Services\Telegram\TelegramClient;
 use App\Services\Telegram\TelegramException;
 use App\Support\Admin\PasswordConfirmation;
+use App\Support\Office\OfficeSettings;
 use App\Support\Telegram\Bot\BotChecklist;
 use App\Support\Telegram\Bot\BotSwitch;
 use App\Support\Telegram\Bot\TelegramStatus;
@@ -51,7 +52,7 @@ class Bot extends Component
     /**
      * getMe essentials: username, id, privacy mode (null: not loaded / failed).
      *
-     * @var array{username: string|null, id: int|null, privacy: bool|null}|null
+     * @var array{username: string|null, id: int|null, privacy: bool|null, can_join_groups?: bool|null}|null
      */
     #[Locked]
     public ?array $bot = null;
@@ -77,6 +78,12 @@ class Bot extends Component
      */
     #[Locked]
     public bool $loaded = false;
+
+    /**
+     * Plan 44 §8: the Telegram groups switch is on (computed in load(), the view never reads settings).
+     */
+    #[Locked]
+    public bool $groupsStored = false;
 
     /**
      * The last chat verification hit a transient Telegram failure (not a verdict).
@@ -229,6 +236,7 @@ class Bot extends Component
         $this->bot = null;
         $this->webhook = null;
         $this->loadError = null;
+        $this->groupsStored = OfficeSettings::groupsStored();
         $info = null;
 
         if ($client->isConfigured()) {
@@ -240,6 +248,8 @@ class Bot extends Component
                     'username' => is_string($me['username'] ?? null) ? $me['username'] : null,
                     'id' => is_int($me['id'] ?? null) ? $me['id'] : null,
                     'privacy' => is_bool($me['can_read_all_group_messages'] ?? null) ? ! $me['can_read_all_group_messages'] : null,
+                    // Plan 44 §8: BotFather "Allow Groups" (null when Telegram did not say).
+                    'can_join_groups' => is_bool($me['can_join_groups'] ?? null) ? $me['can_join_groups'] : null,
                 ];
 
                 $info = $client->getWebhookInfo();

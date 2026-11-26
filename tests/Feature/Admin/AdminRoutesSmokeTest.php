@@ -21,6 +21,7 @@ use App\Models\Quote;
 use App\Models\Repair;
 use App\Models\RollType;
 use App\Models\Setting;
+use App\Models\TelegramGroup;
 use App\Models\TelegramUser;
 use App\Models\Vacancy;
 use App\Models\WebChat;
@@ -111,6 +112,7 @@ function smokeParameterMap(): array
         'admin.telegram.chats.web.show' => fn () => ['webChat' => WebChat::factory()->create()],
         'admin.telegram.chats.show' => fn () => ['telegramUser' => TelegramUser::factory()->create()],
         'admin.office.chats.show' => fn () => ['businessChat' => BusinessChat::factory()->client()->create()],
+        'admin.office.groups.show' => fn () => ['group' => TelegramGroup::factory()->tracked()->create()],
         'admin.office.education' => fn () => ['role' => AgentRole::Router->value],
     ];
 }

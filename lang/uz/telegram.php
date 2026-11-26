@@ -161,6 +161,7 @@ return [
             'chat_lookup_failures' => 'Buyurtma yoki taʼmirlash holatini tekshirish urinishlari ketma-ket muvaffaqiyatsiz',
             'chat_web_unanswered' => 'Sayt chati tashrifchilari menejerni kutmoqda',
             'careers_cv' => 'Vakansiyalar: rezyumelarni Telegramga yuborishda muammo',
+            'group_migrate_conflict' => 'Kuzatilayotgan Telegram guruhi yangi chat id oldi, lekin bu id allaqachon kuzatilayotgan guruhga tegishli: hech narsa birlashtirilmadi, guruhlarni tekshiring',
         ],
         'recovered' => [
             'project_size' => 'Loyiha hajmi yana chegaradan past',
@@ -189,6 +190,8 @@ return [
             'channel' => 'Kanal',
             'requests' => 'Soʻrovlar',
             'tokens' => 'Tokenlar',
+            'source_messages' => 'Eski guruhdagi xabarlar',
+            'target_messages' => 'Yangi guruhdagi xabarlar',
         ],
         // Plan 14 v2 B4: why customer files are not copied to the inbox chat.
         // Plan 31: why careers CVs are not forwarded (counts only, never a name or file).

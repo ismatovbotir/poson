@@ -168,6 +168,13 @@
                 </p>
             @endif
 
+            {{-- Plan 44 §8: groups are read, so BotFather "Allow Groups" must be off (a static reminder when getMe did not say) --}}
+            @if ($groupsStored && ($bot['can_join_groups'] ?? null) !== false)
+                <p class="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800" role="status" data-allow-groups-warning>
+                    <x-admin.icon name="alert" size="size-4" class="mt-0.5 shrink-0" />{{ __($t.'.groups_allowed_warning') }}
+                </p>
+            @endif
+
             <div class="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
                 <x-admin.button icon="link" wire:click="setWebhook" loading="setWebhook" data-action="set-webhook">{{ __($t.'.set_webhook') }}</x-admin.button>
                 <x-admin.button variant="secondary" icon="restore" wire:click="updateAllowedUpdates" loading="updateAllowedUpdates" data-action="update-allowed-updates">{{ __($t.'.update_allowed_updates') }}</x-admin.button>

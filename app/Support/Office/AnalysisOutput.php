@@ -45,10 +45,17 @@ final class AnalysisOutput
     {
         $data = self::decode($text);
 
-        if ($data === null) {
-            return null;
-        }
+        return $data === null ? null : $this->routerData($data);
+    }
 
+    /**
+     * One decoded router object (a business chat answer, or one thread of a group answer).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{role: AgentRole, topic: ?string, confidence: int, language: ?string, needs_reply: bool, summary: ?string}|null
+     */
+    public function routerData(array $data): ?array
+    {
         $role = is_string($data['role'] ?? null) ? AgentRole::tryFrom($data['role']) : null;
 
         if ($role === null || ! in_array($role, AgentRole::routable(), true)) {

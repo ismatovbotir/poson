@@ -13,6 +13,7 @@
         <x-admin.card :title="__($t.'.switches')" :description="__($t.'.switches_help')">
             <div class="space-y-4">
                 <x-admin.toggle wire:model="ingestEnabled" :label="__($t.'.ingest_enabled')" :description="__($t.'.ingest_enabled_hint')" />
+                <x-admin.toggle wire:model="groupsEnabled" :label="__($t.'.groups_enabled')" :description="__($t.'.groups_enabled_hint')" />
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
                     <span class="font-semibold">{{ __($t.'.ai_key') }}</span>
                     <x-admin.badge :color="$keyConfigured ? 'brand' : 'amber'" pill dot data-ai-key="{{ $keyConfigured ? 'configured' : 'missing' }}">{{ $keyConfigured ? __($t.'.ai_key_configured') : __($t.'.ai_key_missing') }}</x-admin.badge>

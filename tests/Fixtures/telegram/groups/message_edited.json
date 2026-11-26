@@ -1,0 +1,20 @@
+{
+  "update_id": 0,
+  "edited_message": {
+    "message_id": 21,
+    "from": {
+      "id": 9990010001,
+      "is_bot": false,
+      "first_name": "Fake Client",
+      "username": "fake_client"
+    },
+    "chat": {
+      "id": -1009990020001,
+      "title": "Fake Supergroup",
+      "type": "supergroup"
+    },
+    "date": 1764000000,
+    "text": "Need two label printers for a shop",
+    "edit_date": 1764000060
+  }
+}

@@ -25,7 +25,7 @@ function businessWebhookInfo(string $url, array $allowed = ['message', 'callback
     ]);
 }
 
-it('re-registers with the seven update types and drop_pending_updates false when the URL matches', function () {
+it('re-registers with the nine update types and drop_pending_updates false when the URL matches', function () {
     businessWebhookInfo(ConfigureTelegramWebhook::expectedUrl());
 
     expect(app(ConfigureTelegramWebhook::class)->updateAllowedUpdates(staffUser(), '10.0.0.1'))->toBe(ConfigureTelegramWebhook::SET);
@@ -33,7 +33,7 @@ it('re-registers with the seven update types and drop_pending_updates false when
     $call = collect(telegramApiCalls())->firstWhere('method', 'setWebhook');
 
     expect($call['data']['drop_pending_updates'])->toBeFalse()
-        ->and($call['data']['allowed_updates'])->toHaveCount(7)
+        ->and($call['data']['allowed_updates'])->toHaveCount(9)
         ->and($call['data']['allowed_updates'])->toContain('business_message', 'business_connection', 'edited_business_message', 'deleted_business_messages');
 });
 

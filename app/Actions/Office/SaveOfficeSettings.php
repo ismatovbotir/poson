@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * Save Virtual office → Settings (plan 41 §8.5, office.settings = Admin
  * only, VO-1, VO-10, VO-11). Validated here:
  *
- *  - ingest / AI / auto-lead switches; AI on needs the API key;
+ *  - ingest / groups (plan 44) / AI / auto-lead switches; AI on needs the API key;
  *  - debounce 5–60 minutes, per-chat cap 1–24;
  *  - caps per office channel 0 … cap_factor × default.
  * Every changed key is audited without its value. The owner allow-list is
@@ -65,6 +65,11 @@ class SaveOfficeSettings
             OfficeSettings::PER_CHAT => (int) $valid['per_chat_daily'],
             OfficeSettings::CAPS => $caps,
         ];
+
+        // Plan 44: the Telegram groups switch (Admin only, default off); a caller that does not send it leaves it alone.
+        if (array_key_exists('groups_enabled', $valid)) {
+            $values[OfficeSettings::GROUPS] = (bool) $valid['groups_enabled'];
+        }
 
         $changed = DB::transaction(function () use ($values, $actor, $ip): int {
             $changed = 0;
@@ -119,12 +124,30 @@ class SaveOfficeSettings
     }
 
     /**
+     * Switch the Telegram groups ingest off (wipe-all, plan 44 OG-12), audited.
+     */
+    public static function disableGroups(?User $actor, ?string $ip): void
+    {
+        $row = Setting::query()->where('key', OfficeSettings::GROUPS)->lockForUpdate()->first();
+
+        if ($row === null) {
+            Setting::query()->create(['key' => OfficeSettings::GROUPS, 'group' => SettingsArea::Office->group(), 'value' => false]);
+        } elseif ($row->value !== false) {
+            $row->forceFill(['value' => false])->save();
+            SettingsAudit::record(SettingsArea::Office, OfficeSettings::GROUPS, AuditAction::Disabled, $actor, $ip);
+        }
+
+        OfficeSettings::forget();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function rules(): array
     {
         $rules = [
             'ingest_enabled' => ['required', 'boolean'],
+            'groups_enabled' => ['sometimes', 'boolean'],
             'ai_enabled' => ['required', 'boolean'],
             'auto_lead' => ['required', 'boolean'],
             'debounce_minutes' => ['required', 'integer', 'min:'.(int) config('office.debounce_min', 5), 'max:'.(int) config('office.debounce_max', 60)],

@@ -81,6 +81,16 @@ enum AuditAction: string
      */
     case SyncRequested = 'sync_requested';
 
+    /**
+     * Plan 44 T5: Telegram groups (key office.group.{id}.*, never a title or a name): tracked (with the
+     * privacy-note tick), ignored, a member's role set, a member forgotten.
+     */
+    case GroupTracked = 'group_tracked';
+    case GroupIgnored = 'group_ignored';
+    case RolesSet = 'roles_set';
+    case Forgotten = 'forgotten';
+    case GroupUntracked = 'group_untracked';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

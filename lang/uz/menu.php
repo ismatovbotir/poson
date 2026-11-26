@@ -64,6 +64,7 @@ return [
         'commands' => 'Buyruqlar',
         'monitoring' => 'Monitoring',
         'office_chats' => 'Biznes chatlar',
+        'office_groups' => 'Telegram guruhlari',
         'office_unmarked' => 'Belgilanmagan chatlar',
         'office_education' => 'Oʻqitish',
         'office_settings' => 'Sozlamalar',
