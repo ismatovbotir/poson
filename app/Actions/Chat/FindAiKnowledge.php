@@ -36,10 +36,16 @@ class FindAiKnowledge
     public function __construct(private readonly KnowledgeSources $sources) {}
 
     /**
+     * @param  list<string>|null  $sources  Plan 46: only these AiKnowledgeSource values (null: all)
+     * @param  int|null  $limit  Plan 46: at most this many entries (null: chatbot.ai.knowledge.entries)
      * @return list<AiKnowledgeHit>
      */
-    public function handle(string $text, string $locale): array
+    public function handle(string $text, string $locale, ?array $sources = null, ?int $limit = null): array
     {
+        if ($sources === []) {
+            return [];
+        }
+
         if (! in_array($locale, (array) config('app.supported_locales'), true)) {
             return [];
         }
@@ -50,22 +56,24 @@ class FindAiKnowledge
             return [];
         }
 
-        $rows = $this->rows($words, $locale);
+        $rows = $this->rows($words, $locale, $sources);
 
-        return $rows === [] ? [] : $this->hits($this->recheck($this->perSource($rows), $locale), $locale);
+        return $rows === [] ? [] : $this->hits($this->recheck($this->perSource($rows), $locale), $locale, $limit);
     }
 
     /**
      * @param  list<string>  $words
+     * @param  list<string>|null  $sources
      * @return list<AiKnowledgeChunk>
      */
-    private function rows(array $words, string $locale): array
+    private function rows(array $words, string $locale, ?array $sources = null): array
     {
         $patterns = array_map(fn (string $word): string => SearchText::normalizedPattern($word), $words);
         $score = implode(' + ', array_fill(0, count($patterns), "(case when search_text like ? escape '!' then 1 else 0 end)"));
 
         $rows = AiKnowledgeChunk::query()
             ->live($locale)
+            ->when($sources !== null, fn ($query) => $query->whereIn('source_type', array_values(array_intersect($sources, array_column(AiKnowledgeSource::cases(), 'value')))))
             ->selectRaw("id, source_type, source_id, locale, chunk, title, text, priority, indexed_at, ({$score}) as score", $patterns)
             ->where(function ($query) use ($patterns): void {
                 foreach ($patterns as $pattern) {
@@ -159,14 +167,22 @@ class FindAiKnowledge
      * @param  list<array{0: AiKnowledgeChunk, 1: string}>  $rows
      * @return list<AiKnowledgeHit>
      */
-    private function hits(array $rows, string $locale): array
+    private function hits(array $rows, string $locale, ?int $limit = null): array
     {
         $hits = [];
         $length = 0;
+        $entries = (int) config('chatbot.ai.knowledge.entries', 4);
         $max = (int) config('chatbot.ai.knowledge.site_max', 3000);
 
+        if ($limit !== null && $limit > $entries) {
+            // A bigger top-N also gets a proportionally bigger character budget.
+            $max = (int) ceil($max * $limit / max(1, $entries));
+        }
+
+        $entries = $limit ?? $entries;
+
         foreach ($rows as [$row, $slug]) {
-            if (count($hits) >= (int) config('chatbot.ai.knowledge.entries', 4)) {
+            if (count($hits) >= $entries) {
                 break;
             }
 

@@ -276,6 +276,7 @@ return [
         'group_ignored' => 'Guruh eʼtiborsiz qoldirildi',
         'roles_set' => 'Aʼzo rollari belgilandi',
         'forgotten' => 'Aʼzo unutildi',
+        'promoted' => 'Namuna fikrdan qoʻshildi',
         'group_untracked' => 'Guruh kuzatuvdan chiqarildi',
     ],
 
@@ -565,6 +566,7 @@ return [
         'vo_sales' => 'Virtual ofis: savdo',
         'vo_serv' => 'Virtual ofis: servis',
         'vo_support' => 'Virtual ofis: yordam',
+        'vo_dry' => 'Virtual ofis: sinov',
     ],
 
     'chat_ai_role' => [
@@ -784,4 +786,47 @@ return [
         'employee' => 'Xodim',
     ],
 
+    'tone_option' => [
+        'formal' => 'Rasmiy',
+        'warm_professional' => 'Iliq va professional',
+    ],
+
+    'escalation_trigger' => [
+        'complaint' => 'Shikoyat',
+        'legal_contract' => 'Huquqiy savol / shartnoma',
+        'discount_request' => 'Narx boʻyicha kelishuv soʻrovi',
+        'angry_tone' => 'Jahldor ohang',
+        'payment_dispute' => 'Toʻlov boʻyicha nizo',
+        'custom_integration' => 'Maxsus integratsiya',
+    ],
+
+    'escalation_action' => [
+        'flag' => 'Odamga belgi qoʻyish',
+        'no_draft' => 'Javob qoralamasini yozmaslik',
+        'raise_urgency' => 'Shoshilinchlikni oshirish',
+    ],
+
+    'draft_outcome' => [
+        'used' => 'Ishlatildi',
+        'edited' => 'Tahrirlandi',
+        'rejected' => 'Rad etildi',
+    ],
+
+    'draft_feedback_reason' => [
+        'wrong_role' => 'Notoʻgʻri rol',
+        'wrong_facts' => 'Notoʻgʻri maʼlumot',
+        'tone' => 'Ohang',
+        'too_long' => 'Juda uzun',
+        'missing_info' => 'Maʼlumot yetishmaydi',
+        'brand' => 'Brend qoidalari',
+        'other' => 'Boshqa',
+    ],
+
+    'draft_hold' => [
+        'escalation' => 'Odam kerak: qoralama yozilmadi',
+        'low_confidence' => 'Ishonch past: qoralamani koʻrsatish',
+        'language' => 'Til mos kelmaydi',
+        'sla' => 'Muddat vaʼdasi tekshiruvdan oʻtmadi',
+        'forbidden' => 'Taqiqlangan mavzu',
+    ],
 ];

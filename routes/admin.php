@@ -238,6 +238,9 @@ Route::middleware(['auth', 'admin.locale', 'admin', 'admin.password-changed'])->
     // (Admin every group; office.chats only tracked groups assigned to the user); track / ignore / roles / forget = office.mark.
     Route::livewire('/office/groups', Office\Groups\Index::class)->name('office.groups');
     Route::livewire('/office/groups/{group}', Office\Groups\Show::class)->name('office.groups.show')->whereNumber('group');
+    // Plan 46 T6: the feedback review (Admin role AND office.education, checked in the component); before {role?}.
+    Route::livewire('/office/education/review', Office\EducationReview::class)->name('office.education.review');
+    Route::livewire('/office/education/{role}/test', Office\EducationDryRun::class)->name('office.education.test')->whereIn('role', ['router', 'sales', 'service', 'support']);
     Route::livewire('/office/education/{role?}', Office\Education::class)->name('office.education')->whereIn('role', ['router', 'sales', 'service', 'support']);
     Route::livewire('/office/settings', Office\Settings::class)->name('office.settings');
 

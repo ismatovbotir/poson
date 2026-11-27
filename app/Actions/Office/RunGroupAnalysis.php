@@ -183,13 +183,13 @@ class RunGroupAnalysis
 
             $agentCalls++;
             $previous = $this->previousSummary($group, $plan['client_member_id']);
-            $answered = $this->modelCall->handle($model, $plan['role']->usageChannel(), GroupPrompt::agent($agent, $transcript, $previous, $plan['topic'], $transcript->labelsFor($plan['member_ids']), $plan['client_member_id'] === null), $tokens, $models, 'agent'.($index + 1));
+            $answered = $this->modelCall->handle($model, $plan['role']->usageChannel(), GroupPrompt::agent($agent, $transcript, $previous, $plan['topic'], $transcript->labelsFor($plan['member_ids']), $plan['client_member_id'] === null, $plan['role']), $tokens, $models, 'agent'.($index + 1));
 
             if (is_string($answered)) {
                 return $this->stop($analysis, $group, $answered, $base + $this->usageColumns($tokens, $models));
             }
 
-            $result = $output->agent($answered->text);
+            $result = $output->agent($answered->text, $agent->guidanceFor($plan['role']), ['client_text' => $transcript->clientText($plan['member_ids'], $last?->up_to_message_id), 'confidence' => $plan['confidence'], 'language' => $route['language']]);
 
             if ($result === null) {
                 $this->finish($analysis, AnalysisStatus::Failed, ['error' => 'invalid_agent'] + $base + $this->usageColumns($tokens, $models));
@@ -204,6 +204,9 @@ class RunGroupAnalysis
                 'next_step' => self::brandSafe($result['next_step']),
                 'draft' => $result['draft'],
                 'draft_blocked' => $result['draft_blocked'],
+                'needs_human' => $result['needs_human'],
+                'escalation' => $result['escalation'],
+                'draft_hold' => $result['draft_hold'],
                 'lead_fields' => $result['lead'],
             ];
         }
@@ -267,7 +270,7 @@ class RunGroupAnalysis
      */
     protected function plans(TelegramGroup $group, array $threads): array
     {
-        $blank = ['next_step' => null, 'draft' => null, 'draft_blocked' => false, 'lead_fields' => [], 'agent_version_id' => null];
+        $blank = ['next_step' => null, 'draft' => null, 'draft_blocked' => false, 'needs_human' => false, 'escalation' => null, 'draft_hold' => null, 'lead_fields' => [], 'agent_version_id' => null];
 
         if ($threads === []) {
             return [];
@@ -356,6 +359,10 @@ class RunGroupAnalysis
                     'next_step' => $plan['next_step'],
                     'draft' => $plan['draft'],
                     'draft_blocked' => $plan['draft_blocked'],
+                    'needs_human' => $plan['needs_human'],
+                    'escalation' => $plan['escalation'],
+                    'draft_hold' => $plan['draft_hold'],
+                    'agent_version_id' => $plan['agent_version_id'],
                     'member_ids' => $plan['member_ids'],
                     'customer_id' => $thread->customer_id ?? $group->customer_id,
                     'last_analysis_id' => $analysis->id,
@@ -384,7 +391,7 @@ class RunGroupAnalysis
             ->where(fn ($query) => $query->whereNull('last_analysis_id')->orWhere('last_analysis_id', '!=', $analysis->id));
 
         (clone $stale)->whereNull('lead_id')->delete();
-        (clone $stale)->whereNotNull('lead_id')->update(['draft' => null, 'draft_blocked' => false, 'updated_at' => now()]);
+        (clone $stale)->whereNotNull('lead_id')->update(['draft' => null, 'draft_blocked' => false, 'draft_hold' => null, 'needs_human' => false, 'escalation' => null, 'updated_at' => now()]);
     }
 
     /**
@@ -488,7 +495,7 @@ class RunGroupAnalysis
 
         ksort($roles);
 
-        return hash('sha256', (string) json_encode([$transcript->stamps, $roles, $group->customer_id, $versionIds, CoreRules::VERSION, GroupPrompt::VERSION]));
+        return hash('sha256', (string) json_encode([$transcript->stamps, $roles, $group->customer_id, $versionIds, CoreRules::VERSION, GroupPrompt::VERSION, OfficePrompt::FORMAT_VERSION]));
     }
 
     /**

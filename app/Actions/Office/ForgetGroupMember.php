@@ -63,6 +63,9 @@ class ForgetGroupMember
                 throw ValidationException::withMessages(['members' => __('office.groups.errors.members_invalid')]);
             }
 
+            // Plan 46 ED46-8: the feedback texts of every thread of the group go, whoever they are about.
+            ForgetDraftFeedback::forGroup($group->id);
+
             $messages = $member->messages()->delete();
 
             $member->forceFill(['phone' => null, 'message_count' => 0])->save();

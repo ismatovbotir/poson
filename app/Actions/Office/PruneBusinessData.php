@@ -41,7 +41,7 @@ class PruneBusinessData
     public function handle(): array
     {
         $retention = (array) config('office.retention');
-        $counts = ['unmarked' => 0, 'ignored' => 0, 'client_messages' => 0, 'client_chats' => 0, 'analyses' => 0, 'drafts' => 0, 'connections' => 0, 'skipped' => 0];
+        $counts = ['unmarked' => 0, 'ignored' => 0, 'client_messages' => 0, 'client_chats' => 0, 'analyses' => 0, 'drafts' => 0, 'feedback' => 0, 'connections' => 0, 'skipped' => 0];
 
         // Unmarked stubs.
         $before = now()->subDays((int) $retention['unmarked_days']);
@@ -94,6 +94,9 @@ class PruneBusinessData
 
         // Old drafts.
         $counts['drafts'] = BusinessChatAnalysis::query()->whereNotNull('draft_reply')->where('created_at', '<', now()->subDays((int) $retention['draft_days']))->update(['draft_reply' => null]);
+
+        // Plan 46: feedback texts 30 days after the last update (promoted or not), and rows whose analysis is gone.
+        $counts['feedback'] = ForgetDraftFeedback::prune();
 
         // Strangers' connections (they never have chats: their messages are dropped).
         $counts['connections'] = BusinessConnection::query()->where('is_allowed', false)

@@ -128,6 +128,26 @@ final readonly class GroupTranscript
     }
 
     /**
+     * The words of the given members who are clients now (role at build time), written after a message id
+     * (the previous analysis), the last few only (plan 46 escalation backstops).
+     *
+     * @param  list<int>  $memberIds
+     */
+    public function clientText(array $memberIds, ?int $afterMessageId = null, int $max = 6): string
+    {
+        $labels = array_keys(array_filter($this->labels, fn (array $entry): bool => $entry['role'] === GroupMemberRole::Client && in_array($entry['member_id'], $memberIds, true)));
+        $texts = [];
+
+        foreach ($this->entries as $index => $entry) {
+            if (in_array($entry['label'], $labels, true) && ($afterMessageId === null || ($this->messageIds[$index] ?? 0) > $afterMessageId)) {
+                $texts[] = $entry['text'];
+            }
+        }
+
+        return implode(' ', array_slice($texts, -$max));
+    }
+
+    /**
      * The member a label of this run stands for, only when that member is a client (OG-5).
      */
     public function clientMemberId(mixed $label): ?int

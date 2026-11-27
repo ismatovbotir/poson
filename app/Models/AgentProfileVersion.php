@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AgentRole;
+use App\Support\Office\AgentGuidance;
 use Database\Factories\AgentProfileVersionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,14 +22,15 @@ use LogicException;
  * @property string $instructions
  * @property string|null $knowledge
  * @property string|null $rules
- * @property list<array{client: string, reply: string, note: string}>|null $examples
+ * @property list<array<string, mixed>>|null $examples
+ * @property array<string, mixed>|null $guidance Plan 46 structured guidance; null on a legacy v1 version
  * @property string $model
  * @property int $max_tokens
  * @property string|null $change_note
  * @property int|null $created_by_id
  * @property Carbon|null $created_at
  */
-#[Fillable(['version', 'instructions', 'knowledge', 'rules', 'examples', 'model', 'max_tokens', 'change_note', 'created_by_id'])]
+#[Fillable(['version', 'instructions', 'knowledge', 'rules', 'examples', 'guidance', 'model', 'max_tokens', 'change_note', 'created_by_id'])]
 class AgentProfileVersion extends Model
 {
     /** @use HasFactory<AgentProfileVersionFactory> */
@@ -43,6 +46,7 @@ class AgentProfileVersion extends Model
         return [
             'version' => 'integer',
             'examples' => 'array',
+            'guidance' => 'array',
             'max_tokens' => 'integer',
             'created_at' => 'datetime',
         ];
@@ -53,6 +57,14 @@ class AgentProfileVersion extends Model
         static::updating(function (): void {
             throw new LogicException('Agent profile versions are immutable.');
         });
+    }
+
+    /**
+     * The structured guidance of this version, or null for a legacy version (free text only).
+     */
+    public function guidanceFor(AgentRole $role): ?AgentGuidance
+    {
+        return $this->guidance === null ? null : AgentGuidance::parse($this->guidance, $role);
     }
 
     /**

@@ -114,6 +114,8 @@ function smokeParameterMap(): array
         'admin.office.chats.show' => fn () => ['businessChat' => BusinessChat::factory()->client()->create()],
         'admin.office.groups.show' => fn () => ['group' => TelegramGroup::factory()->tracked()->create()],
         'admin.office.education' => fn () => ['role' => AgentRole::Router->value],
+        'admin.office.education.review' => fn () => [],
+        'admin.office.education.test' => fn () => ['role' => AgentRole::Sales->value],
     ];
 }
 

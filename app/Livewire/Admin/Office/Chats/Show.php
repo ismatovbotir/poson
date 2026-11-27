@@ -6,6 +6,7 @@ use App\Actions\Office\AssignBusinessChat;
 use App\Actions\Office\CreateLeadFromBusinessChat;
 use App\Actions\Office\MarkBusinessChat;
 use App\Actions\Office\OfficeStaff;
+use App\Actions\Office\RecordDraftFeedback;
 use App\Actions\Office\RequestBusinessChatAnalysis;
 use App\Enums\AnalysisStatus;
 use App\Enums\BusinessChatKind;
@@ -53,6 +54,9 @@ class Show extends Component
 
     public string $leadType = 'quote';
 
+    /** @var array{outcome: string, reason: string, final_text: string, note: string} Draft feedback form (plan 46) */
+    public array $feedback = ['outcome' => '', 'reason' => '', 'final_text' => '', 'note' => ''];
+
     public function mount(BusinessChat $businessChat): void
     {
         $this->authorize('view', $businessChat);
@@ -89,6 +93,21 @@ class Show extends Component
         $request->handle($this->user(), $chat);
 
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('office.show.analysis_queued'), type: 'success');
+    }
+
+    /**
+     * Plan 46: what was done with the latest draft. The chat comes from the locked id, the draft from the
+     * server's latest done analysis; RecordDraftFeedback re-checks access, staleness and the throttle.
+     */
+    public function submitFeedback(RecordDraftFeedback $record): void
+    {
+        $chat = $this->chat();
+        $this->authorize('analyse', $chat);
+
+        $record->handle($this->user(), $chat, [...$this->feedback, 'analysis_id' => $this->latest()?->id]);
+
+        $this->reset('feedback');
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('office.feedback.saved'), type: 'success');
     }
 
     public function assign(AssignBusinessChat $assign): void

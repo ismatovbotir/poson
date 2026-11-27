@@ -29,11 +29,13 @@ final readonly class BusinessTranscript
     /**
      * @param  list<string>  $lines
      * @param  list<array{int, int|null, bool}>  $stamps  [id, edited_at timestamp, deleted]
+     * @param  list<array{int, string}>  $clientLines  [message id, the client's redacted words] of the lines in the window
      */
     public function __construct(
         public array $lines,
         public array $stamps,
         public ?int $upToMessageId,
+        public array $clientLines = [],
     ) {}
 
     public static function build(BusinessChat $chat): self
@@ -48,6 +50,7 @@ final readonly class BusinessTranscript
 
         $lines = [];
         $stamps = [];
+        $clientLines = [];
 
         foreach ($rows as $message) {
             $stamps[] = [$message->id, $message->edited_at?->getTimestamp(), $message->deleted_at !== null];
@@ -56,10 +59,14 @@ final readonly class BusinessTranscript
 
             if ($line !== null) {
                 $lines[] = $line;
+
+                if ($message->author === BusinessAuthor::Client) {
+                    $clientLines[] = [$message->id, (string) preg_replace('/^\[client [^\]]*\]\s*/', '', $line)];
+                }
             }
         }
 
-        return new self(self::withinBudget($lines), $stamps, $rows->last()?->id);
+        return new self(self::withinBudget($lines), $stamps, $rows->last()?->id, $clientLines);
     }
 
     public function isEmpty(): bool
@@ -80,6 +87,17 @@ final readonly class BusinessTranscript
         $client = array_values(array_filter($this->lines, fn (string $line): bool => str_starts_with($line, '[client ')));
 
         return implode(' ', array_map(fn (string $line): string => (string) preg_replace('/^\[client [^\]]*\]\s*/', '', $line), array_slice($client, -$lines)));
+    }
+
+    /**
+     * The client's words written after a message id (the previous analysis), the last few only: what the
+     * escalation backstops scan (plan 46 ED46-3), so an old message never flags or blocks a new draft.
+     */
+    public function clientTextSince(?int $afterMessageId, int $max = 6): string
+    {
+        $recent = array_filter($this->clientLines, fn (array $line): bool => $afterMessageId === null || $line[0] > $afterMessageId);
+
+        return implode(' ', array_column(array_slice(array_values($recent), -$max), 1));
     }
 
     private static function line(BusinessMessage $message): ?string

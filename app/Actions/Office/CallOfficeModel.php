@@ -24,9 +24,9 @@ use Throwable;
 class CallOfficeModel
 {
     /**
-     * The only channels an office call may spend on (plan 44 L6).
+     * The only channels an office call may spend on (plan 44 L6). vo_dry is passed only by RunEducationDryRun (plan 46 ED46-7).
      */
-    public const CHANNELS = [AiUsageChannel::OfficeRoute, AiUsageChannel::OfficeSales, AiUsageChannel::OfficeService, AiUsageChannel::OfficeSupport];
+    public const CHANNELS = [AiUsageChannel::OfficeRoute, AiUsageChannel::OfficeSales, AiUsageChannel::OfficeService, AiUsageChannel::OfficeSupport, AiUsageChannel::OfficeDry];
 
     public function __construct(protected RecordAiUsage $usage) {}
 

@@ -21,6 +21,8 @@ enum AiUsageChannel: string
     case OfficeSales = 'vo_sales';
     case OfficeService = 'vo_serv';
     case OfficeSupport = 'vo_support';
+    // Plan 46 (ED-4, ED46-7): the admin dry-run test console. Only RunEducationDryRun passes it to CallOfficeModel (arch test).
+    case OfficeDry = 'vo_dry';
 
     public function label(): string
     {
@@ -57,7 +59,7 @@ enum AiUsageChannel: string
      */
     public static function office(): array
     {
-        return [self::OfficeRoute, self::OfficeSales, self::OfficeService, self::OfficeSupport];
+        return [self::OfficeRoute, self::OfficeSales, self::OfficeService, self::OfficeSupport, self::OfficeDry];
     }
 
     public function isOffice(): bool

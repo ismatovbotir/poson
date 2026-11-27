@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Casts\EncryptedText;
 use App\Enums\AgentRole;
 use App\Enums\AnalysisStatus;
+use App\Enums\DraftHold;
 use Database\Factories\BusinessChatAnalysisFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,6 +38,9 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $lead_fields
  * @property string|null $lead_action
  * @property int|null $lead_id
+ * @property bool $needs_human
+ * @property string|null $escalation
+ * @property DraftHold|null $draft_hold
  * @property int|null $router_version_id
  * @property int|null $agent_version_id
  * @property array<string, string>|null $models
@@ -83,6 +87,8 @@ class BusinessChatAnalysis extends Model
             'next_step' => EncryptedText::class,
             'draft_reply' => EncryptedText::class,
             'draft_blocked' => 'boolean',
+            'needs_human' => 'boolean',
+            'draft_hold' => DraftHold::class,
             'lead_fields' => 'array',
             'models' => 'array',
             'up_to_message_id' => 'integer',

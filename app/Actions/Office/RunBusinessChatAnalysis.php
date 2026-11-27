@@ -15,6 +15,7 @@ use App\Models\BusinessChatAnalysis;
 use App\Services\Ai\AiRequest;
 use App\Services\Ai\AiResult;
 use App\Services\Ai\ChatModel;
+use App\Support\Office\AgentGuidance;
 use App\Support\Office\AnalysisOutput;
 use App\Support\Office\BusinessTranscript;
 use App\Support\Office\CoreRules;
@@ -44,6 +45,7 @@ use Throwable;
  *  6. Under the same lock, the chat is re-read: still a client chat (VO-12),
  *     else nothing is saved. Done + tokens + version ids, then the lead
  *     sync (SyncLeadFromBusinessChat, sales and service only).
+ * Plan 46: guidance → site sources / top-N, escalation, hold and needs_human (AnalysisOutput).
  * Every Throwable ends as failed "error". Logs: ids, status, role, tokens only.
  */
 class RunBusinessChatAnalysis
@@ -168,15 +170,17 @@ class RunBusinessChatAnalysis
         $agent = $agentProfile?->currentVersion;
 
         if ($agentProfile !== null && $agent instanceof AgentProfileVersion) {
-            $site = $agentProfile->use_site_knowledge ? $this->siteBlock($transcript, $route['topic'], $route['language']) : '';
-            $answered = $this->call($model, $route['role']->usageChannel(), OfficePrompt::agent($agent, $transcript, $previousSummary, $route['topic'], $site), $tokens, $models, 'agent');
+            $guidance = $agent->guidanceFor($route['role']);
+            $site = $agentProfile->use_site_knowledge ? $this->siteBlock($transcript, $route['topic'], $route['language'], $guidance) : '';
+            $answered = $this->call($model, $route['role']->usageChannel(), OfficePrompt::agent($agent, $transcript, $previousSummary, $route['topic'], $site, $route['role']), $tokens, $models, 'agent');
             $values['agent_version_id'] = $agent->id;
 
             if (is_string($answered)) {
                 return $this->stop($analysis, $chat, $answered, $values + $this->usageColumns($tokens, $models));
             }
 
-            $result = $output->agent($answered->text);
+            // Plan 46: escalation, confidence, language, time-promise and forbidden-topic checks in PHP (the client's own words only).
+            $result = $output->agent($answered->text, $guidance, ['client_text' => $transcript->clientTextSince($last?->up_to_message_id), 'confidence' => $route['confidence'], 'language' => $route['language']]);
 
             if ($result === null) {
                 $this->finish($analysis, AnalysisStatus::Failed, ['error' => 'invalid_agent'] + $values + $this->usageColumns($tokens, $models));
@@ -190,6 +194,9 @@ class RunBusinessChatAnalysis
                 'next_step' => $result['next_step'],
                 'draft_reply' => $result['draft'],
                 'draft_blocked' => $result['draft_blocked'],
+                'needs_human' => $result['needs_human'],
+                'escalation' => $result['escalation'],
+                'draft_hold' => $result['draft_hold'],
                 'lead_fields' => $result['lead'],
             ];
         }
@@ -280,13 +287,13 @@ class RunBusinessChatAnalysis
     {
         ksort($versionIds);
 
-        return hash('sha256', (string) json_encode([$transcript->stamps, $versionIds, CoreRules::VERSION]));
+        return hash('sha256', (string) json_encode([$transcript->stamps, $versionIds, CoreRules::VERSION, OfficePrompt::FORMAT_VERSION]));
     }
 
     /**
      * Up to 5 public site passages for the client's words (titles and text, no URLs).
      */
-    protected function siteBlock(BusinessTranscript $transcript, ?string $topic, ?string $language): string
+    protected function siteBlock(BusinessTranscript $transcript, ?string $topic, ?string $language, ?AgentGuidance $guidance = null): string
     {
         $query = trim(($topic ?? '').' '.$transcript->clientText());
 
@@ -294,7 +301,10 @@ class RunBusinessChatAnalysis
             return '';
         }
 
-        $hits = array_slice($this->knowledge->handle($query, $language ?? (string) config('app.locale')), 0, 5);
+        // Plan 46: a version with guidance picks the sources and how many passages; a legacy one keeps all sources and 5.
+        $knowledge = (array) ($guidance?->toArray()['knowledge'] ?? []);
+        $limit = $knowledge === [] ? null : (int) $knowledge['top_n'];
+        $hits = array_slice($this->knowledge->handle($query, $language ?? (string) config('app.locale'), $knowledge === [] ? null : (array) $knowledge['sources'], $limit), 0, $limit ?? 5);
 
         return implode("\n", array_map(fn (AiKnowledgeHit $hit): string => '- '.$hit->title.': '.$hit->text, $hits));
     }

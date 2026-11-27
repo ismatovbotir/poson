@@ -149,6 +149,9 @@
                             @if ($thread->role)<x-admin.badge color="violet">{{ $thread->role->label() }}</x-admin.badge>@endif
                             <x-admin.badge color="slate">{{ $thread->client_member_id === null ? __($t.'.thread_group') : ($thread->clientMember?->first_name ?? __('office.groups.no_name')) }}</x-admin.badge>
                             <span class="text-xs text-slate-500">{{ $thread->updated_at?->copy()->setTimezone($tz)->format('d.m H:i') }}</span>
+                            @if ($thread->needs_human)
+                                <x-admin.badge color="red" data-needs-human>{{ __('office.show.needs_human') }}</x-admin.badge>
+                            @endif
                             @if ($thread->lead)
                                 @can('view', $thread->lead)
                                     · <a href="{{ route('admin.leads.show', $thread->lead) }}" wire:navigate class="font-semibold text-brand-700 hover:underline" data-thread-lead>{{ $thread->lead->reference() }}</a>
@@ -164,7 +167,25 @@
                                 <dt class="text-slate-500">{{ __('office.show.draft') }}</dt>
                                 @if ($thread->draft_blocked)
                                     <dd class="mt-0.5 text-amber-700" data-draft-blocked>{{ __('office.show.draft_blocked') }}</dd>
-                                @elseif ($thread->draft && $thread->draft !== $unreadable)
+                                @elseif ($thread->draft_hold && ! $thread->draft)
+                                <dd class="mt-0.5 text-amber-700" data-draft-hold>{{ $thread->draft_hold->label() }}</dd>
+                            @elseif ($thread->draft && $thread->draft !== $unreadable)
+                                    @if (in_array($thread->draft_hold, [\App\Enums\DraftHold::LowConfidence, \App\Enums\DraftHold::Language], true))
+                                    <dd class="mt-1" data-draft-held>
+                                        <details class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                            <summary class="cursor-pointer text-sm font-semibold text-amber-800">{{ $thread->draft_hold->label() }}</summary>
+                                            <div class="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                        <p class="whitespace-pre-line break-words" data-draft>{{ $thread->draft }}</p>
+                                        <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
+                                            <span class="text-xs text-slate-500">{{ __('office.show.draft_not_sent') }}</span>
+                                            <button type="button" x-data="{ copied: false }" x-on:click="navigator.clipboard.writeText($el.dataset.copy).then(() => { copied = true; setTimeout(() => copied = false, 2000) })" data-copy="{{ $thread->draft }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-800">
+                                                <x-admin.icon name="copy" size="size-4" /><span x-text="copied ? @js(__('office.show.copied')) : @js(__('office.show.copy'))">{{ __('office.show.copy') }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                        </details>
+                                    </dd>
+                                @else
                                     <dd class="mt-1 rounded-lg border border-slate-200 bg-slate-50 p-3">
                                         <p class="whitespace-pre-line break-words" data-draft>{{ $thread->draft }}</p>
                                         <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -174,8 +195,14 @@
                                             </button>
                                         </div>
                                     </dd>
+                                @endif
                                 @else
                                     <dd class="mt-0.5 text-slate-400">{{ __('office.show.no_draft') }}</dd>
+                                @endif
+                                @if ($thread->draft && ! $thread->draft_blocked && $thread->draft !== $unreadable)
+                                    @can('analyse', $group)
+                                        <x-admin.draft-feedback prefix="feedback.{{ $thread->id }}" submit="submitFeedback({{ $thread->id }})" />
+                                    @endcan
                                 @endif
                             </div>
                         </dl>

@@ -18,7 +18,7 @@ final class McpExclusionScanner
         'app/Support/Orders/OrderMetrics.php',
     ];
 
-    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched', 'ChatAiTurn', 'ChatAiUsageDaily', 'JobApplication', 'AiProductDraft', 'WebChat', 'WebChatMessage', 'BusinessConnection', 'BusinessChat', 'BusinessMessage', 'BusinessChatAnalysis', 'AgentProfile', 'AgentProfileVersion', 'TelegramGroup', 'TelegramGroupMember', 'TelegramGroupMessage', 'TelegramGroupAnalysis', 'TelegramGroupThread'];
+    public const CRM_MODELS = ['Lead', 'Quote', 'Order', 'OrderPayment', 'OrderItem', 'LeadItem', 'QuoteItem', 'UzqrTransaction', 'Repair', 'ChatUnmatched', 'ChatAiTurn', 'ChatAiUsageDaily', 'JobApplication', 'AiProductDraft', 'WebChat', 'WebChatMessage', 'BusinessConnection', 'BusinessChat', 'BusinessMessage', 'BusinessChatAnalysis', 'AgentProfile', 'AgentProfileVersion', 'TelegramGroup', 'TelegramGroupMember', 'TelegramGroupMessage', 'TelegramGroupAnalysis', 'TelegramGroupThread', 'OfficeDraftFeedback'];
 
     /**
      * Exact phrases that are not CRM data, per file (repo-relative path => phrases).
@@ -54,6 +54,8 @@ final class McpExclusionScanner
             'business_' => '/business_(?:connection|chat|message)|agent_profile/i',
             // Plan 44 (OG-13): Telegram group tables and columns (telegram_group_id, telegram_groups ...).
             'telegram_group' => '/telegram_group/i',
+            // Plan 46 (ED46-9): AI draft feedback (encrypted draft and final text of staff).
+            'office_draft' => '/office_draft|OfficeDraftFeedback|draft_text|final_text/',
         ];
     }
 
@@ -65,7 +67,7 @@ final class McpExclusionScanner
      */
     public static function tableNeedle(): string
     {
-        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched|chat_ai_turns|chat_ai_usage_daily|job_applications|ai_product_drafts|web_chats|web_chat_messages|business_connections|business_chats|business_messages|business_chat_analyses|agent_profiles|agent_profile_versions|telegram_groups|telegram_group_members|telegram_group_messages|telegram_group_analyses|telegram_group_threads';
+        $tables = 'leads|orders|quotes|order_items|order_payments|uzqr_transactions|lead_items|quote_items|repairs|chat_unmatched|chat_ai_turns|chat_ai_usage_daily|job_applications|ai_product_drafts|web_chats|web_chat_messages|business_connections|business_chats|business_messages|business_chat_analyses|agent_profiles|agent_profile_versions|telegram_groups|telegram_group_members|telegram_group_messages|telegram_group_analyses|telegram_group_threads|office_draft_feedback';
 
         return '/(?:table|from|join|joinSub)\(\s*[\'"](?:'.$tables.')[\'"]|[\'"](?:'.$tables.')\.[a-z][a-z_]*[\'"]/';
     }

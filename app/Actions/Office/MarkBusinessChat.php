@@ -66,6 +66,7 @@ class MarkBusinessChat
             }
 
             if ($from === BusinessChatKind::Client && $kind !== BusinessChatKind::Client) {
+                ForgetDraftFeedback::forChats($locked->id);
                 $locked->analyses()->delete();
                 $locked->messages()->delete();
                 $locked->analysis_due_at = null;

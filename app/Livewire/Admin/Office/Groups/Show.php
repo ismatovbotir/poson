@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Office\Groups;
 use App\Actions\Office\ForgetGroupMember;
 use App\Actions\Office\OfficeStaff;
 use App\Actions\Office\QueueGroupAnalysis;
+use App\Actions\Office\RecordDraftFeedback;
 use App\Actions\Office\RequestGroupAnalysis;
 use App\Actions\Office\SetGroupMemberRoles;
 use App\Actions\Office\UntrackGroup;
@@ -63,6 +64,9 @@ class Show extends Component
 
     public string $customerSearch = '';
 
+    /** @var array<int, array{outcome?: string, reason?: string, final_text?: string, note?: string}> Draft feedback forms per thread id (plan 46) */
+    public array $feedback = [];
+
     public function mount(TelegramGroup $group): void
     {
         $this->authorize('view', $group);
@@ -114,6 +118,24 @@ class Show extends Component
         $request->handle($this->user(), $group);
 
         $this->dispatch('toast', title: __('admin.toast.done'), body: __('office.show.analysis_queued'), type: 'success');
+    }
+
+    /**
+     * Plan 46: what was done with a thread's draft. The group comes from the locked id; the thread and its
+     * analysis are re-read and checked by RecordDraftFeedback (a thread of another group is stale).
+     */
+    public function submitFeedback(int $threadId, RecordDraftFeedback $record): void
+    {
+        $group = $this->group();
+        $this->authorize('analyse', $group);
+
+        $thread = TelegramGroupThread::query()->where('telegram_group_id', $group->id)->whereKey($threadId)->first();
+        $this->feedback = array_intersect_key($this->feedback, [$threadId => true]);
+
+        $record->handle($this->user(), $group, [...($this->feedback[$threadId] ?? []), 'thread_id' => $threadId, 'analysis_id' => $thread?->last_analysis_id]);
+
+        unset($this->feedback[$threadId]);
+        $this->dispatch('toast', title: __('admin.toast.saved'), body: __('office.feedback.saved'), type: 'success');
     }
 
     public function pickCustomer(int $customerId): void
@@ -223,6 +245,9 @@ class Show extends Component
             ->orderByDesc('id')
             ->limit(self::THREADS_SHOWN)
             ->get();
+
+        // Plan 46: the feedback forms exist only for the threads on screen; any other key of the public array is dropped.
+        $this->feedback = array_intersect_key($this->feedback, array_flip($threads->pluck('id')->all()));
 
         return view('livewire.admin.office.groups.show', [
             'group' => $group,
