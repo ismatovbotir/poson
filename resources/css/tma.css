@@ -68,8 +68,8 @@
     --color-tg-separator: var(--tg-theme-section-separator-color, #e2e8f0);
     --color-tg-danger: var(--tg-theme-destructive-text-color, #d93636);
     /* Plan 45 §1: section headers, subtitles and accents follow the theme too (dark mode). */
-    --color-tg-header: var(--tg-theme-section-header-text-color, #64748b);
-    --color-tg-subtitle: var(--tg-theme-subtitle-text-color, #64748b);
+    --color-tg-header: var(--tma-accent);
+    --color-tg-subtitle: var(--tg-theme-hint-color, #64748b);
     --color-tg-accent: var(--tma-accent);
 }
 
