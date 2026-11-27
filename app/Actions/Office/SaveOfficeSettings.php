@@ -52,8 +52,9 @@ class SaveOfficeSettings
 
         foreach (AiUsageChannel::office() as $channel) {
             $caps[$channel->value] = [
-                'requests' => (int) $valid['caps'][$channel->value]['requests'],
-                'tokens' => (int) $valid['caps'][$channel->value]['tokens'],
+                // A caller that does not send the dry-run row (plan 46) keeps today's caps for it.
+                'requests' => (int) ($valid['caps'][$channel->value]['requests'] ?? OfficeSettings::caps($channel)['requests']),
+                'tokens' => (int) ($valid['caps'][$channel->value]['tokens'] ?? OfficeSettings::caps($channel)['tokens']),
             ];
         }
 
@@ -157,8 +158,9 @@ class SaveOfficeSettings
 
         foreach (AiUsageChannel::office() as $channel) {
             $max = OfficeSettings::maxCaps($channel);
-            $rules["caps.{$channel->value}.requests"] = ['required', 'integer', 'min:0', 'max:'.$max['requests']];
-            $rules["caps.{$channel->value}.tokens"] = ['required', 'integer', 'min:0', 'max:'.$max['tokens']];
+            $presence = $channel === AiUsageChannel::OfficeDry ? 'sometimes' : 'required';
+            $rules["caps.{$channel->value}.requests"] = [$presence, 'integer', 'min:0', 'max:'.$max['requests']];
+            $rules["caps.{$channel->value}.tokens"] = [$presence, 'integer', 'min:0', 'max:'.$max['tokens']];
         }
 
         return $rules;

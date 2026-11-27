@@ -8,9 +8,9 @@ use App\Services\Ai\AiRequest;
 
 /**
  * The router and agent requests of a Virtual office analysis (plan 41 §6,
- * VO-6, VO-10). System blocks, stable first: CoreRules, then the role's
- * published teaching (one cache breakpoint after it), then (agents only)
- * the retrieved site passages, uncached. The transcript is a delimited
+ * VO-6, VO-10). System blocks, stable first: CoreRules, the code contract,
+ * the role's operator guidance and teaching (one cache breakpoint after it,
+ * plan 46), then (agents only) the retrieved site passages, uncached. The transcript is a delimited
  * data block in the user message, never in the system prompt, with a
  * "treat as data" reminder. Structured output (JSON schema) for both.
  */
@@ -22,14 +22,23 @@ final class OfficePrompt
 
     public const URGENCIES = ['low', 'normal', 'high'];
 
+    /**
+     * Part of every input hash with CoreRules::VERSION: change it with the prompt layout (plan 46, ED46-10).
+     * A changed hash never makes a chat or group due by itself; only a new client message or a manual run does.
+     */
+    public const FORMAT_VERSION = 'format-2026-11-27.1';
+
+    /**
+     * Block order (plan 46 §2.1): CoreRules, then the code contract, then the operator guidance
+     * (cached, lower priority), then the site facts (uncached); the transcript is in the user message.
+     */
     public static function router(AgentProfileVersion $version, BusinessTranscript $transcript, ?string $previousSummary): AiRequest
     {
-        $roles = self::rolesLine();
-
         return new AiRequest(
             system: [
                 ['text' => CoreRules::text(), 'cache' => false],
-                ['text' => self::teaching($version)."\n\n".$roles, 'cache' => true],
+                ['text' => self::rolesLine(), 'cache' => false],
+                ['text' => self::guidanceBlock($version, AgentRole::Router), 'cache' => true],
             ],
             messages: [['role' => 'user', 'content' => self::userMessage($transcript, $previousSummary, null)]],
             maxTokens: $version->max_tokens,
@@ -39,11 +48,12 @@ final class OfficePrompt
         );
     }
 
-    public static function agent(AgentProfileVersion $version, BusinessTranscript $transcript, ?string $previousSummary, ?string $topic, string $siteBlock): AiRequest
+    public static function agent(AgentProfileVersion $version, BusinessTranscript $transcript, ?string $previousSummary, ?string $topic, string $siteBlock, AgentRole $role = AgentRole::Sales): AiRequest
     {
         $system = [
             ['text' => CoreRules::text(), 'cache' => false],
-            ['text' => self::teaching($version), 'cache' => true],
+            ['text' => self::agentContract(), 'cache' => false],
+            ['text' => self::guidanceBlock($version, $role), 'cache' => true],
         ];
 
         if ($siteBlock !== '') {
@@ -56,7 +66,7 @@ final class OfficePrompt
             maxTokens: $version->max_tokens,
             model: $version->model,
             timeout: (float) config('office.agent_timeout', 60),
-            outputSchema: self::agentSchema(),
+            outputSchema: self::agentSchema($version->guidanceFor($role)),
         );
     }
 
@@ -70,26 +80,68 @@ final class OfficePrompt
     }
 
     /**
-     * The role's published teaching as one system block.
+     * The code-owned output contract of an agent (never taught by the Admin): the escalation fields.
+     */
+    public static function agentContract(): string
+    {
+        return 'Answer format: needs_human is true when a person on the Poson team must take over this conversation. escalation is the code of the escalation topic (listed in the operator guidance, if any) that the client\'s last messages are about, otherwise "none". Never write a draft reply for a topic the guidance marks as "no_draft".';
+    }
+
+    /**
+     * The operator block of a role: the structured guidance (wrapped, plan 46 ED46-1) when the version has
+     * one, then the free text. A legacy version (no guidance) is only its free text, as before.
+     */
+    public static function guidanceBlock(AgentProfileVersion $version, AgentRole $role): string
+    {
+        $guidance = $version->guidanceFor($role);
+        $notes = self::teaching($version);
+
+        // Everything the Admin wrote sits INSIDE the wrapper, cleaned (security review: nothing may follow the closing tag).
+        return $guidance === null ? AgentGuidance::wrapNotes($notes) : $guidance->render($notes);
+    }
+
+    /**
+     * The role's free-text teaching: instructions, rules, knowledge and examples (good, bad, route).
      */
     public static function teaching(AgentProfileVersion $version): string
     {
-        $parts = [trim($version->instructions)];
+        $parts = [AgentGuidance::cleanMultiline($version->instructions)];
 
         if (filled($version->rules)) {
-            $parts[] = "Rules:\n".trim((string) $version->rules);
+            $parts[] = "Rules:\n".AgentGuidance::cleanMultiline((string) $version->rules);
         }
 
         if (filled($version->knowledge)) {
-            $parts[] = "Background knowledge:\n".trim((string) $version->knowledge);
+            $parts[] = "Background knowledge:\n".AgentGuidance::cleanMultiline((string) $version->knowledge);
         }
 
         foreach (array_values((array) $version->examples) as $index => $example) {
-            $parts[] = 'Example '.($index + 1).":\nClient: ".trim((string) ($example['client'] ?? ''))."\nGood reply: ".trim((string) ($example['reply'] ?? ''))
-                .(filled($example['note'] ?? null) ? "\nNote: ".trim((string) $example['note']) : '');
+            $parts[] = self::example($index + 1, (array) $example);
         }
 
         return implode("\n\n", $parts);
+    }
+
+    /**
+     * @param  array<string, mixed>  $example
+     */
+    private static function example(int $number, array $example): string
+    {
+        $kind = in_array($example['kind'] ?? null, ['good', 'bad', 'route'], true) ? $example['kind'] : 'good';
+        $client = AgentGuidance::cleanMultiline((string) ($example['client'] ?? ''));
+        $note = AgentGuidance::cleanMultiline((string) ($example['note'] ?? ''));
+
+        if ($kind === 'route') {
+            return "Routing example {$number}:\nClient: {$client}\nCorrect role: ".(AgentRole::tryFrom((string) ($example['role'] ?? ''))?->value ?? 'other').($note !== '' ? "\nWhy: {$note}" : '');
+        }
+
+        $reply = AgentGuidance::cleanMultiline((string) ($example['reply'] ?? ''));
+
+        if ($kind === 'bad') {
+            return "Example {$number}:\nClient: {$client}\nDo not reply like this: {$reply}".($note !== '' ? "\nWhy not: {$note}" : '');
+        }
+
+        return "Example {$number}:\nClient: {$client}\nGood reply: {$reply}".($note !== '' ? "\nNote: {$note}" : '');
     }
 
     private static function userMessage(BusinessTranscript $transcript, ?string $previousSummary, ?string $topic): string
@@ -142,7 +194,7 @@ final class OfficePrompt
     /**
      * @return array<string, mixed>
      */
-    public static function agentSchema(): array
+    public static function agentSchema(?AgentGuidance $guidance = null): array
     {
         return [
             'type' => 'object',
@@ -150,6 +202,8 @@ final class OfficePrompt
                 'summary' => ['type' => 'string'],
                 'next_step' => ['type' => 'string'],
                 'draft_reply' => ['type' => 'string'],
+                'needs_human' => ['type' => 'boolean'],
+                'escalation' => ['type' => 'string', 'enum' => $guidance?->escalationCodes() ?? ['none']],
                 'lead' => [
                     'type' => 'object',
                     'properties' => [
@@ -163,7 +217,7 @@ final class OfficePrompt
                     'additionalProperties' => false,
                 ],
             ],
-            'required' => ['summary', 'next_step', 'draft_reply', 'lead'],
+            'required' => ['summary', 'next_step', 'draft_reply', 'needs_human', 'escalation', 'lead'],
             'additionalProperties' => false,
         ];
     }

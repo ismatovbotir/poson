@@ -276,6 +276,7 @@ return [
         'group_ignored' => 'Group ignored',
         'roles_set' => 'Member roles set',
         'forgotten' => 'Member forgotten',
+        'promoted' => 'Example promoted',
         'group_untracked' => 'Group untracked',
     ],
 
@@ -565,6 +566,7 @@ return [
         'vo_sales' => 'Virtual office: sales',
         'vo_serv' => 'Virtual office: service',
         'vo_support' => 'Virtual office: support',
+        'vo_dry' => 'Virtual office: test',
     ],
 
     'chat_ai_role' => [
@@ -784,4 +786,47 @@ return [
         'employee' => 'Employee',
     ],
 
+    'tone_option' => [
+        'formal' => 'Formal',
+        'warm_professional' => 'Warm and professional',
+    ],
+
+    'escalation_trigger' => [
+        'complaint' => 'Complaint',
+        'legal_contract' => 'Legal question / contract',
+        'discount_request' => 'Price negotiation request',
+        'angry_tone' => 'Angry tone',
+        'payment_dispute' => 'Payment dispute',
+        'custom_integration' => 'Custom integration',
+    ],
+
+    'escalation_action' => [
+        'flag' => 'Flag: needs a human',
+        'no_draft' => 'Do not write a draft',
+        'raise_urgency' => 'Raise urgency',
+    ],
+
+    'draft_outcome' => [
+        'used' => 'Used',
+        'edited' => 'Edited',
+        'rejected' => 'Rejected',
+    ],
+
+    'draft_feedback_reason' => [
+        'wrong_role' => 'Wrong role',
+        'wrong_facts' => 'Wrong facts',
+        'tone' => 'Tone',
+        'too_long' => 'Too long',
+        'missing_info' => 'Missing information',
+        'brand' => 'Brand rules',
+        'other' => 'Other',
+    ],
+
+    'draft_hold' => [
+        'escalation' => 'Needs a human: no draft written',
+        'low_confidence' => 'Low confidence: show draft',
+        'language' => 'Language mismatch',
+        'sla' => 'Time promise failed the check',
+        'forbidden' => 'Forbidden topic',
+    ],
 ];

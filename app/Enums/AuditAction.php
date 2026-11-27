@@ -91,6 +91,11 @@ enum AuditAction: string
     case Forgotten = 'forgotten';
     case GroupUntracked = 'group_untracked';
 
+    /**
+     * Plan 46 T6: a draft feedback row promoted to an example in a new unpublished agent version (ids only).
+     */
+    case Promoted = 'promoted';
+
     public function label(): string
     {
         return __("enums.audit_action.{$this->value}");

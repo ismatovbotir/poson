@@ -174,6 +174,10 @@ return [
     'stir' => 'The :attribute must be a company STIR: 9 digits starting with 2 or 3.',
     'stir_or_pinfl' => 'The :attribute must be a STIR (9 digits starting with 4–6) or a PINFL (14 digits).',
     'brand_safe' => 'The :attribute must not contain price or discount claims.',
+    'example_text_guard' => 'The :attribute must not contain a phone, card, tax ID, link, e-mail or a run of 5 or more digits. Do not paste real client data.',
+    'guidance_no_budget' => 'The questions must not ask about the client\'s budget.',
+    'guidance_discount_locked' => 'The price negotiation rule cannot be changed: always flag a human and write no draft.',
+    'guidance_too_long' => 'The guidance is too long in total.',
     'social_url' => 'The :attribute must be an https link on :hosts.',
 
     /*

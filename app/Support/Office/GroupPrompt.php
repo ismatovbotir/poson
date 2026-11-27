@@ -9,7 +9,8 @@ use App\Services\Ai\AiRequest;
 /**
  * The router and agent requests of a group analysis (plan 44 §2, OG-5),
  * built like OfficePrompt: CoreRules first (in code, never editable), then
- * the role's published teaching plus a short group addendum (cached), the
+ * the group addendum and output contract (code), then the role's operator
+ * guidance and teaching (cached, plan 46), the
  * transcript as a JSON data block in the user message. The addendum text is
  * minimal English on purpose (the operator wording comes with Education);
  * the brand rules stay in CoreRules. VERSION is part of the input hash.
@@ -25,7 +26,8 @@ final class GroupPrompt
         return new AiRequest(
             system: [
                 ['text' => CoreRules::text(), 'cache' => false],
-                ['text' => OfficePrompt::teaching($version)."\n\n".self::routerAddendum()."\n\n".OfficePrompt::rolesLine(), 'cache' => true],
+                ['text' => self::routerAddendum()."\n\n".OfficePrompt::rolesLine(), 'cache' => false],
+                ['text' => OfficePrompt::guidanceBlock($version, AgentRole::Router), 'cache' => true],
             ],
             messages: [['role' => 'user', 'content' => self::userMessage($transcript, null, null, null)]],
             // Up to three threads need more room than one business-chat route: the router maximum, clamped to 500.
@@ -40,18 +42,19 @@ final class GroupPrompt
      * @param  list<string>  $focusLabels  The client labels of this thread
      * @param  bool  $wholeGroup  A customer-linked group: the whole group is one thread
      */
-    public static function agent(AgentProfileVersion $version, GroupTranscript $transcript, ?string $previousSummary, ?string $topic, array $focusLabels, bool $wholeGroup = false): AiRequest
+    public static function agent(AgentProfileVersion $version, GroupTranscript $transcript, ?string $previousSummary, ?string $topic, array $focusLabels, bool $wholeGroup = false, AgentRole $role = AgentRole::Sales): AiRequest
     {
         return new AiRequest(
             system: [
                 ['text' => CoreRules::text(), 'cache' => false],
-                ['text' => OfficePrompt::teaching($version)."\n\n".self::agentAddendum(), 'cache' => true],
+                ['text' => self::agentAddendum()."\n\n".OfficePrompt::agentContract(), 'cache' => false],
+                ['text' => OfficePrompt::guidanceBlock($version, $role), 'cache' => true],
             ],
             messages: [['role' => 'user', 'content' => self::userMessage($transcript, $previousSummary, $topic, ($wholeGroup ? 'the whole group; clients: ' : '').implode(', ', $focusLabels))]],
             maxTokens: $version->max_tokens,
             model: $version->model,
             timeout: (float) config('office.agent_timeout', 60),
-            outputSchema: OfficePrompt::agentSchema(),
+            outputSchema: OfficePrompt::agentSchema($version->guidanceFor($role)),
         );
     }
 

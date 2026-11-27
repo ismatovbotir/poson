@@ -495,7 +495,7 @@ describe('architecture (case 35)', function () {
         $livewire = collect(File::allFiles(app_path('Livewire')))->filter(fn (SplFileInfo $file): bool => str_contains((string) file_get_contents($file->getPathname()), 'App\\Services\\Ai'))->map->getFilename()->all();
 
         expect($livewire)->toBe([])
-            ->and(array_map(fn (AiUsageChannel $channel): string => $channel->value, AiUsageChannel::cases()))->toBe(['web', 'telegram', 'adm_vision', 'adm_write', 'adm_trans', 'vo_route', 'vo_sales', 'vo_serv', 'vo_support']);
+            ->and(array_map(fn (AiUsageChannel $channel): string => $channel->value, AiUsageChannel::cases()))->toBe(['web', 'telegram', 'adm_vision', 'adm_write', 'adm_trans', 'vo_route', 'vo_sales', 'vo_serv', 'vo_support', 'vo_dry']);
     });
 });
 

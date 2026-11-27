@@ -80,7 +80,7 @@ it('never puts business_connection_id into a send, edit or copy', function () {
 // Plan 44 L6: the reserved office model call is used only by the two office runners.
 arch('only the office runners use CallOfficeModel')
     ->expect('App\Actions\Office\CallOfficeModel')
-    ->toOnlyBeUsedIn(['App\Actions\Office\RunBusinessChatAnalysis', 'App\Actions\Office\RunGroupAnalysis']);
+    ->toOnlyBeUsedIn(['App\Actions\Office\RunBusinessChatAnalysis', 'App\Actions\Office\RunGroupAnalysis', 'App\Actions\Office\RunEducationDryRun']);
 
 it('refuses a non-office channel in CallOfficeModel without a call (L6)', function () {
     $fake = FakeChatModel::bind('{}');

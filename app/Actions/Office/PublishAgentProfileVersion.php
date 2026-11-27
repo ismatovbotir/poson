@@ -44,6 +44,11 @@ class PublishAgentProfileVersion
                 return $version;
             }
 
+            // Plan 46 T4: a version with {placeholders} left in its guidance (the seeded service facts) is never published.
+            if (SaveAgentProfileVersion::hasPlaceholders($version, $locked->role)) {
+                throw ValidationException::withMessages(['version' => __('office.errors.placeholders_left')]);
+            }
+
             $old = $locked->currentVersion;
             $locked->current_version_id = $version->id;
             $locked->save();

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\EncryptedText;
 use App\Enums\AgentRole;
+use App\Enums\DraftHold;
 use Database\Factories\TelegramGroupThreadFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $next_step
  * @property string|null $draft
  * @property bool $draft_blocked
+ * @property bool $needs_human
+ * @property string|null $escalation
+ * @property DraftHold|null $draft_hold
+ * @property int|null $agent_version_id
  * @property list<int>|null $member_ids
  * @property int|null $lead_id
  * @property int|null $customer_id
@@ -49,6 +54,8 @@ class TelegramGroupThread extends Model
             'next_step' => EncryptedText::class,
             'draft' => EncryptedText::class,
             'draft_blocked' => 'boolean',
+            'needs_human' => 'boolean',
+            'draft_hold' => DraftHold::class,
             'member_ids' => 'array',
         ];
     }

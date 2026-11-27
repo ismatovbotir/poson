@@ -302,6 +302,7 @@ class HandleBusinessUpdate
         $affected = BusinessChatAnalysis::query()->where('business_chat_id', $chat->id)->where('up_to_message_id', '>=', (int) $first);
         $analysisIds = (clone $affected)->pluck('id')->all();
         $affected->update(['topic' => null, 'summary' => null, 'next_step' => null, 'draft_reply' => null]);
+        ForgetDraftFeedback::forChatAnalyses($analysisIds);
 
         // L1: the topic copied into a lead's AiSummary activity goes too.
         $leadIds = BusinessChatAnalysis::query()->whereIn('id', $analysisIds)->whereNotNull('lead_id')->distinct()->pluck('lead_id')->push($chat->lead_id)->filter()->unique()->all();

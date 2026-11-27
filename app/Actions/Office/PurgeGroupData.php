@@ -26,6 +26,7 @@ class PurgeGroupData
     public function handle(TelegramGroup $group): array
     {
         TelegramGroupMember::query()->where('telegram_group_id', $group->id)->whereNotNull('phone')->update(['phone' => null]);
+        ForgetDraftFeedback::forGroup($group->id);
 
         return [
             'messages' => self::deleteChunked(TelegramGroupMessage::class, $group->id),

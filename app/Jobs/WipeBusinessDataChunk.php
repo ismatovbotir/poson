@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Actions\Office\ForgetDraftFeedback;
 use App\Enums\ActivityType;
 use App\Enums\LeadSource;
 use App\Models\Activity;
@@ -58,6 +59,7 @@ class WipeBusinessDataChunk implements ShouldQueue
             }
 
             try {
+                ForgetDraftFeedback::forChats($chat->id);
                 $chat->delete();
                 $deleted++;
             } finally {

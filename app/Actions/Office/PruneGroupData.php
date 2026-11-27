@@ -54,6 +54,7 @@ class PruneGroupData
                 ->where(fn (Builder $query) => $query->whereHas('messages')->orWhereHas('analyses')->orWhereHas('threads')),
             function (TelegramGroup $group) use (&$counts): void {
                 TelegramGroupMember::query()->where('telegram_group_id', $group->id)->whereNotNull('phone')->update(['phone' => null]);
+                ForgetDraftFeedback::forGroup($group->id);
                 $counts['group_messages'] += PurgeGroupData::deleteChunked(TelegramGroupMessage::class, $group->id);
                 $counts['group_threads'] += PurgeGroupData::deleteChunked(TelegramGroupThread::class, $group->id);
                 $counts['group_analyses'] += PurgeGroupData::deleteChunked(TelegramGroupAnalysis::class, $group->id);

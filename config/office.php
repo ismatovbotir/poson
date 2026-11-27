@@ -52,6 +52,8 @@ return [
         'vo_sales' => ['requests' => 200, 'tokens' => 2000000],
         'vo_serv' => ['requests' => 200, 'tokens' => 2000000],
         'vo_support' => ['requests' => 100, 'tokens' => 1000000],
+        // Plan 46 (ED-4, ED46-7): the dry-run test console (counts toward the office totals; the Admin may raise it up to cap_factor ×).
+        'vo_dry' => ['requests' => 30, 'tokens' => 300000],
     ],
     'cap_factor' => 5,
 
@@ -87,6 +89,36 @@ return [
         'examples_max' => 10,
         'example_chars' => 1000,
         'change_note_max' => 255,
+
+        // Plan 46 §2.3 (ED46-6, ED46-7): the dry-run console. A step stays under 60 s: one call of at most dry_timeout seconds.
+        'dry_timeout' => 25,
+        'dry_ttl_minutes' => 30,
+        'dry_runs_per_hour' => 3,
+        'dry_runs_global_per_hour' => 6,
+        'dry_calls_global_per_hour' => 18,
+
+        // Plan 46 §2.1: caps of the structured guidance of an agent version.
+        'guidance' => [
+            'tone_note' => 300,
+            'must_ask_items' => 8,
+            'must_ask_chars' => 150,
+            'custom_escalations' => 4,
+            'custom_escalation_chars' => 150,
+            'service_facts_items' => 15,
+            'service_fact_chars' => 300,
+            'top_n_min' => 3,
+            'top_n_max' => 8,
+            'top_n_default' => 5,
+            'forbidden_items' => 10,
+            'forbidden_chars' => 150,
+            'confidence_floor' => 30,
+            'confidence_defaults' => ['sales' => 60, 'support' => 60, 'service' => 70],
+            'routing_hint_chars' => 500,
+            'examples_good_max' => 6,
+            'examples_bad_max' => 4,
+            'example_note_chars' => 300,
+            'rendered_max' => 16000,
+        ],
     ],
 
     // Output limits (characters) of the validated analysis.
@@ -109,6 +141,8 @@ return [
         'client_months' => 12,
         'analyses_kept' => 5,
         'draft_days' => 30,
+        // Plan 46 (ED-3): the staff texts of draft feedback are nulled this many days after the last update.
+        'feedback_days' => 30,
         'disallowed_connection_days' => 30,
         // Plan 44 (OG-12): groups.
         'group_months' => 12,

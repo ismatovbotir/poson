@@ -164,6 +164,10 @@ return [
     'stir' => ':Attribute maydoniga kompaniya STIRini kiriting: 2 yoki 3 bilan boshlanuvchi 9 raqam.',
     'stir_or_pinfl' => ':Attribute maydoniga STIR (4–6 bilan boshlanuvchi 9 raqam) yoki JSHSHIR (14 raqam) kiriting.',
     'brand_safe' => ':Attribute maydonida narx yoki chegirma haqidagi daʼvolar boʻlmasligi kerak.',
+    'example_text_guard' => ':Attribute maydonida telefon, karta, STIR, havola, elektron pochta yoki 5 va undan ortiq raqam boʻlmasligi kerak. Haqiqiy mijoz maʼlumotlarini kiritmang.',
+    'guidance_no_budget' => 'Savol roʻyxatida byudjet haqida soʻrash mumkin emas.',
+    'guidance_discount_locked' => 'Narx boʻyicha kelishuv qoidasi oʻzgartirilmaydi: har doim odamga belgi va qoralamasiz.',
+    'guidance_too_long' => 'Koʻrsatmalar juda uzun: umumiy chegara oshdi.',
     'social_url' => ':Attribute maydoni :hosts saytiga https havola boʻlishi kerak.',
 
     'custom' => [],

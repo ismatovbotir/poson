@@ -4,6 +4,9 @@ namespace App\Support\Office;
 
 use App\Actions\Chat\BuildAiKnowledge;
 use App\Enums\AgentRole;
+use App\Enums\DraftHold;
+use App\Enums\EscalationAction;
+use App\Enums\EscalationTrigger;
 use App\Rules\BrandSafeText;
 use App\Support\Chat\AiOutputFilter;
 use App\Support\Chat\ChatRedactor;
@@ -75,9 +78,15 @@ final class AnalysisOutput
     }
 
     /**
-     * @return array{summary: ?string, next_step: ?string, draft: ?string, draft_blocked: bool, lead: array{intent: ?string, products: list<string>, device_brand: ?string, device_model: ?string, urgency: ?string}}|null
+     * The agent's validated answer. With a version's guidance (plan 46) the escalation, confidence,
+     * language, SLA and forbidden-topic checks are applied here, in PHP, after the existing output
+     * filter and brand check, for chats and group threads alike. Without guidance (a legacy version)
+     * only the discount lock applies.
+     *
+     * @param  array{client_text?: string, confidence?: int|null, language?: string|null}  $context  client_text: the client-authored words only
+     * @return array{summary: ?string, next_step: ?string, draft: ?string, draft_blocked: bool, needs_human: bool, escalation: ?string, draft_hold: ?DraftHold, lead: array{intent: ?string, products: list<string>, device_brand: ?string, device_model: ?string, urgency: ?string}}|null
      */
-    public function agent(string $text): ?array
+    public function agent(string $text, ?AgentGuidance $guidance = null, array $context = []): ?array
     {
         $data = self::decode($text);
 
@@ -97,19 +106,191 @@ final class AnalysisOutput
             }
         }
 
-        return [
+        $urgency = is_string($lead['urgency'] ?? null) && in_array($lead['urgency'], OfficePrompt::URGENCIES, true) ? $lead['urgency'] : null;
+        $escalation = $this->escalation($data, $guidance, (string) ($context['client_text'] ?? ''));
+
+        if ($escalation['raise_urgency'] && $urgency !== 'high') {
+            $urgency = 'high';
+        }
+
+        $result = [
             'summary' => $this->note($data['summary'] ?? null, (int) config('office.output.summary', 800)),
             'next_step' => $this->note($data['next_step'] ?? null, (int) config('office.output.next_step', 300)),
             'draft' => $draft['text'],
             'draft_blocked' => $draft['blocked'],
+            'needs_human' => $escalation['needs_human'],
+            'escalation' => $escalation['code'],
+            'draft_hold' => null,
             'lead' => [
                 'intent' => is_string($lead['intent'] ?? null) && in_array($lead['intent'], OfficePrompt::INTENTS, true) ? $lead['intent'] : null,
                 'products' => array_values(array_unique($products)),
                 'device_brand' => $this->plain($lead['device_brand'] ?? null, (int) config('office.output.device_brand', 60)),
                 'device_model' => $this->plain($lead['device_model'] ?? null, (int) config('office.output.device_model', 60)),
-                'urgency' => is_string($lead['urgency'] ?? null) && in_array($lead['urgency'], OfficePrompt::URGENCIES, true) ? $lead['urgency'] : null,
+                'urgency' => $urgency,
             ],
         ];
+
+        return $this->hold($result, $escalation['no_draft'], $guidance, $context);
+    }
+
+    /**
+     * What the escalation of this answer is: the model's code checked (tryFrom) against the version's
+     * ENABLED triggers (custom_N only when that entry exists, ED46-4), plus the PHP backstops on the
+     * client's words (ED46-3: discount = flag + no_draft always, legal / payment = flag only).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{code: ?string, needs_human: bool, no_draft: bool, raise_urgency: bool}
+     */
+    private function escalation(array $data, ?AgentGuidance $guidance, string $clientText): array
+    {
+        $code = null;
+        $actions = [];
+
+        $given = is_string($data['escalation'] ?? null) ? $data['escalation'] : 'none';
+        $modelActions = $guidance?->actionsFor($given) ?? [];
+
+        if ($modelActions !== []) {
+            $code = mb_substr($given, 0, 24);
+            $actions = $modelActions;
+        }
+
+        foreach (EscalationBackstops::detect($clientText) as $trigger) {
+            if ($trigger === EscalationTrigger::DiscountRequest) {
+                $actions = [...$actions, EscalationAction::Flag, EscalationAction::NoDraft];
+                $code = $trigger->value;
+
+                continue;
+            }
+
+            $actions[] = EscalationAction::Flag;
+            $code ??= $trigger->value;
+        }
+
+        return [
+            'code' => $code,
+            'needs_human' => in_array(EscalationAction::Flag, $actions, true) || ($data['needs_human'] ?? false) === true,
+            'no_draft' => in_array(EscalationAction::NoDraft, $actions, true),
+            'raise_urgency' => in_array(EscalationAction::RaiseUrgency, $actions, true),
+        ];
+    }
+
+    /**
+     * The draft checks of the guidance, in order: no_draft escalation, forbidden topic (both never stored),
+     * time promise not in the service facts (not stored), then the kept-but-held cases: low router
+     * confidence and a language mismatch. Forbidden topics are compared as plain text (mb_stripos), never as a pattern.
+     *
+     * @param  array<string, mixed>  $result
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function hold(array $result, bool $noDraft, ?AgentGuidance $guidance, array $context): array
+    {
+        if ($result['draft'] === null) {
+            if ($noDraft && ! $result['draft_blocked']) {
+                $result['draft_hold'] = DraftHold::Escalation;
+            }
+
+            return $result;
+        }
+
+        if ($noDraft) {
+            return [...$result, 'draft' => null, 'draft_hold' => DraftHold::Escalation];
+        }
+
+        if ($guidance === null) {
+            return $result;
+        }
+
+        $draft = (string) $result['draft'];
+
+        foreach ($guidance->list('forbidden_topics') as $topic) {
+            if (mb_strlen($topic) <= 40 && self::contains($draft, $topic)) {
+                return [...$result, 'draft' => null, 'draft_blocked' => true, 'draft_hold' => DraftHold::Forbidden];
+            }
+        }
+
+        if (self::promisesTime($draft, $guidance->list('service_facts'))) {
+            return [...$result, 'draft' => null, 'draft_hold' => DraftHold::Sla];
+        }
+
+        $min = $guidance->confidenceMin();
+
+        if ($min !== null && isset($context['confidence']) && (int) $context['confidence'] < $min) {
+            return [...$result, 'draft_hold' => DraftHold::LowConfidence];
+        }
+
+        if (isset($context['language']) && ! self::scriptMatches($draft, (string) $context['language'])) {
+            return [...$result, 'draft_hold' => DraftHold::Language];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Literal, case-insensitive phrase check after NFKC and removing invisible characters.
+     */
+    private static function contains(string $text, string $phrase): bool
+    {
+        $text = self::fold($text);
+        $phrase = self::fold($phrase);
+
+        return $phrase !== '' && mb_stripos($text, $phrase) !== false;
+    }
+
+    private static function fold(string $text): string
+    {
+        $normalised = \Normalizer::normalize($text, \Normalizer::FORM_KC);
+
+        return (string) preg_replace('/\p{Cf}/u', '', is_string($normalised) ? $normalised : $text);
+    }
+
+    /**
+     * A time promise ("2 days", "24 soat", "через 3 дня") that is not word for word in the service facts.
+     *
+     * @param  list<string>  $facts
+     */
+    private static function promisesTime(string $draft, array $facts): bool
+    {
+        if (preg_match_all('/\d+\s*(?:soat|kun|daqiqa|час|день|дн|минут|hour|day|minute)\p{L}*/iu', self::fold($draft), $matches) < 1) {
+            return false;
+        }
+
+        foreach ($matches[0] as $phrase) {
+            $promised = false;
+
+            foreach ($facts as $fact) {
+                if (self::contains($fact, $phrase)) {
+                    $promised = true;
+
+                    break;
+                }
+            }
+
+            if (! $promised) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * ru: mostly Cyrillic letters; uz and en: mostly Latin letters.
+     */
+    private static function scriptMatches(string $draft, string $language): bool
+    {
+        if (! in_array($language, OfficePrompt::LANGUAGES, true)) {
+            return true;
+        }
+
+        $cyrillic = (int) preg_match_all('/\p{Cyrillic}/u', $draft);
+        $latin = (int) preg_match_all('/\p{Latin}/u', $draft);
+
+        if ($cyrillic + $latin === 0) {
+            return true;
+        }
+
+        return $language === 'ru' ? $cyrillic >= $latin : $latin >= $cyrillic;
     }
 
     /**
