@@ -453,3 +453,12 @@ it('keeps accent tokens on the brand green, not Telegram blue', function () {
         ->toContain("color: '#178045'")
         ->toContain("classList.toggle('tma-dark'");
 });
+
+it('maps the section header token to the brand accent and keeps Telegram blue theme colours out', function () {
+    $css = file_get_contents(resource_path('css/tma.css'));
+
+    expect($css)->toMatch('/--color-tg-header:\s*var\(--tma-accent\);/')
+        ->not->toContain('--tg-theme-section-header-text-color')
+        ->not->toContain('--tg-theme-link-color')
+        ->not->toContain('--tg-theme-button-color');
+});
